@@ -153,7 +153,7 @@ class ChartRenderer {
 
       // 데이터가 있는 막대에만 녹색 테두리
       if (freq[i] > 0) {
-        this.ctx.strokeStyle = '#57F684';
+        this.ctx.strokeStyle = CONFIG.CHART_BAR_BORDER_COLOR;
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(x, y, barWidth, h);
       }
@@ -180,7 +180,7 @@ class ChartRenderer {
     const { toX, toY, xScale } = coords;
 
     // 선 그리기
-    this.ctx.strokeStyle = '#FC9A63';
+    this.ctx.strokeStyle = CONFIG.CHART_POLYGON_COLOR;
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
 
@@ -259,7 +259,7 @@ class ChartRenderer {
       const formattedValue = Utils.formatNumber(value);
       this.ctx.fillText(
         formattedValue,
-        this.padding - 10,
+        this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
         toY(value) + CONFIG.CHART_LABEL_OFFSET
       );
     }
@@ -276,7 +276,7 @@ class ChartRenderer {
   drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo) {
     this.ctx.textAlign = 'center';
     this.ctx.font = '11px sans-serif';
-    const labelY = this.canvas.height - this.padding + 20;
+    const labelY = this.canvas.height - this.padding + CONFIG.CHART_X_LABEL_Y_OFFSET;
 
     if (ellipsisInfo && ellipsisInfo.show) {
       const firstDataIdx = ellipsisInfo.firstDataIndex;
@@ -286,7 +286,7 @@ class ChartRenderer {
 
       // 중략 기호
       const ellipsisX = (toX(0) + toX(1)) / 2;
-      this.ctx.fillText('⋯', ellipsisX, labelY + 10);
+      this.ctx.fillText('⋯', ellipsisX, labelY + CONFIG.CHART_ELLIPSIS_Y_OFFSET);
 
       // Zigzag 패턴
       this.drawEllipsisPattern(toX(0), toX(1), toY);
@@ -326,10 +326,10 @@ class ChartRenderer {
   drawAxisTitles(xLabel, yLabel) {
     this.ctx.font = 'bold 14px sans-serif';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText(xLabel, this.canvas.width / 2, this.canvas.height - 10);
+    this.ctx.fillText(xLabel, this.canvas.width / 2, this.canvas.height - CONFIG.CHART_X_TITLE_Y_OFFSET);
 
     this.ctx.save();
-    this.ctx.translate(15, this.canvas.height / 2);
+    this.ctx.translate(CONFIG.CHART_Y_TITLE_X_OFFSET, this.canvas.height / 2);
     this.ctx.rotate(-Math.PI / 2);
     this.ctx.fillText(yLabel, 0, 0);
     this.ctx.restore();
@@ -364,10 +364,11 @@ class ChartRenderer {
    */
   drawEllipsisPattern(startX, endX, getBaseY) {
     const baseY = getBaseY(0);
-    const zigzagHeight = 15;
-    const zigzagWidth = 8;
+    const zigzagHeight = CONFIG.CHART_ZIGZAG_HEIGHT;
+    const zigzagWidth = CONFIG.CHART_ZIGZAG_WIDTH;
     const centerX = (startX + endX) / 2;
-    const numZigzags = 3;
+    const numZigzags = CONFIG.CHART_ZIGZAG_COUNT;
+    const margin = CONFIG.CHART_ZIGZAG_MARGIN;
 
     this.ctx.strokeStyle = CONFIG.getColor('--color-text-light');
     this.ctx.lineWidth = 2;
@@ -375,9 +376,9 @@ class ChartRenderer {
 
     for (let i = 0; i < numZigzags; i++) {
       const x = centerX - (numZigzags * zigzagWidth / 2) + (i * zigzagWidth);
-      this.ctx.moveTo(x, baseY - 5);
-      this.ctx.lineTo(x + zigzagWidth / 2, baseY - 5 - zigzagHeight);
-      this.ctx.lineTo(x + zigzagWidth, baseY - 5);
+      this.ctx.moveTo(x, baseY - margin);
+      this.ctx.lineTo(x + zigzagWidth / 2, baseY - margin - zigzagHeight);
+      this.ctx.lineTo(x + zigzagWidth, baseY - margin);
     }
 
     this.ctx.stroke();
@@ -387,7 +388,7 @@ class ChartRenderer {
    * 범례 그리기
    */
   drawLegend() {
-    const legendX = this.canvas.width - 180;
+    const legendX = this.canvas.width - CONFIG.CHART_LEGEND_X_OFFSET;
     this.ctx.textAlign = 'left';
     this.ctx.font = '12px sans-serif';
 
@@ -405,7 +406,7 @@ class ChartRenderer {
     this.ctx.fillText('히스토그램', legendX + 25, 32);
 
     // 상대도수 다각형 범례
-    this.ctx.strokeStyle = '#FC9A63';
+    this.ctx.strokeStyle = CONFIG.CHART_POLYGON_COLOR;
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.moveTo(legendX, 50);

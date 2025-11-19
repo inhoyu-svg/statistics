@@ -3,6 +3,7 @@
  * 통계 계산 및 계급 생성 로직
  */
 
+import CONFIG from '../config.js';
 import Utils from '../utils/utils.js';
 import MessageManager from '../utils/message.js';
 
@@ -138,13 +139,13 @@ class DataProcessor {
 
   /**
    * 중략 표시가 필요한지 판단
-   * 첫 번째 데이터가 있는 계급 이전에 빈 계급이 3개 이상이면 중략 표시
+   * 첫 번째 데이터가 있는 계급 이전에 빈 계급이 CONFIG.ELLIPSIS_THRESHOLD개 이상이면 중략 표시
    */
   static shouldShowEllipsis(classes) {
     const firstDataIndex = classes.findIndex(c => c.frequency > 0);
 
-    // 첫 데이터가 0번째 계급이거나, 1~2번째 계급이면 중략 불필요
-    if (firstDataIndex <= 2) {
+    // 첫 데이터가 threshold 이하 계급에 있으면 중략 불필요
+    if (firstDataIndex <= CONFIG.ELLIPSIS_THRESHOLD) {
       return { show: false, firstDataIndex: -1 };
     }
 
