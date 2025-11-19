@@ -167,6 +167,14 @@ h1 {
   background: var(--color-bg-light);
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
+  max-width: 800px;
+  margin: 0 auto;
+  transition: margin 0.5s ease, max-width 0.5s ease;
+}
+
+.input-section.shifted {
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .input-group {
