@@ -254,7 +254,7 @@ class ChartRenderer {
       // 중략 구간 시각적 표시 (zigzag 패턴) - 0과 압축된 칸 사이에만
       this.drawEllipsisPattern(toX(0), toX(1), toY(0));
 
-      // 첫 데이터부터 끝까지 표시
+      // 첫 데이터부터 끝까지 표시 (막대 시작점에 라벨)
       for (let i = firstDataIdx; i < classes.length; i++) {
         this.ctx.fillText(
           classes[i].min,
@@ -263,10 +263,10 @@ class ChartRenderer {
         );
       }
 
-      // 마지막 값
+      // 마지막 값 (마지막 막대의 끝점)
       this.ctx.fillText(
         classes[classes.length - 1].max,
-        toX(classes.length),
+        toX(classes.length - 1) + xScale,
         this.canvas.height - this.padding + 20
       );
     } else {
