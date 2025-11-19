@@ -1,9 +1,9 @@
 /* ========== CSS Variables (Theme System) ========== */
 :root {
   /* Colors */
-  --color-primary: #7c3aed;
-  --color-primary-dark: #6d28d9;
-  --color-secondary: #a855f7;
+  --color-primary: #54A0F6;
+  --color-primary-dark: #2CA0E8;
+  --color-secondary: #6DE0FC;
   --color-success: #10b981;
   --color-error: #ef4444;
   --color-warning: #f59e0b;
@@ -41,10 +41,10 @@
   --transition-base: 0.3s ease;
 
   /* Chart */
-  --chart-bar-color: rgba(124, 58, 237, 0.7);
-  --chart-bar-border: #7c3aed;
-  --chart-line-color: #f97316;
-  --chart-point-color: #f97316;
+  --chart-bar-color: #4141A3;
+  --chart-bar-color-end: #2CA0E8;
+  --chart-line-color-start: #FA716F;
+  --chart-line-color-end: #F3A257;
 
   /* Additional Dark Theme Colors */
   --color-bg-dark: #0f172a;
@@ -280,16 +280,19 @@ button:active {
 }
 
 .stat-card {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background: linear-gradient(180deg, rgba(65, 65, 163, 0.5) 0%, rgba(44, 160, 232, 0.5) 100%);
   color: white;
   padding: var(--spacing-md);
   border-radius: var(--radius-lg);
   text-align: center;
-  transition: transform var(--transition-fast);
+  transition: all var(--transition-base);
+  position: relative;
+  cursor: help;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(84, 160, 246, 0.4);
 }
 
 .stat-card h3 {
@@ -301,6 +304,47 @@ button:active {
 .stat-card p {
   font-size: 18px;
   font-weight: bold;
+}
+
+/* Tooltip */
+.stat-card .tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: var(--color-bg-dark);
+  color: var(--color-text);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+  width: 200px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--color-border);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Tooltip arrow */
+.stat-card .tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-bg-dark);
+}
+
+.stat-card:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-12px);
 }
 
 /* ========== Table Section ========== */
