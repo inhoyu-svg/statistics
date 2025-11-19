@@ -190,16 +190,27 @@ class ChartRenderer {
       );
     }
 
-    // X축 라벨 (계급)
+    // X축 라벨 (계급 경계값)
     this.ctx.textAlign = 'center';
     this.ctx.font = '11px sans-serif';
+
+    // 각 막대의 시작 위치에 경계값 표시
     classes.forEach((c, i) => {
       this.ctx.fillText(
-        `${c.min}~${c.max}`,
-        toX(i) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET,
+        c.min,
+        toX(i),
         this.canvas.height - this.padding + 20
       );
     });
+
+    // 마지막 막대의 끝 값도 표시
+    if (classes.length > 0) {
+      this.ctx.fillText(
+        classes[classes.length - 1].max,
+        toX(classes.length),
+        this.canvas.height - this.padding + 20
+      );
+    }
 
     // 축 제목
     this.ctx.font = 'bold 14px sans-serif';
