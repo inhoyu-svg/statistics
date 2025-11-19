@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="도수분포표와 히스토그램을 자동으로 생성하는 통계 분석 도구">
+  <title>도수분포 히스토그램 + 상대도수 다각형</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <h1>📊 도수분포표 & 히스토그램</h1>
+
+    <!-- Error/Success Message -->
+    <div id="messageBox" class="message-box" role="alert" aria-live="polite"></div>
+
+    <div class="layout-grid">
+      <!-- Left Column: Input Section -->
+      <aside class="left-column">
+        <section class="input-section" aria-label="데이터 입력 섹션">
+      <div class="info" role="note">
+        💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56
+      </div>
+
+      <div class="input-group">
+        <label for="dataInput">데이터 입력:</label>
+        <textarea
+          id="dataInput"
+          placeholder="예: 23, 45, 67, 34, 56, 78, 45, 89, 12, 34"
+          aria-describedby="dataInputHelp"
+          rows="3">2, 5, 8, 5, 2, 3, 7, 9, 4, 6, 5, 8, 3, 2, 7</textarea>
+        <span id="dataInputHelp" class="sr-only">쉼표나 공백으로 구분된 숫자를 입력하세요</span>
+      </div>
+
+      <div class="row">
+        <div class="input-group">
+          <label for="classCount">계급 개수:</label>
+          <input
+            type="number"
+            id="classCount"
+            value="5"
+            min="3"
+            max="20"
+            aria-describedby="classCountHelp">
+          <span id="classCountHelp" class="sr-only">3에서 20 사이의 값을 입력하세요</span>
+        </div>
+        <div class="input-group">
+          <label for="classWidth">계급 간격 (선택):</label>
+          <input
+            type="number"
+            id="classWidth"
+            placeholder="자동 계산"
+            step="0.1"
+            min="0.1"
+            aria-describedby="classWidthHelp">
+          <span id="classWidthHelp" class="sr-only">비워두면 자동으로 계산됩니다</span>
+        </div>
+      </div>
+
+      <button id="generateBtn" type="button" aria-label="도수분포표 생성">
+        도수분포표 생성
+      </button>
+        </section>
+
+        <!-- Statistics Summary (왼쪽 하단) -->
+        <div class="stats-summary" id="statsSummary" role="region" aria-label="통계 요약"></div>
+      </aside>
+
+      <!-- Right Column: Results Section (표만) -->
+      <div class="right-column">
+        <section class="result-section" id="resultSection" aria-label="분석 결과">
+      <div class="table-section">
+        <h2 class="section-title">📋 도수분포표</h2>
+        <div class="table-wrapper">
+          <table id="frequencyTable" role="table" aria-label="도수분포표"></table>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h2 class="section-title">📈 히스토그램 & 상대도수 다각형</h2>
+        <div class="canvas-wrapper">
+          <canvas id="chart" role="img" aria-label="도수분포 히스토그램과 상대도수 다각형"></canvas>
+        </div>
+      </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
