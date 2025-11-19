@@ -133,11 +133,11 @@ class ChartRenderer {
   drawHistogram(relativeFreqs, freq, coords, ellipsisInfo) {
     const { toX, toY, xScale } = coords;
 
-    relativeFreqs.forEach((r, i) => {
-      if (this.shouldSkipEllipsis(i, ellipsisInfo)) return;
+    relativeFreqs.forEach((relativeFreq, index) => {
+      if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
-      const x = toX(i);
-      const y = toY(r);
+      const x = toX(index);
+      const y = toY(relativeFreq);
       const h = toY(0) - y;
       const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
 
@@ -152,7 +152,7 @@ class ChartRenderer {
       this.ctx.globalAlpha = 1.0;
 
       // 데이터가 있는 막대에만 녹색 테두리
-      if (freq[i] > 0) {
+      if (freq[index] > 0) {
         this.ctx.strokeStyle = CONFIG.CHART_BAR_BORDER_COLOR;
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(x, y, barWidth, h);
@@ -160,11 +160,11 @@ class ChartRenderer {
 
       // 도수 라벨
       this.ctx.fillStyle = CONFIG.getColor('--color-text');
-      this.ctx.font = '12px sans-serif';
+      this.ctx.font = CONFIG.CHART_FONT_REGULAR;
       this.ctx.textAlign = 'center';
       this.ctx.fillText(
-        freq[i],
-        this.getBarCenterX(i, toX, xScale),
+        freq[index],
+        this.getBarCenterX(index, toX, xScale),
         y - CONFIG.CHART_LABEL_OFFSET
       );
     });
@@ -185,11 +185,11 @@ class ChartRenderer {
     this.ctx.beginPath();
 
     let firstPoint = true;
-    relativeFreqs.forEach((r, i) => {
-      if (this.shouldSkipEllipsis(i, ellipsisInfo)) return;
+    relativeFreqs.forEach((relativeFreq, index) => {
+      if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
-      const x = this.getBarCenterX(i, toX, xScale);
-      const y = toY(r);
+      const x = this.getBarCenterX(index, toX, xScale);
+      const y = toY(relativeFreq);
 
       if (firstPoint) {
         this.ctx.moveTo(x, y);
@@ -201,11 +201,11 @@ class ChartRenderer {
     this.ctx.stroke();
 
     // 점 그리기
-    relativeFreqs.forEach((r, i) => {
-      if (this.shouldSkipEllipsis(i, ellipsisInfo)) return;
+    relativeFreqs.forEach((relativeFreq, index) => {
+      if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
-      const centerX = this.getBarCenterX(i, toX, xScale);
-      const centerY = toY(r);
+      const centerX = this.getBarCenterX(index, toX, xScale);
+      const centerY = toY(relativeFreq);
 
       const gradient = this.ctx.createRadialGradient(
         centerX, centerY, 0,
@@ -235,7 +235,7 @@ class ChartRenderer {
     const yLabel = axisLabels?.yAxis || CONFIG.DEFAULT_LABELS.yAxis;
 
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.font = 'bold 14px sans-serif';
+    this.ctx.font = CONFIG.CHART_FONT_BOLD;
 
     // Y축 라벨
     this.drawYAxisLabels(toY, maxY);
@@ -275,7 +275,7 @@ class ChartRenderer {
    */
   drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo) {
     this.ctx.textAlign = 'center';
-    this.ctx.font = '11px sans-serif';
+    this.ctx.font = CONFIG.CHART_FONT_SMALL;
     const labelY = this.canvas.height - this.padding + CONFIG.CHART_X_LABEL_Y_OFFSET;
 
     if (ellipsisInfo && ellipsisInfo.show) {
@@ -324,7 +324,7 @@ class ChartRenderer {
    * @param {string} yLabel - Y축 제목
    */
   drawAxisTitles(xLabel, yLabel) {
-    this.ctx.font = 'bold 14px sans-serif';
+    this.ctx.font = CONFIG.CHART_FONT_BOLD;
     this.ctx.textAlign = 'center';
     this.ctx.fillText(xLabel, this.canvas.width / 2, this.canvas.height - CONFIG.CHART_X_TITLE_Y_OFFSET);
 
@@ -390,7 +390,7 @@ class ChartRenderer {
   drawLegend() {
     const legendX = this.canvas.width - CONFIG.CHART_LEGEND_X_OFFSET;
     this.ctx.textAlign = 'left';
-    this.ctx.font = '12px sans-serif';
+    this.ctx.font = CONFIG.CHART_FONT_REGULAR;
 
     // 히스토그램 범례
     const barGradient = this.ctx.createLinearGradient(legendX, 20, legendX, 35);
@@ -433,7 +433,7 @@ class ChartRenderer {
    */
   drawNoDataMessage() {
     this.ctx.fillStyle = CONFIG.getColor('--color-text-light');
-    this.ctx.font = '16px sans-serif';
+    this.ctx.font = CONFIG.CHART_FONT_LARGE;
     this.ctx.textAlign = 'center';
     this.ctx.fillText(
       '데이터가 없습니다',

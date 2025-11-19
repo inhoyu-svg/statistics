@@ -105,19 +105,19 @@ class UIRenderer {
     // tbody 생성
     const tbody = document.createElement('tbody');
 
-    classes.forEach(c => {
+    classes.forEach(classData => {
       // 도수가 0인 계급은 표에서 제외
-      if (c.frequency === 0) return;
+      if (classData.frequency === 0) return;
 
       const row = document.createElement('tr');
 
       const cells = [
-        `${c.min} ~ ${c.max}`,
-        Utils.formatNumber(c.midpoint),
-        c.frequency,
-        `${c.relativeFreq}%`,
-        c.cumulativeFreq,
-        `${c.cumulativeRelFreq}%`
+        `${classData.min} ~ ${classData.max}`,
+        Utils.formatNumber(classData.midpoint),
+        classData.frequency,
+        `${classData.relativeFreq}%`,
+        classData.cumulativeFreq,
+        `${classData.cumulativeRelFreq}%`
       ];
 
       cells.forEach(cellText => {

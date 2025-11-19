@@ -127,11 +127,11 @@ class DataProcessor {
   static calculateRelativeAndCumulative(classes, total) {
     let cumulativeFreq = 0;
 
-    classes.forEach(c => {
-      c.relativeFreq = Utils.formatNumber(c.frequency / total * 100);
-      cumulativeFreq += c.frequency;
-      c.cumulativeFreq = cumulativeFreq;
-      c.cumulativeRelFreq = Utils.formatNumber(cumulativeFreq / total * 100);
+    classes.forEach(classData => {
+      classData.relativeFreq = Utils.formatNumber(classData.frequency / total * 100);
+      cumulativeFreq += classData.frequency;
+      classData.cumulativeFreq = cumulativeFreq;
+      classData.cumulativeRelFreq = Utils.formatNumber(cumulativeFreq / total * 100);
     });
 
     return classes;
@@ -142,7 +142,7 @@ class DataProcessor {
    * 첫 번째 데이터가 있는 계급 이전에 빈 계급이 CONFIG.ELLIPSIS_THRESHOLD개 이상이면 중략 표시
    */
   static shouldShowEllipsis(classes) {
-    const firstDataIndex = classes.findIndex(c => c.frequency > 0);
+    const firstDataIndex = classes.findIndex(classData => classData.frequency > 0);
 
     // 첫 데이터가 threshold 이하 계급에 있으면 중략 불필요
     if (firstDataIndex <= CONFIG.ELLIPSIS_THRESHOLD) {

@@ -45,6 +45,12 @@ const CONFIG = {
   CHART_BAR_BORDER_COLOR: '#57F684',
   CHART_POLYGON_COLOR: '#FC9A63',
 
+  // 차트 폰트 설정
+  CHART_FONT_SMALL: '11px sans-serif',
+  CHART_FONT_REGULAR: '12px sans-serif',
+  CHART_FONT_BOLD: 'bold 14px sans-serif',
+  CHART_FONT_LARGE: '16px sans-serif',
+
   // 소수점 자릿수
   DECIMAL_PLACES: 2,
 
@@ -69,10 +75,32 @@ const CONFIG = {
     }
   },
 
-  // CSS 변수에서 가져오는 색상 (테마 통합)
+  // 색상 캐시 (성능 최적화)
+  _colorCache: null,
+
+  // CSS 색상 초기화 (앱 시작 시 한 번만 호출)
+  initializeColors() {
+    if (this._colorCache) return;
+
+    const style = getComputedStyle(document.documentElement);
+    this._colorCache = {
+      '--color-text': style.getPropertyValue('--color-text').trim(),
+      '--color-grid': style.getPropertyValue('--color-grid').trim(),
+      '--color-border': style.getPropertyValue('--color-border').trim(),
+      '--color-text-light': style.getPropertyValue('--color-text-light').trim(),
+      '--chart-bar-color': style.getPropertyValue('--chart-bar-color').trim(),
+      '--chart-bar-color-end': style.getPropertyValue('--chart-bar-color-end').trim(),
+      '--chart-line-color-start': style.getPropertyValue('--chart-line-color-start').trim(),
+      '--chart-line-color-end': style.getPropertyValue('--chart-line-color-end').trim(),
+    };
+  },
+
+  // CSS 변수에서 색상 가져오기 (캐싱 지원)
   getColor(varName) {
-    return getComputedStyle(document.documentElement)
-      .getPropertyValue(varName).trim();
+    if (!this._colorCache) {
+      this.initializeColors();
+    }
+    return this._colorCache[varName] || getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
   }
 };
 
