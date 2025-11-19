@@ -115,16 +115,21 @@ class FrequencyDistributionApp {
     const label5 = document.getElementById('label5').value.trim();
     const label6 = document.getElementById('label6').value.trim();
 
+    // X축 라벨과 표의 "계급" 컬럼을 통합
+    const classLabel = label1 || xAxisLabel || CONFIG.DEFAULT_LABELS.table.class;
+    // Y축 라벨과 표의 "상대도수(%)" 컬럼을 통합
+    const relativeFreqLabel = label4 || yAxisLabel || CONFIG.DEFAULT_LABELS.table.relativeFrequency;
+
     return {
       axis: {
-        xAxis: xAxisLabel || CONFIG.DEFAULT_LABELS.xAxis,
-        yAxis: yAxisLabel || CONFIG.DEFAULT_LABELS.yAxis
+        xAxis: xAxisLabel || label1 || CONFIG.DEFAULT_LABELS.xAxis,
+        yAxis: yAxisLabel || label4 || CONFIG.DEFAULT_LABELS.yAxis
       },
       table: {
-        class: label1 || CONFIG.DEFAULT_LABELS.table.class,
+        class: classLabel,
         midpoint: label2 || CONFIG.DEFAULT_LABELS.table.midpoint,
         frequency: label3 || CONFIG.DEFAULT_LABELS.table.frequency,
-        relativeFrequency: label4 || CONFIG.DEFAULT_LABELS.table.relativeFrequency,
+        relativeFrequency: relativeFreqLabel,
         cumulativeFrequency: label5 || CONFIG.DEFAULT_LABELS.table.cumulativeFrequency,
         cumulativeRelativeFrequency: label6 || CONFIG.DEFAULT_LABELS.table.cumulativeRelativeFrequency
       }
