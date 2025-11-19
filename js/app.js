@@ -93,9 +93,9 @@ class FrequencyDistributionApp {
       UIRenderer.renderFrequencyTable(classes, data.length, customLabels.table);
       this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo);
 
-      // 8. 결과 섹션 표시 및 입력 섹션 왼쪽 정렬
+      // 8. 결과 섹션 표시 및 2열 레이아웃 전환
       document.getElementById('resultSection').classList.add('active');
-      document.querySelector('.input-section').classList.add('shifted');
+      document.querySelector('.layout-grid').classList.add('two-column');
 
       // 9. 성공 메시지
       MessageManager.success('도수분포표가 생성되었습니다!');

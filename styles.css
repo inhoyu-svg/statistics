@@ -86,19 +86,38 @@ h1 {
 /* ========== 2-Column Layout ========== */
 .layout-grid {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 1fr;
   gap: var(--spacing-xl);
   align-items: start;
+  transition: grid-template-columns 0.5s ease;
+}
+
+.layout-grid.two-column {
+  grid-template-columns: 380px 1fr;
 }
 
 .left-column {
   position: sticky;
   top: var(--spacing-lg);
   align-self: start;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  transition: max-width 0.5s ease, margin 0.5s ease;
+}
+
+.layout-grid.two-column .left-column {
+  max-width: none;
+  margin: 0;
 }
 
 .right-column {
   min-width: 0; /* 그리드 오버플로우 방지 */
+  display: none;
+}
+
+.layout-grid.two-column .right-column {
+  display: block;
 }
 
 .section-title {
@@ -167,14 +186,6 @@ h1 {
   background: var(--color-bg-light);
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
-  max-width: 800px;
-  margin: 0 auto;
-  transition: margin 0.5s ease, max-width 0.5s ease;
-}
-
-.input-section.shifted {
-  margin-left: 0;
-  margin-right: auto;
 }
 
 .input-group {
