@@ -44,17 +44,34 @@ class ChartRenderer {
     const chartH = this.canvas.height - this.padding * 2;
     const maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
 
-    const xScale = chartW / classes.length;
-    const yScale = chartH / maxY;
+    // 중략 표시 시 좌표 시스템 변경
+    let xScale, toX;
+    if (ellipsisInfo && ellipsisInfo.show) {
+      // 빈 구간을 1칸으로 압축
+      const firstDataIdx = ellipsisInfo.firstDataIndex;
+      const visibleClasses = 1 + (classes.length - firstDataIdx); // 0구간(1칸) + 데이터 구간
+      xScale = chartW / visibleClasses;
 
-    // 좌표 변환 함수
-    const toX = (index) => this.padding + index * xScale;
+      // 압축된 좌표 변환 함수
+      toX = (index) => {
+        if (index === 0) return this.padding; // 0 위치
+        if (index < firstDataIdx) return this.padding + xScale; // 중략 구간은 1칸
+        // 데이터 구간
+        return this.padding + xScale + (index - firstDataIdx) * xScale;
+      };
+    } else {
+      // 기존 방식
+      xScale = chartW / classes.length;
+      toX = (index) => this.padding + index * xScale;
+    }
+
+    const yScale = chartH / maxY;
     const toY = (value) => this.canvas.height - this.padding - value * yScale;
 
     // 렌더링 순서
     this.drawGrid(toX, toY, maxY);
-    this.drawHistogram(relativeFreqs, freq, toX, toY, xScale);
-    this.drawPolygon(relativeFreqs, toX, toY, classes.length);
+    this.drawHistogram(relativeFreqs, freq, toX, toY, xScale, ellipsisInfo);
+    this.drawPolygon(relativeFreqs, toX, toY, classes.length, ellipsisInfo);
     this.drawAxes(classes, toX, toY, maxY, xScale, axisLabels, ellipsisInfo);
     this.drawLegend();
   }
@@ -92,8 +109,14 @@ class ChartRenderer {
   /**
    * 히스토그램 그리기
    */
-  drawHistogram(relativeFreqs, freq, toX, toY, xScale) {
+  drawHistogram(relativeFreqs, freq, toX, toY, xScale, ellipsisInfo = null) {
     relativeFreqs.forEach((r, i) => {
+      // 중략 표시 시 빈 구간은 건너뛰기
+      if (ellipsisInfo && ellipsisInfo.show) {
+        const firstDataIdx = ellipsisInfo.firstDataIndex;
+        if (i > 0 && i < firstDataIdx) return; // 중략 구간 건너뛰기
+      }
+
       const x = toX(i);
       const y = toY(r);
       const h = toY(0) - y;
@@ -131,24 +154,40 @@ class ChartRenderer {
   /**
    * 상대도수 다각형 그리기
    */
-  drawPolygon(relativeFreqs, toX, toY, classCount) {
+  drawPolygon(relativeFreqs, toX, toY, classCount, ellipsisInfo = null) {
+    // 중략 표시 시 데이터가 있는 점만 연결
+    const shouldSkip = (i) => {
+      if (!ellipsisInfo || !ellipsisInfo.show) return false;
+      const firstDataIdx = ellipsisInfo.firstDataIndex;
+      return i > 0 && i < firstDataIdx;
+    };
+
     // 라인 색상 (#FA716F + #F3A257의 중간색)
     this.ctx.strokeStyle = '#FC9A63';
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
 
-    // 첫 번째 점에서 시작
-    this.ctx.moveTo(toX(0 + CONFIG.CHART_BAR_CENTER_OFFSET), toY(relativeFreqs[0]));
+    let firstPoint = true;
+    relativeFreqs.forEach((r, i) => {
+      if (shouldSkip(i)) return; // 중략 구간 건너뛰기
 
-    // 각 점 연결 (첫 번째는 이미 moveTo로 처리했으므로 두 번째부터)
-    for (let i = 1; i < relativeFreqs.length; i++) {
-      this.ctx.lineTo(toX(i + CONFIG.CHART_BAR_CENTER_OFFSET), toY(relativeFreqs[i]));
-    }
+      const x = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
+      const y = toY(r);
+
+      if (firstPoint) {
+        this.ctx.moveTo(x, y);
+        firstPoint = false;
+      } else {
+        this.ctx.lineTo(x, y);
+      }
+    });
 
     this.ctx.stroke();
 
     // 점 찍기 (그라디언트 효과)
     relativeFreqs.forEach((r, i) => {
+      if (shouldSkip(i)) return; // 중략 구간 건너뛰기
+
       // 각 점마다 그라디언트 생성
       const centerX = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
       const centerY = toY(r);
@@ -205,12 +244,12 @@ class ChartRenderer {
       // 0 표시
       this.ctx.fillText('0', toX(0), this.canvas.height - this.padding + 20);
 
-      // 중략 표시 (물결 모양)
-      const ellipsisX = toX(firstDataIdx / 2);
+      // 중략 표시 (물결 모양) - 0과 첫 데이터 사이 중간에 표시
+      const ellipsisX = (toX(0) + toX(firstDataIdx)) / 2;
       this.ctx.fillText('⋯', ellipsisX, this.canvas.height - this.padding + 20);
 
       // 중략 구간 시각적 표시 (zigzag 패턴)
-      this.drawEllipsisPattern(toX(1), toX(firstDataIdx - 1), toY(0));
+      this.drawEllipsisPattern(toX(0), toX(firstDataIdx), toY(0));
 
       // 첫 데이터부터 끝까지 표시
       for (let i = firstDataIdx; i < classes.length; i++) {
