@@ -34,6 +34,20 @@ const CONFIG = {
   CANVAS_WIDTH: 700,
   CANVAS_HEIGHT: 450,
 
+  // 기본 라벨 (고급 설정)
+  DEFAULT_LABELS: {
+    xAxis: '계급',
+    yAxis: '상대도수',
+    table: {
+      class: '계급',
+      midpoint: '계급값',
+      frequency: '도수',
+      relativeFrequency: '상대도수(%)',
+      cumulativeFrequency: '누적도수',
+      cumulativeRelativeFrequency: '누적상대도수(%)'
+    }
+  },
+
   // CSS 변수에서 가져오는 색상 (테마 통합)
   getColor(varName) {
     return getComputedStyle(document.documentElement)

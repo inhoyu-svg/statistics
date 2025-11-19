@@ -23,7 +23,7 @@ class ChartRenderer {
   /**
    * 히스토그램과 상대도수 다각형 그리기
    */
-  draw(classes) {
+  draw(classes, axisLabels = null) {
     // Canvas 크기 설정 (매번 그릴 때마다)
     this.canvas.width = CONFIG.CANVAS_WIDTH;
     this.canvas.height = CONFIG.CANVAS_HEIGHT;
@@ -55,7 +55,7 @@ class ChartRenderer {
     this.drawGrid(toX, toY, maxY);
     this.drawHistogram(relativeFreqs, freq, toX, toY, xScale);
     this.drawPolygon(relativeFreqs, toX, toY, classes.length);
-    this.drawAxes(classes, toX, toY, maxY, xScale);
+    this.drawAxes(classes, toX, toY, maxY, xScale, axisLabels);
     this.drawLegend();
   }
 
@@ -175,7 +175,11 @@ class ChartRenderer {
   /**
    * 축과 라벨 그리기
    */
-  drawAxes(classes, toX, toY, maxY, xScale) {
+  drawAxes(classes, toX, toY, maxY, xScale, axisLabels = null) {
+    // 라벨 가져오기 (커스텀 라벨 또는 기본값)
+    const xLabel = axisLabels?.xAxis || CONFIG.DEFAULT_LABELS.xAxis;
+    const yLabel = axisLabels?.yAxis || CONFIG.DEFAULT_LABELS.yAxis;
+
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.font = 'bold 14px sans-serif';
 
@@ -212,15 +216,15 @@ class ChartRenderer {
       );
     }
 
-    // 축 제목
+    // 축 제목 (커스텀 라벨 적용)
     this.ctx.font = 'bold 14px sans-serif';
-    this.ctx.fillText('계급', this.canvas.width / 2, this.canvas.height - 10);
+    this.ctx.fillText(xLabel, this.canvas.width / 2, this.canvas.height - 10);
 
-    // Y축 제목 (회전)
+    // Y축 제목 (회전, 커스텀 라벨 적용)
     this.ctx.save();
     this.ctx.translate(15, this.canvas.height / 2);
     this.ctx.rotate(-Math.PI / 2);
-    this.ctx.fillText('상대도수', 0, 0);
+    this.ctx.fillText(yLabel, 0, 0);
     this.ctx.restore();
   }
 

@@ -76,27 +76,59 @@ class FrequencyDistributionApp {
         return;
       }
 
-      // 5. 데이터 처리
+      // 5. 고급 설정 값 가져오기
+      const customLabels = this.getCustomLabels();
+
+      // 6. 데이터 처리
       const stats = DataProcessor.calculateBasicStats(data);
       const { classes } = DataProcessor.createClasses(stats, classCount, customWidth);
       DataProcessor.calculateFrequencies(data, classes);
       DataProcessor.calculateRelativeAndCumulative(classes, data.length);
 
-      // 6. UI 렌더링
+      // 7. UI 렌더링 (커스텀 라벨 전달)
       UIRenderer.renderStatsCards(stats);
-      UIRenderer.renderFrequencyTable(classes, data.length);
-      this.chartRenderer.draw(classes);
+      UIRenderer.renderFrequencyTable(classes, data.length, customLabels.table);
+      this.chartRenderer.draw(classes, customLabels.axis);
 
-      // 7. 결과 섹션 표시
+      // 8. 결과 섹션 표시
       document.getElementById('resultSection').classList.add('active');
 
-      // 8. 성공 메시지
+      // 9. 성공 메시지
       MessageManager.success('도수분포표가 생성되었습니다!');
 
     } catch (error) {
       console.error('Error:', error);
       MessageManager.error(`오류가 발생했습니다: ${error.message}`);
     }
+  }
+
+  /**
+   * 고급 설정에서 커스텀 라벨 가져오기
+   */
+  getCustomLabels() {
+    const xAxisLabel = document.getElementById('xAxisLabel').value.trim();
+    const yAxisLabel = document.getElementById('yAxisLabel').value.trim();
+    const label1 = document.getElementById('label1').value.trim();
+    const label2 = document.getElementById('label2').value.trim();
+    const label3 = document.getElementById('label3').value.trim();
+    const label4 = document.getElementById('label4').value.trim();
+    const label5 = document.getElementById('label5').value.trim();
+    const label6 = document.getElementById('label6').value.trim();
+
+    return {
+      axis: {
+        xAxis: xAxisLabel || CONFIG.DEFAULT_LABELS.xAxis,
+        yAxis: yAxisLabel || CONFIG.DEFAULT_LABELS.yAxis
+      },
+      table: {
+        class: label1 || CONFIG.DEFAULT_LABELS.table.class,
+        midpoint: label2 || CONFIG.DEFAULT_LABELS.table.midpoint,
+        frequency: label3 || CONFIG.DEFAULT_LABELS.table.frequency,
+        relativeFrequency: label4 || CONFIG.DEFAULT_LABELS.table.relativeFrequency,
+        cumulativeFrequency: label5 || CONFIG.DEFAULT_LABELS.table.cumulativeFrequency,
+        cumulativeRelativeFrequency: label6 || CONFIG.DEFAULT_LABELS.table.cumulativeRelativeFrequency
+      }
+    };
   }
 }
 

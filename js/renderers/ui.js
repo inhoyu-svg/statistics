@@ -75,14 +75,24 @@ class UIRenderer {
   /**
    * 도수분포표 렌더링 (XSS 방지)
    */
-  static renderFrequencyTable(classes, total) {
+  static renderFrequencyTable(classes, total, labels = null) {
     const table = document.getElementById('frequencyTable');
     table.innerHTML = ''; // 초기화
+
+    // 라벨 가져오기 (커스텀 라벨 또는 기본값)
+    const tableLabels = labels || CONFIG.DEFAULT_LABELS.table;
 
     // thead 생성
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = ['계급', '계급값', '도수', '상대도수(%)', '누적도수', '누적상대도수(%)'];
+    const headers = [
+      tableLabels.class,
+      tableLabels.midpoint,
+      tableLabels.frequency,
+      tableLabels.relativeFrequency,
+      tableLabels.cumulativeFrequency,
+      tableLabels.cumulativeRelativeFrequency
+    ];
 
     headers.forEach(headerText => {
       const th = document.createElement('th');
