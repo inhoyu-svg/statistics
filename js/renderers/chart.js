@@ -171,7 +171,13 @@ class ChartRenderer {
     relativeFreqs.forEach((r, i) => {
       if (shouldSkip(i)) return; // 중략 구간 건너뛰기
 
-      const x = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
+      let x;
+      // 첫 데이터 점(firstDataIdx)은 압축된 칸의 중앙에 위치
+      if (ellipsisInfo && ellipsisInfo.show && i === ellipsisInfo.firstDataIndex) {
+        x = toX(1); // 압축된 중략 칸의 중앙
+      } else {
+        x = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
+      }
       const y = toY(r);
 
       if (firstPoint) {
@@ -188,9 +194,16 @@ class ChartRenderer {
     relativeFreqs.forEach((r, i) => {
       if (shouldSkip(i)) return; // 중략 구간 건너뛰기
 
-      // 각 점마다 그라디언트 생성
-      const centerX = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
+      let centerX;
+      // 첫 데이터 점(firstDataIdx)은 압축된 칸의 중앙에 위치
+      if (ellipsisInfo && ellipsisInfo.show && i === ellipsisInfo.firstDataIndex) {
+        centerX = toX(1); // 압축된 중략 칸의 중앙
+      } else {
+        centerX = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
+      }
       const centerY = toY(r);
+
+      // 각 점마다 그라디언트 생성
       const gradient = this.ctx.createRadialGradient(
         centerX, centerY, 0,
         centerX, centerY, CONFIG.CHART_POINT_RADIUS
@@ -244,12 +257,12 @@ class ChartRenderer {
       // 0 표시
       this.ctx.fillText('0', toX(0), this.canvas.height - this.padding + 20);
 
-      // 중략 표시 (물결 모양) - 0과 첫 데이터 사이 중간에 표시
-      const ellipsisX = (toX(0) + toX(firstDataIdx)) / 2;
-      this.ctx.fillText('⋯', ellipsisX, this.canvas.height - this.padding + 20);
+      // 중략 표시 (물결 모양) - 0과 압축된 칸 사이 중간에 표시
+      const ellipsisX = (toX(0) + toX(1)) / 2;
+      this.ctx.fillText('⋯', ellipsisX, this.canvas.height - this.padding + 30);
 
-      // 중략 구간 시각적 표시 (zigzag 패턴)
-      this.drawEllipsisPattern(toX(0), toX(firstDataIdx), toY(0));
+      // 중략 구간 시각적 표시 (zigzag 패턴) - 0과 압축된 칸 사이에만
+      this.drawEllipsisPattern(toX(0), toX(1), toY(0));
 
       // 첫 데이터부터 끝까지 표시
       for (let i = firstDataIdx; i < classes.length; i++) {
