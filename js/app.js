@@ -85,10 +85,13 @@ class FrequencyDistributionApp {
       DataProcessor.calculateFrequencies(data, classes);
       DataProcessor.calculateRelativeAndCumulative(classes, data.length);
 
+      // 중략 표시 여부 확인
+      const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
+
       // 7. UI 렌더링 (커스텀 라벨 전달)
       UIRenderer.renderStatsCards(stats);
       UIRenderer.renderFrequencyTable(classes, data.length, customLabels.table);
-      this.chartRenderer.draw(classes, customLabels.axis);
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo);
 
       // 8. 결과 섹션 표시
       document.getElementById('resultSection').classList.add('active');

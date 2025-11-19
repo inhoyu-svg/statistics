@@ -135,6 +135,21 @@ class DataProcessor {
 
     return classes;
   }
+
+  /**
+   * 중략 표시가 필요한지 판단
+   * 첫 번째 데이터가 있는 계급 이전에 빈 계급이 3개 이상이면 중략 표시
+   */
+  static shouldShowEllipsis(classes) {
+    const firstDataIndex = classes.findIndex(c => c.frequency > 0);
+
+    // 첫 데이터가 0번째 계급이거나, 1~2번째 계급이면 중략 불필요
+    if (firstDataIndex <= 2) {
+      return { show: false, firstDataIndex: -1 };
+    }
+
+    return { show: true, firstDataIndex };
+  }
 }
 
 export default DataProcessor;

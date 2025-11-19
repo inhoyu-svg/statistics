@@ -23,7 +23,7 @@ class ChartRenderer {
   /**
    * 히스토그램과 상대도수 다각형 그리기
    */
-  draw(classes, axisLabels = null) {
+  draw(classes, axisLabels = null, ellipsisInfo = null) {
     // Canvas 크기 설정 (매번 그릴 때마다)
     this.canvas.width = CONFIG.CANVAS_WIDTH;
     this.canvas.height = CONFIG.CANVAS_HEIGHT;
@@ -55,7 +55,7 @@ class ChartRenderer {
     this.drawGrid(toX, toY, maxY);
     this.drawHistogram(relativeFreqs, freq, toX, toY, xScale);
     this.drawPolygon(relativeFreqs, toX, toY, classes.length);
-    this.drawAxes(classes, toX, toY, maxY, xScale, axisLabels);
+    this.drawAxes(classes, toX, toY, maxY, xScale, axisLabels, ellipsisInfo);
     this.drawLegend();
   }
 
@@ -175,7 +175,7 @@ class ChartRenderer {
   /**
    * 축과 라벨 그리기
    */
-  drawAxes(classes, toX, toY, maxY, xScale, axisLabels = null) {
+  drawAxes(classes, toX, toY, maxY, xScale, axisLabels = null, ellipsisInfo = null) {
     // 라벨 가져오기 (커스텀 라벨 또는 기본값)
     const xLabel = axisLabels?.xAxis || CONFIG.DEFAULT_LABELS.xAxis;
     const yLabel = axisLabels?.yAxis || CONFIG.DEFAULT_LABELS.yAxis;
@@ -198,22 +198,53 @@ class ChartRenderer {
     this.ctx.textAlign = 'center';
     this.ctx.font = '11px sans-serif';
 
-    // 각 막대의 시작 위치에 경계값 표시
-    classes.forEach((c, i) => {
-      this.ctx.fillText(
-        c.min,
-        toX(i),
-        this.canvas.height - this.padding + 20
-      );
-    });
+    if (ellipsisInfo && ellipsisInfo.show) {
+      // 중략 표시가 필요한 경우
+      const firstDataIdx = ellipsisInfo.firstDataIndex;
 
-    // 마지막 막대의 끝 값도 표시
-    if (classes.length > 0) {
+      // 0 표시
+      this.ctx.fillText('0', toX(0), this.canvas.height - this.padding + 20);
+
+      // 중략 표시 (물결 모양)
+      const ellipsisX = toX(firstDataIdx / 2);
+      this.ctx.fillText('⋯', ellipsisX, this.canvas.height - this.padding + 20);
+
+      // 중략 구간 시각적 표시 (zigzag 패턴)
+      this.drawEllipsisPattern(toX(1), toX(firstDataIdx - 1), toY(0));
+
+      // 첫 데이터부터 끝까지 표시
+      for (let i = firstDataIdx; i < classes.length; i++) {
+        this.ctx.fillText(
+          classes[i].min,
+          toX(i),
+          this.canvas.height - this.padding + 20
+        );
+      }
+
+      // 마지막 값
       this.ctx.fillText(
         classes[classes.length - 1].max,
         toX(classes.length),
         this.canvas.height - this.padding + 20
       );
+    } else {
+      // 중략 없이 전체 표시
+      classes.forEach((c, i) => {
+        this.ctx.fillText(
+          c.min,
+          toX(i),
+          this.canvas.height - this.padding + 20
+        );
+      });
+
+      // 마지막 막대의 끝 값도 표시
+      if (classes.length > 0) {
+        this.ctx.fillText(
+          classes[classes.length - 1].max,
+          toX(classes.length),
+          this.canvas.height - this.padding + 20
+        );
+      }
     }
 
     // 축 제목 (커스텀 라벨 적용)
@@ -226,6 +257,30 @@ class ChartRenderer {
     this.ctx.rotate(-Math.PI / 2);
     this.ctx.fillText(yLabel, 0, 0);
     this.ctx.restore();
+  }
+
+  /**
+   * 중략 구간 시각적 표시 (zigzag 패턴)
+   */
+  drawEllipsisPattern(startX, endX, baseY) {
+    this.ctx.strokeStyle = CONFIG.getColor('--color-text-light');
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+
+    const zigzagHeight = 15;
+    const zigzagWidth = 8;
+    const centerX = (startX + endX) / 2;
+    const numZigzags = 3;
+
+    // 중앙에 zigzag 패턴 그리기
+    for (let i = 0; i < numZigzags; i++) {
+      const x = centerX - (numZigzags * zigzagWidth / 2) + (i * zigzagWidth);
+      this.ctx.moveTo(x, baseY - 5);
+      this.ctx.lineTo(x + zigzagWidth / 2, baseY - 5 - zigzagHeight);
+      this.ctx.lineTo(x + zigzagWidth, baseY - 5);
+    }
+
+    this.ctx.stroke();
   }
 
   /**
