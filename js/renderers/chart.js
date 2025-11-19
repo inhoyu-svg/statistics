@@ -241,7 +241,7 @@ class ChartRenderer {
     this.drawYAxisLabels(toY, maxY);
 
     // X축 라벨
-    this.drawXAxisLabels(classes, toX, xScale, ellipsisInfo);
+    this.drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo);
 
     // 축 제목
     this.drawAxisTitles(xLabel, yLabel);
@@ -270,9 +270,10 @@ class ChartRenderer {
    * @param {Array} classes - 계급 배열
    * @param {Function} toX - X 좌표 변환 함수
    * @param {number} xScale - X축 스케일
+   * @param {Function} toY - Y 좌표 변환 함수
    * @param {Object} ellipsisInfo - 중략 정보
    */
-  drawXAxisLabels(classes, toX, xScale, ellipsisInfo) {
+  drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo) {
     this.ctx.textAlign = 'center';
     this.ctx.font = '11px sans-serif';
     const labelY = this.canvas.height - this.padding + 20;
