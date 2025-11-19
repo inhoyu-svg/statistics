@@ -6,6 +6,7 @@
  * @description ES6 모듈 시스템을 사용한 관심사 분리 버전
  */
 
+import CONFIG from './config.js';
 import Validator from './utils/validator.js';
 import MessageManager from './utils/message.js';
 import DataProcessor from './core/processor.js';
