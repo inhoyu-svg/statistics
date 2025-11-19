@@ -71,7 +71,7 @@ class ChartRenderer {
     // 렌더링 순서
     this.drawGrid(toX, toY, maxY);
     this.drawHistogram(relativeFreqs, freq, toX, toY, xScale, ellipsisInfo);
-    this.drawPolygon(relativeFreqs, toX, toY, classes.length, ellipsisInfo);
+    this.drawPolygon(relativeFreqs, toX, toY, xScale, classes.length, ellipsisInfo);
     this.drawAxes(classes, toX, toY, maxY, xScale, axisLabels, ellipsisInfo);
     this.drawLegend();
   }
@@ -154,7 +154,7 @@ class ChartRenderer {
   /**
    * 상대도수 다각형 그리기
    */
-  drawPolygon(relativeFreqs, toX, toY, classCount, ellipsisInfo = null) {
+  drawPolygon(relativeFreqs, toX, toY, xScale, classCount, ellipsisInfo = null) {
     // 중략 표시 시 데이터가 있는 점만 연결
     const shouldSkip = (i) => {
       if (!ellipsisInfo || !ellipsisInfo.show) return false;
@@ -171,13 +171,8 @@ class ChartRenderer {
     relativeFreqs.forEach((r, i) => {
       if (shouldSkip(i)) return; // 중략 구간 건너뛰기
 
-      let x;
-      // 첫 데이터 점(firstDataIdx)은 압축된 칸의 중앙에 위치
-      if (ellipsisInfo && ellipsisInfo.show && i === ellipsisInfo.firstDataIndex) {
-        x = toX(1); // 압축된 중략 칸의 중앙
-      } else {
-        x = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
-      }
+      // 압축된 좌표 시스템에서 막대 중앙 계산
+      const x = toX(i) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
       const y = toY(r);
 
       if (firstPoint) {
@@ -194,13 +189,8 @@ class ChartRenderer {
     relativeFreqs.forEach((r, i) => {
       if (shouldSkip(i)) return; // 중략 구간 건너뛰기
 
-      let centerX;
-      // 첫 데이터 점(firstDataIdx)은 압축된 칸의 중앙에 위치
-      if (ellipsisInfo && ellipsisInfo.show && i === ellipsisInfo.firstDataIndex) {
-        centerX = toX(1); // 압축된 중략 칸의 중앙
-      } else {
-        centerX = toX(i + CONFIG.CHART_BAR_CENTER_OFFSET);
-      }
+      // 압축된 좌표 시스템에서 막대 중앙 계산
+      const centerX = toX(i) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
       const centerY = toY(r);
 
       // 각 점마다 그라디언트 생성
