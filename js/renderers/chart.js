@@ -288,7 +288,7 @@ class ChartRenderer {
       this.ctx.fillText('⋯', ellipsisX, labelY + 10);
 
       // Zigzag 패턴
-      this.drawEllipsisPattern(toX(0), toX(1), toY => toY(0));
+      this.drawEllipsisPattern(toX(0), toX(1), toY);
 
       // 데이터 구간 라벨
       for (let i = firstDataIdx; i < classes.length; i++) {
