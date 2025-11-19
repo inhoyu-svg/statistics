@@ -42,7 +42,7 @@ class ChartRenderer {
     const maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
 
     // 좌표 시스템 생성
-    const coords = this.createCoordinateSystem(classes.length, ellipsisInfo);
+    const coords = this.createCoordinateSystem(classes.length, ellipsisInfo, maxY);
 
     // 렌더링 순서
     this.drawGrid(coords.toX, coords.toY, maxY);
@@ -67,7 +67,7 @@ class ChartRenderer {
    * @param {Object} ellipsisInfo - 중략 정보
    * @returns {Object} 좌표 변환 함수와 스케일 객체
    */
-  createCoordinateSystem(classCount, ellipsisInfo) {
+  createCoordinateSystem(classCount, ellipsisInfo, maxY) {
     const chartW = this.canvas.width - this.padding * 2;
     const chartH = this.canvas.height - this.padding * 2;
 
@@ -90,12 +90,12 @@ class ChartRenderer {
       toX = (index) => this.padding + index * xScale;
     }
 
-    const toY = (value, maxY) => {
-      const yScale = chartH / maxY;
+    const yScale = chartH / maxY;
+    const toY = (value) => {
       return this.canvas.height - this.padding - value * yScale;
     };
 
-    return { toX, toY: (value) => toY(value, 1), xScale, chartH };
+    return { toX, toY, xScale, chartH };
   }
 
   /**
