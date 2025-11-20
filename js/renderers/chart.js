@@ -306,43 +306,46 @@ class ChartRenderer {
       this.currentEllipsisInfo
     );
 
-    // 현재 시간에 활성화된 애니메이션 가져오기
-    const activeAnimations = this.timeline.timeline.filter(anim => {
-      const endTime = anim.startTime + anim.duration;
-      return this.timeline.currentTime >= anim.startTime && this.timeline.currentTime <= endTime;
-    });
-
-    // 각 레이어를 애니메이션 효과와 함께 렌더링
-    activeAnimations.forEach(anim => {
+    // 모든 애니메이션 레이어 수집 (활성 + 완료)
+    const allAnimations = this.timeline.timeline.map(anim => {
       const layer = this.layerManager.findLayer(anim.layerId);
-      if (!layer || !layer.visible) return;
+      if (!layer || !layer.visible) return null;
 
-      // 진행도 계산 (0~1)
-      const elapsed = this.timeline.currentTime - anim.startTime;
-      const progress = Math.min(1, Math.max(0, elapsed / anim.duration));
-
-      // progress를 layer.data에 저장 (renderBar에서 사용)
-      layer.data.animationProgress = progress;
-
-      // 효과 적용하여 렌더링
-      LayerAnimationEffects.apply(
-        this.ctx,
-        progress,
-        anim.effect,
-        anim.effectOptions,
-        () => this.renderLayer(layer)
-      );
-    });
-
-    // 애니메이션이 완료된 레이어는 완전히 표시
-    const completedLayers = this.timeline.timeline.filter(anim => {
       const endTime = anim.startTime + anim.duration;
-      return this.timeline.currentTime > endTime;
+      const isActive = this.timeline.currentTime >= anim.startTime && this.timeline.currentTime <= endTime;
+      const isCompleted = this.timeline.currentTime > endTime;
+
+      if (!isActive && !isCompleted) return null;
+
+      return { anim, layer, isActive, isCompleted };
+    }).filter(item => item !== null);
+
+    // 렌더링 순서: bar → line → point (타입 기준 정렬)
+    const renderOrder = { 'bar': 0, 'line': 1, 'point': 2 };
+    allAnimations.sort((a, b) => {
+      const orderA = renderOrder[a.layer.type] ?? 999;
+      const orderB = renderOrder[b.layer.type] ?? 999;
+      return orderA - orderB;
     });
 
-    completedLayers.forEach(anim => {
-      const layer = this.layerManager.findLayer(anim.layerId);
-      if (layer && layer.visible) {
+    // 정렬된 순서대로 렌더링
+    allAnimations.forEach(({ anim, layer, isActive }) => {
+      if (isActive) {
+        // 활성 애니메이션: 진행도 계산 및 효과 적용
+        const elapsed = this.timeline.currentTime - anim.startTime;
+        const progress = Math.min(1, Math.max(0, elapsed / anim.duration));
+
+        layer.data.animationProgress = progress;
+
+        LayerAnimationEffects.apply(
+          this.ctx,
+          progress,
+          anim.effect,
+          anim.effectOptions,
+          () => this.renderLayer(layer)
+        );
+      } else {
+        // 완료된 애니메이션: 완전히 표시
         this.renderLayer(layer);
       }
     });
