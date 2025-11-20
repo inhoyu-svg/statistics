@@ -20,7 +20,7 @@ class ChartRenderer {
     // Layer 시스템
     this.layerManager = new LayerManager();
     this.timeline = new LayerTimeline();
-    this.animationMode = false; // 애니메이션 모드 (기본: 정적 렌더링)
+    this.animationMode = true; // 애니메이션 모드 (기본: 정적 렌더링)
     this.animationSpeed = 1.0; // 애니메이션 속도 배율
 
     // 차트 데이터 저장 (renderFrame에서 사용)
@@ -731,12 +731,12 @@ class ChartRenderer {
   setupAnimations(classes) {
     this.timeline.clearAnimations();
 
-    const barDelay = 100; // 막대 간 딜레이 (ms)
-    const barDuration = 300; // 막대 애니메이션 시간 (ms)
-    const pointDelay = 100; // 점 간 딜레이 (ms)
-    const pointDuration = 300; // 점 애니메이션 시간 (ms)
-    const lineDelay = 100; // 선 간 딜레이 (ms)
-    const lineDuration = 300; // 선 애니메이션 시간 (ms)
+    const barDelay = 50; // 막대 간 딜레이 (ms) - 더 빠른 연속
+    const barDuration = 600; // 막대 애니메이션 시간 (ms) - 더 부드럽게
+    const pointDelay = 50; // 점 간 딜레이 (ms)
+    const pointDuration = 600; // 점 애니메이션 시간 (ms)
+    const lineDelay = 50; // 선 간 딜레이 (ms)
+    const lineDuration = 600; // 선 애니메이션 시간 (ms)
 
     let currentTime = 0;
 
@@ -749,7 +749,7 @@ class ChartRenderer {
           duration: barDuration,
           effect: 'fade',
           effectOptions: {},
-          easing: 'easeOut'
+          easing: 'easeInOut'
         });
         currentTime += barDelay;
       });
@@ -767,7 +767,7 @@ class ChartRenderer {
           duration: pointDuration,
           effect: 'fade',
           effectOptions: {},
-          easing: 'easeOut'
+          easing: 'easeInOut'
         });
         currentTime += pointDelay;
       });
