@@ -55,6 +55,7 @@ class FrequencyDistributionApp {
     const animationToggle = document.getElementById('animationToggle');
     const animationButtons = document.getElementById('animationButtons');
     const speedControl = document.getElementById('speedControl');
+    const layerPanel = document.getElementById('layerPanel');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
@@ -67,10 +68,13 @@ class FrequencyDistributionApp {
         this.chartRenderer.enableAnimation();
         animationButtons.style.display = 'flex';
         speedControl.style.display = 'block';
+        layerPanel.style.display = 'block';
+        this.renderLayerPanel();
       } else {
         this.chartRenderer.disableAnimation();
         animationButtons.style.display = 'none';
         speedControl.style.display = 'none';
+        layerPanel.style.display = 'none';
       }
       // 차트가 이미 그려진 경우 다시 렌더링
       this.updateChart();
@@ -86,6 +90,132 @@ class FrequencyDistributionApp {
       const speed = parseFloat(e.target.value);
       speedValue.textContent = `${speed}x`;
       this.chartRenderer.setAnimationSpeed(speed);
+    });
+  }
+
+  /**
+   * 레이어 패널 렌더링
+   */
+  renderLayerPanel() {
+    const layerList = document.getElementById('layerList');
+    if (!layerList) return;
+
+    // 레이어 목록 가져오기
+    const layers = this.chartRenderer.layerManager.getAllLayers();
+
+    // HTML 생성
+    layerList.innerHTML = layers.map(({ layer, depth }) => {
+      const typeClass = layer.type;
+      const depthClass = `depth-${depth}`;
+
+      return `
+        <div class="layer-item ${depthClass}" draggable="true" data-layer-id="${layer.id}">
+          <span class="layer-drag-handle">⋮⋮</span>
+          <div class="layer-visibility">
+            <input type="checkbox" ${layer.visible ? 'checked' : ''} data-layer-id="${layer.id}">
+          </div>
+          <span class="layer-name">${layer.name || layer.id}</span>
+          <span class="layer-type ${typeClass}">${layer.type}</span>
+        </div>
+      `;
+    }).join('');
+
+    // 드래그앤드롭 초기화
+    this.initLayerDragAndDrop();
+
+    // 체크박스 이벤트
+    layerList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        const layerId = e.target.dataset.layerId;
+        const visible = e.target.checked;
+        this.chartRenderer.layerManager.setLayerVisibility(layerId, visible);
+        this.updateChart();
+      });
+    });
+  }
+
+  /**
+   * 레이어 드래그앤드롭 초기화
+   */
+  initLayerDragAndDrop() {
+    const layerList = document.getElementById('layerList');
+    const items = layerList.querySelectorAll('.layer-item');
+
+    items.forEach(item => {
+      item.addEventListener('dragstart', (e) => this.handleLayerDragStart(e));
+      item.addEventListener('dragover', (e) => this.handleLayerDragOver(e));
+      item.addEventListener('drop', (e) => this.handleLayerDrop(e));
+      item.addEventListener('dragend', (e) => this.handleLayerDragEnd(e));
+      item.addEventListener('dragenter', (e) => this.handleLayerDragEnter(e));
+      item.addEventListener('dragleave', (e) => this.handleLayerDragLeave(e));
+    });
+  }
+
+  handleLayerDragStart(e) {
+    this.draggedLayerElement = e.currentTarget;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+  }
+
+  handleLayerDragOver(e) {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  }
+
+  handleLayerDragEnter(e) {
+    if (e.currentTarget !== this.draggedLayerElement) {
+      e.currentTarget.classList.add('drag-over');
+    }
+  }
+
+  handleLayerDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+
+  handleLayerDrop(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+
+    if (this.draggedLayerElement !== e.currentTarget) {
+      const draggedId = this.draggedLayerElement.dataset.layerId;
+      const targetId = e.currentTarget.dataset.layerId;
+
+      // 레이어 순서 변경
+      const draggedLayer = this.chartRenderer.layerManager.findLayer(draggedId);
+      const targetLayer = this.chartRenderer.layerManager.findLayer(targetId);
+
+      if (draggedLayer && targetLayer) {
+        // 같은 부모인지 확인
+        const draggedParent = this.chartRenderer.layerManager.findParent(draggedId);
+        const targetParent = this.chartRenderer.layerManager.findParent(targetId);
+
+        if (draggedParent && targetParent && draggedParent.id === targetParent.id) {
+          // 순서 교환
+          const temp = draggedLayer.order;
+          draggedLayer.order = targetLayer.order;
+          targetLayer.order = temp;
+
+          // 레이어 패널 다시 렌더링
+          this.renderLayerPanel();
+          this.updateChart();
+        }
+      }
+    }
+
+    e.currentTarget.classList.remove('drag-over');
+    return false;
+  }
+
+  handleLayerDragEnd(e) {
+    const items = document.querySelectorAll('.layer-item');
+    items.forEach(item => {
+      item.classList.remove('dragging');
+      item.classList.remove('drag-over');
     });
   }
 
