@@ -5,6 +5,7 @@
 
 import CONFIG from '../config.js';
 import Utils from '../utils/utils.js';
+import { Layer, LayerManager } from '../animation/index.js';
 
 /**
  * @class ChartRenderer
@@ -15,6 +16,10 @@ class ChartRenderer {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
     this.padding = CONFIG.CHART_PADDING;
+
+    // Layer 시스템
+    this.layerManager = new LayerManager();
+    this.animationMode = false; // 애니메이션 모드 (기본: 정적 렌더링)
   }
 
   // ==================== 메인 렌더링 ====================
@@ -459,6 +464,233 @@ class ChartRenderer {
       this.canvas.width / 2,
       this.canvas.height / 2
     );
+  }
+
+  // ==================== Layer 시스템 ====================
+
+  /**
+   * Layer 생성
+   * @param {Array} classes - 계급 데이터
+   * @param {Array} relativeFreqs - 상대도수 배열
+   * @param {Object} coords - 좌표 시스템
+   * @param {Object} ellipsisInfo - 중략 정보
+   */
+  createLayers(classes, relativeFreqs, coords, ellipsisInfo) {
+    this.layerManager.clear();
+
+    // 히스토그램 그룹
+    const histogramGroup = new Layer({
+      id: 'histogram',
+      name: '히스토그램',
+      type: 'group',
+      visible: true
+    });
+
+    // 다각형 그룹
+    const polygonGroup = new Layer({
+      id: 'polygon',
+      name: '상대도수 다각형',
+      type: 'group',
+      visible: true
+    });
+
+    // 막대 레이어 생성
+    relativeFreqs.forEach((relativeFreq, index) => {
+      if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+      const barLayer = new Layer({
+        id: `bar-${index}`,
+        name: `막대 ${index}`,
+        type: 'bar',
+        visible: true,
+        data: {
+          index,
+          relativeFreq,
+          frequency: classes[index].frequency,
+          coords,
+          ellipsisInfo
+        }
+      });
+
+      histogramGroup.addChild(barLayer);
+    });
+
+    // 점 그룹
+    const pointsGroup = new Layer({
+      id: 'points',
+      name: '점',
+      type: 'group',
+      visible: true
+    });
+
+    // 선 그룹
+    const linesGroup = new Layer({
+      id: 'lines',
+      name: '선',
+      type: 'group',
+      visible: true
+    });
+
+    // 점 레이어 생성
+    relativeFreqs.forEach((relativeFreq, index) => {
+      if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+      const pointLayer = new Layer({
+        id: `point-${index}`,
+        name: `점 ${index}`,
+        type: 'point',
+        visible: true,
+        data: {
+          index,
+          relativeFreq,
+          coords
+        }
+      });
+
+      pointsGroup.addChild(pointLayer);
+    });
+
+    // 선 레이어 생성
+    let prevIndex = null;
+    relativeFreqs.forEach((relativeFreq, index) => {
+      if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+      if (prevIndex !== null) {
+        const lineLayer = new Layer({
+          id: `line-${prevIndex}-${index}`,
+          name: `선 ${prevIndex}-${index}`,
+          type: 'line',
+          visible: true,
+          data: {
+            fromIndex: prevIndex,
+            toIndex: index,
+            fromFreq: relativeFreqs[prevIndex],
+            toFreq: relativeFreq,
+            coords
+          }
+        });
+
+        linesGroup.addChild(lineLayer);
+      }
+
+      prevIndex = index;
+    });
+
+    polygonGroup.addChild(pointsGroup);
+    polygonGroup.addChild(linesGroup);
+
+    this.layerManager.addLayer(histogramGroup);
+    this.layerManager.addLayer(polygonGroup);
+  }
+
+  /**
+   * 개별 막대 렌더링
+   * @param {Layer} layer - 막대 레이어
+   */
+  renderBar(layer) {
+    const { index, relativeFreq, frequency, coords } = layer.data;
+    const { toX, toY, xScale } = coords;
+
+    const x = toX(index);
+    const y = toY(relativeFreq);
+    const h = toY(0) - y;
+    const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
+
+    // 그라디언트 막대
+    const gradient = this.ctx.createLinearGradient(x, y, x, y + h);
+    gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
+    gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
+
+    this.ctx.globalAlpha = 0.5;
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(x, y, barWidth, h);
+    this.ctx.globalAlpha = 1.0;
+
+    // 녹색 테두리 (데이터가 있는 경우)
+    if (frequency > 0) {
+      this.ctx.strokeStyle = CONFIG.CHART_BAR_BORDER_COLOR;
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(x, y, barWidth, h);
+    }
+
+    // 도수 라벨
+    this.ctx.fillStyle = CONFIG.getColor('--color-text');
+    this.ctx.font = CONFIG.CHART_FONT_REGULAR;
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(
+      frequency,
+      this.getBarCenterX(index, toX, xScale),
+      y - CONFIG.CHART_LABEL_OFFSET
+    );
+  }
+
+  /**
+   * 개별 점 렌더링
+   * @param {Layer} layer - 점 레이어
+   */
+  renderPoint(layer) {
+    const { index, relativeFreq, coords } = layer.data;
+    const { toX, xScale } = coords;
+
+    const centerX = this.getBarCenterX(index, toX, xScale);
+    const centerY = coords.toY(relativeFreq);
+
+    const gradient = this.ctx.createRadialGradient(
+      centerX, centerY, 0,
+      centerX, centerY, CONFIG.CHART_POINT_RADIUS
+    );
+    gradient.addColorStop(0, CONFIG.getColor('--chart-line-color-start'));
+    gradient.addColorStop(1, CONFIG.getColor('--chart-line-color-end'));
+
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
+    this.ctx.fillStyle = gradient;
+    this.ctx.fill();
+  }
+
+  /**
+   * 개별 선 렌더링
+   * @param {Layer} layer - 선 레이어
+   */
+  renderLine(layer) {
+    const { fromIndex, toIndex, fromFreq, toFreq, coords } = layer.data;
+    const { toX, toY, xScale } = coords;
+
+    const x1 = this.getBarCenterX(fromIndex, toX, xScale);
+    const y1 = toY(fromFreq);
+    const x2 = this.getBarCenterX(toIndex, toX, xScale);
+    const y2 = toY(toFreq);
+
+    this.ctx.strokeStyle = CONFIG.CHART_POLYGON_COLOR;
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x1, y1);
+    this.ctx.lineTo(x2, y2);
+    this.ctx.stroke();
+  }
+
+  /**
+   * Layer 렌더링
+   * @param {Layer} layer - 렌더링할 레이어
+   */
+  renderLayer(layer) {
+    if (!layer.visible) return;
+
+    switch (layer.type) {
+      case 'bar':
+        this.renderBar(layer);
+        break;
+      case 'point':
+        this.renderPoint(layer);
+        break;
+      case 'line':
+        this.renderLine(layer);
+        break;
+      case 'group':
+        // 그룹은 자식 레이어들을 렌더링
+        layer.children.forEach(child => this.renderLayer(child));
+        break;
+    }
   }
 }
 
