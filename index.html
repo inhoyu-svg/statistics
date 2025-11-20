@@ -70,7 +70,35 @@
             <input type="text" id="yAxisLabel" placeholder="상대도수">
           </div>
 
-          <h4>표 컬럼명</h4>
+          <h4>표 컬럼 표시 설정</h4>
+          <div class="column-toggles">
+            <label>
+              <input type="checkbox" id="col1" checked>
+              <span>계급</span>
+            </label>
+            <label>
+              <input type="checkbox" id="col2" checked>
+              <span>계급값</span>
+            </label>
+            <label>
+              <input type="checkbox" id="col3" checked>
+              <span>도수</span>
+            </label>
+            <label>
+              <input type="checkbox" id="col4" checked>
+              <span>상대도수(%)</span>
+            </label>
+            <label>
+              <input type="checkbox" id="col5" checked>
+              <span>누적도수</span>
+            </label>
+            <label>
+              <input type="checkbox" id="col6" checked>
+              <span>누적상대도수(%)</span>
+            </label>
+          </div>
+
+          <h4>표 컬럼명 커스터마이징</h4>
           <div class="input-group">
             <label for="label1">계급:</label>
             <input type="text" id="label1" placeholder="계급">
@@ -113,7 +141,7 @@
       <div class="table-section">
         <h2 class="section-title">📋 도수분포표</h2>
         <div class="table-wrapper">
-          <table id="frequencyTable" role="table" aria-label="도수분포표"></table>
+          <canvas id="frequencyTable" role="img" aria-label="도수분포표"></canvas>
         </div>
       </div>
 

@@ -66,6 +66,22 @@ class Validator {
 
     return { valid: true };
   }
+
+  /**
+   * 표 컬럼 선택 검증 (최소 2개 이상 선택되어야 함)
+   */
+  static validateTableColumns(visibleColumns) {
+    const checkedCount = visibleColumns.filter(col => col === true).length;
+
+    if (checkedCount < 2) {
+      return {
+        valid: false,
+        message: '최소 2개 이상의 컬럼을 선택해주세요.'
+      };
+    }
+
+    return { valid: true };
+  }
 }
 
 export default Validator;

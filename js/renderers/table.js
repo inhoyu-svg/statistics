@@ -1,0 +1,286 @@
+/**
+ * 테이블 렌더링 레이어
+ * Canvas를 사용한 도수분포표 그리기
+ */
+
+import CONFIG from '../config.js';
+import Utils from '../utils/utils.js';
+
+/**
+ * @class TableRenderer
+ * @description Canvas 기반 도수분포표 렌더러
+ */
+class TableRenderer {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.padding = CONFIG.TABLE_PADDING;
+    this.columns = 6; // 계급, 계급값, 도수, 상대도수, 누적도수, 누적상대도수
+  }
+
+  /**
+   * 도수분포표 그리기
+   * @param {Array} classes - 계급 데이터 배열
+   * @param {number} total - 전체 데이터 개수
+   * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns)
+   */
+  draw(classes, total, config = null) {
+    // 도수가 0이 아닌 계급만 필터링
+    const visibleClasses = classes.filter(c => c.frequency > 0);
+
+    if (visibleClasses.length === 0) {
+      this.drawNoDataMessage();
+      return;
+    }
+
+    // 설정 가져오기
+    const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
+    const visibleColumns = config?.visibleColumns || [true, true, true, true, true, true];
+
+    // 표시할 컬럼 필터링
+    const allLabels = [
+      tableLabels.class,
+      tableLabels.midpoint,
+      tableLabels.frequency,
+      tableLabels.relativeFrequency,
+      tableLabels.cumulativeFrequency,
+      tableLabels.cumulativeRelativeFrequency
+    ];
+    const filteredLabels = allLabels.filter((_, i) => visibleColumns[i]);
+    const columnCount = filteredLabels.length;
+
+    // Canvas 크기 계산 (헤더 + 데이터 행 + 합계 행)
+    const rowCount = visibleClasses.length + 1; // +1 for summary row
+    const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
+
+    this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
+    this.canvas.height = canvasHeight;
+    this.clear();
+
+    // 열 너비 계산
+    const columnWidths = this.calculateColumnWidths(columnCount);
+
+    // 렌더링 순서
+    this.drawGrid(rowCount, columnWidths);
+    this.drawHeader(filteredLabels, columnWidths);
+    this.drawDataRows(visibleClasses, columnWidths, visibleColumns);
+    this.drawSummaryRow(total, visibleClasses.length, columnWidths, visibleColumns);
+  }
+
+  /**
+   * 캔버스 초기화
+   */
+  clear() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  /**
+   * 열 너비 계산
+   * @param {number} columnCount - 표시할 열 개수
+   * @returns {Array} 각 열의 너비 배열
+   */
+  calculateColumnWidths(columnCount = 6) {
+    const totalWidth = this.canvas.width - this.padding * 2;
+    // 동적으로 균등 분배
+    const widthPerColumn = totalWidth / columnCount;
+    return Array(columnCount).fill(widthPerColumn);
+  }
+
+  /**
+   * 격자선 그리기
+   * @param {number} rowCount - 행 개수
+   * @param {Array} columnWidths - 열 너비 배열
+   */
+  drawGrid(rowCount, columnWidths) {
+    this.ctx.strokeStyle = CONFIG.getColor('--color-border');
+    this.ctx.lineWidth = 1;
+
+    const totalWidth = this.canvas.width - this.padding * 2;
+    const totalHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
+
+    // 외곽선
+    this.ctx.strokeRect(this.padding, this.padding, totalWidth, totalHeight);
+
+    // 수평선
+    for (let i = 1; i <= rowCount; i++) {
+      const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT + (i - 1) * CONFIG.TABLE_ROW_HEIGHT;
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.padding, y);
+      this.ctx.lineTo(this.padding + totalWidth, y);
+      this.ctx.stroke();
+    }
+
+    // 수직선
+    let x = this.padding;
+    for (let i = 0; i < columnWidths.length - 1; i++) {
+      x += columnWidths[i];
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, this.padding);
+      this.ctx.lineTo(x, this.padding + totalHeight);
+      this.ctx.stroke();
+    }
+  }
+
+  /**
+   * 헤더 행 그리기
+   * @param {Array} headers - 헤더 라벨 배열 (필터링된)
+   * @param {Array} columnWidths - 열 너비 배열
+   */
+  drawHeader(headers, columnWidths) {
+    // 헤더 배경 (그라디언트)
+    const gradient = this.ctx.createLinearGradient(
+      this.padding,
+      this.padding,
+      this.padding,
+      this.padding + CONFIG.TABLE_HEADER_HEIGHT
+    );
+    gradient.addColorStop(0, CONFIG.getColor('--color-primary'));
+    gradient.addColorStop(1, CONFIG.getColor('--color-primary-dark'));
+
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(
+      this.padding,
+      this.padding,
+      this.canvas.width - this.padding * 2,
+      CONFIG.TABLE_HEADER_HEIGHT
+    );
+
+    // 헤더 텍스트
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = CONFIG.TABLE_FONT_HEADER;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
+    let x = this.padding;
+    const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT / 2;
+
+    headers.forEach((header, i) => {
+      const cellX = x + columnWidths[i] / 2;
+      this.ctx.fillText(header, cellX, y);
+      x += columnWidths[i];
+    });
+  }
+
+  /**
+   * 데이터 행 그리기
+   * @param {Array} classes - 계급 배열
+   * @param {Array} columnWidths - 열 너비 배열
+   * @param {Array} visibleColumns - 표시할 컬럼 배열
+   */
+  drawDataRows(classes, columnWidths, visibleColumns) {
+    this.ctx.font = CONFIG.TABLE_FONT_DATA;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
+    classes.forEach((classData, rowIndex) => {
+      const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
+
+      // 짝수 행 배경색
+      if (rowIndex % 2 === 1) {
+        this.ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+        this.ctx.fillRect(
+          this.padding,
+          y,
+          this.canvas.width - this.padding * 2,
+          CONFIG.TABLE_ROW_HEIGHT
+        );
+      }
+
+      // 전체 셀 데이터
+      const allCells = [
+        `${classData.min} ~ ${classData.max}`,
+        Utils.formatNumber(classData.midpoint),
+        classData.frequency,
+        `${classData.relativeFreq}%`,
+        classData.cumulativeFreq,
+        `${classData.cumulativeRelFreq}%`
+      ];
+
+      // 표시할 셀만 필터링
+      const cells = allCells.filter((_, i) => visibleColumns[i]);
+
+      // 텍스트 그리기
+      this.ctx.fillStyle = CONFIG.getColor('--color-text');
+      let x = this.padding;
+      const cellY = y + CONFIG.TABLE_ROW_HEIGHT / 2;
+
+      cells.forEach((cellText, i) => {
+        const cellX = x + columnWidths[i] / 2;
+        this.ctx.fillText(String(cellText), cellX, cellY);
+        x += columnWidths[i];
+      });
+    });
+  }
+
+  /**
+   * 합계 행 그리기
+   * @param {number} total - 전체 데이터 개수
+   * @param {number} dataRowCount - 데이터 행 개수
+   * @param {Array} columnWidths - 열 너비 배열
+   * @param {Array} visibleColumns - 표시할 컬럼 배열
+   */
+  drawSummaryRow(total, dataRowCount, columnWidths, visibleColumns) {
+    const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
+
+    // 합계 행 배경
+    const gradient = this.ctx.createLinearGradient(
+      this.padding,
+      y,
+      this.padding,
+      y + CONFIG.TABLE_ROW_HEIGHT
+    );
+    gradient.addColorStop(0, CONFIG.getColor('--color-primary'));
+    gradient.addColorStop(1, CONFIG.getColor('--color-primary-dark'));
+
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(
+      this.padding,
+      y,
+      this.canvas.width - this.padding * 2,
+      CONFIG.TABLE_ROW_HEIGHT
+    );
+
+    // 합계 텍스트
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = CONFIG.TABLE_FONT_SUMMARY;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
+    const cellY = y + CONFIG.TABLE_ROW_HEIGHT / 2;
+
+    // 전체 셀 데이터 (계급, 계급값은 "합계"로 병합, 나머지는 값)
+    const allCells = ['합계', '', total, '100%', total, '100%'];
+    const filteredCells = allCells.filter((_, i) => visibleColumns[i]);
+
+    let x = this.padding;
+    filteredCells.forEach((cellText, i) => {
+      // 빈 문자열은 건너뛰기 (병합된 부분)
+      if (cellText !== '') {
+        const cellX = x + columnWidths[i] / 2;
+        this.ctx.fillText(String(cellText), cellX, cellY);
+      }
+      x += columnWidths[i];
+    });
+  }
+
+  /**
+   * 데이터 없음 메시지
+   */
+  drawNoDataMessage() {
+    this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
+    this.canvas.height = 100;
+    this.clear();
+
+    this.ctx.fillStyle = CONFIG.getColor('--color-text-light');
+    this.ctx.font = CONFIG.CHART_FONT_LARGE;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(
+      '데이터가 없습니다',
+      this.canvas.width / 2,
+      this.canvas.height / 2
+    );
+  }
+}
+
+export default TableRenderer;

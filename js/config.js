@@ -61,6 +61,15 @@ const CONFIG = {
   CANVAS_WIDTH: 700,
   CANVAS_HEIGHT: 450,
 
+  // 테이블 Canvas 설정
+  TABLE_CANVAS_WIDTH: 700,
+  TABLE_ROW_HEIGHT: 40,
+  TABLE_HEADER_HEIGHT: 45,
+  TABLE_PADDING: 10,
+  TABLE_FONT_HEADER: 'bold 14px sans-serif',
+  TABLE_FONT_DATA: '13px sans-serif',
+  TABLE_FONT_SUMMARY: 'bold 13px sans-serif',
+
   // 기본 라벨 (고급 설정)
   DEFAULT_LABELS: {
     xAxis: '계급',

@@ -12,11 +12,13 @@ import MessageManager from './utils/message.js';
 import DataProcessor from './core/processor.js';
 import UIRenderer from './renderers/ui.js';
 import ChartRenderer from './renderers/chart.js';
+import TableRenderer from './renderers/table.js';
 
 // ========== 애플리케이션 컨트롤러 ==========
 class FrequencyDistributionApp {
   constructor() {
     this.chartRenderer = new ChartRenderer('chart');
+    this.tableRenderer = new TableRenderer('frequencyTable');
     this.init();
   }
 
@@ -77,6 +79,14 @@ class FrequencyDistributionApp {
 
       // 5. 고급 설정 값 가져오기
       const customLabels = this.getCustomLabels();
+      const tableConfig = this.getTableConfig();
+
+      // 표 컬럼 검증
+      const columnValidation = Validator.validateTableColumns(tableConfig.visibleColumns);
+      if (!columnValidation.valid) {
+        MessageManager.error(columnValidation.message);
+        return;
+      }
 
       // 6. 데이터 처리
       const stats = DataProcessor.calculateBasicStats(data);
@@ -89,7 +99,7 @@ class FrequencyDistributionApp {
 
       // 7. UI 렌더링 (커스텀 라벨 전달)
       UIRenderer.renderStatsCards(stats);
-      UIRenderer.renderFrequencyTable(classes, data.length, customLabels.table);
+      this.tableRenderer.draw(classes, data.length, tableConfig);
       this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo);
 
       // 8. 결과 섹션 표시 및 2열 레이아웃 전환
@@ -136,6 +146,28 @@ class FrequencyDistributionApp {
         cumulativeFrequency: label5 || CONFIG.DEFAULT_LABELS.table.cumulativeFrequency,
         cumulativeRelativeFrequency: label6 || CONFIG.DEFAULT_LABELS.table.cumulativeRelativeFrequency
       }
+    };
+  }
+
+  /**
+   * 표 설정 가져오기 (표시할 컬럼 + 라벨)
+   */
+  getTableConfig() {
+    const customLabels = this.getCustomLabels();
+
+    // 체크박스 상태 확인
+    const visibleColumns = [
+      document.getElementById('col1').checked,
+      document.getElementById('col2').checked,
+      document.getElementById('col3').checked,
+      document.getElementById('col4').checked,
+      document.getElementById('col5').checked,
+      document.getElementById('col6').checked
+    ];
+
+    return {
+      labels: customLabels.table,
+      visibleColumns: visibleColumns
     };
   }
 }
