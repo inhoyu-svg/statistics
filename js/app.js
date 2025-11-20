@@ -24,6 +24,7 @@ class FrequencyDistributionApp {
     this.tableRenderer = new TableRenderer('frequencyTable');
     this.columnOrder = [0, 1, 2, 3, 4, 5]; // 컬럼 순서 관리
     this.draggedElement = null;
+    this.collapsedGroups = new Set(); // 접힌 그룹 ID 목록
     this.init();
   }
 
@@ -84,9 +85,19 @@ class FrequencyDistributionApp {
     // 레이어 목록 가져오기
     const layers = this.chartRenderer.layerManager.getAllLayers();
 
-    // root 레이어 제외 및 depth 조정
+    // root 레이어 제외 및 접힌 그룹의 자식 필터링
     const filteredLayers = layers
-      .filter(({ layer }) => layer.id !== 'root')
+      .filter(({ layer }) => {
+        if (layer.id === 'root') return false;
+
+        // 부모가 접혀있으면 숨김
+        const parent = this.chartRenderer.layerManager.findParent(layer.id);
+        if (parent && this.collapsedGroups.has(parent.id)) {
+          return false;
+        }
+
+        return true;
+      })
       .map(({ layer, depth }) => ({
         layer,
         depth: depth - 1 // depth 1 감소 (histogram/polygon이 depth-0이 됨)
@@ -96,9 +107,13 @@ class FrequencyDistributionApp {
     layerList.innerHTML = filteredLayers.map(({ layer, depth }) => {
       const typeClass = layer.type;
       const depthClass = `depth-${depth}`;
+      const isGroup = layer.type === 'group';
+      const isCollapsed = this.collapsedGroups.has(layer.id);
+      const toggleIcon = isGroup ? (isCollapsed ? '▶' : '▼') : '';
 
       return `
         <div class="layer-item ${depthClass}" draggable="true" data-layer-id="${layer.id}">
+          ${isGroup ? `<span class="layer-toggle" data-layer-id="${layer.id}">${toggleIcon}</span>` : '<span class="layer-toggle-spacer"></span>'}
           <span class="layer-drag-handle">⋮⋮</span>
           <div class="layer-visibility">
             <input type="checkbox" ${layer.visible ? 'checked' : ''} data-layer-id="${layer.id}">
@@ -108,6 +123,20 @@ class FrequencyDistributionApp {
         </div>
       `;
     }).join('');
+
+    // 토글 이벤트
+    layerList.querySelectorAll('.layer-toggle').forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const layerId = e.target.dataset.layerId;
+        if (this.collapsedGroups.has(layerId)) {
+          this.collapsedGroups.delete(layerId);
+        } else {
+          this.collapsedGroups.add(layerId);
+        }
+        this.renderLayerPanel();
+      });
+    });
 
     // 드래그앤드롭 초기화
     this.initLayerDragAndDrop();
