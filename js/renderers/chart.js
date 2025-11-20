@@ -23,6 +23,14 @@ class ChartRenderer {
     this.animationMode = false; // 애니메이션 모드 (기본: 정적 렌더링)
     this.animationSpeed = 1.0; // 애니메이션 속도 배율
 
+    // 차트 데이터 저장 (renderFrame에서 사용)
+    this.currentClasses = null;
+    this.currentRelativeFreqs = null;
+    this.currentCoords = null;
+    this.currentEllipsisInfo = null;
+    this.currentMaxY = null;
+    this.currentAxisLabels = null;
+
     // 애니메이션 콜백
     this.timeline.onUpdate = () => this.renderFrame();
   }
@@ -54,12 +62,28 @@ class ChartRenderer {
     // 좌표 시스템 생성
     const coords = this.createCoordinateSystem(classes.length, ellipsisInfo, maxY);
 
-    // 렌더링 순서
-    this.drawGrid(coords.toX, coords.toY, maxY, classes.length, ellipsisInfo);
-    this.drawHistogram(relativeFreqs, freq, coords, ellipsisInfo);
-    this.drawPolygon(relativeFreqs, coords, ellipsisInfo);
-    this.drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo);
-    this.drawLegend();
+    // 차트 데이터 저장 (애니메이션 모드용)
+    this.currentClasses = classes;
+    this.currentRelativeFreqs = relativeFreqs;
+    this.currentCoords = coords;
+    this.currentEllipsisInfo = ellipsisInfo;
+    this.currentMaxY = maxY;
+    this.currentAxisLabels = axisLabels;
+
+    // 애니메이션 모드 분기
+    if (this.animationMode) {
+      // 애니메이션 모드: Layer 생성 후 애니메이션 재생
+      this.createLayers(classes, relativeFreqs, coords, ellipsisInfo);
+      this.setupAnimations(classes);
+      this.playAnimation();
+    } else {
+      // 정적 렌더링 모드 (기존 방식)
+      this.drawGrid(coords.toX, coords.toY, maxY, classes.length, ellipsisInfo);
+      this.drawHistogram(relativeFreqs, freq, coords, ellipsisInfo);
+      this.drawPolygon(relativeFreqs, coords, ellipsisInfo);
+      this.drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo);
+      this.drawLegend();
+    }
   }
 
   /**
@@ -801,6 +825,21 @@ class ChartRenderer {
   setAnimationSpeed(speed) {
     this.animationSpeed = Math.max(0.1, Math.min(speed, 5.0));
     // Timeline의 delta에 속도 배율 적용 필요 (timeline.controller.js 수정 필요)
+  }
+
+  /**
+   * 애니메이션 모드 활성화
+   */
+  enableAnimation() {
+    this.animationMode = true;
+  }
+
+  /**
+   * 애니메이션 모드 비활성화
+   */
+  disableAnimation() {
+    this.animationMode = false;
+    this.stopAnimation();
   }
 
   /**
