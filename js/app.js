@@ -84,8 +84,16 @@ class FrequencyDistributionApp {
     // 레이어 목록 가져오기
     const layers = this.chartRenderer.layerManager.getAllLayers();
 
+    // root 레이어 제외 및 depth 조정
+    const filteredLayers = layers
+      .filter(({ layer }) => layer.id !== 'root')
+      .map(({ layer, depth }) => ({
+        layer,
+        depth: depth - 1 // depth 1 감소 (histogram/polygon이 depth-0이 됨)
+      }));
+
     // HTML 생성
-    layerList.innerHTML = layers.map(({ layer, depth }) => {
+    layerList.innerHTML = filteredLayers.map(({ layer, depth }) => {
       const typeClass = layer.type;
       const depthClass = `depth-${depth}`;
 
