@@ -241,9 +241,8 @@ class FrequencyDistributionApp {
           // 레이어 패널 다시 렌더링
           this.renderLayerPanel();
 
-          // updateChart() 대신 애니메이션만 재시작 (레이어 재생성 방지)
-          this.chartRenderer.stopAnimation();
-          this.chartRenderer.playAnimation();
+          // 애니메이션 타이밍 재설정 및 재생
+          this.chartRenderer.replayAnimation();
         }
       }
     }

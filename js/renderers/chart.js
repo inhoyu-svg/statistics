@@ -842,6 +842,21 @@ class ChartRenderer {
   }
 
   /**
+   * 애니메이션 재설정 및 재생
+   * 레이어 순서가 변경된 경우 애니메이션 타이밍을 재설정
+   */
+  replayAnimation() {
+    if (!this.animationMode || !this.currentClasses) {
+      return;
+    }
+
+    this.stopAnimation();
+    this.timeline.clearAnimations();
+    this.setupAnimations(this.currentClasses);
+    this.playAnimation();
+  }
+
+  /**
    * 애니메이션 속도 설정
    * @param {number} speed - 속도 배율 (0.5 = 느리게, 2.0 = 빠르게)
    */
