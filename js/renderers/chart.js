@@ -620,37 +620,47 @@ class ChartRenderer {
     const { index, relativeFreq, frequency, coords } = layer.data;
     const { toX, toY, xScale } = coords;
 
+    // 애니메이션 progress 가져오기 (0~1)
+    const progress = layer.data.animationProgress !== undefined ? layer.data.animationProgress : 1;
+
     const x = toX(index);
-    const y = toY(relativeFreq);
-    const h = toY(0) - y;
+    const baseY = toY(0); // 바닥 (높이 0)
+    const fullY = toY(relativeFreq); // 최종 높이
+    const fullH = baseY - fullY; // 전체 높이
+
+    // progress에 따라 높이 조절 (밑에서 위로 자라남)
+    const animatedH = fullH * progress;
+    const animatedY = baseY - animatedH;
     const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
 
     // 그라디언트 막대
-    const gradient = this.ctx.createLinearGradient(x, y, x, y + h);
+    const gradient = this.ctx.createLinearGradient(x, animatedY, x, animatedY + animatedH);
     gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
     gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
 
     this.ctx.globalAlpha = 0.5;
     this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(x, y, barWidth, h);
+    this.ctx.fillRect(x, animatedY, barWidth, animatedH);
     this.ctx.globalAlpha = 1.0;
 
     // 녹색 테두리 (데이터가 있는 경우)
     if (frequency > 0) {
       this.ctx.strokeStyle = CONFIG.CHART_BAR_BORDER_COLOR;
       this.ctx.lineWidth = 2;
-      this.ctx.strokeRect(x, y, barWidth, h);
+      this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
     }
 
-    // 도수 라벨
-    this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.font = CONFIG.CHART_FONT_REGULAR;
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(
-      frequency,
-      this.getBarCenterX(index, toX, xScale),
-      y - CONFIG.CHART_LABEL_OFFSET
-    );
+    // 도수 라벨 (progress가 0.5 이상일 때만 표시)
+    if (progress > 0.5) {
+      this.ctx.fillStyle = CONFIG.getColor('--color-text');
+      this.ctx.font = CONFIG.CHART_FONT_REGULAR;
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(
+        frequency,
+        this.getBarCenterX(index, toX, xScale),
+        animatedY - CONFIG.CHART_LABEL_OFFSET
+      );
+    }
   }
 
   /**
@@ -747,7 +757,7 @@ class ChartRenderer {
         this.timeline.addAnimation(barLayer.id, {
           startTime: currentTime,
           duration: barDuration,
-          effect: 'fade',
+          effect: 'none', // fade 대신 none 사용 (renderBar에서 높이 애니메이션)
           effectOptions: {},
           easing: 'easeInOut'
         });
@@ -881,6 +891,9 @@ class ChartRenderer {
       // 진행도 계산 (0~1)
       const elapsed = this.timeline.currentTime - anim.startTime;
       const progress = Math.min(1, Math.max(0, elapsed / anim.duration));
+
+      // progress를 layer.data에 저장 (renderBar에서 사용)
+      layer.data.animationProgress = progress;
 
       // 효과 적용하여 렌더링
       LayerAnimationEffects.apply(
