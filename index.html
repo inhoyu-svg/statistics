@@ -236,8 +236,15 @@
               <span class="progress-label">진행도</span>
               <span class="progress-text" id="progressText">0%</span>
             </div>
-            <div class="progress-bar-container">
-              <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-slider-container">
+              <input
+                type="range"
+                id="progressSlider"
+                class="progress-slider"
+                min="0"
+                max="100"
+                value="0"
+                aria-label="애니메이션 진행도 조절">
             </div>
           </div>
         </div>

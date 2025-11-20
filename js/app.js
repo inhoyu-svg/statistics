@@ -65,8 +65,11 @@ class FrequencyDistributionApp {
     const stopBtn = document.getElementById('stopBtn');
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
-    const progressBar = document.getElementById('progressBar');
+    const progressSlider = document.getElementById('progressSlider');
     const progressText = document.getElementById('progressText');
+
+    // 슬라이더 조작 중인지 여부
+    this.isUserDraggingSlider = false;
 
     // 애니메이션 모드는 항상 활성화
     this.chartRenderer.enableAnimation();
@@ -83,17 +86,52 @@ class FrequencyDistributionApp {
       this.chartRenderer.setAnimationSpeed(speed);
     });
 
-    // 진행도 업데이트
+    // 진행도 슬라이더 조작
+    progressSlider?.addEventListener('input', (e) => {
+      const percentage = parseInt(e.target.value);
+      const progress = percentage / 100;
+
+      // 슬라이더 조작 중 표시
+      this.isUserDraggingSlider = true;
+
+      // 타임라인 이동
+      if (this.chartRenderer && this.chartRenderer.timeline) {
+        this.chartRenderer.timeline.seekToProgress(progress);
+      }
+
+      // 진행도 텍스트 업데이트
+      if (progressText) {
+        progressText.textContent = `${percentage}%`;
+      }
+
+      // 슬라이더 배경 업데이트
+      this.updateSliderBackground(progressSlider, percentage);
+    });
+
+    // 슬라이더 조작 종료 감지
+    progressSlider?.addEventListener('mouseup', () => {
+      this.isUserDraggingSlider = false;
+    });
+
+    progressSlider?.addEventListener('touchend', () => {
+      this.isUserDraggingSlider = false;
+    });
+
+    // 진행도 자동 업데이트 (슬라이더 조작 중이 아닐 때만)
     this.updateProgress = () => {
       if (this.chartRenderer && this.chartRenderer.timeline) {
         const progress = this.chartRenderer.timeline.getProgress();
         const percentage = Math.round(progress * 100);
 
-        if (progressBar) {
-          progressBar.style.width = `${percentage}%`;
-        }
-        if (progressText) {
-          progressText.textContent = `${percentage}%`;
+        // 슬라이더 조작 중이 아닐 때만 업데이트
+        if (!this.isUserDraggingSlider) {
+          if (progressSlider) {
+            progressSlider.value = percentage;
+            this.updateSliderBackground(progressSlider, percentage);
+          }
+          if (progressText) {
+            progressText.textContent = `${percentage}%`;
+          }
         }
       }
 
@@ -103,6 +141,19 @@ class FrequencyDistributionApp {
 
     // 진행도 업데이트 시작
     this.updateProgress();
+  }
+
+  /**
+   * 슬라이더 배경 그라데이션 업데이트
+   * @param {HTMLInputElement} slider - 슬라이더 요소
+   * @param {number} percentage - 진행도 (0~100)
+   */
+  updateSliderBackground(slider, percentage) {
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+    const primaryDark = getComputedStyle(document.documentElement).getPropertyValue('--color-primary-dark').trim();
+    const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--color-border').trim();
+
+    slider.style.background = `linear-gradient(to right, ${primaryColor} 0%, ${primaryDark} ${percentage}%, ${borderColor} ${percentage}%, ${borderColor} 100%)`;
   }
 
   /**
