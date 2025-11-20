@@ -7,6 +7,7 @@
  */
 
 import CONFIG from './config.js';
+import Utils from './utils/utils.js';
 import Validator from './utils/validator.js';
 import MessageManager from './utils/message.js';
 import DataProcessor from './core/processor.js';
@@ -127,14 +128,14 @@ class FrequencyDistributionApp {
       const toggleIcon = isGroup ? (isCollapsed ? '▶' : '▼') : '';
 
       return `
-        <div class="layer-item ${depthClass}" draggable="true" data-layer-id="${layer.id}">
-          ${isGroup ? `<span class="layer-toggle" data-layer-id="${layer.id}">${toggleIcon}</span>` : '<span class="layer-toggle-spacer"></span>'}
+        <div class="layer-item ${depthClass}" draggable="true" data-layer-id="${Utils.escapeHtml(layer.id)}">
+          ${isGroup ? `<span class="layer-toggle" data-layer-id="${Utils.escapeHtml(layer.id)}">${toggleIcon}</span>` : '<span class="layer-toggle-spacer"></span>'}
           <span class="layer-drag-handle">⋮⋮</span>
           <div class="layer-visibility">
-            <input type="checkbox" ${layer.visible ? 'checked' : ''} data-layer-id="${layer.id}">
+            <input type="checkbox" ${layer.visible ? 'checked' : ''} data-layer-id="${Utils.escapeHtml(layer.id)}">
           </div>
-          <span class="layer-name">${layer.name || layer.id}</span>
-          <span class="layer-type ${typeClass}">${layer.type}</span>
+          <span class="layer-name">${Utils.escapeHtml(layer.name || layer.id)}</span>
+          <span class="layer-type ${typeClass}">${Utils.escapeHtml(layer.type)}</span>
         </div>
       `;
     }).join('');
