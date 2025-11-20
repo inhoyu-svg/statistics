@@ -48,6 +48,15 @@ export class Layer {
       throw new Error('Child must be a Layer instance');
     }
     layer.p_id = this.id; // 부모 ID 설정
+
+    // order 자동 설정 (기존 자식 중 최대 order + 1)
+    if (this.children.length > 0) {
+      const maxOrder = Math.max(...this.children.map(c => c.order));
+      layer.order = maxOrder + 1;
+    } else {
+      layer.order = 0;
+    }
+
     this.children.push(layer);
     return this;
   }
