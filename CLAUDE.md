@@ -315,6 +315,32 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 ---
 
 ## 마지막 업데이트
-- **날짜**: 2025-11-19
-- **주요 작업**: 빈 구간 압축 기능 추가, chart.js 리팩토링, toY 함수 오류 수정
+- **날짜**: 2025-11-20
+- **주요 작업**:
+  - ✅ XSS 방어 강화 (Utils.escapeHtml 추가)
+  - ✅ chart.js 대규모 리팩토링 (950줄 → 354줄 + 5개 모듈)
+  - ✅ JSDoc 주석 보완 (processor.js, app.js)
+  - ✅ 코드 품질 리뷰 완료 (B+ 등급, 84/100점)
 - **현재 상태**: 정상 작동 ✅
+
+## 최근 리팩토링 (2025-11-20)
+
+### chart.js 파일 분할
+**목적**: CLAUDE.md 기준 충족 (600줄 이하), 유지보수성 향상
+
+**분할 전:**
+- chart.js: 950줄 ❌
+
+**분할 후:**
+- ChartRenderer.js: 354줄 ✅ (메인 컨트롤러)
+- chart/CoordinateSystem.js: 73줄 (좌표 변환)
+- chart/LayerFactory.js: 140줄 (레이어 생성)
+- chart/HistogramRenderer.js: 116줄 (막대 차트)
+- chart/PolygonRenderer.js: 115줄 (다각형)
+- chart/AxisRenderer.js: 261줄 (축, 그리드, 범례)
+
+**결과:**
+- 메인 파일: 950줄 → 354줄 (-63%)
+- 모든 파일 600줄 이하 유지
+- 단일 책임 원칙 준수
+- 기존 API 완벽 호환
