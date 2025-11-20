@@ -155,6 +155,24 @@
 
       <!-- Right Column: Results Section -->
       <div class="right-column">
+        <!-- 애니메이션 컨트롤 -->
+        <div class="animation-controls">
+          <h2 class="section-title">🎬 애니메이션 컨트롤</h2>
+
+          <div class="control-group" id="animationButtons">
+            <button id="playBtn" class="control-btn">▶ 재생</button>
+            <button id="pauseBtn" class="control-btn">⏸ 일시정지</button>
+            <button id="stopBtn" class="control-btn">⏹ 정지</button>
+          </div>
+
+          <div class="control-group" id="speedControl">
+            <label class="speed-label">
+              속도: <span id="speedValue">1.0x</span>
+            </label>
+            <input type="range" id="speedSlider" min="0.5" max="3.0" step="0.5" value="1.0">
+          </div>
+        </div>
+
         <!-- 표 + 차트 영역 -->
         <section class="result-section" id="resultSection" aria-label="분석 결과">
           <div class="table-section">
@@ -168,24 +186,6 @@
             <h2 class="section-title">📈 히스토그램 & 상대도수 다각형</h2>
             <div class="canvas-wrapper">
               <canvas id="chart" role="img" aria-label="도수분포 히스토그램과 상대도수 다각형"></canvas>
-            </div>
-          </div>
-
-          <!-- 애니메이션 컨트롤 -->
-          <div class="animation-controls">
-            <h2 class="section-title">🎬 애니메이션 컨트롤</h2>
-
-            <div class="control-group" id="animationButtons">
-              <button id="playBtn" class="control-btn">▶ 재생</button>
-              <button id="pauseBtn" class="control-btn">⏸ 일시정지</button>
-              <button id="stopBtn" class="control-btn">⏹ 정지</button>
-            </div>
-
-            <div class="control-group" id="speedControl">
-              <label class="speed-label">
-                속도: <span id="speedValue">1.0x</span>
-              </label>
-              <input type="range" id="speedSlider" min="0.5" max="3.0" step="0.5" value="1.0">
             </div>
           </div>
         </section>
