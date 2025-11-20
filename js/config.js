@@ -40,6 +40,7 @@ const CONFIG = {
 
   // 중략 판단 기준
   ELLIPSIS_THRESHOLD: 2,
+  ELLIPSIS_POSITION_RATIO: 0.25, // 압축 구간에서 이중물결 기호 위치 (0~1 사이 값)
 
   // 차트 색상 (하드코딩 방지)
   CHART_BAR_BORDER_COLOR: '#57F684',

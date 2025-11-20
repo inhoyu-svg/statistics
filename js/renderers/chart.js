@@ -284,12 +284,17 @@ class ChartRenderer {
       // 0 표시
       this.ctx.fillText('0', toX(0), labelY);
 
-      // 중략 기호
-      const ellipsisX = (toX(0) + toX(1)) / 2;
-      this.ctx.fillText('⋯', ellipsisX, labelY + CONFIG.CHART_ELLIPSIS_Y_OFFSET);
+      // 중략 기호 (이중 물결, X축 위에 세로로)
+      const ellipsisX = toX(0) + (toX(1) - toX(0)) * CONFIG.ELLIPSIS_POSITION_RATIO;
+      const ellipsisY = toY(0);
 
-      // Zigzag 패턴
-      this.drawEllipsisPattern(toX(0), toX(1), toY);
+      this.ctx.save();
+      this.ctx.translate(ellipsisX, ellipsisY);
+      this.ctx.rotate(Math.PI / 2); // 90도 회전
+      this.ctx.font = CONFIG.CHART_FONT_LARGE;
+      this.ctx.fillStyle = CONFIG.getColor('--color-text');
+      this.ctx.fillText('≈', 0, 0);
+      this.ctx.restore();
 
       // 데이터 구간 라벨
       for (let i = firstDataIdx; i < classes.length; i++) {
