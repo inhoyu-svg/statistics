@@ -218,11 +218,11 @@ drawNoDataMessage()
 
 ## 커밋 규칙
 
-### 커밋 메시지 형식
+### 커밋 메시지 형식 (한글)
 ```
-<type>: <subject>
+<type>: <제목>
 
-<body>
+<본문>
 ```
 
 **Types**:
@@ -233,13 +233,23 @@ drawNoDataMessage()
 - `Remove`: 코드/파일 제거
 - `Docs`: 문서 수정
 
+**⚠️ 중요: 커밋 메시지는 반드시 한글로 작성**
+
 **Example**:
 ```
-Add: Ellipsis display for empty class intervals
+Add: 빈 계급 구간 압축 기능 추가
 
-- Added shouldShowEllipsis() to processor.js
-- Modified createCoordinateSystem() to support compression
-- Added zigzag pattern and ⋯ symbol in chart.js
+- processor.js에 shouldShowEllipsis() 메서드 추가
+- createCoordinateSystem()에 압축 모드 지원
+- chart.js에 zigzag 패턴과 ⋯ 기호 렌더링 추가
+```
+
+```
+Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
+
+- setupAnimations() 메서드를 재귀적으로 재작성
+- order 기반으로 동적 애니메이션 생성
+- replayAnimation() 메서드 추가
 ```
 
 ---
