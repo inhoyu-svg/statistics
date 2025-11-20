@@ -76,6 +76,22 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 조상 중 하나라도 접혀있는지 확인
+   * @param {string} layerId - 확인할 레이어 ID
+   * @returns {boolean} 조상이 접혀있으면 true
+   */
+  isAnyAncestorCollapsed(layerId) {
+    let currentParent = this.chartRenderer.layerManager.findParent(layerId);
+    while (currentParent) {
+      if (this.collapsedGroups.has(currentParent.id)) {
+        return true;
+      }
+      currentParent = this.chartRenderer.layerManager.findParent(currentParent.id);
+    }
+    return false;
+  }
+
+  /**
    * 레이어 패널 렌더링
    */
   renderLayerPanel() {
@@ -90,9 +106,8 @@ class FrequencyDistributionApp {
       .filter(({ layer }) => {
         if (layer.id === 'root') return false;
 
-        // 부모가 접혀있으면 숨김
-        const parent = this.chartRenderer.layerManager.findParent(layer.id);
-        if (parent && this.collapsedGroups.has(parent.id)) {
+        // 조상 중 하나라도 접혀있으면 숨김
+        if (this.isAnyAncestorCollapsed(layer.id)) {
           return false;
         }
 
@@ -130,40 +145,13 @@ class FrequencyDistributionApp {
         e.stopPropagation();
         const layerId = e.target.dataset.layerId;
 
-        console.log('\n=== Toggle Debug ===');
-        console.log('Toggling layer:', layerId);
-
-        // 토글 전 부모의 children order 출력
-        const layer = this.chartRenderer.layerManager.findLayer(layerId);
-        const parent = this.chartRenderer.layerManager.findParent(layerId);
-
-        if (parent) {
-          console.log('Parent:', parent.name || parent.id);
-          console.log('Parent children order BEFORE toggle:');
-          parent.children.forEach(c => {
-            console.log(`  - ${c.name || c.id}: order=${c.order}`);
-          });
-        }
-
         if (this.collapsedGroups.has(layerId)) {
           this.collapsedGroups.delete(layerId);
-          console.log('Action: Expanding (removing from collapsed set)');
         } else {
           this.collapsedGroups.add(layerId);
-          console.log('Action: Collapsing (adding to collapsed set)');
         }
 
         this.renderLayerPanel();
-
-        // 토글 후 order 확인
-        if (parent) {
-          console.log('Parent children order AFTER toggle & re-render:');
-          parent.children.forEach(c => {
-            console.log(`  - ${c.name || c.id}: order=${c.order}`);
-          });
-        }
-
-        console.log('===================\n');
       });
     });
 
@@ -236,39 +224,19 @@ class FrequencyDistributionApp {
       const draggedLayer = this.chartRenderer.layerManager.findLayer(draggedId);
       const targetLayer = this.chartRenderer.layerManager.findLayer(targetId);
 
-      console.log('\n=== Layer Drop Debug ===');
-      console.log('Dragged ID:', draggedId);
-      console.log('Target ID:', targetId);
-
       if (draggedLayer && targetLayer) {
         // 같은 부모인지 확인
         const draggedParent = this.chartRenderer.layerManager.findParent(draggedId);
         const targetParent = this.chartRenderer.layerManager.findParent(targetId);
 
-        console.log('Dragged:', draggedLayer.name, '| order:', draggedLayer.order);
-        console.log('Target:', targetLayer.name, '| order:', targetLayer.order);
-        console.log('Dragged Parent:', draggedParent?.name || draggedParent?.id);
-        console.log('Target Parent:', targetParent?.name || targetParent?.id);
-
         if (draggedParent && targetParent && draggedParent.id === targetParent.id) {
-          console.log('✓ Same parent - swapping order');
-
           // 순서 교환
           const temp = draggedLayer.order;
           draggedLayer.order = targetLayer.order;
           targetLayer.order = temp;
 
-          console.log('After swap:');
-          console.log('  Dragged order:', draggedLayer.order);
-          console.log('  Target order:', targetLayer.order);
-
-          // children 배열을 order 기준으로 재정렬 (중요!)
+          // children 배열을 order 기준으로 재정렬
           draggedParent.children.sort((a, b) => a.order - b.order);
-
-          console.log('After sort, children order:');
-          draggedParent.children.forEach(c => {
-            console.log(`  - ${c.name || c.id}: order=${c.order}`);
-          });
 
           // 레이어 패널 다시 렌더링
           this.renderLayerPanel();
@@ -276,21 +244,8 @@ class FrequencyDistributionApp {
           // updateChart() 대신 애니메이션만 재시작 (레이어 재생성 방지)
           this.chartRenderer.stopAnimation();
           this.chartRenderer.playAnimation();
-        } else {
-          console.log('✗ Different parents - cannot swap');
-          if (!draggedParent) console.log('  Dragged parent not found');
-          if (!targetParent) console.log('  Target parent not found');
-          if (draggedParent && targetParent && draggedParent.id !== targetParent.id) {
-            console.log('  Parent IDs do not match');
-          }
         }
-      } else {
-        console.log('✗ Layer not found');
-        if (!draggedLayer) console.log('  Dragged layer not found');
-        if (!targetLayer) console.log('  Target layer not found');
       }
-
-      console.log('======================\n');
     }
 
     e.currentTarget.classList.remove('drag-over');
