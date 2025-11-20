@@ -22,7 +22,7 @@ class TableRenderer {
    * 도수분포표 그리기
    * @param {Array} classes - 계급 데이터 배열
    * @param {number} total - 전체 데이터 개수
-   * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns)
+   * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns, columnOrder)
    */
   draw(classes, total, config = null) {
     // 도수가 0이 아닌 계급만 필터링
@@ -36,8 +36,9 @@ class TableRenderer {
     // 설정 가져오기
     const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
     const visibleColumns = config?.visibleColumns || [true, true, true, true, true, true];
+    const columnOrder = config?.columnOrder || [0, 1, 2, 3, 4, 5];
 
-    // 표시할 컬럼 필터링
+    // 원본 라벨 배열
     const allLabels = [
       tableLabels.class,
       tableLabels.midpoint,
@@ -46,7 +47,13 @@ class TableRenderer {
       tableLabels.cumulativeFrequency,
       tableLabels.cumulativeRelativeFrequency
     ];
-    const filteredLabels = allLabels.filter((_, i) => visibleColumns[i]);
+
+    // columnOrder에 따라 재정렬
+    const orderedLabels = columnOrder.map(i => allLabels[i]);
+    const orderedVisibleColumns = columnOrder.map(i => visibleColumns[i]);
+
+    // 표시할 컬럼만 필터링
+    const filteredLabels = orderedLabels.filter((_, i) => orderedVisibleColumns[i]);
     const columnCount = filteredLabels.length;
 
     // Canvas 크기 계산 (헤더 + 데이터 행 + 합계 행)
@@ -63,8 +70,8 @@ class TableRenderer {
     // 렌더링 순서
     this.drawGrid(rowCount, columnWidths);
     this.drawHeader(filteredLabels, columnWidths);
-    this.drawDataRows(visibleClasses, columnWidths, visibleColumns);
-    this.drawSummaryRow(total, visibleClasses.length, columnWidths, visibleColumns);
+    this.drawDataRows(visibleClasses, columnWidths, orderedVisibleColumns, columnOrder);
+    this.drawSummaryRow(total, visibleClasses.length, columnWidths, orderedVisibleColumns, columnOrder);
   }
 
   /**
@@ -165,9 +172,10 @@ class TableRenderer {
    * 데이터 행 그리기
    * @param {Array} classes - 계급 배열
    * @param {Array} columnWidths - 열 너비 배열
-   * @param {Array} visibleColumns - 표시할 컬럼 배열
+   * @param {Array} orderedVisibleColumns - 순서가 적용된 표시 컬럼 배열
+   * @param {Array} columnOrder - 컬럼 순서 배열
    */
-  drawDataRows(classes, columnWidths, visibleColumns) {
+  drawDataRows(classes, columnWidths, orderedVisibleColumns, columnOrder) {
     this.ctx.font = CONFIG.TABLE_FONT_DATA;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
@@ -186,7 +194,7 @@ class TableRenderer {
         );
       }
 
-      // 전체 셀 데이터
+      // 원본 셀 데이터
       const allCells = [
         `${classData.min} ~ ${classData.max}`,
         Utils.formatNumber(classData.midpoint),
@@ -196,8 +204,11 @@ class TableRenderer {
         `${classData.cumulativeRelFreq}%`
       ];
 
+      // columnOrder에 따라 재정렬
+      const orderedCells = columnOrder.map(i => allCells[i]);
+
       // 표시할 셀만 필터링
-      const cells = allCells.filter((_, i) => visibleColumns[i]);
+      const cells = orderedCells.filter((_, i) => orderedVisibleColumns[i]);
 
       // 텍스트 그리기
       this.ctx.fillStyle = CONFIG.getColor('--color-text');
@@ -217,9 +228,10 @@ class TableRenderer {
    * @param {number} total - 전체 데이터 개수
    * @param {number} dataRowCount - 데이터 행 개수
    * @param {Array} columnWidths - 열 너비 배열
-   * @param {Array} visibleColumns - 표시할 컬럼 배열
+   * @param {Array} orderedVisibleColumns - 순서가 적용된 표시 컬럼 배열
+   * @param {Array} columnOrder - 컬럼 순서 배열
    */
-  drawSummaryRow(total, dataRowCount, columnWidths, visibleColumns) {
+  drawSummaryRow(total, dataRowCount, columnWidths, orderedVisibleColumns, columnOrder) {
     const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
 
     // 합계 행 배경
@@ -248,9 +260,14 @@ class TableRenderer {
 
     const cellY = y + CONFIG.TABLE_ROW_HEIGHT / 2;
 
-    // 전체 셀 데이터 (계급, 계급값은 "합계"로 병합, 나머지는 값)
+    // 원본 셀 데이터 (계급, 계급값은 "합계"로 병합, 나머지는 값)
     const allCells = ['합계', '', total, '100%', total, '100%'];
-    const filteredCells = allCells.filter((_, i) => visibleColumns[i]);
+
+    // columnOrder에 따라 재정렬
+    const orderedCells = columnOrder.map(i => allCells[i]);
+
+    // 표시할 셀만 필터링
+    const filteredCells = orderedCells.filter((_, i) => orderedVisibleColumns[i]);
 
     let x = this.padding;
     filteredCells.forEach((cellText, i) => {

@@ -19,6 +19,8 @@ class FrequencyDistributionApp {
   constructor() {
     this.chartRenderer = new ChartRenderer('chart');
     this.tableRenderer = new TableRenderer('frequencyTable');
+    this.columnOrder = [0, 1, 2, 3, 4, 5]; // 컬럼 순서 관리
+    this.draggedElement = null;
     this.init();
   }
 
@@ -34,6 +36,109 @@ class FrequencyDistributionApp {
       if (e.key === 'Enter' && e.ctrlKey) {
         this.generate();
       }
+    });
+
+    // 드래그 앤 드롭 초기화
+    this.initDragAndDrop();
+  }
+
+  /**
+   * 드래그 앤 드롭 이벤트 리스너 등록
+   */
+  initDragAndDrop() {
+    const container = document.getElementById('columnToggles');
+    const items = container.querySelectorAll('.column-toggle-item');
+
+    items.forEach(item => {
+      item.addEventListener('dragstart', (e) => this.handleDragStart(e));
+      item.addEventListener('dragover', (e) => this.handleDragOver(e));
+      item.addEventListener('drop', (e) => this.handleDrop(e));
+      item.addEventListener('dragend', (e) => this.handleDragEnd(e));
+      item.addEventListener('dragenter', (e) => this.handleDragEnter(e));
+      item.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+    });
+  }
+
+  /**
+   * 드래그 시작
+   */
+  handleDragStart(e) {
+    this.draggedElement = e.currentTarget;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+  }
+
+  /**
+   * 드래그 중 (드롭 가능 영역)
+   */
+  handleDragOver(e) {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  }
+
+  /**
+   * 드래그 진입
+   */
+  handleDragEnter(e) {
+    if (e.currentTarget !== this.draggedElement) {
+      e.currentTarget.classList.add('drag-over');
+    }
+  }
+
+  /**
+   * 드래그 이탈
+   */
+  handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+
+  /**
+   * 드롭 처리
+   */
+  handleDrop(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+
+    if (this.draggedElement !== e.currentTarget) {
+      // DOM 순서 변경
+      const container = document.getElementById('columnToggles');
+      const allItems = Array.from(container.querySelectorAll('.column-toggle-item'));
+
+      const draggedIndex = allItems.indexOf(this.draggedElement);
+      const targetIndex = allItems.indexOf(e.currentTarget);
+
+      // columnOrder 배열 업데이트
+      const draggedOrder = this.columnOrder[draggedIndex];
+      this.columnOrder.splice(draggedIndex, 1);
+      this.columnOrder.splice(targetIndex, 0, draggedOrder);
+
+      // DOM 재정렬
+      if (draggedIndex < targetIndex) {
+        e.currentTarget.parentNode.insertBefore(this.draggedElement, e.currentTarget.nextSibling);
+      } else {
+        e.currentTarget.parentNode.insertBefore(this.draggedElement, e.currentTarget);
+      }
+    }
+
+    e.currentTarget.classList.remove('drag-over');
+    return false;
+  }
+
+  /**
+   * 드래그 종료
+   */
+  handleDragEnd(e) {
+    const container = document.getElementById('columnToggles');
+    const items = container.querySelectorAll('.column-toggle-item');
+
+    items.forEach(item => {
+      item.classList.remove('dragging');
+      item.classList.remove('drag-over');
     });
   }
 
@@ -150,13 +255,13 @@ class FrequencyDistributionApp {
   }
 
   /**
-   * 표 설정 가져오기 (표시할 컬럼 + 라벨)
+   * 표 설정 가져오기 (표시할 컬럼 + 라벨 + 순서)
    */
   getTableConfig() {
     const customLabels = this.getCustomLabels();
 
-    // 체크박스 상태 확인
-    const visibleColumns = [
+    // 체크박스 상태 확인 (원본 순서)
+    const originalVisibleColumns = [
       document.getElementById('col1').checked,
       document.getElementById('col2').checked,
       document.getElementById('col3').checked,
@@ -167,7 +272,8 @@ class FrequencyDistributionApp {
 
     return {
       labels: customLabels.table,
-      visibleColumns: visibleColumns
+      visibleColumns: originalVisibleColumns,
+      columnOrder: this.columnOrder
     };
   }
 }

@@ -70,32 +70,50 @@
             <input type="text" id="yAxisLabel" placeholder="상대도수">
           </div>
 
-          <h4>표 컬럼 표시 설정</h4>
-          <div class="column-toggles">
-            <label>
-              <input type="checkbox" id="col1" checked>
-              <span>계급</span>
-            </label>
-            <label>
-              <input type="checkbox" id="col2" checked>
-              <span>계급값</span>
-            </label>
-            <label>
-              <input type="checkbox" id="col3" checked>
-              <span>도수</span>
-            </label>
-            <label>
-              <input type="checkbox" id="col4" checked>
-              <span>상대도수(%)</span>
-            </label>
-            <label>
-              <input type="checkbox" id="col5" checked>
-              <span>누적도수</span>
-            </label>
-            <label>
-              <input type="checkbox" id="col6" checked>
-              <span>누적상대도수(%)</span>
-            </label>
+          <h4>표 컬럼 표시 설정 (드래그하여 순서 변경)</h4>
+          <div class="column-toggles" id="columnToggles">
+            <div class="column-toggle-item" draggable="true" data-column-index="0">
+              <span class="drag-handle">⋮⋮</span>
+              <label>
+                <input type="checkbox" id="col1" checked>
+                <span>계급</span>
+              </label>
+            </div>
+            <div class="column-toggle-item" draggable="true" data-column-index="1">
+              <span class="drag-handle">⋮⋮</span>
+              <label>
+                <input type="checkbox" id="col2" checked>
+                <span>계급값</span>
+              </label>
+            </div>
+            <div class="column-toggle-item" draggable="true" data-column-index="2">
+              <span class="drag-handle">⋮⋮</span>
+              <label>
+                <input type="checkbox" id="col3" checked>
+                <span>도수</span>
+              </label>
+            </div>
+            <div class="column-toggle-item" draggable="true" data-column-index="3">
+              <span class="drag-handle">⋮⋮</span>
+              <label>
+                <input type="checkbox" id="col4" checked>
+                <span>상대도수(%)</span>
+              </label>
+            </div>
+            <div class="column-toggle-item" draggable="true" data-column-index="4">
+              <span class="drag-handle">⋮⋮</span>
+              <label>
+                <input type="checkbox" id="col5" checked>
+                <span>누적도수</span>
+              </label>
+            </div>
+            <div class="column-toggle-item" draggable="true" data-column-index="5">
+              <span class="drag-handle">⋮⋮</span>
+              <label>
+                <input type="checkbox" id="col6" checked>
+                <span>누적상대도수(%)</span>
+              </label>
+            </div>
           </div>
 
           <h4>표 컬럼명 커스터마이징</h4>
