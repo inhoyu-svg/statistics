@@ -5,7 +5,7 @@
 
 import CONFIG from '../config.js';
 import Utils from '../utils/utils.js';
-import { Layer, LayerManager } from '../animation/index.js';
+import { Layer, LayerManager, LayerTimeline, LayerAnimationEffects } from '../animation/index.js';
 
 /**
  * @class ChartRenderer
@@ -19,7 +19,12 @@ class ChartRenderer {
 
     // Layer 시스템
     this.layerManager = new LayerManager();
+    this.timeline = new LayerTimeline();
     this.animationMode = false; // 애니메이션 모드 (기본: 정적 렌더링)
+    this.animationSpeed = 1.0; // 애니메이션 속도 배율
+
+    // 애니메이션 콜백
+    this.timeline.onUpdate = () => this.renderFrame();
   }
 
   // ==================== 메인 렌더링 ====================
@@ -691,6 +696,177 @@ class ChartRenderer {
         layer.children.forEach(child => this.renderLayer(child));
         break;
     }
+  }
+
+  // ==================== Timeline & Animation ====================
+
+  /**
+   * 애니메이션 시퀀스 설정
+   * @param {Array} classes - 계급 데이터
+   */
+  setupAnimations(classes) {
+    this.timeline.clearAnimations();
+
+    const barDelay = 100; // 막대 간 딜레이 (ms)
+    const barDuration = 300; // 막대 애니메이션 시간 (ms)
+    const pointDelay = 100; // 점 간 딜레이 (ms)
+    const pointDuration = 300; // 점 애니메이션 시간 (ms)
+    const lineDelay = 100; // 선 간 딜레이 (ms)
+    const lineDuration = 300; // 선 애니메이션 시간 (ms)
+
+    let currentTime = 0;
+
+    // 1단계: 막대 순차 등장
+    const histogramGroup = this.layerManager.findLayer('histogram');
+    if (histogramGroup) {
+      histogramGroup.children.forEach((barLayer, index) => {
+        this.timeline.addAnimation(barLayer.id, {
+          startTime: currentTime,
+          duration: barDuration,
+          effect: 'fade',
+          effectOptions: {},
+          easing: 'easeOut'
+        });
+        currentTime += barDelay;
+      });
+    }
+
+    // 막대 애니메이션 완료 대기
+    currentTime += barDuration;
+
+    // 2단계: 점 순차 등장
+    const pointsGroup = this.layerManager.findLayer('points');
+    if (pointsGroup) {
+      pointsGroup.children.forEach((pointLayer, index) => {
+        this.timeline.addAnimation(pointLayer.id, {
+          startTime: currentTime,
+          duration: pointDuration,
+          effect: 'fade',
+          effectOptions: {},
+          easing: 'easeOut'
+        });
+        currentTime += pointDelay;
+      });
+    }
+
+    // 점 애니메이션 완료 대기
+    currentTime += pointDuration;
+
+    // 3단계: 선 순차 그리기
+    const linesGroup = this.layerManager.findLayer('lines');
+    if (linesGroup) {
+      linesGroup.children.forEach((lineLayer, index) => {
+        this.timeline.addAnimation(lineLayer.id, {
+          startTime: currentTime,
+          duration: lineDuration,
+          effect: 'draw',
+          effectOptions: { direction: 'left-to-right' },
+          easing: 'linear'
+        });
+        currentTime += lineDelay;
+      });
+    }
+  }
+
+  /**
+   * 애니메이션 재생
+   */
+  playAnimation() {
+    if (!this.animationMode) {
+      console.warn('Animation mode is disabled');
+      return;
+    }
+    this.timeline.play();
+  }
+
+  /**
+   * 애니메이션 일시정지
+   */
+  pauseAnimation() {
+    this.timeline.pause();
+  }
+
+  /**
+   * 애니메이션 정지
+   */
+  stopAnimation() {
+    this.timeline.stop();
+    this.renderFrame(); // 초기 상태로 다시 렌더링
+  }
+
+  /**
+   * 애니메이션 속도 설정
+   * @param {number} speed - 속도 배율 (0.5 = 느리게, 2.0 = 빠르게)
+   */
+  setAnimationSpeed(speed) {
+    this.animationSpeed = Math.max(0.1, Math.min(speed, 5.0));
+    // Timeline의 delta에 속도 배율 적용 필요 (timeline.controller.js 수정 필요)
+  }
+
+  /**
+   * 애니메이션 프레임 렌더링
+   */
+  renderFrame() {
+    // 저장된 데이터가 없으면 리턴
+    if (!this.currentClasses || !this.currentCoords) return;
+
+    this.clear();
+
+    // 배경 요소 그리기 (격자, 축)
+    this.drawGrid(
+      this.currentCoords.toX,
+      this.currentCoords.toY,
+      this.currentMaxY,
+      this.currentClasses.length,
+      this.currentEllipsisInfo
+    );
+    this.drawAxes(
+      this.currentClasses,
+      this.currentCoords,
+      this.currentMaxY,
+      this.currentAxisLabels,
+      this.currentEllipsisInfo
+    );
+
+    // 현재 시간에 활성화된 애니메이션 가져오기
+    const activeAnimations = this.timeline.timeline.filter(anim => {
+      const endTime = anim.startTime + anim.duration;
+      return this.timeline.currentTime >= anim.startTime && this.timeline.currentTime <= endTime;
+    });
+
+    // 각 레이어를 애니메이션 효과와 함께 렌더링
+    activeAnimations.forEach(anim => {
+      const layer = this.layerManager.findLayer(anim.layerId);
+      if (!layer || !layer.visible) return;
+
+      // 진행도 계산 (0~1)
+      const elapsed = this.timeline.currentTime - anim.startTime;
+      const progress = Math.min(1, Math.max(0, elapsed / anim.duration));
+
+      // 효과 적용하여 렌더링
+      LayerAnimationEffects.apply(
+        this.ctx,
+        progress,
+        anim.effect,
+        anim.effectOptions,
+        () => this.renderLayer(layer)
+      );
+    });
+
+    // 애니메이션이 완료된 레이어는 완전히 표시
+    const completedLayers = this.timeline.timeline.filter(anim => {
+      const endTime = anim.startTime + anim.duration;
+      return this.timeline.currentTime > endTime;
+    });
+
+    completedLayers.forEach(anim => {
+      const layer = this.layerManager.findLayer(anim.layerId);
+      if (layer && layer.visible) {
+        this.renderLayer(layer);
+      }
+    });
+
+    this.drawLegend();
   }
 }
 
