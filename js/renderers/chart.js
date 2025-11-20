@@ -527,9 +527,12 @@ class ChartRenderer {
     relativeFreqs.forEach((relativeFreq, index) => {
       if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
+      // 계급명 생성 (예: "140 이상 ~ 145 미만")
+      const className = `${classes[index].min} 이상 ~ ${classes[index].max} 미만`;
+
       const barLayer = new Layer({
         id: `bar-${index}`,
-        name: `막대 ${index}`,
+        name: className,
         type: 'bar',
         visible: true,
         data: {
@@ -564,9 +567,12 @@ class ChartRenderer {
     relativeFreqs.forEach((relativeFreq, index) => {
       if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
+      // 계급명 생성
+      const className = `${classes[index].min} 이상 ~ ${classes[index].max} 미만`;
+
       const pointLayer = new Layer({
         id: `point-${index}`,
-        name: `점 ${index}`,
+        name: `점 (${className})`,
         type: 'point',
         visible: true,
         data: {
@@ -585,9 +591,13 @@ class ChartRenderer {
       if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
       if (prevIndex !== null) {
+        // 시작 계급명과 끝 계급명
+        const fromClassName = `${classes[prevIndex].min}~${classes[prevIndex].max}`;
+        const toClassName = `${classes[index].min}~${classes[index].max}`;
+
         const lineLayer = new Layer({
           id: `line-${prevIndex}-${index}`,
-          name: `선 ${prevIndex}-${index}`,
+          name: `선 (${fromClassName} → ${toClassName})`,
           type: 'line',
           visible: true,
           data: {

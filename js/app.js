@@ -52,33 +52,14 @@ class FrequencyDistributionApp {
    * 애니메이션 컨트롤 이벤트 리스너 등록
    */
   initAnimationControls() {
-    const animationToggle = document.getElementById('animationToggle');
-    const animationButtons = document.getElementById('animationButtons');
-    const speedControl = document.getElementById('speedControl');
-    const layerPanel = document.getElementById('layerPanel');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
 
-    // 애니메이션 모드 토글
-    animationToggle?.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        this.chartRenderer.enableAnimation();
-        animationButtons.style.display = 'flex';
-        speedControl.style.display = 'block';
-        layerPanel.style.display = 'block';
-        this.renderLayerPanel();
-      } else {
-        this.chartRenderer.disableAnimation();
-        animationButtons.style.display = 'none';
-        speedControl.style.display = 'none';
-        layerPanel.style.display = 'none';
-      }
-      // 차트가 이미 그려진 경우 다시 렌더링
-      this.updateChart();
-    });
+    // 애니메이션 모드는 항상 활성화
+    this.chartRenderer.enableAnimation();
 
     // 재생/일시정지/정지
     playBtn?.addEventListener('click', () => this.chartRenderer.playAnimation());
@@ -199,6 +180,9 @@ class FrequencyDistributionApp {
           const temp = draggedLayer.order;
           draggedLayer.order = targetLayer.order;
           targetLayer.order = temp;
+
+          // children 배열을 order 기준으로 재정렬 (중요!)
+          draggedParent.children.sort((a, b) => a.order - b.order);
 
           // 레이어 패널 다시 렌더링
           this.renderLayerPanel();
@@ -402,11 +386,14 @@ class FrequencyDistributionApp {
       this.tableRenderer.draw(classes, data.length, tableConfig);
       this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo);
 
-      // 9. 결과 섹션 표시 및 2열 레이아웃 전환
+      // 9. 레이어 패널 렌더링
+      this.renderLayerPanel();
+
+      // 10. 결과 섹션 표시 및 2열 레이아웃 전환
       document.getElementById('resultSection').classList.add('active');
       document.querySelector('.layout-grid').classList.add('two-column');
 
-      // 10. 성공 메시지
+      // 11. 성공 메시지
       MessageManager.success('도수분포표가 생성되었습니다!');
 
     } catch (error) {
