@@ -38,11 +38,13 @@ class ChartRenderer {
 
     // 차트 데이터 저장 (renderFrame에서 사용)
     this.currentClasses = null;
-    this.currentRelativeFreqs = null;
+    this.currentValues = null;
+    this.currentFreq = null;
     this.currentCoords = null;
     this.currentEllipsisInfo = null;
     this.currentMaxY = null;
     this.currentAxisLabels = null;
+    this.currentDataType = null;
 
     // 애니메이션 콜백
     this.timeline.onUpdate = () => this.renderFrame();
@@ -55,8 +57,9 @@ class ChartRenderer {
    * @param {Array} classes - 계급 데이터 배열
    * @param {Object} axisLabels - 축 라벨 커스터마이징 객체
    * @param {Object} ellipsisInfo - 중략 표시 정보
+   * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null) {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency') {
     this.canvas.width = CONFIG.CANVAS_WIDTH;
     this.canvas.height = CONFIG.CANVAS_HEIGHT;
     this.clear();
@@ -69,8 +72,17 @@ class ChartRenderer {
       return;
     }
 
+    // 데이터 타입에 따라 값 배열 및 maxY 계산
     const relativeFreqs = freq.map(f => f / total);
-    const maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+    let values, maxY;
+
+    if (dataType === 'frequency') {
+      values = freq;
+      maxY = Math.max(...freq) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+    } else { // 'relativeFrequency' (기본값)
+      values = relativeFreqs;
+      maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+    }
 
     // 좌표 시스템 생성
     const coords = CoordinateSystem.create(
@@ -83,11 +95,13 @@ class ChartRenderer {
 
     // 차트 데이터 저장 (애니메이션 모드용)
     this.currentClasses = classes;
-    this.currentRelativeFreqs = relativeFreqs;
+    this.currentValues = values;
+    this.currentFreq = freq;
     this.currentCoords = coords;
     this.currentEllipsisInfo = ellipsisInfo;
     this.currentMaxY = maxY;
     this.currentAxisLabels = axisLabels;
+    this.currentDataType = dataType;
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
@@ -95,7 +109,7 @@ class ChartRenderer {
       LayerFactory.createLayers(
         this.layerManager,
         classes,
-        relativeFreqs,
+        values,
         coords,
         ellipsisInfo
       );
@@ -110,10 +124,10 @@ class ChartRenderer {
         classes.length,
         ellipsisInfo
       );
-      this.histogramRenderer.draw(relativeFreqs, freq, coords, ellipsisInfo);
-      this.polygonRenderer.draw(relativeFreqs, coords, ellipsisInfo);
+      this.histogramRenderer.draw(values, freq, coords, ellipsisInfo);
+      this.polygonRenderer.draw(values, coords, ellipsisInfo);
       this.axisRenderer.drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo);
-      this.axisRenderer.drawLegend();
+      this.axisRenderer.drawLegend(dataType);
     }
   }
 
@@ -350,7 +364,7 @@ class ChartRenderer {
       }
     });
 
-    this.axisRenderer.drawLegend();
+    this.axisRenderer.drawLegend(this.currentDataType);
   }
 }
 

@@ -201,8 +201,13 @@ class AxisRenderer {
 
   /**
    * 범례 그리기
+   * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    */
-  drawLegend() {
+  drawLegend(dataType = 'relativeFrequency') {
+    // 데이터 타입 정보 가져오기
+    const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
+    const legendSuffix = dataTypeInfo?.legendSuffix || '상대도수';
+
     const legendX = this.canvas.width - CONFIG.CHART_LEGEND_X_OFFSET;
     this.ctx.textAlign = 'left';
     this.ctx.font = CONFIG.CHART_FONT_REGULAR;
@@ -220,7 +225,7 @@ class AxisRenderer {
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.fillText('히스토그램', legendX + 25, 32);
 
-    // 상대도수 다각형 범례
+    // 다각형 범례 (동적 텍스트)
     this.ctx.strokeStyle = CONFIG.CHART_POLYGON_COLOR;
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
@@ -240,7 +245,7 @@ class AxisRenderer {
     this.ctx.arc(legendX + 10, 50, 4, 0, Math.PI * 2);
     this.ctx.fill();
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.fillText('상대도수 다각형', legendX + 25, 54);
+    this.ctx.fillText(`${legendSuffix} 다각형`, legendX + 25, 54);
   }
 
   /**

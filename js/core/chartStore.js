@@ -13,6 +13,7 @@ class ChartStore {
   constructor() {
     this.axisLabels = null;   // X축, Y축 라벨
     this.ellipsisInfo = null; // 중략 표시 정보
+    this.dataType = CONFIG.DEFAULT_CHART_DATA_TYPE; // 차트 데이터 타입
   }
 
   /**
@@ -56,11 +57,28 @@ class ChartStore {
   }
 
   /**
+   * 차트 데이터 타입 설정
+   * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+   */
+  setDataType(dataType) {
+    this.dataType = dataType;
+  }
+
+  /**
+   * 차트 데이터 타입 가져오기
+   * @returns {string} 데이터 타입
+   */
+  getDataType() {
+    return this.dataType || CONFIG.DEFAULT_CHART_DATA_TYPE;
+  }
+
+  /**
    * 기본값으로 초기화
    */
   reset() {
     this.axisLabels = null;
     this.ellipsisInfo = null;
+    this.dataType = CONFIG.DEFAULT_CHART_DATA_TYPE;
   }
 
   /**
@@ -70,7 +88,8 @@ class ChartStore {
   toJSON() {
     return {
       axisLabels: this.axisLabels,
-      ellipsisInfo: this.ellipsisInfo
+      ellipsisInfo: this.ellipsisInfo,
+      dataType: this.dataType
     };
   }
 }

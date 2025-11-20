@@ -49,6 +49,9 @@ class FrequencyDistributionApp {
     // 컬럼 정렬 버튼 초기화
     this.initAlignmentButtons();
 
+    // 차트 데이터 타입 라디오 버튼 동적 생성
+    this.initChartDataTypeRadios();
+
     // 애니메이션 컨트롤 초기화
     this.initAnimationControls();
   }
@@ -272,9 +275,10 @@ class FrequencyDistributionApp {
     const classes = DataStore.getData()?.classes;
     const axisLabels = ChartStore.getConfig()?.axisLabels;
     const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
+    const dataType = ChartStore.getDataType();
 
     if (classes) {
-      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo);
+      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType);
     }
   }
 
@@ -326,6 +330,50 @@ class FrequencyDistributionApp {
     buttons.forEach(button => {
       button.addEventListener('click', (e) => this.handleAlignmentChange(e));
     });
+  }
+
+  /**
+   * 차트 데이터 타입 라디오 버튼 동적 생성 및 이벤트 리스너 등록
+   */
+  initChartDataTypeRadios() {
+    const container = document.getElementById('chartDataTypeRadios');
+    const defaultDataType = ChartStore.getDataType();
+
+    // CONFIG에서 차트 데이터 타입 읽어서 동적 생성
+    CONFIG.CHART_DATA_TYPES.forEach((typeInfo, index) => {
+      const radioItem = document.createElement('div');
+      radioItem.className = 'radio-item';
+
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.id = `chartDataType${index}`;
+      radio.name = 'chartDataType';
+      radio.value = typeInfo.id;
+      radio.checked = typeInfo.id === defaultDataType;
+
+      const label = document.createElement('label');
+      label.htmlFor = `chartDataType${index}`;
+      label.textContent = typeInfo.label;
+
+      // 라디오 버튼 클릭 이벤트
+      radio.addEventListener('change', () => this.handleChartDataTypeChange(typeInfo.id));
+
+      radioItem.appendChild(radio);
+      radioItem.appendChild(label);
+      container.appendChild(radioItem);
+    });
+  }
+
+  /**
+   * 차트 데이터 타입 변경 핸들러
+   * @param {string} dataType - 선택된 데이터 타입 ID
+   */
+  handleChartDataTypeChange(dataType) {
+    // ChartStore에 저장
+    ChartStore.setDataType(dataType);
+
+    // 차트 다시 렌더링
+    this.updateChart();
   }
 
   /**
@@ -512,7 +560,10 @@ class FrequencyDistributionApp {
       };
 
       this.tableRenderer.draw(classes, data.length, configWithAlignment);
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo);
+
+      // 차트 데이터 타입 가져오기
+      const dataType = ChartStore.getDataType();
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType);
 
       // 9. 레이어 패널 렌더링
       this.renderLayerPanel();

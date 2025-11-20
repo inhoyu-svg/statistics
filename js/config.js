@@ -95,6 +95,28 @@ const CONFIG = {
     '누적상대도수(%)': 'center'
   },
 
+  // 차트 데이터 타입 설정 (확장 가능)
+  CHART_DATA_TYPES: [
+    {
+      id: 'relativeFrequency',
+      label: '상대도수 (%)',
+      yAxisLabel: '상대도수',
+      legendSuffix: '상대도수'
+    },
+    {
+      id: 'frequency',
+      label: '도수',
+      yAxisLabel: '도수',
+      legendSuffix: '도수'
+    }
+    // 향후 확장 가능:
+    // { id: 'cumulativeFrequency', label: '누적도수', yAxisLabel: '누적도수', legendSuffix: '누적도수' },
+    // { id: 'cumulativeRelativeFrequency', label: '누적상대도수 (%)', yAxisLabel: '누적상대도수', legendSuffix: '누적상대도수' }
+  ],
+
+  // 기본 차트 데이터 타입
+  DEFAULT_CHART_DATA_TYPE: 'relativeFrequency',
+
   // 색상 캐시 (성능 최적화)
   _colorCache: null,
 

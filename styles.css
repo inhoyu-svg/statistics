@@ -289,6 +289,57 @@ button:active {
   transform: translateY(1px);
 }
 
+/* ========== Chart Data Type Selection ========== */
+.chart-data-type-section {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-dark);
+}
+
+.chart-data-type-section h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 14px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  cursor: pointer;
+}
+
+.radio-item:hover {
+  background: var(--color-bg-hover);
+}
+
+.radio-item input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.radio-item label {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text);
+  user-select: none;
+  flex: 1;
+}
+
 /* ========== Advanced Settings ========== */
 .advanced-settings {
   margin-top: var(--spacing-lg);
