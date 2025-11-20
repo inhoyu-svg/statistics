@@ -527,6 +527,9 @@ class ChartRenderer {
     relativeFreqs.forEach((relativeFreq, index) => {
       if (this.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
+      // 도수가 0인 막대는 레이어 생성하지 않음
+      if (classes[index].frequency === 0) return;
+
       // 계급명 생성 (예: "140~145")
       const className = `${classes[index].min}~${classes[index].max}`;
 
