@@ -207,25 +207,58 @@ class FrequencyDistributionApp {
       const draggedLayer = this.chartRenderer.layerManager.findLayer(draggedId);
       const targetLayer = this.chartRenderer.layerManager.findLayer(targetId);
 
+      console.log('\n=== Layer Drop Debug ===');
+      console.log('Dragged ID:', draggedId);
+      console.log('Target ID:', targetId);
+
       if (draggedLayer && targetLayer) {
         // 같은 부모인지 확인
         const draggedParent = this.chartRenderer.layerManager.findParent(draggedId);
         const targetParent = this.chartRenderer.layerManager.findParent(targetId);
 
+        console.log('Dragged:', draggedLayer.name, '| order:', draggedLayer.order);
+        console.log('Target:', targetLayer.name, '| order:', targetLayer.order);
+        console.log('Dragged Parent:', draggedParent?.name || draggedParent?.id);
+        console.log('Target Parent:', targetParent?.name || targetParent?.id);
+
         if (draggedParent && targetParent && draggedParent.id === targetParent.id) {
+          console.log('✓ Same parent - swapping order');
+
           // 순서 교환
           const temp = draggedLayer.order;
           draggedLayer.order = targetLayer.order;
           targetLayer.order = temp;
 
+          console.log('After swap:');
+          console.log('  Dragged order:', draggedLayer.order);
+          console.log('  Target order:', targetLayer.order);
+
           // children 배열을 order 기준으로 재정렬 (중요!)
           draggedParent.children.sort((a, b) => a.order - b.order);
+
+          console.log('After sort, children order:');
+          draggedParent.children.forEach(c => {
+            console.log(`  - ${c.name || c.id}: order=${c.order}`);
+          });
 
           // 레이어 패널 다시 렌더링
           this.renderLayerPanel();
           this.updateChart();
+        } else {
+          console.log('✗ Different parents - cannot swap');
+          if (!draggedParent) console.log('  Dragged parent not found');
+          if (!targetParent) console.log('  Target parent not found');
+          if (draggedParent && targetParent && draggedParent.id !== targetParent.id) {
+            console.log('  Parent IDs do not match');
+          }
         }
+      } else {
+        console.log('✗ Layer not found');
+        if (!draggedLayer) console.log('  Dragged layer not found');
+        if (!targetLayer) console.log('  Target layer not found');
       }
+
+      console.log('======================\n');
     }
 
     e.currentTarget.classList.remove('drag-over');
