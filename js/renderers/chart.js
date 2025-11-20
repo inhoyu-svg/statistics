@@ -505,7 +505,7 @@ class ChartRenderer {
    * @param {Object} ellipsisInfo - 중략 정보
    */
   createLayers(classes, relativeFreqs, coords, ellipsisInfo) {
-    this.layerManager.clear();
+    this.layerManager.clearAll();
 
     // 히스토그램 그룹
     const histogramGroup = new Layer({
