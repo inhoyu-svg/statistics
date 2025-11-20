@@ -13,6 +13,9 @@ import DataProcessor from './core/processor.js';
 import UIRenderer from './renderers/ui.js';
 import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
+import DataStore from './core/dataStore.js';
+import TableStore from './core/tableStore.js';
+import ChartStore from './core/chartStore.js';
 
 // ========== 애플리케이션 컨트롤러 ==========
 class FrequencyDistributionApp {
@@ -202,16 +205,21 @@ class FrequencyDistributionApp {
       // 중략 표시 여부 확인
       const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
 
-      // 7. UI 렌더링 (커스텀 라벨 전달)
+      // 7. Store에 데이터 저장
+      DataStore.setData(data, stats, classes);
+      TableStore.setConfig(tableConfig.visibleColumns, tableConfig.columnOrder, tableConfig.labels);
+      ChartStore.setConfig(customLabels.axis, ellipsisInfo);
+
+      // 8. UI 렌더링 (커스텀 라벨 전달)
       UIRenderer.renderStatsCards(stats);
       this.tableRenderer.draw(classes, data.length, tableConfig);
       this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo);
 
-      // 8. 결과 섹션 표시 및 2열 레이아웃 전환
+      // 9. 결과 섹션 표시 및 2열 레이아웃 전환
       document.getElementById('resultSection').classList.add('active');
       document.querySelector('.layout-grid').classList.add('two-column');
 
-      // 9. 성공 메시지
+      // 10. 성공 메시지
       MessageManager.success('도수분포표가 생성되었습니다!');
 
     } catch (error) {
@@ -276,6 +284,13 @@ class FrequencyDistributionApp {
       columnOrder: this.columnOrder
     };
   }
+}
+
+// ========== 개발 모드: 브라우저 콘솔에서 Store 접근 가능 ==========
+if (typeof window !== 'undefined') {
+  window.DataStore = DataStore;
+  window.TableStore = TableStore;
+  window.ChartStore = ChartStore;
 }
 
 // ========== 앱 초기화 ==========
