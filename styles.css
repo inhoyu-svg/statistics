@@ -119,11 +119,11 @@ h1 {
 
 .layout-grid.two-column .right-column {
   display: grid;
-  grid-template-columns: 1fr 320px; /* 표+차트 | 레이어 패널(고정 너비) */
-  grid-template-rows: auto 1fr; /* 애니메이션 컨트롤 | 나머지 */
+  grid-template-columns: 1fr 320px; /* 표+차트 | 오른쪽 사이드바 */
+  grid-template-rows: auto 1fr; /* 애니메이션 컨트롤 | 레이어 패널 */
   grid-template-areas:
-    "animation animation"  /* 애니메이션 컨트롤 (전체 너비) */
-    "content layer";       /* 표+차트 | 레이어 패널 */
+    "content animation"  /* 표+차트 | 애니메이션 컨트롤 */
+    "content layer";     /* 표+차트 | 레이어 패널 */
   align-items: start;
   gap: var(--spacing-lg);
 }
