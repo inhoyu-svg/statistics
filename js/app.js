@@ -129,12 +129,41 @@ class FrequencyDistributionApp {
       toggle.addEventListener('click', (e) => {
         e.stopPropagation();
         const layerId = e.target.dataset.layerId;
+
+        console.log('\n=== Toggle Debug ===');
+        console.log('Toggling layer:', layerId);
+
+        // 토글 전 부모의 children order 출력
+        const layer = this.chartRenderer.layerManager.findLayer(layerId);
+        const parent = this.chartRenderer.layerManager.findParent(layerId);
+
+        if (parent) {
+          console.log('Parent:', parent.name || parent.id);
+          console.log('Parent children order BEFORE toggle:');
+          parent.children.forEach(c => {
+            console.log(`  - ${c.name || c.id}: order=${c.order}`);
+          });
+        }
+
         if (this.collapsedGroups.has(layerId)) {
           this.collapsedGroups.delete(layerId);
+          console.log('Action: Expanding (removing from collapsed set)');
         } else {
           this.collapsedGroups.add(layerId);
+          console.log('Action: Collapsing (adding to collapsed set)');
         }
+
         this.renderLayerPanel();
+
+        // 토글 후 order 확인
+        if (parent) {
+          console.log('Parent children order AFTER toggle & re-render:');
+          parent.children.forEach(c => {
+            console.log(`  - ${c.name || c.id}: order=${c.order}`);
+          });
+        }
+
+        console.log('===================\n');
       });
     });
 
@@ -243,7 +272,10 @@ class FrequencyDistributionApp {
 
           // 레이어 패널 다시 렌더링
           this.renderLayerPanel();
-          this.updateChart();
+
+          // updateChart() 대신 애니메이션만 재시작 (레이어 재생성 방지)
+          this.chartRenderer.stopAnimation();
+          this.chartRenderer.playAnimation();
         } else {
           console.log('✗ Different parents - cannot swap');
           if (!draggedParent) console.log('  Dragged parent not found');
