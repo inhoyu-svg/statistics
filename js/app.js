@@ -94,6 +94,7 @@ class FrequencyDistributionApp {
 
   /**
    * 레이어 패널 렌더링
+   * @description 차트 레이어 목록을 HTML로 생성하고 이벤트 리스너 등록
    */
   renderLayerPanel() {
     const layerList = document.getElementById('layerList');
@@ -261,7 +262,8 @@ class FrequencyDistributionApp {
   }
 
   /**
-   * 차트 업데이트 (데이터 변경 없이 다시 렌더링)
+   * 차트 업데이트
+   * @description Store에서 데이터를 가져와 차트를 다시 렌더링 (데이터 변경 없음)
    */
   updateChart() {
     const classes = DataStore.getData()?.classes;
@@ -375,6 +377,8 @@ class FrequencyDistributionApp {
 
   /**
    * 도수분포표 생성 메인 로직
+   * @description 입력 데이터를 파싱하고 검증한 후, 도수분포표와 히스토그램 생성
+   * @throws {Error} 데이터 처리 중 오류 발생 시
    */
   generate() {
     try {
@@ -461,6 +465,8 @@ class FrequencyDistributionApp {
 
   /**
    * 고급 설정에서 커스텀 라벨 가져오기
+   * @returns {{axis: Object, table: Object}} 축 라벨과 표 라벨 객체
+   * @description X축/Y축 라벨과 표 컬럼 라벨을 통합하여 반환
    */
   getCustomLabels() {
     const xAxisLabel = document.getElementById('xAxisLabel').value.trim();
@@ -494,7 +500,9 @@ class FrequencyDistributionApp {
   }
 
   /**
-   * 표 설정 가져오기 (표시할 컬럼 + 라벨 + 순서)
+   * 표 설정 가져오기
+   * @returns {{labels: Object, visibleColumns: boolean[], columnOrder: number[]}} 표 설정 객체
+   * @description 표시할 컬럼, 라벨, 순서 정보를 반환
    */
   getTableConfig() {
     const customLabels = this.getCustomLabels();

@@ -10,6 +10,12 @@ import MessageManager from '../utils/message.js';
 class DataProcessor {
   /**
    * 입력 문자열을 숫자 배열로 파싱
+   * @param {string} input - 쉼표 또는 공백으로 구분된 숫자 문자열
+   * @returns {number[]} 파싱된 숫자 배열
+   * @example
+   * parseInput("1, 2, 3") // [1, 2, 3]
+   * parseInput("1 2 3") // [1, 2, 3]
+   * parseInput("1, abc, 3") // [1, 3] (NaN 제거)
    */
   static parseInput(input) {
     return input
@@ -19,7 +25,13 @@ class DataProcessor {
   }
 
   /**
-   * 기본 통계 계산 (빈 배열 방지)
+   * 기본 통계 계산
+   * @param {number[]} data - 숫자 배열
+   * @returns {{min: number, max: number, range: number, mean: number, median: number, count: number}} 통계 객체
+   * @throws {Error} 데이터가 비어있는 경우
+   * @example
+   * calculateBasicStats([1, 2, 3, 4, 5])
+   * // { min: 1, max: 5, range: 4, mean: 3, median: 3, count: 5 }
    */
   static calculateBasicStats(data) {
     if (Utils.isEmpty(data)) {
@@ -41,6 +53,13 @@ class DataProcessor {
 
   /**
    * 계급 구간 생성 (0부터 시작, 끝에 빈 구간 추가)
+   * @param {Object} stats - 통계 객체 (calculateBasicStats 반환값)
+   * @param {number} classCount - 생성할 계급 개수
+   * @param {number|null} customWidth - 커스텀 계급 간격 (선택)
+   * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
+   * @example
+   * createClasses({ max: 100 }, 5)
+   * // { classes: [{min: 0, max: 20, ...}, ...], classWidth: 20 }
    */
   static createClasses(stats, classCount, customWidth = null) {
     const { max, range } = stats;
@@ -84,7 +103,11 @@ class DataProcessor {
   }
 
   /**
-   * 도수 계산 (범위 밖 데이터 처리 개선)
+   * 도수 계산
+   * @param {number[]} data - 데이터 배열
+   * @param {Array} classes - 계급 배열 (createClasses 반환값)
+   * @returns {Array} 도수가 업데이트된 계급 배열
+   * @description 각 데이터를 해당하는 계급에 배치하고 도수를 증가시킴
    */
   static calculateFrequencies(data, classes) {
     const outOfRangeData = [];
@@ -123,6 +146,10 @@ class DataProcessor {
 
   /**
    * 상대도수 및 누적도수 계산
+   * @param {Array} classes - 계급 배열
+   * @param {number} total - 전체 데이터 개수
+   * @returns {Array} 상대도수와 누적도수가 추가된 계급 배열
+   * @description 각 계급에 relativeFreq, cumulativeFreq, cumulativeRelFreq 추가
    */
   static calculateRelativeAndCumulative(classes, total) {
     let cumulativeFreq = 0;
@@ -139,7 +166,12 @@ class DataProcessor {
 
   /**
    * 중략 표시가 필요한지 판단
-   * 첫 번째 데이터가 있는 계급 이전에 빈 계급이 CONFIG.ELLIPSIS_THRESHOLD개 이상이면 중략 표시
+   * @param {Array} classes - 계급 배열
+   * @returns {{show: boolean, firstDataIndex: number}} 중략 표시 여부와 첫 데이터 인덱스
+   * @description 첫 번째 데이터가 있는 계급 이전에 빈 계급이 CONFIG.ELLIPSIS_THRESHOLD개 이상이면 중략 표시
+   * @example
+   * shouldShowEllipsis([{frequency: 0}, {frequency: 0}, {frequency: 5}])
+   * // { show: false, firstDataIndex: -1 } (threshold 이하)
    */
   static shouldShowEllipsis(classes) {
     const firstDataIndex = classes.findIndex(classData => classData.frequency > 0);
