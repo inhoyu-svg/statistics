@@ -14,6 +14,7 @@ class TableStore {
     this.visibleColumns = [true, true, true, true, true, true]; // 6개 컬럼 표시 여부
     this.columnOrder = [0, 1, 2, 3, 4, 5];                      // 컬럼 순서
     this.labels = null;                                          // 테이블 라벨
+    this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT }; // 컬럼별 정렬
   }
 
   /**
@@ -65,12 +66,39 @@ class TableStore {
   }
 
   /**
+   * 컬럼 정렬 설정
+   * @param {string} columnName - 컬럼 이름
+   * @param {string} alignment - 정렬 방식 ('left', 'center', 'right')
+   */
+  setColumnAlignment(columnName, alignment) {
+    this.columnAlignment[columnName] = alignment;
+  }
+
+  /**
+   * 컬럼 정렬 가져오기
+   * @param {string} columnName - 컬럼 이름
+   * @returns {string} 정렬 방식
+   */
+  getColumnAlignment(columnName) {
+    return this.columnAlignment[columnName] || 'center';
+  }
+
+  /**
+   * 모든 컬럼 정렬 가져오기
+   * @returns {Object} 컬럼별 정렬 객체
+   */
+  getAllAlignments() {
+    return { ...this.columnAlignment };
+  }
+
+  /**
    * 기본값으로 초기화
    */
   reset() {
     this.visibleColumns = [true, true, true, true, true, true];
     this.columnOrder = [0, 1, 2, 3, 4, 5];
     this.labels = null;
+    this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };
   }
 
   /**
@@ -81,7 +109,8 @@ class TableStore {
     return {
       visibleColumns: this.visibleColumns,
       columnOrder: this.columnOrder,
-      labels: this.labels
+      labels: this.labels,
+      columnAlignment: this.columnAlignment
     };
   }
 }

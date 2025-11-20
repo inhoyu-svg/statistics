@@ -46,6 +46,9 @@ class FrequencyDistributionApp {
     // 드래그 앤 드롭 초기화
     this.initDragAndDrop();
 
+    // 컬럼 정렬 버튼 초기화
+    this.initAlignmentButtons();
+
     // 애니메이션 컨트롤 초기화
     this.initAnimationControls();
   }
@@ -276,6 +279,28 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 테이블 업데이트
+   * @description Store에서 데이터를 가져와 테이블을 다시 렌더링
+   */
+  updateTable() {
+    const data = DataStore.getData();
+    if (!data) return;
+
+    const { classes } = data;
+    const total = data.data.length;
+    const tableConfig = TableStore.getConfig();
+    const columnAlignment = TableStore.getAllAlignments();
+
+    // tableConfig에 columnAlignment 추가
+    const configWithAlignment = {
+      ...tableConfig,
+      columnAlignment: columnAlignment
+    };
+
+    this.tableRenderer.draw(classes, total, configWithAlignment);
+  }
+
+  /**
    * 드래그 앤 드롭 이벤트 리스너 등록
    */
   initDragAndDrop() {
@@ -290,6 +315,40 @@ class FrequencyDistributionApp {
       item.addEventListener('dragenter', (e) => this.handleDragEnter(e));
       item.addEventListener('dragleave', (e) => this.handleDragLeave(e));
     });
+  }
+
+  /**
+   * 컬럼 정렬 버튼 이벤트 리스너 등록
+   */
+  initAlignmentButtons() {
+    const buttons = document.querySelectorAll('.align-btn');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => this.handleAlignmentChange(e));
+    });
+  }
+
+  /**
+   * 정렬 변경 핸들러
+   * @param {Event} e - 클릭 이벤트
+   */
+  handleAlignmentChange(e) {
+    const button = e.currentTarget;
+    const columnName = button.dataset.column;
+    const alignment = button.dataset.align;
+
+    // 같은 컬럼의 다른 버튼 비활성화
+    const columnButtons = document.querySelectorAll(`.align-btn[data-column="${columnName}"]`);
+    columnButtons.forEach(btn => btn.classList.remove('active'));
+
+    // 클릭된 버튼 활성화
+    button.classList.add('active');
+
+    // TableStore에 정렬 설정 저장
+    TableStore.setColumnAlignment(columnName, alignment);
+
+    // 테이블 다시 렌더링
+    this.updateTable();
   }
 
   /**
@@ -444,7 +503,15 @@ class FrequencyDistributionApp {
 
       // 8. UI 렌더링 (커스텀 라벨 전달)
       UIRenderer.renderStatsCards(stats);
-      this.tableRenderer.draw(classes, data.length, tableConfig);
+
+      // tableConfig에 columnAlignment 추가
+      const columnAlignment = TableStore.getAllAlignments();
+      const configWithAlignment = {
+        ...tableConfig,
+        columnAlignment: columnAlignment
+      };
+
+      this.tableRenderer.draw(classes, data.length, configWithAlignment);
       this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo);
 
       // 9. 레이어 패널 렌더링

@@ -22,7 +22,7 @@ class TableRenderer {
    * 도수분포표 그리기
    * @param {Array} classes - 계급 데이터 배열
    * @param {number} total - 전체 데이터 개수
-   * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns, columnOrder)
+   * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns, columnOrder, columnAlignment)
    */
   draw(classes, total, config = null) {
     // 도수가 0이 아닌 계급만 필터링
@@ -37,6 +37,7 @@ class TableRenderer {
     const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
     const visibleColumns = config?.visibleColumns || [true, true, true, true, true, true];
     const columnOrder = config?.columnOrder || [0, 1, 2, 3, 4, 5];
+    const columnAlignment = config?.columnAlignment || CONFIG.TABLE_DEFAULT_ALIGNMENT;
 
     // 원본 라벨 배열
     const allLabels = [
@@ -69,9 +70,9 @@ class TableRenderer {
 
     // 렌더링 순서
     this.drawGrid(rowCount, columnWidths);
-    this.drawHeader(filteredLabels, columnWidths);
-    this.drawDataRows(visibleClasses, columnWidths, orderedVisibleColumns, columnOrder);
-    this.drawSummaryRow(total, visibleClasses.length, columnWidths, orderedVisibleColumns, columnOrder);
+    this.drawHeader(filteredLabels, columnWidths, columnAlignment);
+    this.drawDataRows(visibleClasses, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment);
+    this.drawSummaryRow(total, visibleClasses.length, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment);
   }
 
   /**
@@ -132,8 +133,9 @@ class TableRenderer {
    * 헤더 행 그리기
    * @param {Array} headers - 헤더 라벨 배열 (필터링된)
    * @param {Array} columnWidths - 열 너비 배열
+   * @param {Object} columnAlignment - 컬럼별 정렬 설정
    */
-  drawHeader(headers, columnWidths) {
+  drawHeader(headers, columnWidths, columnAlignment) {
     // 헤더 배경 (그라디언트)
     const gradient = this.ctx.createLinearGradient(
       this.padding,
@@ -155,14 +157,16 @@ class TableRenderer {
     // 헤더 텍스트
     this.ctx.fillStyle = 'white';
     this.ctx.font = CONFIG.TABLE_FONT_HEADER;
-    this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
 
     let x = this.padding;
     const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT / 2;
 
     headers.forEach((header, i) => {
-      const cellX = x + columnWidths[i] / 2;
+      const alignment = columnAlignment[header] || 'center';
+      const cellX = this.getCellXPosition(x, columnWidths[i], alignment);
+
+      this.ctx.textAlign = alignment;
       this.ctx.fillText(header, cellX, y);
       x += columnWidths[i];
     });
@@ -174,11 +178,16 @@ class TableRenderer {
    * @param {Array} columnWidths - 열 너비 배열
    * @param {Array} orderedVisibleColumns - 순서가 적용된 표시 컬럼 배열
    * @param {Array} columnOrder - 컬럼 순서 배열
+   * @param {Object} columnAlignment - 컬럼별 정렬 설정
    */
-  drawDataRows(classes, columnWidths, orderedVisibleColumns, columnOrder) {
+  drawDataRows(classes, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment) {
     this.ctx.font = CONFIG.TABLE_FONT_DATA;
-    this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
+
+    // 원본 라벨 배열 (정렬 정보 가져오기 위해 필요)
+    const allLabels = ['계급', '계급값', '도수', '상대도수(%)', '누적도수', '누적상대도수(%)'];
+    const orderedLabels = columnOrder.map(i => allLabels[i]);
+    const filteredLabels = orderedLabels.filter((_, i) => orderedVisibleColumns[i]);
 
     classes.forEach((classData, rowIndex) => {
       const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
@@ -216,7 +225,11 @@ class TableRenderer {
       const cellY = y + CONFIG.TABLE_ROW_HEIGHT / 2;
 
       cells.forEach((cellText, i) => {
-        const cellX = x + columnWidths[i] / 2;
+        const label = filteredLabels[i];
+        const alignment = columnAlignment[label] || 'center';
+        const cellX = this.getCellXPosition(x, columnWidths[i], alignment);
+
+        this.ctx.textAlign = alignment;
         this.ctx.fillText(String(cellText), cellX, cellY);
         x += columnWidths[i];
       });
@@ -230,8 +243,9 @@ class TableRenderer {
    * @param {Array} columnWidths - 열 너비 배열
    * @param {Array} orderedVisibleColumns - 순서가 적용된 표시 컬럼 배열
    * @param {Array} columnOrder - 컬럼 순서 배열
+   * @param {Object} columnAlignment - 컬럼별 정렬 설정
    */
-  drawSummaryRow(total, dataRowCount, columnWidths, orderedVisibleColumns, columnOrder) {
+  drawSummaryRow(total, dataRowCount, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment) {
     const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
 
     // 합계 행 배경
@@ -255,10 +269,14 @@ class TableRenderer {
     // 합계 텍스트
     this.ctx.fillStyle = 'white';
     this.ctx.font = CONFIG.TABLE_FONT_SUMMARY;
-    this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
 
     const cellY = y + CONFIG.TABLE_ROW_HEIGHT / 2;
+
+    // 원본 라벨 배열 (정렬 정보 가져오기 위해 필요)
+    const allLabels = ['계급', '계급값', '도수', '상대도수(%)', '누적도수', '누적상대도수(%)'];
+    const orderedLabels = columnOrder.map(i => allLabels[i]);
+    const filteredLabels = orderedLabels.filter((_, i) => orderedVisibleColumns[i]);
 
     // 원본 셀 데이터 (계급, 계급값은 "합계"로 병합, 나머지는 값)
     const allCells = ['합계', '', total, '100%', total, '100%'];
@@ -273,11 +291,35 @@ class TableRenderer {
     filteredCells.forEach((cellText, i) => {
       // 빈 문자열은 건너뛰기 (병합된 부분)
       if (cellText !== '') {
-        const cellX = x + columnWidths[i] / 2;
+        const label = filteredLabels[i];
+        const alignment = columnAlignment[label] || 'center';
+        const cellX = this.getCellXPosition(x, columnWidths[i], alignment);
+
+        this.ctx.textAlign = alignment;
         this.ctx.fillText(String(cellText), cellX, cellY);
       }
       x += columnWidths[i];
     });
+  }
+
+  /**
+   * 정렬에 따른 셀 X 좌표 계산
+   * @param {number} cellStartX - 셀 시작 X 좌표
+   * @param {number} cellWidth - 셀 너비
+   * @param {string} alignment - 정렬 방식 ('left', 'center', 'right')
+   * @returns {number} 텍스트 렌더링 X 좌표
+   */
+  getCellXPosition(cellStartX, cellWidth, alignment) {
+    const padding = 8; // 셀 내부 패딩
+    switch (alignment) {
+      case 'left':
+        return cellStartX + padding;
+      case 'right':
+        return cellStartX + cellWidth - padding;
+      case 'center':
+      default:
+        return cellStartX + cellWidth / 2;
+    }
   }
 
   /**

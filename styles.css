@@ -439,6 +439,58 @@ button:active {
   font-size: 14px;
 }
 
+/* Column Alignment Buttons */
+.alignment-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.alignment-group label {
+  min-width: 130px;
+  font-size: 14px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.alignment-buttons {
+  display: flex;
+  gap: 4px;
+  background: var(--color-bg-dark);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  border: 1px solid var(--color-border);
+}
+
+.align-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.align-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.align-btn.active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(84, 160, 246, 0.3);
+}
+
+.align-btn:active {
+  transform: scale(0.95);
+}
+
 /* ========== Result Section ========== */
 .result-section {
   display: none;

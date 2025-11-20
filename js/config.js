@@ -85,6 +85,16 @@ const CONFIG = {
     }
   },
 
+  // 테이블 컬럼별 기본 정렬
+  TABLE_DEFAULT_ALIGNMENT: {
+    '계급': 'center',
+    '계급값': 'center',
+    '도수': 'center',
+    '상대도수(%)': 'center',
+    '누적도수': 'center',
+    '누적상대도수(%)': 'center'
+  },
+
   // 색상 캐시 (성능 최적화)
   _colorCache: null,
 
