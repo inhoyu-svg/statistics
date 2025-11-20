@@ -114,10 +114,13 @@ h1 {
 .right-column {
   min-width: 0; /* 그리드 오버플로우 방지 */
   display: none;
+  gap: var(--spacing-xl);
 }
 
 .layout-grid.two-column .right-column {
-  display: block;
+  display: grid;
+  grid-template-columns: 1fr 320px; /* 표+차트 | 레이어 패널(고정 너비) */
+  align-items: start;
 }
 
 .section-title {
@@ -592,6 +595,17 @@ canvas {
     border-top: none;
     padding-top: 0;
   }
+
+  /* 작은 화면에서는 레이어 패널을 아래로 */
+  .layout-grid.two-column .right-column {
+    grid-template-columns: 1fr;
+  }
+
+  .layer-panel {
+    position: static;
+    max-height: none;
+    margin-top: var(--spacing-xl);
+  }
 }
 
 @media (max-width: 768px) {
@@ -794,11 +808,15 @@ canvas {
 
 /* ========== Layer Panel ========== */
 .layer-panel {
-  margin-top: var(--spacing-xl);
   padding: var(--spacing-lg);
   background: var(--color-bg-light);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
+  position: sticky;
+  top: var(--spacing-lg);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  align-self: start;
 }
 
 .layer-panel .section-title {
