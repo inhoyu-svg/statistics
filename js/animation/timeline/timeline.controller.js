@@ -150,12 +150,15 @@ Object.assign(LayerTimeline.prototype, {
     if (this.currentTime >= this.duration) {
       this.currentTime = this.duration;
       this.isPlaying = false;
-    }
 
-    notifyUpdate(this);
+      // 마지막 프레임 렌더링 (모든 Progress를 1.0으로)
+      notifyUpdate(this);
+    } else {
+      notifyUpdate(this);
 
-    if (this.isPlaying) {
-      requestAnimationFrame(() => this._animate());
+      if (this.isPlaying) {
+        requestAnimationFrame(() => this._animate());
+      }
     }
   },
 

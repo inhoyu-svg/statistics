@@ -26,17 +26,22 @@ class AxisRenderer {
    * @param {number} maxY - Y축 최댓값
    * @param {Object} axisLabels - 축 라벨
    * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+   * @param {number} gridDivisions - 그리드 분할 수
    */
-  drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo) {
+  drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
     const { toX, toY, xScale } = coords;
     const xLabel = axisLabels?.xAxis || CONFIG.DEFAULT_LABELS.xAxis;
-    const yLabel = axisLabels?.yAxis || CONFIG.DEFAULT_LABELS.yAxis;
+
+    // Y축 라벨: 사용자 설정 > 데이터 타입별 기본값 > 전역 기본값
+    const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
+    const yLabel = axisLabels?.yAxis || dataTypeInfo?.yAxisLabel || CONFIG.DEFAULT_LABELS.yAxis;
 
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.font = CONFIG.CHART_FONT_BOLD;
 
     // Y축 라벨
-    this.drawYAxisLabels(toY, maxY);
+    this.drawYAxisLabels(toY, maxY, dataType, gridDivisions);
 
     // X축 라벨
     this.drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo);
@@ -49,12 +54,27 @@ class AxisRenderer {
    * Y축 라벨 그리기
    * @param {Function} toY - Y 좌표 변환 함수
    * @param {number} maxY - Y축 최댓값
+   * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+   * @param {number} gridDivisions - 그리드 분할 수
    */
-  drawYAxisLabels(toY, maxY) {
+  drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
     this.ctx.textAlign = 'right';
-    for (let i = 0; i <= CONFIG.CHART_GRID_DIVISIONS; i++) {
-      const value = maxY * i / CONFIG.CHART_GRID_DIVISIONS;
-      const formattedValue = Utils.formatNumber(value);
+    for (let i = 0; i <= gridDivisions; i++) {
+      const value = maxY * i / gridDivisions;
+
+      // 데이터 타입에 따라 포맷팅
+      let formattedValue;
+      if (dataType === 'frequency') {
+        // 도수 모드: 정수
+        formattedValue = Math.round(value).toString();
+      } else {
+        // 상대도수 모드: 백분율 (% 기호는 Y축 제목에 표시)
+        const percentage = value * 100;
+        const formatted = Utils.formatNumber(percentage);
+        // .00 제거 (예: 20.00 → 20)
+        formattedValue = formatted.replace(/\.00$/, '');
+      }
+
       this.ctx.fillText(
         formattedValue,
         this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
@@ -145,14 +165,15 @@ class AxisRenderer {
    * @param {number} maxY - Y축 최댓값
    * @param {number} classCount - 계급 개수
    * @param {Object} ellipsisInfo - 중략 정보
+   * @param {number} gridDivisions - 그리드 분할 수
    */
-  drawGrid(toX, toY, maxY, classCount, ellipsisInfo) {
+  drawGrid(toX, toY, maxY, classCount, ellipsisInfo, gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
     this.ctx.strokeStyle = CONFIG.getColor('--color-grid');
     this.ctx.lineWidth = 1;
 
     // 가로 격자선 (Y축)
-    for (let i = 0; i <= CONFIG.CHART_GRID_DIVISIONS; i++) {
-      const y = toY(maxY * i / CONFIG.CHART_GRID_DIVISIONS);
+    for (let i = 0; i <= gridDivisions; i++) {
+      const y = toY(maxY * i / gridDivisions);
       this.ctx.beginPath();
       this.ctx.moveTo(this.padding, y);
       this.ctx.lineTo(this.canvas.width - this.padding, y);

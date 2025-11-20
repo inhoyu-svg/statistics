@@ -4,6 +4,7 @@
  */
 
 import CONFIG from '../../config.js';
+import Utils from '../../utils/utils.js';
 import CoordinateSystem from './CoordinateSystem.js';
 
 class HistogramRenderer {
@@ -16,19 +17,20 @@ class HistogramRenderer {
 
   /**
    * 히스토그램 그리기 (정적 렌더링)
-   * @param {Array} relativeFreqs - 상대도수 배열
+   * @param {Array} values - 값 배열 (상대도수 또는 도수)
    * @param {Array} freq - 도수 배열
    * @param {Object} coords - 좌표 시스템 객체
    * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    */
-  draw(relativeFreqs, freq, coords, ellipsisInfo) {
+  draw(values, freq, coords, ellipsisInfo, dataType = 'relativeFrequency') {
     const { toX, toY, xScale } = coords;
 
-    relativeFreqs.forEach((relativeFreq, index) => {
+    values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
       const x = toX(index);
-      const y = toY(relativeFreq);
+      const y = toY(value);
       const h = toY(0) - y;
       const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
 
@@ -49,14 +51,16 @@ class HistogramRenderer {
         this.ctx.strokeRect(x, y, barWidth, h);
       }
 
-      // 도수 라벨
+      // 라벨: 데이터 타입에 따라 도수 또는 상대도수 표시
+      const labelValue = this._formatLabelValue(value, freq[index], dataType);
       this.ctx.fillStyle = CONFIG.getColor('--color-text');
       this.ctx.font = CONFIG.CHART_FONT_REGULAR;
       this.ctx.textAlign = 'center';
+      // 라벨 위치를 더 위로 (다각형 선과 겹치지 않도록)
       this.ctx.fillText(
-        freq[index],
+        labelValue,
         CoordinateSystem.getBarCenterX(index, toX, xScale),
-        y - CONFIG.CHART_LABEL_OFFSET
+        y - CONFIG.CHART_LABEL_OFFSET - 5
       );
     });
   }
@@ -66,7 +70,7 @@ class HistogramRenderer {
    * @param {Layer} layer - 막대 레이어
    */
   renderBar(layer) {
-    const { index, relativeFreq, frequency, coords } = layer.data;
+    const { index, relativeFreq, frequency, coords, dataType } = layer.data;
     const { toX, toY, xScale } = coords;
 
     // 애니메이션 progress 가져오기 (0~1)
@@ -99,16 +103,37 @@ class HistogramRenderer {
       this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
     }
 
-    // 도수 라벨 (progress가 0.5 이상일 때만 표시)
+    // 라벨 (progress가 0.5 이상일 때만 표시)
     if (progress > 0.5) {
+      const labelValue = this._formatLabelValue(relativeFreq, frequency, dataType);
       this.ctx.fillStyle = CONFIG.getColor('--color-text');
       this.ctx.font = CONFIG.CHART_FONT_REGULAR;
       this.ctx.textAlign = 'center';
+      // 라벨 위치를 더 위로 (다각형 선과 겹치지 않도록)
       this.ctx.fillText(
-        frequency,
+        labelValue,
         CoordinateSystem.getBarCenterX(index, toX, xScale),
-        animatedY - CONFIG.CHART_LABEL_OFFSET
+        animatedY - CONFIG.CHART_LABEL_OFFSET - 5
       );
+    }
+  }
+
+  /**
+   * 라벨 값 포맷팅
+   * @param {number} value - 표시할 값 (상대도수 또는 도수)
+   * @param {number} frequency - 도수
+   * @param {string} dataType - 데이터 타입
+   * @returns {string} 포맷팅된 라벨
+   */
+  _formatLabelValue(value, frequency, dataType = 'relativeFrequency') {
+    if (dataType === 'frequency') {
+      return frequency.toString();
+    } else {
+      // 상대도수: 백분율로 표시 (% 기호는 Y축 제목에 표시)
+      const percentage = value * 100;
+      const formatted = Utils.formatNumber(percentage);
+      // .00 제거 (예: 20.00 → 20)
+      return formatted.replace(/\.00$/, '');
     }
   }
 }

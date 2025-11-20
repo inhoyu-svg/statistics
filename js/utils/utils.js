@@ -13,6 +13,18 @@ class Utils {
   }
 
   /**
+   * 숫자를 포맷하고 불필요한 .00 제거
+   * @param {number} num - 포맷할 숫자
+   * @param {number} decimals - 소수점 자릿수
+   * @returns {string} 포맷된 숫자 (불필요한 .00 제거)
+   */
+  static formatNumberClean(num, decimals = CONFIG.DECIMAL_PLACES) {
+    const formatted = Number(num).toFixed(decimals);
+    // .00 제거 (예: 20.00 → 20, 33.33은 유지)
+    return formatted.replace(/\.00$/, '');
+  }
+
+  /**
    * 배열이 비어있는지 확인
    */
   static isEmpty(arr) {

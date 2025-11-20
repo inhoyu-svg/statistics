@@ -65,6 +65,8 @@ class FrequencyDistributionApp {
     const stopBtn = document.getElementById('stopBtn');
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
 
     // 애니메이션 모드는 항상 활성화
     this.chartRenderer.enableAnimation();
@@ -80,6 +82,27 @@ class FrequencyDistributionApp {
       speedValue.textContent = `${speed}x`;
       this.chartRenderer.setAnimationSpeed(speed);
     });
+
+    // 진행도 업데이트
+    this.updateProgress = () => {
+      if (this.chartRenderer && this.chartRenderer.timeline) {
+        const progress = this.chartRenderer.timeline.getProgress();
+        const percentage = Math.round(progress * 100);
+
+        if (progressBar) {
+          progressBar.style.width = `${percentage}%`;
+        }
+        if (progressText) {
+          progressText.textContent = `${percentage}%`;
+        }
+      }
+
+      // 계속 업데이트
+      requestAnimationFrame(this.updateProgress);
+    };
+
+    // 진행도 업데이트 시작
+    this.updateProgress();
   }
 
   /**
@@ -604,7 +627,8 @@ class FrequencyDistributionApp {
     return {
       axis: {
         xAxis: xAxisLabel || label1 || CONFIG.DEFAULT_LABELS.xAxis,
-        yAxis: yAxisLabel || label4 || CONFIG.DEFAULT_LABELS.yAxis
+        // Y축 라벨: 사용자가 입력한 경우만 전달 (비어있으면 null로 데이터 타입별 기본값 사용)
+        yAxis: yAxisLabel || label4 || null
       },
       table: {
         class: classLabel,

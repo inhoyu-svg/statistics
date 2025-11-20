@@ -78,7 +78,7 @@ class ChartRenderer {
 
     if (dataType === 'frequency') {
       values = freq;
-      maxY = Math.max(...freq) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+      maxY = Math.max(...freq);
     } else { // 'relativeFrequency' (기본값)
       values = relativeFreqs;
       maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
@@ -90,7 +90,8 @@ class ChartRenderer {
       this.padding,
       classes.length,
       ellipsisInfo,
-      maxY
+      maxY,
+      dataType
     );
 
     // 차트 데이터 저장 (애니메이션 모드용)
@@ -99,9 +100,10 @@ class ChartRenderer {
     this.currentFreq = freq;
     this.currentCoords = coords;
     this.currentEllipsisInfo = ellipsisInfo;
-    this.currentMaxY = maxY;
+    this.currentMaxY = coords.adjustedMaxY; // 조정된 maxY 사용
     this.currentAxisLabels = axisLabels;
     this.currentDataType = dataType;
+    this.currentGridDivisions = coords.gridDivisions;
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
@@ -111,7 +113,8 @@ class ChartRenderer {
         classes,
         values,
         coords,
-        ellipsisInfo
+        ellipsisInfo,
+        dataType
       );
       this.setupAnimations(classes);
       this.playAnimation();
@@ -120,13 +123,14 @@ class ChartRenderer {
       this.axisRenderer.drawGrid(
         coords.toX,
         coords.toY,
-        maxY,
+        coords.adjustedMaxY,
         classes.length,
-        ellipsisInfo
+        ellipsisInfo,
+        coords.gridDivisions
       );
-      this.histogramRenderer.draw(values, freq, coords, ellipsisInfo);
+      this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
       this.polygonRenderer.draw(values, coords, ellipsisInfo);
-      this.axisRenderer.drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo);
+      this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
       this.axisRenderer.drawLegend(dataType);
     }
   }
@@ -310,14 +314,17 @@ class ChartRenderer {
       this.currentCoords.toY,
       this.currentMaxY,
       this.currentClasses.length,
-      this.currentEllipsisInfo
+      this.currentEllipsisInfo,
+      this.currentGridDivisions
     );
     this.axisRenderer.drawAxes(
       this.currentClasses,
       this.currentCoords,
       this.currentMaxY,
       this.currentAxisLabels,
-      this.currentEllipsisInfo
+      this.currentEllipsisInfo,
+      this.currentDataType,
+      this.currentGridDivisions
     );
 
     // 모든 애니메이션 레이어 수집 (활성 + 완료)
@@ -359,7 +366,8 @@ class ChartRenderer {
           () => this.renderLayer(layer)
         );
       } else {
-        // 완료된 애니메이션: 완전히 표시
+        // 완료된 애니메이션: 완전히 표시 (progress = 1.0)
+        layer.data.animationProgress = 1.0;
         this.renderLayer(layer);
       }
     });

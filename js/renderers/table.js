@@ -206,11 +206,11 @@ class TableRenderer {
       // 원본 셀 데이터
       const allCells = [
         `${classData.min} ~ ${classData.max}`,
-        Utils.formatNumber(classData.midpoint),
+        Utils.formatNumberClean(classData.midpoint),
         classData.frequency,
-        `${classData.relativeFreq}%`,
+        `${Utils.formatNumberClean(classData.relativeFreq)}%`,
         classData.cumulativeFreq,
-        `${classData.cumulativeRelFreq}%`
+        `${Utils.formatNumberClean(classData.cumulativeRelFreq)}%`
       ];
 
       // columnOrder에 따라 재정렬

@@ -34,7 +34,7 @@ class ChartStore {
     return {
       axisLabels: this.axisLabels || {
         xAxis: CONFIG.DEFAULT_LABELS.xAxis,
-        yAxis: CONFIG.DEFAULT_LABELS.yAxis
+        yAxis: null // null로 설정하여 데이터 타입별 기본값 사용
       },
       ellipsisInfo: this.ellipsisInfo
     };

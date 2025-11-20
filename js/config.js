@@ -100,7 +100,7 @@ const CONFIG = {
     {
       id: 'relativeFrequency',
       label: '상대도수 (%)',
-      yAxisLabel: '상대도수',
+      yAxisLabel: '상대도수(%)',
       legendSuffix: '상대도수'
     },
     {
@@ -111,7 +111,7 @@ const CONFIG = {
     }
     // 향후 확장 가능:
     // { id: 'cumulativeFrequency', label: '누적도수', yAxisLabel: '누적도수', legendSuffix: '누적도수' },
-    // { id: 'cumulativeRelativeFrequency', label: '누적상대도수 (%)', yAxisLabel: '누적상대도수', legendSuffix: '누적상대도수' }
+    // { id: 'cumulativeRelativeFrequency', label: '누적상대도수 (%)', yAxisLabel: '누적상대도수(%)', legendSuffix: '누적상대도수' }
   ],
 
   // 기본 차트 데이터 타입
@@ -143,6 +143,49 @@ const CONFIG = {
       this.initializeColors();
     }
     return this._colorCache[varName] || getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  },
+
+  /**
+   * 그리드 설정 계산 (스마트 격자)
+   * @param {number} maxValue - 최대값
+   * @param {string} dataType - 데이터 타입
+   * @returns {{maxY: number, divisions: number}} 조정된 최대값과 분할 수
+   */
+  calculateGridDivisions(maxValue, dataType) {
+    // 상대도수 모드: 기존대로 10칸, maxY는 원래 값 사용
+    if (dataType !== 'frequency') {
+      return {
+        maxY: maxValue,
+        divisions: this.CHART_GRID_DIVISIONS
+      };
+    }
+
+    // 도수 모드: 최대값 + 2칸 여유
+    const targetMax = Math.ceil(maxValue) + 2;
+
+    // "좋은 숫자" 간격 후보 (1, 2, 5, 10, 20, 50, 100, ...)
+    const niceIntervals = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+
+    // 목표: 5~10칸 사이로 분할
+    const minDivisions = 5;
+    const maxDivisions = 10;
+
+    for (let interval of niceIntervals) {
+      const divisions = Math.ceil(targetMax / interval);
+      if (divisions >= minDivisions && divisions <= maxDivisions) {
+        return {
+          maxY: divisions * interval,
+          divisions: divisions
+        };
+      }
+    }
+
+    // 적절한 간격을 찾지 못한 경우: targetMax를 그대로 사용
+    const fallbackDivisions = Math.min(targetMax, 20);
+    return {
+      maxY: fallbackDivisions,
+      divisions: fallbackDivisions
+    };
   }
 };
 

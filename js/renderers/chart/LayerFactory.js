@@ -3,6 +3,7 @@
  * 차트 레이어 생성 로직
  */
 
+import CONFIG from '../../config.js';
 import { Layer } from '../../animation/index.js';
 import CoordinateSystem from './CoordinateSystem.js';
 
@@ -11,12 +12,17 @@ class LayerFactory {
    * 레이어 생성
    * @param {LayerManager} layerManager - 레이어 매니저
    * @param {Array} classes - 계급 데이터
-   * @param {Array} relativeFreqs - 상대도수 배열
+   * @param {Array} values - 값 배열 (상대도수 또는 도수)
    * @param {Object} coords - 좌표 시스템
    * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    */
-  static createLayers(layerManager, classes, relativeFreqs, coords, ellipsisInfo) {
+  static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency') {
     layerManager.clearAll();
+
+    // 데이터 타입 정보 가져오기
+    const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
+    const polygonName = dataTypeInfo ? `${dataTypeInfo.legendSuffix} 다각형` : '상대도수 다각형';
 
     // 히스토그램 그룹
     const histogramGroup = new Layer({
@@ -26,16 +32,16 @@ class LayerFactory {
       visible: true
     });
 
-    // 다각형 그룹
+    // 다각형 그룹 (동적 이름)
     const polygonGroup = new Layer({
       id: 'polygon',
-      name: '상대도수 다각형',
+      name: polygonName,
       type: 'group',
       visible: true
     });
 
     // 막대 레이어 생성
-    relativeFreqs.forEach((relativeFreq, index) => {
+    values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
       // 도수가 0인 막대는 레이어 생성하지 않음
@@ -51,10 +57,11 @@ class LayerFactory {
         visible: true,
         data: {
           index,
-          relativeFreq,
+          relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
           frequency: classes[index].frequency,
           coords,
-          ellipsisInfo
+          ellipsisInfo,
+          dataType
         }
       });
 
@@ -78,7 +85,7 @@ class LayerFactory {
     });
 
     // 점 레이어 생성
-    relativeFreqs.forEach((relativeFreq, index) => {
+    values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
       // 계급명 생성
@@ -91,7 +98,7 @@ class LayerFactory {
         visible: true,
         data: {
           index,
-          relativeFreq,
+          relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
           coords
         }
       });
@@ -101,7 +108,7 @@ class LayerFactory {
 
     // 선 레이어 생성
     let prevIndex = null;
-    relativeFreqs.forEach((relativeFreq, index) => {
+    values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
       if (prevIndex !== null) {
@@ -117,8 +124,8 @@ class LayerFactory {
           data: {
             fromIndex: prevIndex,
             toIndex: index,
-            fromFreq: relativeFreqs[prevIndex],
-            toFreq: relativeFreq,
+            fromFreq: values[prevIndex],
+            toFreq: value,
             coords
           }
         });
