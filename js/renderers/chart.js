@@ -748,71 +748,68 @@ class ChartRenderer {
   // ==================== Timeline & Animation ====================
 
   /**
-   * 애니메이션 시퀀스 설정
+   * 애니메이션 시퀀스 설정 (order 기반, 재귀적 처리)
    * @param {Array} classes - 계급 데이터
    */
   setupAnimations(classes) {
     this.timeline.clearAnimations();
 
-    const barDelay = 50; // 막대 간 딜레이 (ms) - 더 빠른 연속
-    const barDuration = 600; // 막대 애니메이션 시간 (ms) - 더 부드럽게
-    const pointDelay = 50; // 점 간 딜레이 (ms)
-    const pointDuration = 600; // 점 애니메이션 시간 (ms)
-    const lineDelay = 50; // 선 간 딜레이 (ms)
-    const lineDuration = 600; // 선 애니메이션 시간 (ms)
+    const itemDelay = 50; // 아이템 간 딜레이 (ms)
+    const itemDuration = 600; // 아이템 애니메이션 시간 (ms)
+
+    /**
+     * 레이어를 재귀적으로 처리하는 헬퍼 함수
+     * @param {Layer} layer - 처리할 레이어
+     * @param {number} time - 현재 시간
+     * @returns {number} 업데이트된 시간
+     */
+    const processLayer = (layer, time) => {
+      if (layer.type === 'group') {
+        // 그룹의 children을 order로 정렬하여 처리
+        const sortedChildren = [...layer.children].sort((a, b) => a.order - b.order);
+
+        sortedChildren.forEach((child) => {
+          time = processLayer(child, time);
+        });
+
+        // 그룹의 마지막 아이템 완료 대기
+        time += itemDuration;
+      } else {
+        // 실제 렌더링 레이어 (bar, point, line)
+        let effect = 'fade';
+        let effectOptions = {};
+        let easing = 'easeInOut';
+
+        if (layer.type === 'bar') {
+          effect = 'none'; // renderBar에서 높이 애니메이션
+        } else if (layer.type === 'line') {
+          effect = 'draw';
+          effectOptions = { direction: 'left-to-right' };
+          easing = 'linear';
+        }
+
+        this.timeline.addAnimation(layer.id, {
+          startTime: time,
+          duration: itemDuration,
+          effect: effect,
+          effectOptions: effectOptions,
+          easing: easing
+        });
+
+        time += itemDelay;
+      }
+
+      return time;
+    };
+
+    // root의 children을 order로 정렬하여 처리
+    const rootLayer = this.layerManager.root;
+    const sortedGroups = [...rootLayer.children].sort((a, b) => a.order - b.order);
 
     let currentTime = 0;
-
-    // 1단계: 막대 순차 등장
-    const histogramGroup = this.layerManager.findLayer('histogram');
-    if (histogramGroup) {
-      histogramGroup.children.forEach((barLayer, index) => {
-        this.timeline.addAnimation(barLayer.id, {
-          startTime: currentTime,
-          duration: barDuration,
-          effect: 'none', // fade 대신 none 사용 (renderBar에서 높이 애니메이션)
-          effectOptions: {},
-          easing: 'easeInOut'
-        });
-        currentTime += barDelay;
-      });
-    }
-
-    // 막대 애니메이션 완료 대기
-    currentTime += barDuration;
-
-    // 2단계: 점 순차 등장
-    const pointsGroup = this.layerManager.findLayer('points');
-    if (pointsGroup) {
-      pointsGroup.children.forEach((pointLayer, index) => {
-        this.timeline.addAnimation(pointLayer.id, {
-          startTime: currentTime,
-          duration: pointDuration,
-          effect: 'fade',
-          effectOptions: {},
-          easing: 'easeInOut'
-        });
-        currentTime += pointDelay;
-      });
-    }
-
-    // 점 애니메이션 완료 대기
-    currentTime += pointDuration;
-
-    // 3단계: 선 순차 그리기
-    const linesGroup = this.layerManager.findLayer('lines');
-    if (linesGroup) {
-      linesGroup.children.forEach((lineLayer, index) => {
-        this.timeline.addAnimation(lineLayer.id, {
-          startTime: currentTime,
-          duration: lineDuration,
-          effect: 'draw',
-          effectOptions: { direction: 'left-to-right' },
-          easing: 'linear'
-        });
-        currentTime += lineDelay;
-      });
-    }
+    sortedGroups.forEach((group) => {
+      currentTime = processLayer(group, currentTime);
+    });
   }
 
   /**
