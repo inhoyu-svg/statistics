@@ -45,7 +45,7 @@ class ChartRenderer {
     const coords = this.createCoordinateSystem(classes.length, ellipsisInfo, maxY);
 
     // 렌더링 순서
-    this.drawGrid(coords.toX, coords.toY, maxY);
+    this.drawGrid(coords.toX, coords.toY, maxY, classes.length, ellipsisInfo);
     this.drawHistogram(relativeFreqs, freq, coords, ellipsisInfo);
     this.drawPolygon(relativeFreqs, coords, ellipsisInfo);
     this.drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo);
@@ -347,16 +347,30 @@ class ChartRenderer {
    * @param {Function} toX - X 좌표 변환 함수
    * @param {Function} toY - Y 좌표 변환 함수
    * @param {number} maxY - Y축 최댓값
+   * @param {number} classCount - 계급 개수
+   * @param {Object} ellipsisInfo - 중략 정보
    */
-  drawGrid(toX, toY, maxY) {
+  drawGrid(toX, toY, maxY, classCount, ellipsisInfo) {
     this.ctx.strokeStyle = CONFIG.getColor('--color-grid');
     this.ctx.lineWidth = 1;
 
+    // 가로 격자선 (Y축)
     for (let i = 0; i <= CONFIG.CHART_GRID_DIVISIONS; i++) {
       const y = toY(maxY * i / CONFIG.CHART_GRID_DIVISIONS);
       this.ctx.beginPath();
       this.ctx.moveTo(this.padding, y);
       this.ctx.lineTo(this.canvas.width - this.padding, y);
+      this.ctx.stroke();
+    }
+
+    // 세로 격자선 (X축) - 막대 너비와 동일한 간격
+    for (let i = 0; i <= classCount; i++) {
+      if (this.shouldSkipEllipsis(i, ellipsisInfo)) continue;
+
+      const x = toX(i);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, this.padding);
+      this.ctx.lineTo(x, this.canvas.height - this.padding);
       this.ctx.stroke();
     }
   }
