@@ -7,7 +7,7 @@
 export { LayerAnimationEffects } from './animation.controller.js';
 
 // Effects (개별 효과들)
-export * from './effects/index.js';
+export * from './index.js';
 
 // Service (필요시 사용)
 export {

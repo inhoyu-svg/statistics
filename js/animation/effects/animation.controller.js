@@ -8,7 +8,7 @@ import {
   applyScale,
   applyDraw,
   applyBlink
-} from './effects/index.js';
+} from './index.js';
 import { getEffectForLayer, adjustOptionsForLayer } from './animation.service.js';
 
 /**
