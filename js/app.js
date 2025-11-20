@@ -43,6 +43,63 @@ class FrequencyDistributionApp {
 
     // 드래그 앤 드롭 초기화
     this.initDragAndDrop();
+
+    // 애니메이션 컨트롤 초기화
+    this.initAnimationControls();
+  }
+
+  /**
+   * 애니메이션 컨트롤 이벤트 리스너 등록
+   */
+  initAnimationControls() {
+    const animationToggle = document.getElementById('animationToggle');
+    const animationButtons = document.getElementById('animationButtons');
+    const speedControl = document.getElementById('speedControl');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+
+    // 애니메이션 모드 토글
+    animationToggle?.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        this.chartRenderer.enableAnimation();
+        animationButtons.style.display = 'flex';
+        speedControl.style.display = 'block';
+      } else {
+        this.chartRenderer.disableAnimation();
+        animationButtons.style.display = 'none';
+        speedControl.style.display = 'none';
+      }
+      // 차트가 이미 그려진 경우 다시 렌더링
+      this.updateChart();
+    });
+
+    // 재생/일시정지/정지
+    playBtn?.addEventListener('click', () => this.chartRenderer.playAnimation());
+    pauseBtn?.addEventListener('click', () => this.chartRenderer.pauseAnimation());
+    stopBtn?.addEventListener('click', () => this.chartRenderer.stopAnimation());
+
+    // 속도 조절
+    speedSlider?.addEventListener('input', (e) => {
+      const speed = parseFloat(e.target.value);
+      speedValue.textContent = `${speed}x`;
+      this.chartRenderer.setAnimationSpeed(speed);
+    });
+  }
+
+  /**
+   * 차트 업데이트 (데이터 변경 없이 다시 렌더링)
+   */
+  updateChart() {
+    const classes = DataStore.getData()?.classes;
+    const axisLabels = ChartStore.getConfig()?.axisLabels;
+    const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
+
+    if (classes) {
+      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo);
+    }
   }
 
   /**
