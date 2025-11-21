@@ -97,8 +97,6 @@ h1 {
 }
 
 .left-column {
-  position: sticky;
-  top: var(--spacing-lg);
   align-self: start;
   max-width: 800px;
   margin: 0 auto;
@@ -134,6 +132,9 @@ h1 {
 
 .result-section {
   grid-area: content;
+  position: sticky;
+  top: var(--spacing-lg);
+  align-self: start;
 }
 
 .layer-panel {
