@@ -375,7 +375,7 @@ class TableRenderer {
 
     // Y 좌표 조정
     const normalY = cellY;
-    const superscriptY = cellY - 4; // 상첨자는 4px 위로
+    const superscriptY = cellY - CONFIG.TABLE_SUPERSCRIPT_Y_OFFSET;
 
     // 1. min 숫자 그리기
     this.ctx.font = normalFont;

@@ -234,39 +234,46 @@ class AxisRenderer {
     this.ctx.font = CONFIG.CHART_FONT_REGULAR;
 
     // 히스토그램 범례
-    const barGradient = this.ctx.createLinearGradient(legendX, 20, legendX, 35);
+    const y1 = CONFIG.CHART_LEGEND_Y_START;
+    const barGradient = this.ctx.createLinearGradient(
+      legendX,
+      y1,
+      legendX,
+      y1 + CONFIG.CHART_LEGEND_BAR_HEIGHT
+    );
     barGradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
     barGradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
 
     this.ctx.fillStyle = barGradient;
-    this.ctx.fillRect(legendX, 20, 20, 15);
+    this.ctx.fillRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
     this.ctx.strokeStyle = CONFIG.getColor('--color-border');
     this.ctx.lineWidth = 1;
-    this.ctx.strokeRect(legendX, 20, 20, 15);
+    this.ctx.strokeRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.fillText('히스토그램', legendX + 25, 32);
+    this.ctx.fillText('히스토그램', legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y1 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET);
 
     // 다각형 범례 (동적 텍스트)
+    const y2 = y1 + CONFIG.CHART_LEGEND_ITEM_SPACING;
     this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-color');
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
-    this.ctx.moveTo(legendX, 50);
-    this.ctx.lineTo(legendX + 20, 50);
+    this.ctx.moveTo(legendX, y2);
+    this.ctx.lineTo(legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2);
     this.ctx.stroke();
 
     const pointGradient = this.ctx.createRadialGradient(
-      legendX + 10, 50, 0,
-      legendX + 10, 50, 4
+      legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, 0,
+      legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, CONFIG.CHART_LEGEND_POINT_RADIUS
     );
     pointGradient.addColorStop(0, CONFIG.getColor('--chart-line-color-start'));
     pointGradient.addColorStop(1, CONFIG.getColor('--chart-line-color-end'));
 
     this.ctx.fillStyle = pointGradient;
     this.ctx.beginPath();
-    this.ctx.arc(legendX + 10, 50, 4, 0, Math.PI * 2);
+    this.ctx.arc(legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, CONFIG.CHART_LEGEND_POINT_RADIUS, 0, Math.PI * 2);
     this.ctx.fill();
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.fillText(`${legendSuffix} 다각형`, legendX + 25, 54);
+    this.ctx.fillText(`${legendSuffix} 다각형`, legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y2 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET - 8);
   }
 
   /**

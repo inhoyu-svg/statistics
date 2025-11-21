@@ -32,6 +32,16 @@ const CONFIG = {
   CHART_Y_TITLE_X_OFFSET: 15,
   CHART_LEGEND_X_OFFSET: 180,
 
+  // 범례 레이아웃
+  CHART_LEGEND_Y_START: 20,           // 첫 번째 범례 항목 Y 위치
+  CHART_LEGEND_BAR_HEIGHT: 15,        // 범례 막대 높이
+  CHART_LEGEND_ITEM_WIDTH: 20,        // 범례 아이템 너비 (박스/선)
+  CHART_LEGEND_TEXT_X_OFFSET: 25,     // 범례 텍스트 X 오프셋
+  CHART_LEGEND_TEXT_Y_OFFSET: 12,     // 범례 텍스트 Y 오프셋 (아이템 상단 기준)
+  CHART_LEGEND_ITEM_SPACING: 30,      // 범례 항목 간 Y 간격
+  CHART_LEGEND_POINT_RADIUS: 4,       // 범례 점 반지름
+  CHART_LEGEND_POINT_CENTER_X: 10,    // 범례 점 중심 X 오프셋 (아이템 시작점 기준)
+
   // 중략(Ellipsis) 패턴 설정
   CHART_ZIGZAG_HEIGHT: 15,
   CHART_ZIGZAG_WIDTH: 8,
@@ -67,6 +77,7 @@ const CONFIG = {
   TABLE_FONT_DATA: '14px sans-serif',
   TABLE_FONT_SUMMARY: 'bold 14px sans-serif',
   TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
+  TABLE_SUPERSCRIPT_Y_OFFSET: 4, // 상첨자 위치 오프셋 (위로 이동)
 
   // 기본 라벨 (고급 설정)
   DEFAULT_LABELS: {
