@@ -97,6 +97,8 @@ h1 {
 }
 
 .left-column {
+  position: sticky;
+  top: var(--spacing-lg);
   align-self: start;
   max-width: 800px;
   margin: 0 auto;
@@ -1198,10 +1200,6 @@ canvas {
   background: var(--color-bg-light);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
-  position: sticky;
-  top: var(--spacing-lg);
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
   align-self: start;
   min-width: 280px;
   max-width: 350px;

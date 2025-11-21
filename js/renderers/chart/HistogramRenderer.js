@@ -96,8 +96,8 @@ class HistogramRenderer {
     this.ctx.fillRect(x, animatedY, barWidth, animatedH);
     this.ctx.globalAlpha = 1.0;
 
-    // 녹색 테두리 (데이터가 있는 경우)
-    if (frequency > 0) {
+    // 녹색 테두리 (데이터가 있고 높이가 0보다 클 때만)
+    if (frequency > 0 && animatedH > 0) {
       this.ctx.strokeStyle = CONFIG.CHART_BAR_BORDER_COLOR;
       this.ctx.lineWidth = 2;
       this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
