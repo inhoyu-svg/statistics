@@ -247,7 +247,7 @@ class AxisRenderer {
     this.ctx.fillText('히스토그램', legendX + 25, 32);
 
     // 다각형 범례 (동적 텍스트)
-    this.ctx.strokeStyle = CONFIG.CHART_POLYGON_COLOR;
+    this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-color');
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.moveTo(legendX, 50);

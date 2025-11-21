@@ -42,10 +42,6 @@ const CONFIG = {
   ELLIPSIS_THRESHOLD: 2,
   ELLIPSIS_POSITION_RATIO: 0.25, // 압축 구간에서 이중물결 기호 위치 (0~1 사이 값)
 
-  // 차트 색상 (하드코딩 방지)
-  CHART_BAR_BORDER_COLOR: '#57F684',
-  CHART_POLYGON_COLOR: '#FC9A63',
-
   // 차트 폰트 설정
   CHART_FONT_SMALL: '11px sans-serif',
   CHART_FONT_REGULAR: '12px sans-serif',
@@ -133,8 +129,10 @@ const CONFIG = {
       '--color-text-light': style.getPropertyValue('--color-text-light').trim(),
       '--chart-bar-color': style.getPropertyValue('--chart-bar-color').trim(),
       '--chart-bar-color-end': style.getPropertyValue('--chart-bar-color-end').trim(),
+      '--chart-bar-border-color': style.getPropertyValue('--chart-bar-border-color').trim(),
       '--chart-line-color-start': style.getPropertyValue('--chart-line-color-start').trim(),
       '--chart-line-color-end': style.getPropertyValue('--chart-line-color-end').trim(),
+      '--chart-polygon-color': style.getPropertyValue('--chart-polygon-color').trim(),
     };
   },
 

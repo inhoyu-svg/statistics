@@ -54,7 +54,7 @@ class PolygonRenderer {
         const x2 = CoordinateSystem.getBarCenterX(index, toX, xScale);
         const y2 = toY(relativeFreq);
 
-        this.ctx.strokeStyle = CONFIG.CHART_POLYGON_COLOR;
+        this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-color');
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
@@ -103,7 +103,7 @@ class PolygonRenderer {
     const x2 = CoordinateSystem.getBarCenterX(toIndex, toX, xScale);
     const y2 = toY(toFreq);
 
-    this.ctx.strokeStyle = CONFIG.CHART_POLYGON_COLOR;
+    this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-color');
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.moveTo(x1, y1);

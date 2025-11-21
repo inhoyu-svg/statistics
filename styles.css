@@ -43,8 +43,10 @@
   /* Chart */
   --chart-bar-color: #4141A3;
   --chart-bar-color-end: #2CA0E8;
+  --chart-bar-border-color: #57F684;
   --chart-line-color-start: #FA716F;
   --chart-line-color-end: #F3A257;
+  --chart-polygon-color: #FC9A63;
 
   /* Additional Dark Theme Colors */
   --color-bg-dark: #0f172a;
