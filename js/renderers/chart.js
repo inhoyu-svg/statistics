@@ -431,7 +431,6 @@ class ChartRenderer {
     if (!this.tableRenderer || !this.currentClasses || !this.currentTableConfig) return;
 
     let highlightInfo = null;
-    let activeType = null; // 디버깅용
 
     // 우선순위: bar/point > line
     // 1. 활성 bar/point 찾기
@@ -439,7 +438,6 @@ class ChartRenderer {
       if (!isActive) continue;
 
       if (layer.type === 'bar' || layer.type === 'point') {
-        activeType = layer.type;
         const classIndex = layer.data.index;
         const progress = layer.data.animationProgress || 0;
 
@@ -468,7 +466,6 @@ class ChartRenderer {
         if (!isActive) continue;
 
         if (layer.type === 'line') {
-          activeType = 'line';
           const toIndex = layer.data.toIndex;
           const progress = layer.data.animationProgress || 0;
 
@@ -492,14 +489,6 @@ class ChartRenderer {
       }
     }
 
-    // 디버깅 로그
-    console.log('[Table Highlight]', {
-      activeType,
-      highlightInfo,
-      lastHighlightInfo: this.lastHighlightInfo,
-      currentTime: this.timeline.currentTime
-    });
-
     // 하이라이트 상태가 변경될 때만 테이블 재렌더링
     const currentHighlight = this.lastHighlightInfo;
 
@@ -512,7 +501,6 @@ class ChartRenderer {
         Math.abs(highlightInfo.progress - currentHighlight.progress) > 0.05;
 
       if (hasChanged) {
-        console.log('[Table Highlight] 재렌더링:', highlightInfo);
         this.lastHighlightInfo = highlightInfo;
         const total = this.currentClasses.reduce((sum, c) => sum + c.frequency, 0);
         this.tableRenderer.draw(this.currentClasses, total, this.currentTableConfig, highlightInfo);
