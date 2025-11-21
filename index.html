@@ -78,77 +78,8 @@
             <input type="text" id="yAxisLabel" placeholder="상대도수">
           </div>
 
-          <h4>표 컬럼 표시 설정 (드래그하여 순서 변경)</h4>
-          <div class="column-toggles" id="columnToggles">
-            <div class="column-toggle-item" draggable="true" data-column-index="0">
-              <span class="drag-handle">⋮⋮</span>
-              <label>
-                <input type="checkbox" id="col1" checked>
-                <span>계급</span>
-              </label>
-            </div>
-            <div class="column-toggle-item" draggable="true" data-column-index="1">
-              <span class="drag-handle">⋮⋮</span>
-              <label>
-                <input type="checkbox" id="col2" checked>
-                <span>계급값</span>
-              </label>
-            </div>
-            <div class="column-toggle-item" draggable="true" data-column-index="2">
-              <span class="drag-handle">⋮⋮</span>
-              <label>
-                <input type="checkbox" id="col3" checked>
-                <span>도수</span>
-              </label>
-            </div>
-            <div class="column-toggle-item" draggable="true" data-column-index="3">
-              <span class="drag-handle">⋮⋮</span>
-              <label>
-                <input type="checkbox" id="col4" checked>
-                <span>상대도수(%)</span>
-              </label>
-            </div>
-            <div class="column-toggle-item" draggable="true" data-column-index="4">
-              <span class="drag-handle">⋮⋮</span>
-              <label>
-                <input type="checkbox" id="col5" checked>
-                <span>누적도수</span>
-              </label>
-            </div>
-            <div class="column-toggle-item" draggable="true" data-column-index="5">
-              <span class="drag-handle">⋮⋮</span>
-              <label>
-                <input type="checkbox" id="col6" checked>
-                <span>누적상대도수(%)</span>
-              </label>
-            </div>
-          </div>
-
-          <h4>표 컬럼명 커스터마이징</h4>
-          <div class="input-group">
-            <label for="label1">계급:</label>
-            <input type="text" id="label1" placeholder="계급">
-          </div>
-          <div class="input-group">
-            <label for="label2">계급값:</label>
-            <input type="text" id="label2" placeholder="계급값">
-          </div>
-          <div class="input-group">
-            <label for="label3">도수:</label>
-            <input type="text" id="label3" placeholder="도수">
-          </div>
-          <div class="input-group">
-            <label for="label4">상대도수(%):</label>
-            <input type="text" id="label4" placeholder="상대도수(%)">
-          </div>
-          <div class="input-group">
-            <label for="label5">누적도수:</label>
-            <input type="text" id="label5" placeholder="누적도수">
-          </div>
-          <div class="input-group">
-            <label for="label6">누적상대도수(%):</label>
-            <input type="text" id="label6" placeholder="누적상대도수(%)">
-          </div>
+          <h4>표 컬럼 설정 (드래그하여 순서 변경)</h4>
+          <div id="tableConfigPanel"></div>
 
           <h4>표 옵션</h4>
           <div class="input-group">
@@ -156,56 +87,6 @@
               <input type="checkbox" id="showSuperscript" checked>
               <span>첫 계급에 상첨자 표시 (이상/미만)</span>
             </label>
-          </div>
-
-          <h4>표 컬럼 정렬</h4>
-          <div class="alignment-group">
-            <label>계급:</label>
-            <div class="alignment-buttons">
-              <button class="align-btn" data-column="계급" data-align="left">L</button>
-              <button class="align-btn active" data-column="계급" data-align="center">C</button>
-              <button class="align-btn" data-column="계급" data-align="right">R</button>
-            </div>
-          </div>
-          <div class="alignment-group">
-            <label>계급값:</label>
-            <div class="alignment-buttons">
-              <button class="align-btn" data-column="계급값" data-align="left">L</button>
-              <button class="align-btn active" data-column="계급값" data-align="center">C</button>
-              <button class="align-btn" data-column="계급값" data-align="right">R</button>
-            </div>
-          </div>
-          <div class="alignment-group">
-            <label>도수:</label>
-            <div class="alignment-buttons">
-              <button class="align-btn" data-column="도수" data-align="left">L</button>
-              <button class="align-btn active" data-column="도수" data-align="center">C</button>
-              <button class="align-btn" data-column="도수" data-align="right">R</button>
-            </div>
-          </div>
-          <div class="alignment-group">
-            <label>상대도수(%):</label>
-            <div class="alignment-buttons">
-              <button class="align-btn" data-column="상대도수(%)" data-align="left">L</button>
-              <button class="align-btn active" data-column="상대도수(%)" data-align="center">C</button>
-              <button class="align-btn" data-column="상대도수(%)" data-align="right">R</button>
-            </div>
-          </div>
-          <div class="alignment-group">
-            <label>누적도수:</label>
-            <div class="alignment-buttons">
-              <button class="align-btn" data-column="누적도수" data-align="left">L</button>
-              <button class="align-btn active" data-column="누적도수" data-align="center">C</button>
-              <button class="align-btn" data-column="누적도수" data-align="right">R</button>
-            </div>
-          </div>
-          <div class="alignment-group">
-            <label>누적상대도수(%):</label>
-            <div class="alignment-buttons">
-              <button class="align-btn" data-column="누적상대도수(%)" data-align="left">L</button>
-              <button class="align-btn active" data-column="누적상대도수(%)" data-align="center">C</button>
-              <button class="align-btn" data-column="누적상대도수(%)" data-align="right">R</button>
-            </div>
           </div>
         </div>
       </details>

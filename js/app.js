@@ -43,12 +43,6 @@ class FrequencyDistributionApp {
       }
     });
 
-    // 드래그 앤 드롭 초기화
-    this.initDragAndDrop();
-
-    // 컬럼 정렬 버튼 초기화
-    this.initAlignmentButtons();
-
     // 차트 데이터 타입 라디오 버튼 동적 생성
     this.initChartDataTypeRadios();
 
@@ -60,6 +54,9 @@ class FrequencyDistributionApp {
 
     // 상첨자 토글 초기화
     this.initSuperscriptToggle();
+
+    // 테이블 설정 패널 초기화
+    this.initTableConfigPanel();
   }
 
   /**
@@ -211,6 +208,179 @@ class FrequencyDistributionApp {
         this.tableRenderer.draw(classes, DataStore.getRawData().length, configWithAlignment);
       }
     });
+  }
+
+  /**
+   * 테이블 설정 패널 동적 생성
+   * CONFIG.DEFAULT_LABELS.table 기반으로 각 컬럼별 설정 행 생성
+   */
+  initTableConfigPanel() {
+    const panel = document.getElementById('tableConfigPanel');
+    if (!panel) return;
+
+    // CONFIG에서 컬럼 정보 가져오기
+    const tableLabels = CONFIG.DEFAULT_LABELS.table;
+    const columns = [
+      { key: 'class', label: tableLabels.class },
+      { key: 'midpoint', label: tableLabels.midpoint },
+      { key: 'frequency', label: tableLabels.frequency },
+      { key: 'relativeFrequency', label: tableLabels.relativeFrequency },
+      { key: 'cumulativeFrequency', label: tableLabels.cumulativeFrequency },
+      { key: 'cumulativeRelativeFrequency', label: tableLabels.cumulativeRelativeFrequency }
+    ];
+
+    // 각 컬럼별 설정 행 생성
+    columns.forEach((column, index) => {
+      const row = document.createElement('div');
+      row.className = 'table-config-row';
+      row.draggable = true;
+      row.dataset.columnIndex = index;
+
+      const defaultAlignment = CONFIG.TABLE_DEFAULT_ALIGNMENT[column.label] || 'center';
+
+      row.innerHTML = `
+        <span class="drag-handle">⋮⋮</span>
+        <input type="checkbox" class="column-checkbox" data-column-index="${index}" checked>
+        <span class="column-label">${column.label}</span>
+        <div class="alignment-buttons">
+          <button class="align-btn ${defaultAlignment === 'left' ? 'active' : ''}" data-column="${column.label}" data-align="left">L</button>
+          <button class="align-btn ${defaultAlignment === 'center' ? 'active' : ''}" data-column="${column.label}" data-align="center">C</button>
+          <button class="align-btn ${defaultAlignment === 'right' ? 'active' : ''}" data-column="${column.label}" data-align="right">R</button>
+        </div>
+        <div class="label-input-wrapper">
+          <input type="text" class="label-input" data-column-index="${index}" placeholder="${column.label}" value="">
+        </div>
+      `;
+
+      panel.appendChild(row);
+    });
+
+    // 이벤트 리스너 등록
+    this.initTableConfigEvents();
+  }
+
+  /**
+   * 테이블 설정 패널 이벤트 리스너
+   */
+  initTableConfigEvents() {
+    const panel = document.getElementById('tableConfigPanel');
+    if (!panel) return;
+
+    // 체크박스 변경 이벤트
+    panel.querySelectorAll('.column-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', () => this.handleTableUpdate());
+    });
+
+    // 라벨 입력 이벤트
+    panel.querySelectorAll('.label-input').forEach(input => {
+      input.addEventListener('input', () => this.handleTableUpdate());
+    });
+
+    // 정렬 버튼 이벤트
+    panel.querySelectorAll('.align-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const column = e.target.dataset.column;
+        const alignment = e.target.dataset.align;
+
+        // 같은 컬럼의 다른 버튼 비활성화
+        panel.querySelectorAll(`.align-btn[data-column="${column}"]`).forEach(b => {
+          b.classList.remove('active');
+        });
+        e.target.classList.add('active');
+
+        // Store에 저장
+        TableStore.setColumnAlignment(column, alignment);
+
+        // 테이블 업데이트
+        this.handleTableUpdate();
+      });
+    });
+
+    // 드래그 앤 드롭 초기화
+    this.initTableConfigDragAndDrop();
+  }
+
+  /**
+   * 테이블 설정 변경 시 테이블 재렌더링
+   */
+  handleTableUpdate() {
+    if (!DataStore.hasData()) return;
+
+    const { classes } = DataStore.getData();
+    const tableConfig = this.getTableConfig();
+    const columnAlignment = TableStore.getAllAlignments();
+    const configWithAlignment = {
+      ...tableConfig,
+      columnAlignment: columnAlignment
+    };
+
+    this.tableRenderer.draw(classes, DataStore.getRawData().length, configWithAlignment);
+  }
+
+  /**
+   * 테이블 설정 패널 드래그 앤 드롭 초기화
+   */
+  initTableConfigDragAndDrop() {
+    const panel = document.getElementById('tableConfigPanel');
+    if (!panel) return;
+
+    let draggedElement = null;
+
+    panel.querySelectorAll('.table-config-row').forEach(row => {
+      row.addEventListener('dragstart', (e) => {
+        draggedElement = e.target;
+        e.target.classList.add('dragging');
+      });
+
+      row.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging');
+        panel.querySelectorAll('.table-config-row').forEach(r => r.classList.remove('drag-over'));
+
+        // 순서 변경 적용
+        this.updateColumnOrder();
+        this.handleTableUpdate();
+      });
+
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (e.target.closest('.table-config-row') && e.target !== draggedElement) {
+          e.target.closest('.table-config-row').classList.add('drag-over');
+        }
+      });
+
+      row.addEventListener('dragleave', (e) => {
+        if (e.target.closest('.table-config-row')) {
+          e.target.closest('.table-config-row').classList.remove('drag-over');
+        }
+      });
+
+      row.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const dropTarget = e.target.closest('.table-config-row');
+        if (dropTarget && dropTarget !== draggedElement) {
+          const allRows = [...panel.querySelectorAll('.table-config-row')];
+          const draggedIndex = allRows.indexOf(draggedElement);
+          const targetIndex = allRows.indexOf(dropTarget);
+
+          if (draggedIndex < targetIndex) {
+            dropTarget.after(draggedElement);
+          } else {
+            dropTarget.before(draggedElement);
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * 드래그 후 컬럼 순서 업데이트
+   */
+  updateColumnOrder() {
+    const panel = document.getElementById('tableConfigPanel');
+    if (!panel) return;
+
+    const rows = [...panel.querySelectorAll('.table-config-row')];
+    this.columnOrder = rows.map(row => parseInt(row.dataset.columnIndex));
   }
 
   /**
@@ -566,33 +736,6 @@ class FrequencyDistributionApp {
     this.tableRenderer.draw(classes, total, configWithAlignment);
   }
 
-  /**
-   * 드래그 앤 드롭 이벤트 리스너 등록
-   */
-  initDragAndDrop() {
-    const container = document.getElementById('columnToggles');
-    const items = container.querySelectorAll('.column-toggle-item');
-
-    items.forEach(item => {
-      item.addEventListener('dragstart', (e) => this.handleDragStart(e));
-      item.addEventListener('dragover', (e) => this.handleDragOver(e));
-      item.addEventListener('drop', (e) => this.handleDrop(e));
-      item.addEventListener('dragend', (e) => this.handleDragEnd(e));
-      item.addEventListener('dragenter', (e) => this.handleDragEnter(e));
-      item.addEventListener('dragleave', (e) => this.handleDragLeave(e));
-    });
-  }
-
-  /**
-   * 컬럼 정렬 버튼 이벤트 리스너 등록
-   */
-  initAlignmentButtons() {
-    const buttons = document.querySelectorAll('.align-btn');
-
-    buttons.forEach(button => {
-      button.addEventListener('click', (e) => this.handleAlignmentChange(e));
-    });
-  }
 
   /**
    * 차트 데이터 타입 라디오 버튼 동적 생성 및 이벤트 리스너 등록
@@ -638,111 +781,6 @@ class FrequencyDistributionApp {
     this.updateChart();
   }
 
-  /**
-   * 정렬 변경 핸들러
-   * @param {Event} e - 클릭 이벤트
-   */
-  handleAlignmentChange(e) {
-    const button = e.currentTarget;
-    const columnName = button.dataset.column;
-    const alignment = button.dataset.align;
-
-    // 같은 컬럼의 다른 버튼 비활성화
-    const columnButtons = document.querySelectorAll(`.align-btn[data-column="${columnName}"]`);
-    columnButtons.forEach(btn => btn.classList.remove('active'));
-
-    // 클릭된 버튼 활성화
-    button.classList.add('active');
-
-    // TableStore에 정렬 설정 저장
-    TableStore.setColumnAlignment(columnName, alignment);
-
-    // 테이블 다시 렌더링
-    this.updateTable();
-  }
-
-  /**
-   * 드래그 시작
-   */
-  handleDragStart(e) {
-    this.draggedElement = e.currentTarget;
-    e.currentTarget.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
-  }
-
-  /**
-   * 드래그 중 (드롭 가능 영역)
-   */
-  handleDragOver(e) {
-    if (e.preventDefault) {
-      e.preventDefault();
-    }
-    e.dataTransfer.dropEffect = 'move';
-    return false;
-  }
-
-  /**
-   * 드래그 진입
-   */
-  handleDragEnter(e) {
-    if (e.currentTarget !== this.draggedElement) {
-      e.currentTarget.classList.add('drag-over');
-    }
-  }
-
-  /**
-   * 드래그 이탈
-   */
-  handleDragLeave(e) {
-    e.currentTarget.classList.remove('drag-over');
-  }
-
-  /**
-   * 드롭 처리
-   */
-  handleDrop(e) {
-    if (e.stopPropagation) {
-      e.stopPropagation();
-    }
-
-    if (this.draggedElement !== e.currentTarget) {
-      // DOM 순서 변경
-      const container = document.getElementById('columnToggles');
-      const allItems = Array.from(container.querySelectorAll('.column-toggle-item'));
-
-      const draggedIndex = allItems.indexOf(this.draggedElement);
-      const targetIndex = allItems.indexOf(e.currentTarget);
-
-      // columnOrder 배열 업데이트
-      const draggedOrder = this.columnOrder[draggedIndex];
-      this.columnOrder.splice(draggedIndex, 1);
-      this.columnOrder.splice(targetIndex, 0, draggedOrder);
-
-      // DOM 재정렬
-      if (draggedIndex < targetIndex) {
-        e.currentTarget.parentNode.insertBefore(this.draggedElement, e.currentTarget.nextSibling);
-      } else {
-        e.currentTarget.parentNode.insertBefore(this.draggedElement, e.currentTarget);
-      }
-    }
-
-    e.currentTarget.classList.remove('drag-over');
-    return false;
-  }
-
-  /**
-   * 드래그 종료
-   */
-  handleDragEnd(e) {
-    const container = document.getElementById('columnToggles');
-    const items = container.querySelectorAll('.column-toggle-item');
-
-    items.forEach(item => {
-      item.classList.remove('dragging');
-      item.classList.remove('drag-over');
-    });
-  }
 
   /**
    * 도수분포표 생성 메인 로직
@@ -852,14 +890,28 @@ class FrequencyDistributionApp {
    * @description X축/Y축 라벨과 표 컬럼 라벨을 통합하여 반환
    */
   getCustomLabels() {
-    const xAxisLabel = document.getElementById('xAxisLabel').value.trim();
-    const yAxisLabel = document.getElementById('yAxisLabel').value.trim();
-    const label1 = document.getElementById('label1').value.trim();
-    const label2 = document.getElementById('label2').value.trim();
-    const label3 = document.getElementById('label3').value.trim();
-    const label4 = document.getElementById('label4').value.trim();
-    const label5 = document.getElementById('label5').value.trim();
-    const label6 = document.getElementById('label6').value.trim();
+    const xAxisLabel = document.getElementById('xAxisLabel')?.value.trim() || '';
+    const yAxisLabel = document.getElementById('yAxisLabel')?.value.trim() || '';
+
+    const panel = document.getElementById('tableConfigPanel');
+    if (!panel) return { axis: {}, table: {} };
+
+    const labelInputs = [...panel.querySelectorAll('.label-input')];
+    const labels = labelInputs.map(input => input.value.trim());
+
+    // CONFIG의 기본 라벨 순서
+    const defaults = [
+      CONFIG.DEFAULT_LABELS.table.class,
+      CONFIG.DEFAULT_LABELS.table.midpoint,
+      CONFIG.DEFAULT_LABELS.table.frequency,
+      CONFIG.DEFAULT_LABELS.table.relativeFrequency,
+      CONFIG.DEFAULT_LABELS.table.cumulativeFrequency,
+      CONFIG.DEFAULT_LABELS.table.cumulativeRelativeFrequency
+    ];
+
+    const [label1, label2, label3, label4, label5, label6] = labels.map((label, i) =>
+      label || defaults[i]
+    );
 
     // X축 라벨과 표의 "계급" 컬럼을 통합
     const classLabel = label1 || xAxisLabel || CONFIG.DEFAULT_LABELS.table.class;
@@ -874,32 +926,36 @@ class FrequencyDistributionApp {
       },
       table: {
         class: classLabel,
-        midpoint: label2 || CONFIG.DEFAULT_LABELS.table.midpoint,
-        frequency: label3 || CONFIG.DEFAULT_LABELS.table.frequency,
+        midpoint: label2,
+        frequency: label3,
         relativeFrequency: relativeFreqLabel,
-        cumulativeFrequency: label5 || CONFIG.DEFAULT_LABELS.table.cumulativeFrequency,
-        cumulativeRelativeFrequency: label6 || CONFIG.DEFAULT_LABELS.table.cumulativeRelativeFrequency
+        cumulativeFrequency: label5,
+        cumulativeRelativeFrequency: label6
       }
     };
   }
 
   /**
    * 표 설정 가져오기
-   * @returns {{labels: Object, visibleColumns: boolean[], columnOrder: number[]}} 표 설정 객체
+   * @returns {{labels: Object, visibleColumns: boolean[], columnOrder: number[], showSuperscript: boolean}} 표 설정 객체
    * @description 표시할 컬럼, 라벨, 순서 정보를 반환
    */
   getTableConfig() {
     const customLabels = this.getCustomLabels();
 
+    const panel = document.getElementById('tableConfigPanel');
+    if (!panel) {
+      return {
+        labels: customLabels.table,
+        visibleColumns: [true, true, true, true, true, true],
+        columnOrder: [0, 1, 2, 3, 4, 5],
+        showSuperscript: CONFIG.TABLE_SHOW_SUPERSCRIPT
+      };
+    }
+
     // 체크박스 상태 확인 (원본 순서)
-    const originalVisibleColumns = [
-      document.getElementById('col1').checked,
-      document.getElementById('col2').checked,
-      document.getElementById('col3').checked,
-      document.getElementById('col4').checked,
-      document.getElementById('col5').checked,
-      document.getElementById('col6').checked
-    ];
+    const checkboxes = [...panel.querySelectorAll('.column-checkbox')];
+    const originalVisibleColumns = checkboxes.map(cb => cb.checked);
 
     // 상첨자 표시 옵션
     const showSuperscript = document.getElementById('showSuperscript')?.checked ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;

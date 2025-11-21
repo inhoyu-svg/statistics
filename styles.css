@@ -490,7 +490,134 @@ button:active {
   font-size: 14px;
 }
 
-/* Column Alignment Buttons */
+/* 통합 테이블 설정 행 */
+#tableConfigPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.table-config-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  user-select: none;
+  background: var(--color-bg-dark);
+  border: 1px solid transparent;
+}
+
+.table-config-row:hover {
+  background: var(--color-bg-hover);
+}
+
+.table-config-row.dragging {
+  opacity: 0.4;
+  background: var(--color-primary);
+  transform: scale(0.98);
+}
+
+.table-config-row.drag-over {
+  border-top: 3px solid var(--color-primary);
+  margin-top: 8px;
+}
+
+.table-config-row .drag-handle {
+  color: var(--color-text-light);
+  font-size: 16px;
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+  user-select: none;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.table-config-row .drag-handle:hover {
+  opacity: 1;
+  color: var(--color-primary);
+}
+
+.table-config-row.dragging .drag-handle {
+  cursor: grabbing;
+}
+
+.table-config-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.table-config-row .column-label {
+  min-width: 90px;
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.table-config-row .label-input-wrapper {
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.table-config-row .label-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.table-config-row .label-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-bg-light);
+}
+
+.table-config-row .alignment-buttons {
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg-dark);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.table-config-row .align-btn {
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: calc(var(--radius-sm) - 2px);
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.table-config-row .align-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+}
+
+.table-config-row .align-btn.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Column Alignment Buttons (레거시, 혹시 사용 중인 곳 있을 수 있음) */
 .alignment-group {
   display: flex;
   align-items: center;
