@@ -209,12 +209,7 @@ class FrequencyDistributionApp {
       // 데이터가 있을 때만 재렌더링
       if (DataStore.hasData()) {
         const { classes } = DataStore.getData();
-        const tableConfig = this.getTableConfig();
-        const columnAlignment = TableStore.getAllAlignments();
-        const configWithAlignment = {
-          ...tableConfig,
-          columnAlignment: columnAlignment
-        };
+        const configWithAlignment = this.getTableConfigWithAlignment();
 
         this.tableRenderer.draw(classes, DataStore.getRawData().length, configWithAlignment);
       }
@@ -226,7 +221,7 @@ class FrequencyDistributionApp {
    * CONFIG.DEFAULT_LABELS.table 기반으로 각 컬럼별 설정 행 생성
    */
   initTableConfigPanel() {
-    const panel = document.getElementById('tableConfigPanel');
+    const panel = this._getTableConfigPanel();
     if (!panel) return;
 
     // CONFIG에서 컬럼 정보 가져오기
@@ -274,7 +269,7 @@ class FrequencyDistributionApp {
    * 테이블 설정 패널 이벤트 리스너
    */
   initTableConfigEvents() {
-    const panel = document.getElementById('tableConfigPanel');
+    const panel = this._getTableConfigPanel();
     if (!panel) return;
 
     // 체크박스 변경 이벤트
@@ -318,12 +313,7 @@ class FrequencyDistributionApp {
     if (!DataStore.hasData()) return;
 
     const { classes } = DataStore.getData();
-    const tableConfig = this.getTableConfig();
-    const columnAlignment = TableStore.getAllAlignments();
-    const configWithAlignment = {
-      ...tableConfig,
-      columnAlignment: columnAlignment
-    };
+    const configWithAlignment = this.getTableConfigWithAlignment();
 
     this.tableRenderer.draw(classes, DataStore.getRawData().length, configWithAlignment);
   }
@@ -332,7 +322,7 @@ class FrequencyDistributionApp {
    * 테이블 설정 패널 드래그 앤 드롭 초기화
    */
   initTableConfigDragAndDrop() {
-    const panel = document.getElementById('tableConfigPanel');
+    const panel = this._getTableConfigPanel();
     if (!panel) return;
 
     let draggedElement = null;
@@ -387,10 +377,9 @@ class FrequencyDistributionApp {
    * 드래그 후 컬럼 순서 업데이트
    */
   updateColumnOrder() {
-    const panel = document.getElementById('tableConfigPanel');
-    if (!panel) return;
+    const rows = this._getTableConfigRows();
+    if (rows.length === 0) return;
 
-    const rows = [...panel.querySelectorAll('.table-config-row')];
     this.columnOrder = rows.map(row => parseInt(row.dataset.columnIndex));
   }
 
@@ -458,11 +447,7 @@ class FrequencyDistributionApp {
       ChartStore.setConfig(customLabels.axis, ellipsisInfo);
 
       // UI 재렌더링
-      const columnAlignment = TableStore.getAllAlignments();
-      const configWithAlignment = {
-        ...tableConfig,
-        columnAlignment: columnAlignment
-      };
+      const configWithAlignment = this.getTableConfigWithAlignment();
 
       this.tableRenderer.draw(classes, data.length, configWithAlignment);
 
@@ -736,12 +721,11 @@ class FrequencyDistributionApp {
     const { classes } = data;
     const total = data.data.length;
     const tableConfig = TableStore.getConfig();
-    const columnAlignment = TableStore.getAllAlignments();
 
     // tableConfig에 columnAlignment 추가
     const configWithAlignment = {
       ...tableConfig,
-      columnAlignment: columnAlignment
+      columnAlignment: TableStore.getAllAlignments()
     };
 
     this.tableRenderer.draw(classes, total, configWithAlignment);
@@ -864,11 +848,7 @@ class FrequencyDistributionApp {
       UIRenderer.renderStatsCards(stats);
 
       // tableConfig에 columnAlignment 추가
-      const columnAlignment = TableStore.getAllAlignments();
-      const configWithAlignment = {
-        ...tableConfig,
-        columnAlignment: columnAlignment
-      };
+      const configWithAlignment = this.getTableConfigWithAlignment();
 
       this.tableRenderer.draw(classes, data.length, configWithAlignment);
 
@@ -896,6 +876,39 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 테이블 설정 패널 요소 가져오기
+   * @returns {HTMLElement|null} 패널 요소 또는 null
+   * @private
+   */
+  _getTableConfigPanel() {
+    return document.getElementById('tableConfigPanel');
+  }
+
+  /**
+   * 모든 테이블 설정 행 가져오기
+   * @returns {HTMLElement[]} 설정 행 배열
+   * @private
+   */
+  _getTableConfigRows() {
+    const panel = this._getTableConfigPanel();
+    return panel ? [...panel.querySelectorAll('.table-config-row')] : [];
+  }
+
+  /**
+   * 정렬 정보가 포함된 테이블 설정 가져오기
+   * @returns {{labels: Object, visibleColumns: boolean[], columnOrder: number[], showSuperscript: boolean, columnAlignment: Object}} 통합 설정 객체
+   * @description getTableConfig()에 columnAlignment를 추가한 통합 객체 반환
+   */
+  getTableConfigWithAlignment() {
+    const tableConfig = this.getTableConfig();
+    const columnAlignment = TableStore.getAllAlignments();
+    return {
+      ...tableConfig,
+      columnAlignment: columnAlignment
+    };
+  }
+
+  /**
    * 고급 설정에서 커스텀 라벨 가져오기
    * @returns {{axis: Object, table: Object}} 축 라벨과 표 라벨 객체
    * @description X축/Y축 라벨과 표 컬럼 라벨을 통합하여 반환
@@ -904,7 +917,7 @@ class FrequencyDistributionApp {
     const xAxisLabel = document.getElementById('xAxisLabel')?.value.trim() || '';
     const yAxisLabel = document.getElementById('yAxisLabel')?.value.trim() || '';
 
-    const panel = document.getElementById('tableConfigPanel');
+    const panel = this._getTableConfigPanel();
     if (!panel) return { axis: {}, table: {} };
 
     const labelInputs = [...panel.querySelectorAll('.label-input')];
@@ -954,7 +967,7 @@ class FrequencyDistributionApp {
   getTableConfig() {
     const customLabels = this.getCustomLabels();
 
-    const panel = document.getElementById('tableConfigPanel');
+    const panel = this._getTableConfigPanel();
     if (!panel) {
       return {
         labels: customLabels.table,
