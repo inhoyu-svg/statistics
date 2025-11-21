@@ -233,9 +233,11 @@ class TableRenderer {
 
         this.ctx.textAlign = alignment;
 
-        // 첫 번째 행의 계급 컬럼인 경우 상첨자 추가 (도수 0인 계급은 이미 필터링됨)
-        if (showSuperscript && rowIndex === 0 && label === '계급') {
-          this.drawClassWithSuperscript(cellText, cellX, cellY, classData);
+        // 첫 번째 행의 계급 컬럼인 경우 상첨자 표시 옵션에 따라 렌더링
+        if (rowIndex === 0 && label === '계급') {
+          this.drawClassWithSuperscript(cellText, cellX, cellY, classData, showSuperscript);
+          // 폰트 복원
+          this.ctx.font = CONFIG.TABLE_FONT_DATA;
         } else {
           this.ctx.fillText(String(cellText), cellX, cellY);
         }
@@ -337,14 +339,15 @@ class TableRenderer {
    * @param {number} cellX - 셀 중앙 X 좌표
    * @param {number} cellY - 셀 중앙 Y 좌표
    * @param {Object} classData - 계급 데이터 객체 (min, max 포함)
+   * @param {boolean} showSuperscript - 상첨자 표시 여부
    */
-  drawClassWithSuperscript(cellText, cellX, cellY, classData) {
+  drawClassWithSuperscript(cellText, cellX, cellY, classData, showSuperscript) {
     const min = classData.min;
     const max = classData.max;
 
     // 폰트 크기 설정
-    const normalFont = CONFIG.TABLE_FONT_DATA; // 기본: 'bold 14px "Noto Sans KR"'
-    const superscriptFont = 'bold 10px "Noto Sans KR"'; // 상첨자용 작은 폰트
+    const normalFont = CONFIG.TABLE_FONT_DATA; // 기본: '14px sans-serif'
+    const superscriptFont = '11px sans-serif'; // 상첨자용 작은 폰트
 
     // 텍스트 구성 요소
     const minText = String(min);
@@ -359,9 +362,10 @@ class TableRenderer {
     const maxWidth = this.ctx.measureText(maxText).width;
     const sepWidth = this.ctx.measureText(separator).width;
 
+    // 상첨자 너비 측정 (표시 여부와 관계없이)
     this.ctx.font = superscriptFont;
-    const superMinWidth = this.ctx.measureText(superMin).width;
-    const superMaxWidth = this.ctx.measureText(superMax).width;
+    const superMinWidth = showSuperscript ? this.ctx.measureText(superMin).width : 0;
+    const superMaxWidth = showSuperscript ? this.ctx.measureText(superMax).width : 0;
 
     // 전체 너비 계산
     const totalWidth = minWidth + superMinWidth + sepWidth + maxWidth + superMaxWidth;
@@ -379,10 +383,12 @@ class TableRenderer {
     this.ctx.fillText(minText, x, normalY);
     x += minWidth;
 
-    // 2. (이상) 상첨자 그리기
-    this.ctx.font = superscriptFont;
-    this.ctx.fillText(superMin, x, superscriptY);
-    x += superMinWidth;
+    // 2. (이상) 상첨자 그리기 (옵션에 따라)
+    if (showSuperscript) {
+      this.ctx.font = superscriptFont;
+      this.ctx.fillText(superMin, x, superscriptY);
+      x += superMinWidth;
+    }
 
     // 3. " ~ " 구분자 그리기
     this.ctx.font = normalFont;
@@ -393,9 +399,11 @@ class TableRenderer {
     this.ctx.fillText(maxText, x, normalY);
     x += maxWidth;
 
-    // 5. (미만) 상첨자 그리기
-    this.ctx.font = superscriptFont;
-    this.ctx.fillText(superMax, x, superscriptY);
+    // 5. (미만) 상첨자 그리기 (옵션에 따라)
+    if (showSuperscript) {
+      this.ctx.font = superscriptFont;
+      this.ctx.fillText(superMax, x, superscriptY);
+    }
   }
 
   /**
