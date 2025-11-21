@@ -57,6 +57,9 @@ class FrequencyDistributionApp {
 
     // 계급 범위 편집기 초기화
     this.initClassRangeEditor();
+
+    // 상첨자 토글 초기화
+    this.initSuperscriptToggle();
   }
 
   /**
@@ -187,6 +190,27 @@ class FrequencyDistributionApp {
     firstEndInput?.addEventListener('input', updateValues);
     secondEndInput?.addEventListener('input', updateValues);
     lastStartInput?.addEventListener('input', updateValues);
+  }
+
+  /**
+   * 상첨자 토글 이벤트 리스너 등록
+   */
+  initSuperscriptToggle() {
+    const checkbox = document.getElementById('showSuperscript');
+    checkbox?.addEventListener('change', () => {
+      // 데이터가 있을 때만 재렌더링
+      if (DataStore.hasData()) {
+        const { classes } = DataStore.getData();
+        const tableConfig = this.getTableConfig();
+        const columnAlignment = TableStore.getAllAlignments();
+        const configWithAlignment = {
+          ...tableConfig,
+          columnAlignment: columnAlignment
+        };
+
+        this.tableRenderer.draw(classes, DataStore.getRawData().length, configWithAlignment);
+      }
+    });
   }
 
   /**
@@ -877,10 +901,14 @@ class FrequencyDistributionApp {
       document.getElementById('col6').checked
     ];
 
+    // 상첨자 표시 옵션
+    const showSuperscript = document.getElementById('showSuperscript')?.checked ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
+
     return {
       labels: customLabels.table,
       visibleColumns: originalVisibleColumns,
-      columnOrder: this.columnOrder
+      columnOrder: this.columnOrder,
+      showSuperscript: showSuperscript
     };
   }
 }

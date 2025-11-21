@@ -70,6 +70,7 @@ const CONFIG = {
   TABLE_FONT_HEADER: 'bold 14px sans-serif',
   TABLE_FONT_DATA: '13px sans-serif',
   TABLE_FONT_SUMMARY: 'bold 13px sans-serif',
+  TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
 
   // 기본 라벨 (고급 설정)
   DEFAULT_LABELS: {

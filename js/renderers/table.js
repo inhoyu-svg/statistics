@@ -22,7 +22,7 @@ class TableRenderer {
    * 도수분포표 그리기
    * @param {Array} classes - 계급 데이터 배열
    * @param {number} total - 전체 데이터 개수
-   * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns, columnOrder, columnAlignment)
+   * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns, columnOrder, columnAlignment, showSuperscript)
    */
   draw(classes, total, config = null) {
     // 도수가 0이 아닌 계급만 필터링
@@ -38,6 +38,7 @@ class TableRenderer {
     const visibleColumns = config?.visibleColumns || [true, true, true, true, true, true];
     const columnOrder = config?.columnOrder || [0, 1, 2, 3, 4, 5];
     const columnAlignment = config?.columnAlignment || CONFIG.TABLE_DEFAULT_ALIGNMENT;
+    const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
 
     // 원본 라벨 배열
     const allLabels = [
@@ -71,7 +72,7 @@ class TableRenderer {
     // 렌더링 순서
     this.drawGrid(rowCount, columnWidths);
     this.drawHeader(filteredLabels, columnWidths, columnAlignment);
-    this.drawDataRows(visibleClasses, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment);
+    this.drawDataRows(visibleClasses, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment, showSuperscript);
     this.drawSummaryRow(total, visibleClasses.length, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment);
   }
 
@@ -179,8 +180,9 @@ class TableRenderer {
    * @param {Array} orderedVisibleColumns - 순서가 적용된 표시 컬럼 배열
    * @param {Array} columnOrder - 컬럼 순서 배열
    * @param {Object} columnAlignment - 컬럼별 정렬 설정
+   * @param {boolean} showSuperscript - 상첨자 표시 여부
    */
-  drawDataRows(classes, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment) {
+  drawDataRows(classes, columnWidths, orderedVisibleColumns, columnOrder, columnAlignment, showSuperscript) {
     this.ctx.font = CONFIG.TABLE_FONT_DATA;
     this.ctx.textBaseline = 'middle';
 
@@ -232,7 +234,7 @@ class TableRenderer {
         this.ctx.textAlign = alignment;
 
         // 첫 번째 행의 계급 컬럼인 경우 상첨자 추가 (도수 0인 계급은 이미 필터링됨)
-        if (rowIndex === 0 && label === '계급') {
+        if (showSuperscript && rowIndex === 0 && label === '계급') {
           this.drawClassWithSuperscript(cellText, cellX, cellY, classData);
         } else {
           this.ctx.fillText(String(cellText), cellX, cellY);
@@ -347,8 +349,8 @@ class TableRenderer {
     // 텍스트 구성 요소
     const minText = String(min);
     const maxText = String(max);
-    const superMin = '(이상)';
-    const superMax = '(미만)';
+    const superMin = '이상';
+    const superMax = '미만';
     const separator = ' ~ ';
 
     // 각 구성 요소의 너비 측정
