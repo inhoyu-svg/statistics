@@ -151,6 +151,15 @@ class ChartRenderer {
   renderLayer(layer) {
     if (!layer.visible) return;
 
+    // 렌더링 시 필요한 전역 정보를 레이어 데이터에 임시 주입
+    const originalData = { ...layer.data };
+    layer.data = {
+      ...layer.data,
+      coords: this.currentCoords,
+      ellipsisInfo: this.currentEllipsisInfo,
+      dataType: this.currentDataType
+    };
+
     switch (layer.type) {
       case 'bar':
         this.histogramRenderer.renderBar(layer);
@@ -166,6 +175,9 @@ class ChartRenderer {
         layer.children.forEach(child => this.renderLayer(child));
         break;
     }
+
+    // 원래 데이터로 복원 (JSON 내보내기 시 깔끔하게 유지)
+    layer.data = originalData;
   }
 
   // ==================== Timeline & Animation ====================

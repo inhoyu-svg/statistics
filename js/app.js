@@ -43,6 +43,10 @@ class FrequencyDistributionApp {
       }
     });
 
+    // JSON 내보내기 버튼
+    const exportJsonBtn = document.getElementById('exportJsonBtn');
+    exportJsonBtn?.addEventListener('click', () => this.exportJson());
+
     // 차트 데이터 타입 라디오 버튼 동적 생성
     this.initChartDataTypeRadios();
 
@@ -778,6 +782,53 @@ class FrequencyDistributionApp {
 
 
   /**
+   * JSON 데이터 내보내기
+   * @description 현재 레이어 구조와 타임라인을 JSON 파일로 다운로드
+   */
+  exportJson() {
+    try {
+      // 레이어와 타임라인 데이터 추출
+      const jsonData = DataProcessor.exportChartData(
+        this.chartRenderer.layerManager,
+        this.chartRenderer.timeline,
+        this.chartRenderer
+      );
+
+      // JSON 문자열 생성 (들여쓰기 포함)
+      const jsonString = JSON.stringify(jsonData, null, 2);
+
+      // Blob 생성
+      const blob = new Blob([jsonString], { type: 'application/json' });
+
+      // 파일명 생성 (YYYYMMDD-HHmmss)
+      const now = new Date();
+      const timestamp = now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + '-' +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
+        String(now.getSeconds()).padStart(2, '0');
+      const filename = `chart-data-${timestamp}.json`;
+
+      // 다운로드 링크 생성 및 클릭
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // URL 해제
+      URL.revokeObjectURL(link.href);
+
+      MessageManager.success(`JSON 파일이 다운로드되었습니다: ${filename}`);
+    } catch (error) {
+      console.error('Export error:', error);
+      MessageManager.error(`내보내기 오류: ${error.message}`);
+    }
+  }
+
+  /**
    * 도수분포표 생성 메인 로직
    * @description 입력 데이터를 파싱하고 검증한 후, 도수분포표와 히스토그램 생성
    * @throws {Error} 데이터 처리 중 오류 발생 시
@@ -866,7 +917,13 @@ class FrequencyDistributionApp {
       // 11. 계급 범위 편집기 표시 및 초기값 설정
       this.showClassRangeEditor(classes);
 
-      // 12. 성공 메시지
+      // 12. JSON 내보내기 버튼 표시
+      const exportJsonBtn = document.getElementById('exportJsonBtn');
+      if (exportJsonBtn) {
+        exportJsonBtn.style.display = 'block';
+      }
+
+      // 13. 성공 메시지
       MessageManager.success('도수분포표가 생성되었습니다!');
 
     } catch (error) {

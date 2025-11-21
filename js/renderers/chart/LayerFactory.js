@@ -58,10 +58,7 @@ class LayerFactory {
         data: {
           index,
           relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
-          frequency: classes[index].frequency,
-          coords,
-          ellipsisInfo,
-          dataType
+          frequency: classes[index].frequency
         }
       });
 
@@ -98,8 +95,7 @@ class LayerFactory {
         visible: true,
         data: {
           index,
-          relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
-          coords
+          relativeFreq: value // 실제로는 value (상대도수 또는 도수)
         }
       });
 
@@ -125,8 +121,7 @@ class LayerFactory {
             fromIndex: prevIndex,
             toIndex: index,
             fromFreq: values[prevIndex],
-            toFreq: value,
-            coords
+            toFreq: value
           }
         });
 

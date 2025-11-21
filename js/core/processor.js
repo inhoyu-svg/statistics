@@ -257,6 +257,140 @@ class DataProcessor {
 
     return { show: true, firstDataIndex };
   }
+
+  /**
+   * 차트 데이터를 JSON으로 내보내기
+   * @param {Object} layerManager - 레이어 매니저 인스턴스
+   * @param {Object} timeline - 타임라인 인스턴스
+   * @param {Object} chartRenderer - 차트 렌더러 인스턴스 (좌표 시스템 정보)
+   * @returns {Object} JSON 형식의 차트 데이터
+   * @description 레이어 구조와 애니메이션 정보를 JSON으로 직렬화
+   */
+  static exportChartData(layerManager, timeline, chartRenderer = null) {
+    /**
+     * 레이어를 재귀적으로 직렬화
+     * @param {Object} layer - 레이어 객체
+     * @returns {Object} 직렬화된 레이어
+     */
+    const serializeLayer = (layer) => {
+      const serialized = {
+        id: layer.id || 'unknown',
+        name: layer.name || layer.id || 'Untitled',
+        type: layer.type || 'group',
+        visible: layer.visible !== undefined ? layer.visible : true,
+        order: layer.order !== undefined ? layer.order : 0,
+        p_id: layer.p_id || null,
+        children: [],
+        data: {}
+      };
+
+      // 레이어 데이터 추가 (data 속성이 있으면)
+      if (layer.data && typeof layer.data === 'object') {
+        serialized.data = { ...layer.data };
+      }
+
+      // 자식 레이어 재귀 직렬화
+      if (layer.children && Array.isArray(layer.children) && layer.children.length > 0) {
+        serialized.children = layer.children.map(serializeLayer);
+      }
+
+      return serialized;
+    };
+
+    // root 레이어 직렬화
+    const rootLayer = layerManager.root || layerManager.rootLayer;
+    if (!rootLayer) {
+      throw new Error('Root layer not found');
+    }
+
+    const serializedRoot = serializeLayer(rootLayer);
+
+    // 타임라인 애니메이션 정보
+    let animations = [];
+
+    // timeline.animations가 Map인 경우
+    if (timeline.animations instanceof Map) {
+      animations = Array.from(timeline.animations.entries()).map(([layerId, anim]) => ({
+        layerId: layerId,
+        startTime: anim.startTime || 0,
+        duration: anim.duration || 1000,
+        effect: anim.effect || 'auto',
+        effectOptions: anim.effectOptions || {},
+        easing: anim.easing || 'linear'
+      }));
+    }
+    // timeline.animations가 배열인 경우
+    else if (Array.isArray(timeline.animations)) {
+      animations = timeline.animations.map(anim => ({
+        layerId: anim.layerId,
+        startTime: anim.startTime || 0,
+        duration: anim.duration || 1000,
+        effect: anim.effect || 'auto',
+        effectOptions: anim.effectOptions || {},
+        easing: anim.easing || 'linear'
+      }));
+    }
+    // timeline.timeline 배열이 있는 경우
+    else if (Array.isArray(timeline.timeline)) {
+      animations = timeline.timeline.map(anim => ({
+        layerId: anim.layerId,
+        startTime: anim.startTime || 0,
+        duration: anim.duration || 1000,
+        effect: anim.effect || 'auto',
+        effectOptions: anim.effectOptions || {},
+        easing: anim.easing || 'linear'
+      }));
+    }
+
+    // 차트 설정 정보 (좌표 시스템, 축 라벨, 데이터 타입 등)
+    const chartConfig = {};
+
+    if (chartRenderer) {
+      // 좌표 시스템 정보
+      if (chartRenderer.currentCoords) {
+        chartConfig.coords = {
+          xScale: chartRenderer.currentCoords.xScale,
+          chartH: chartRenderer.currentCoords.chartH,
+          gridDivisions: chartRenderer.currentCoords.gridDivisions,
+          adjustedMaxY: chartRenderer.currentCoords.adjustedMaxY
+        };
+      }
+
+      // 축 라벨
+      if (chartRenderer.currentAxisLabels) {
+        chartConfig.axisLabels = chartRenderer.currentAxisLabels;
+      }
+
+      // 데이터 타입
+      if (chartRenderer.currentDataType) {
+        chartConfig.dataType = chartRenderer.currentDataType;
+      }
+
+      // 중략 정보
+      if (chartRenderer.currentEllipsisInfo) {
+        chartConfig.ellipsisInfo = chartRenderer.currentEllipsisInfo;
+      }
+
+      // 캔버스 크기
+      if (chartRenderer.canvas) {
+        chartConfig.canvasSize = {
+          width: chartRenderer.canvas.width,
+          height: chartRenderer.canvas.height
+        };
+      }
+    }
+
+    return {
+      version: '3.0.0',
+      root: serializedRoot,
+      timeline: {
+        animations: animations,
+        currentTime: timeline.currentTime || 0,
+        duration: timeline.duration || 0
+      },
+      chartConfig: chartConfig
+    };
+  }
 }
 
 export default DataProcessor;
