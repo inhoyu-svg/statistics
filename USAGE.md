@@ -252,7 +252,7 @@
 
 평균: 152.50점
 중앙값: 152.50점
-→ 히스토그램에서 0~140 구간이 ⋯ 패턴으로 압축 표시
+→ 히스토그램에서 0~140 구간이 ≈ 패턴으로 압축 표시
 → 140점 이상 구간만 차트에 강조되어 보기 쉬움
 ```
 
@@ -401,7 +401,7 @@
 
 ### 빈 구간 압축 기능 (Ellipsis Compression)
 
-데이터가 없는 빈 계급 구간이 3개 이상 연속되면 자동으로 압축되어 지그재그 패턴(⋯)으로 표시됩니다.
+데이터가 없는 빈 계급 구간이 3개 이상 연속되면 자동으로 압축되어 지그재그 패턴(≈)으로 표시됩니다.
 
 **언제 나타나나요?**
 - 데이터가 0부터 시작하지 않고 큰 값에서 시작할 때
@@ -424,9 +424,9 @@
 
 **히스토그램 표시:**
 ```
-[⋯ 지그재그 패턴] → 140 → 150 → 160 → 170
-         ↑               ▓▓▓   ▓▓▓   ▓▓
-      빈 구간 압축      실제 데이터 영역
+[≈ 지그재그 패턴] → 140 → 150 → 160 → 170
+        ↑              ▓▓▓   ▓▓▓   ▓▓
+     빈 구간 압축     실제 데이터 영역
 ```
 
 **장점:**
@@ -434,7 +434,7 @@
 - 실제 데이터가 있는 구간에 집중할 수 있습니다
 - 자동으로 처리되어 별도 설정이 필요 없습니다
 
-### 커스텀 라벨 설정 (실험적 기능)
+### 커스텀 라벨 설정 (고급 기능)
 
 차트와 테이블의 라벨을 자유롭게 변경할 수 있습니다.
 
@@ -442,6 +442,11 @@
 `js/app.js` 파일에서 다음과 같이 설정할 수 있습니다:
 
 ```javascript
+// 1. ChartRenderer import (파일 상단)
+import ChartRenderer from './renderers/ChartRenderer.js';
+import UIRenderer from './renderers/ui.js';
+
+// 2. 커스텀 라벨 정의
 const customLabels = {
   xAxis: '점수 구간',        // 차트 X축 라벨
   yAxis: '빈도(%)',         // 차트 Y축 라벨
@@ -455,15 +460,32 @@ const customLabels = {
   }
 };
 
-// 라벨 적용
-ChartRenderer.render(classes, stats, customLabels);
-UIRenderer.renderFrequencyTable(classes, data.length, customLabels.table);
+// 3. 차트 렌더링 시 라벨 전달
+const chartRenderer = new ChartRenderer('frequencyChart');
+chartRenderer.draw(
+  classes,
+  stats.relativeFreqs,
+  stats.freqs,
+  customLabels  // 커스텀 라벨 적용
+);
+
+// 4. 테이블 렌더링 시 라벨 전달
+UIRenderer.renderFrequencyTable(
+  classes,
+  data.length,
+  customLabels.table  // 커스텀 테이블 라벨 적용
+);
 ```
 
 **활용 사례:**
 - 특정 주제에 맞는 용어로 변경 (예: 학교 시험, 설문조사)
 - 영어 또는 다른 언어로 변경
 - 교육 자료 제작 시 학생 수준에 맞게 조정
+
+**참고:**
+- 기본 라벨: X축 "계급", Y축 "상대도수(%)"
+- 라벨을 생략하면 기본값 사용
+- ChartRenderer는 js/renderers/ChartRenderer.js에 정의됨
 
 ### 차트 해석 팁
 

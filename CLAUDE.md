@@ -73,8 +73,14 @@ statistics/
 │   ├── core/
 │   │   └── processor.js   # 데이터 처리 및 통계 계산
 │   ├── renderers/
-│   │   ├── ui.js         # 테이블 및 카드 렌더링
-│   │   └── chart.js      # Canvas 차트 렌더링 (444줄)
+│   │   ├── ui.js                      # 테이블 및 카드 렌더링
+│   │   ├── ChartRenderer.js           # 메인 차트 컨트롤러 (354줄)
+│   │   └── chart/                     # 차트 렌더링 모듈
+│   │       ├── CoordinateSystem.js    # 좌표 변환 (73줄)
+│   │       ├── LayerFactory.js        # 레이어 생성 (140줄)
+│   │       ├── HistogramRenderer.js   # 막대 차트 (116줄)
+│   │       ├── PolygonRenderer.js     # 다각형 (115줄)
+│   │       └── AxisRenderer.js        # 축, 그리드, 범례 (261줄)
 │   └── utils/
 │       ├── utils.js      # 유틸리티 함수
 │       ├── validator.js  # 입력 검증
@@ -105,7 +111,7 @@ statistics/
 ### 4. 빈 구간 압축 기능 ⭐ (최근 추가)
 - 데이터가 0에서 멀리 떨어진 경우 (예: 140~160 범위)
 - 0부터 첫 데이터까지 빈 구간이 3개 이상이면 자동 압축
-- 압축된 구간에 중략 기호(⋯) 및 zigzag 패턴 표시
+- 압축된 구간에 이중물결표(≈) 표시
 - 차트 가독성 대폭 향상
 
 ### 5. 고급 설정
@@ -116,103 +122,92 @@ statistics/
 
 ---
 
-## 최근 업데이트 (2025-11-19)
+## 최근 업데이트 (2025-11-21)
 
-### 빈 구간 압축 기능 구현
+### 빈 구간 압축 기능 구현 (2025-11-19)
 **문제**: 데이터가 142~163 범위인데 계급이 0부터 시작하여 0~140 사이에 28개의 빈 막대가 생성되어 차트가 지나치게 길어짐
 
 **해결**:
 1. `processor.js`에 `shouldShowEllipsis()` 메서드 추가
    - 첫 데이터가 있는 계급 이전에 빈 계급이 3개 이상이면 압축 필요 판단
 
-2. `chart.js`의 `createCoordinateSystem()` 메서드 수정
+2. `CoordinateSystem.js`의 좌표 변환 로직 구현
    - 압축 모드: 0~firstDataIdx 사이를 1칸으로 압축
    - toX() 함수가 압축된 좌표 반환
    - toY() 함수는 maxY 매개변수 받아서 생성
 
-3. `chart.js`의 `drawXAxisLabels()` 메서드 수정
-   - 중략 기호(⋯) 표시
-   - Zigzag 패턴 렌더링 (0과 압축된 칸 사이)
+3. `AxisRenderer.js`의 X축 라벨 렌더링
+   - 이중물결표(≈) 표시
+   - 이중물결 패턴 렌더링 (0과 압축된 칸 사이)
    - 데이터 구간만 라벨 표시
 
-4. 모든 렌더링 메서드가 압축 좌표 시스템 사용
-   - `drawHistogram()`, `drawPolygon()`, `drawGrid()` 등
+4. 모든 렌더링 모듈이 압축 좌표 시스템 사용
+   - `HistogramRenderer`, `PolygonRenderer`, `AxisRenderer` 등
 
-### chart.js 리팩토링 (2025-11-19)
-**배경**: 369줄 단일 파일 → 444줄 (JSDoc 포함)
+### ChartRenderer 대규모 리팩토링 (2025-11-20)
+**목적**: CLAUDE.md 기준 충족 (600줄 이하), 유지보수성 향상
+
+**분할 전:**
+- chart.js: 950줄 ❌
+
+**분할 후:**
+- ChartRenderer.js: 354줄 ✅ (메인 컨트롤러)
+- chart/CoordinateSystem.js: 73줄 (좌표 변환)
+- chart/LayerFactory.js: 140줄 (레이어 생성)
+- chart/HistogramRenderer.js: 116줄 (막대 차트)
+- chart/PolygonRenderer.js: 115줄 (다각형)
+- chart/AxisRenderer.js: 261줄 (축, 그리드, 범례)
 
 **개선 사항**:
+- ✅ 메인 파일: 950줄 → 354줄 (-63%)
+- ✅ 모든 파일 600줄 이하 유지
+- ✅ 단일 책임 원칙 준수
+- ✅ 기존 API 완벽 호환
 - ✅ 종합적인 JSDoc 주석 추가
-- ✅ 헬퍼 메서드 추출: `createCoordinateSystem()`, `getBarCenterX()`, `shouldSkipEllipsis()`
-- ✅ 큰 메서드 분할: `drawAxes()` → `drawYAxisLabels()`, `drawXAxisLabels()`, `drawAxisTitles()`
-- ✅ 논리적 섹션으로 구성 (메인 렌더링, 좌표 시스템, 차트 요소, 유틸리티)
 - ✅ 코드 중복 제거
-- ✅ 평균 메서드 크기 50% 감소 (~40줄 → ~20줄)
-
-**메서드 구조**:
-```javascript
-// ==================== 메인 렌더링 ====================
-draw(), clear()
-
-// ==================== 좌표 시스템 ====================
-createCoordinateSystem(classCount, ellipsisInfo, maxY)
-getBarCenterX(index, toX, xScale)
-shouldSkipEllipsis(index, ellipsisInfo)
-
-// ==================== 차트 요소 렌더링 ====================
-drawHistogram(relativeFreqs, freq, coords, ellipsisInfo)
-drawPolygon(relativeFreqs, coords, ellipsisInfo)
-drawAxes(classes, coords, maxY, axisLabels, ellipsisInfo)
-  ├─ drawYAxisLabels(toY, maxY)
-  ├─ drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo)
-  └─ drawAxisTitles(xLabel, yLabel)
-
-// ==================== 유틸리티 ====================
-drawGrid(toX, toY, maxY)
-drawEllipsisPattern(startX, endX, getBaseY)
-drawLegend()
-drawNoDataMessage()
-```
+- ✅ XSS 방어 강화 (Utils.escapeHtml 추가)
 
 ---
 
 ## 리팩토링 가이드
 
-### chart.js 현재 상태
-- **파일 크기**: 444줄 (JSDoc 주석 약 75줄 포함)
-- **실제 코드**: ~370줄
-- **복잡도**: 중간
-- **유지보수성**: 양호 ✅
+### 현재 상태 (2025-11-21)
+- **ChartRenderer.js**: 354줄 ✅
+- **chart/ 모듈들**: 각 73~261줄 ✅
+- **복잡도**: 낮음
+- **유지보수성**: 우수 ✅
+- **구조**: 모듈 분할 완료 (Option C 적용)
 
 ### 리팩토링이 필요한 신호
-다음 중 하나라도 해당되면 리팩토리을 제안하세요:
+다음 중 하나라도 해당되면 리팩토링을 제안하세요:
 
-1. ❌ **파일 크기**: chart.js가 600줄 초과
+1. ❌ **파일 크기**: 단일 파일이 600줄 초과
 2. ❌ **메서드 크기**: 단일 메서드가 80줄 초과
 3. ❌ **중복 코드**: 동일 로직이 3곳 이상 반복
 4. ❌ **복잡한 조건문**: 중첩 if문 4단계 이상
 5. ❌ **매개변수 과다**: 메서드 매개변수 6개 이상
 6. ❌ **책임 분리 실패**: 하나의 메서드가 3가지 이상 작업 수행
 
-### 리팩토링 우선순위
-현재는 리팩토링 불필요. 향후 고려사항:
+### 리팩토링 히스토리
 
-1. **Option A (최소 개입)** - 현재 구조 유지 ✅ 완료
+1. **Phase 1 (최소 개입)** - ✅ 완료 (2025-11-19)
    - JSDoc 주석 추가
    - 헬퍼 메서드 추출
    - 메서드 분할
+   - 결과: 369줄 → 444줄 (JSDoc 포함)
 
-2. **Option B (중간 개입)** - 600줄 초과 시 고려
-   - chart.js → ChartRenderer 클래스 유지
-   - 내부에 HistogramDrawer, PolygonDrawer 등 private 메서드 그룹화
+2. **Phase 2 (대규모 개입)** - ✅ 완료 (2025-11-20)
+   - chart.js 파일 분할
+   - ChartRenderer.js (메인 컨트롤러)
+   - chart/ 서브모듈 5개 생성
+   - 결과: 950줄 → 354줄 + 5개 모듈 (각 73~261줄)
 
-3. **Option C (대규모 개입)** - 1000줄 초과 시 고려
-   - chart.js 분할
-     - ChartRenderer.js (메인)
-     - HistogramRenderer.js
-     - PolygonRenderer.js
-     - AxisRenderer.js
-     - CoordinateSystem.js
+### 향후 개선 방향
+현재 구조는 안정적이며 추가 리팩토링 불필요. 향후 고려사항:
+
+- 새로운 차트 유형 추가 시 chart/ 폴더에 모듈 추가
+- 각 모듈이 600줄 초과 시 추가 분할 검토
+- 공통 로직 발견 시 utils/ 폴더로 이동
 
 ---
 
@@ -241,7 +236,7 @@ Add: 빈 계급 구간 압축 기능 추가
 
 - processor.js에 shouldShowEllipsis() 메서드 추가
 - createCoordinateSystem()에 압축 모드 지원
-- chart.js에 zigzag 패턴과 ⋯ 기호 렌더링 추가
+- chart.js에 zigzag 패턴과 ≈ 기호 렌더링 추가
 ```
 
 ```
@@ -315,32 +310,10 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 ---
 
 ## 마지막 업데이트
-- **날짜**: 2025-11-20
+- **날짜**: 2025-11-21
 - **주요 작업**:
-  - ✅ XSS 방어 강화 (Utils.escapeHtml 추가)
-  - ✅ chart.js 대규모 리팩토링 (950줄 → 354줄 + 5개 모듈)
-  - ✅ JSDoc 주석 보완 (processor.js, app.js)
-  - ✅ 코드 품질 리뷰 완료 (B+ 등급, 84/100점)
+  - ✅ 문서 파일 검토 및 수정 (CLAUDE.md, README.md, USAGE.md)
+  - ✅ 날짜 통일 및 중복 섹션 제거
+  - ✅ 폴더 구조 최신화 (chart/ 서브모듈 반영)
+  - ✅ 리팩토링 가이드 업데이트 (현재 상태 반영)
 - **현재 상태**: 정상 작동 ✅
-
-## 최근 리팩토링 (2025-11-20)
-
-### chart.js 파일 분할
-**목적**: CLAUDE.md 기준 충족 (600줄 이하), 유지보수성 향상
-
-**분할 전:**
-- chart.js: 950줄 ❌
-
-**분할 후:**
-- ChartRenderer.js: 354줄 ✅ (메인 컨트롤러)
-- chart/CoordinateSystem.js: 73줄 (좌표 변환)
-- chart/LayerFactory.js: 140줄 (레이어 생성)
-- chart/HistogramRenderer.js: 116줄 (막대 차트)
-- chart/PolygonRenderer.js: 115줄 (다각형)
-- chart/AxisRenderer.js: 261줄 (축, 그리드, 범례)
-
-**결과:**
-- 메인 파일: 950줄 → 354줄 (-63%)
-- 모든 파일 600줄 이하 유지
-- 단일 책임 원칙 준수
-- 기존 API 완벽 호환
