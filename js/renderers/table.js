@@ -23,8 +23,11 @@ class TableRenderer {
    * @param {Array} classes - 계급 데이터 배열
    * @param {number} total - 전체 데이터 개수
    * @param {Object} config - 테이블 설정 객체 (labels, visibleColumns, columnOrder, columnAlignment, showSuperscript)
+   * @param {Object} highlightInfo - 하이라이트 정보 { classIndex: number, progress: number }
    */
-  draw(classes, total, config = null) {
+  draw(classes, total, config = null, highlightInfo = null) {
+    // 하이라이트 정보 저장
+    this.highlightInfo = highlightInfo;
     // 도수가 0이 아닌 계급만 필터링
     const visibleClasses = classes.filter(c => c.frequency > 0);
 
@@ -194,8 +197,34 @@ class TableRenderer {
     classes.forEach((classData, rowIndex) => {
       const y = this.padding + CONFIG.TABLE_HEADER_HEIGHT + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
 
-      // 짝수 행 배경색
-      if (rowIndex % 2 === 1) {
+      // 하이라이트 체크 (현재 애니메이션 중인 행인지)
+      const isHighlighted = this.highlightInfo &&
+                           this.highlightInfo.classIndex === rowIndex &&
+                           this.highlightInfo.progress > 0;
+
+      // 배경색 결정
+      if (isHighlighted) {
+        // 하이라이트: 밝은 파란색 배경
+        const alpha = Math.min(this.highlightInfo.progress, 1) * 0.3; // progress에 따라 투명도 조절
+        this.ctx.fillStyle = `rgba(84, 160, 246, ${alpha})`;
+        this.ctx.fillRect(
+          this.padding,
+          y,
+          this.canvas.width - this.padding * 2,
+          CONFIG.TABLE_ROW_HEIGHT
+        );
+
+        // 테두리 추가
+        this.ctx.strokeStyle = 'rgba(84, 160, 246, 0.8)';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(
+          this.padding,
+          y,
+          this.canvas.width - this.padding * 2,
+          CONFIG.TABLE_ROW_HEIGHT
+        );
+      } else if (rowIndex % 2 === 1) {
+        // 짝수 행 기본 배경색
         this.ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
         this.ctx.fillRect(
           this.padding,

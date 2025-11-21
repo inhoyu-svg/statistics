@@ -23,6 +23,10 @@ class FrequencyDistributionApp {
   constructor() {
     this.chartRenderer = new ChartRenderer('chart');
     this.tableRenderer = new TableRenderer('frequencyTable');
+
+    // ChartRenderer가 TableRenderer를 참조할 수 있도록 연결
+    this.chartRenderer.setTableRenderer(this.tableRenderer);
+
     this.columnOrder = [0, 1, 2, 3, 4, 5]; // 컬럼 순서 관리
     this.draggedElement = null;
     this.collapsedGroups = new Set(); // 접힌 그룹 ID 목록
@@ -457,7 +461,7 @@ class FrequencyDistributionApp {
 
       // 차트 데이터 타입 가져오기
       const dataType = ChartStore.getDataType();
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType);
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment);
 
       // 레이어 패널 재렌더링
       this.renderLayerPanel();
@@ -708,9 +712,10 @@ class FrequencyDistributionApp {
     const axisLabels = ChartStore.getConfig()?.axisLabels;
     const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
     const dataType = ChartStore.getDataType();
+    const tableConfig = this.getTableConfigWithAlignment();
 
     if (classes) {
-      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType);
+      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, tableConfig);
     }
   }
 
@@ -905,7 +910,7 @@ class FrequencyDistributionApp {
 
       // 차트 데이터 타입 가져오기
       const dataType = ChartStore.getDataType();
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType);
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment);
 
       // 9. 레이어 패널 렌더링
       this.renderLayerPanel();

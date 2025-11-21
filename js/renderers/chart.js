@@ -45,9 +45,24 @@ class ChartRenderer {
     this.currentMaxY = null;
     this.currentAxisLabels = null;
     this.currentDataType = null;
+    this.currentTableConfig = null;
+
+    // 테이블 렌더러 참조
+    this.tableRenderer = null;
+
+    // 테이블 하이라이트 상태 추적
+    this.lastHighlightInfo = null;
 
     // 애니메이션 콜백
     this.timeline.onUpdate = () => this.renderFrame();
+  }
+
+  /**
+   * 테이블 렌더러 설정
+   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+   */
+  setTableRenderer(tableRenderer) {
+    this.tableRenderer = tableRenderer;
   }
 
   // ==================== 메인 렌더링 ====================
@@ -58,11 +73,15 @@ class ChartRenderer {
    * @param {Object} axisLabels - 축 라벨 커스터마이징 객체
    * @param {Object} ellipsisInfo - 중략 표시 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+   * @param {Object} tableConfig - 테이블 설정
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency') {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null) {
     this.canvas.width = CONFIG.CANVAS_WIDTH;
     this.canvas.height = CONFIG.CANVAS_HEIGHT;
     this.clear();
+
+    // 새로운 차트 그리기 시작 - 하이라이트 초기화
+    this.lastHighlightInfo = null;
 
     const freq = classes.map(c => c.frequency);
     const total = freq.reduce((a, b) => a + b, 0);
@@ -104,6 +123,7 @@ class ChartRenderer {
     this.currentAxisLabels = axisLabels;
     this.currentDataType = dataType;
     this.currentGridDivisions = coords.gridDivisions;
+    this.currentTableConfig = tableConfig;
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
@@ -183,68 +203,80 @@ class ChartRenderer {
   // ==================== Timeline & Animation ====================
 
   /**
-   * 애니메이션 시퀀스 설정 (order 기반, 재귀적 처리)
+   * 애니메이션 시퀀스 설정 (계급별 순차 타임라인)
    * @param {Array} classes - 계급 데이터
    */
   setupAnimations(classes) {
     this.timeline.clearAnimations();
 
-    const itemDelay = 50; // 아이템 간 딜레이 (ms)
-    const itemDuration = 600; // 아이템 애니메이션 시간 (ms)
-
-    /**
-     * 레이어를 재귀적으로 처리하는 헬퍼 함수
-     * @param {Layer} layer - 처리할 레이어
-     * @param {number} time - 현재 시간
-     * @returns {number} 업데이트된 시간
-     */
-    const processLayer = (layer, time) => {
-      if (layer.type === 'group') {
-        // 그룹의 children을 order로 정렬하여 처리
-        const sortedChildren = [...layer.children].sort((a, b) => a.order - b.order);
-
-        sortedChildren.forEach((child) => {
-          time = processLayer(child, time);
-        });
-
-        // 그룹의 마지막 아이템 완료 대기
-        time += itemDuration;
-      } else {
-        // 실제 렌더링 레이어 (bar, point, line)
-        let effect = 'fade';
-        let effectOptions = {};
-        let easing = 'easeInOut';
-
-        if (layer.type === 'bar') {
-          effect = 'none'; // renderBar에서 높이 애니메이션
-        } else if (layer.type === 'line') {
-          effect = 'draw';
-          effectOptions = { direction: 'left-to-right' };
-          easing = 'linear';
-        }
-
-        this.timeline.addAnimation(layer.id, {
-          startTime: time,
-          duration: itemDuration,
-          effect: effect,
-          effectOptions: effectOptions,
-          easing: easing
-        });
-
-        time += itemDelay;
-      }
-
-      return time;
-    };
-
-    // root의 children을 order로 정렬하여 처리
-    const rootLayer = this.layerManager.root;
-    const sortedGroups = [...rootLayer.children].sort((a, b) => a.order - b.order);
+    const barDuration = 300; // 막대 애니메이션 시간
+    const pointDuration = 300; // 점 애니메이션 시간
+    const classDelay = 150; // 계급 간 딜레이
+    const lineDuration = 400; // 선 드로잉 시간
+    const lineDelay = 50; // 선 간 딜레이
 
     let currentTime = 0;
-    sortedGroups.forEach((group) => {
-      currentTime = processLayer(group, currentTime);
-    });
+
+    // 히스토그램 그룹에서 막대 찾기
+    const histogramGroup = this.layerManager.findLayer('histogram');
+    // 다각형 그룹에서 점 찾기
+    const polygonGroup = this.layerManager.findLayer('polygon');
+    const pointsGroup = polygonGroup?.children.find(c => c.id === 'points');
+
+    if (!histogramGroup || !pointsGroup) return;
+
+    const bars = histogramGroup.children;
+    const points = pointsGroup.children;
+
+    // 계급별로 묶어서 순차 애니메이션 (막대 개수 기준)
+    // 도수가 0인 계급의 point는 애니메이션하지 않음
+    const classCount = bars.length;
+
+    for (let i = 0; i < classCount; i++) {
+      const bar = bars[i];
+      const point = points[i];
+
+      // 막대 애니메이션
+      if (bar) {
+        this.timeline.addAnimation(bar.id, {
+          startTime: currentTime,
+          duration: barDuration,
+          effect: 'none', // renderBar에서 높이 애니메이션 처리
+          effectOptions: {},
+          easing: 'easeOut'
+        });
+      }
+
+      // 점 애니메이션 (막대와 동시)
+      if (point) {
+        this.timeline.addAnimation(point.id, {
+          startTime: currentTime,
+          duration: pointDuration,
+          effect: 'fade',
+          effectOptions: {},
+          easing: 'easeOut'
+        });
+      }
+
+      // 다음 계급으로
+      currentTime += Math.max(barDuration, pointDuration) + classDelay;
+    }
+
+    // 연결선 그룹 애니메이션 (모든 계급 완료 후)
+    const linesGroup = polygonGroup?.children.find(c => c.id === 'lines');
+    if (linesGroup && linesGroup.children) {
+      currentTime += 200; // 계급 완료 후 대기 시간
+
+      linesGroup.children.forEach((line, idx) => {
+        this.timeline.addAnimation(line.id, {
+          startTime: currentTime + (idx * lineDelay),
+          duration: lineDuration,
+          effect: 'draw',
+          effectOptions: { direction: 'left-to-right' },
+          easing: 'linear'
+        });
+      });
+    }
   }
 
   /**
@@ -270,6 +302,7 @@ class ChartRenderer {
    */
   stopAnimation() {
     this.timeline.stop();
+    this.lastHighlightInfo = null; // 하이라이트 초기화
     this.renderFrame(); // 초기 상태로 다시 렌더링
   }
 
@@ -385,6 +418,107 @@ class ChartRenderer {
     });
 
     this.axisRenderer.drawLegend(this.currentDataType);
+
+    // 테이블 하이라이트 업데이트
+    this.updateTableHighlight(allAnimations);
+  }
+
+  /**
+   * 테이블 하이라이트 업데이트
+   * @param {Array} allAnimations - 모든 애니메이션 정보
+   */
+  updateTableHighlight(allAnimations) {
+    if (!this.tableRenderer || !this.currentClasses || !this.currentTableConfig) return;
+
+    let highlightInfo = null;
+    let activeType = null; // 디버깅용
+
+    // 우선순위: bar/point > line
+    // 1. 활성 bar/point 찾기
+    for (const { anim, layer, isActive } of allAnimations) {
+      if (!isActive) continue;
+
+      if (layer.type === 'bar' || layer.type === 'point') {
+        activeType = layer.type;
+        const classIndex = layer.data.index;
+        const progress = layer.data.animationProgress || 0;
+
+        // 전체 계급 배열에서 도수가 0이 아닌 계급까지 카운트
+        let visibleIndex = 0;
+        for (let i = 0; i < classIndex; i++) {
+          if (this.currentClasses[i].frequency > 0) {
+            visibleIndex++;
+          }
+        }
+
+        // 현재 계급이 도수 0이면 스킵
+        if (this.currentClasses[classIndex].frequency > 0) {
+          highlightInfo = {
+            classIndex: visibleIndex,
+            progress: progress
+          };
+          break; // 첫 번째로 찾은 것만 사용
+        }
+      }
+    }
+
+    // 2. bar/point가 없으면 활성 line 찾기
+    if (highlightInfo === null) {
+      for (const { anim, layer, isActive } of allAnimations) {
+        if (!isActive) continue;
+
+        if (layer.type === 'line') {
+          activeType = 'line';
+          const toIndex = layer.data.toIndex;
+          const progress = layer.data.animationProgress || 0;
+
+          // 전체 계급 배열에서 도수가 0이 아닌 계급까지 카운트
+          let visibleIndex = 0;
+          for (let i = 0; i < toIndex; i++) {
+            if (this.currentClasses[i].frequency > 0) {
+              visibleIndex++;
+            }
+          }
+
+          // 현재 계급이 도수 0이면 스킵
+          if (this.currentClasses[toIndex].frequency > 0) {
+            highlightInfo = {
+              classIndex: visibleIndex,
+              progress: progress
+            };
+            break; // 첫 번째로 찾은 것만 사용
+          }
+        }
+      }
+    }
+
+    // 디버깅 로그
+    console.log('[Table Highlight]', {
+      activeType,
+      highlightInfo,
+      lastHighlightInfo: this.lastHighlightInfo,
+      currentTime: this.timeline.currentTime
+    });
+
+    // 하이라이트 상태가 변경될 때만 테이블 재렌더링
+    const currentHighlight = this.lastHighlightInfo;
+
+    // highlightInfo가 null이 되는 경우 재렌더링하지 않음 (깜빡거림 방지)
+    // 대신 새로운 하이라이트가 생기거나 classIndex/progress가 변경될 때만 렌더링
+    if (highlightInfo !== null) {
+      const hasChanged =
+        currentHighlight === null ||
+        highlightInfo.classIndex !== currentHighlight.classIndex ||
+        Math.abs(highlightInfo.progress - currentHighlight.progress) > 0.05;
+
+      if (hasChanged) {
+        console.log('[Table Highlight] 재렌더링:', highlightInfo);
+        this.lastHighlightInfo = highlightInfo;
+        const total = this.currentClasses.reduce((sum, c) => sum + c.frequency, 0);
+        this.tableRenderer.draw(this.currentClasses, total, this.currentTableConfig, highlightInfo);
+      }
+    }
+    // highlightInfo가 null이면 아무것도 하지 않음 (이전 하이라이트 유지)
   }
 }
 

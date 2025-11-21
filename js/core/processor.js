@@ -378,6 +378,16 @@ class DataProcessor {
           height: chartRenderer.canvas.height
         };
       }
+
+      // 테이블 데이터
+      if (chartRenderer.currentClasses && chartRenderer.currentTableConfig) {
+        const total = chartRenderer.currentClasses.reduce((sum, c) => sum + c.frequency, 0);
+        chartConfig.tableData = {
+          classes: chartRenderer.currentClasses,
+          total: total,
+          config: chartRenderer.currentTableConfig
+        };
+      }
     }
 
     return {
