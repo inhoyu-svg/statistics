@@ -138,12 +138,23 @@ class FrequencyDistributionApp {
         }
       }
 
-      // 계속 업데이트
-      requestAnimationFrame(this.updateProgress);
+      // 계속 업데이트 (ID 저장하여 나중에 정리 가능)
+      this.animationFrameId = requestAnimationFrame(this.updateProgress);
     };
 
     // 진행도 업데이트 시작
     this.updateProgress();
+  }
+
+  /**
+   * 리소스 정리 (페이지 언로드 시 호출)
+   */
+  destroy() {
+    // requestAnimationFrame 정리
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
   }
 
   /**
@@ -970,18 +981,31 @@ class FrequencyDistributionApp {
 }
 
 // ========== 개발 모드: 브라우저 콘솔에서 Store 접근 가능 ==========
-if (typeof window !== 'undefined') {
-  window.DataStore = DataStore;
-  window.TableStore = TableStore;
-  window.ChartStore = ChartStore;
+// 개발 모드에서만 전역 네임스페이스에 노출 (프로덕션에서는 접근 불가)
+if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  window.__DEV__ = {
+    DataStore,
+    TableStore,
+    ChartStore
+  };
+  console.log('📊 개발 모드: window.__DEV__로 Store 접근 가능');
 }
 
 // ========== 앱 초기화 ==========
 // DOM이 로드된 후 초기화
+let appInstance;
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    new FrequencyDistributionApp();
+    appInstance = new FrequencyDistributionApp();
   });
 } else {
-  new FrequencyDistributionApp();
+  appInstance = new FrequencyDistributionApp();
 }
+
+// 페이지 언로드 시 리소스 정리
+window.addEventListener('beforeunload', () => {
+  if (appInstance && typeof appInstance.destroy === 'function') {
+    appInstance.destroy();
+  }
+});

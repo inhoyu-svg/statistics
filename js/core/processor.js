@@ -206,9 +206,13 @@ class DataProcessor {
 
     // 범위 밖 데이터가 있으면 경고
     if (outOfRangeData.length > 0) {
-      MessageManager.warning(
-        `${outOfRangeData.length}개의 데이터가 계급 범위를 벗어났습니다: ${outOfRangeData.join(', ')}`
-      );
+      const maxDisplay = 10;
+      const preview = outOfRangeData.slice(0, maxDisplay).join(', ');
+      const message = outOfRangeData.length > maxDisplay
+        ? `${outOfRangeData.length}개의 데이터가 계급 범위를 벗어났습니다: ${preview}... 외 ${outOfRangeData.length - maxDisplay}개`
+        : `${outOfRangeData.length}개의 데이터가 계급 범위를 벗어났습니다: ${preview}`;
+
+      MessageManager.warning(message);
     }
 
     return classes;
