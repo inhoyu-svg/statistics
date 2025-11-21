@@ -54,6 +54,9 @@ class FrequencyDistributionApp {
 
     // 애니메이션 컨트롤 초기화
     this.initAnimationControls();
+
+    // 계급 범위 편집기 초기화
+    this.initClassRangeEditor();
   }
 
   /**
@@ -141,6 +144,134 @@ class FrequencyDistributionApp {
 
     // 진행도 업데이트 시작
     this.updateProgress();
+  }
+
+  /**
+   * 계급 범위 편집기 이벤트 리스너 등록
+   */
+  initClassRangeEditor() {
+    const firstEndInput = document.getElementById('firstEnd');
+    const secondEndInput = document.getElementById('secondEnd');
+    const lastStartInput = document.getElementById('lastStart');
+    const secondStart = document.getElementById('secondStart');
+    const lastEnd = document.getElementById('lastEnd');
+    const intervalDisplay = document.getElementById('intervalDisplay');
+
+    // 실시간 업데이트 함수
+    const updateValues = () => {
+      const firstEnd = parseFloat(firstEndInput?.value) || 1;
+      const secondEnd = parseFloat(secondEndInput?.value) || 3;
+      const lastStart = parseFloat(lastStartInput?.value) || 15;
+
+      // 두 번째 칸 시작값 = 첫 칸 끝값
+      if (secondStart) {
+        secondStart.textContent = firstEnd;
+      }
+
+      // 간격 계산
+      const interval = secondEnd - firstEnd;
+      if (intervalDisplay) {
+        intervalDisplay.textContent = `(간격: ${interval})`;
+      }
+
+      // 마지막 칸 끝값 = 마지막 시작값 + 간격
+      if (lastEnd) {
+        lastEnd.textContent = lastStart + interval;
+      }
+
+      // 재생성
+      this.regenerateWithCustomRange();
+    };
+
+    // 입력 이벤트 리스너
+    firstEndInput?.addEventListener('input', updateValues);
+    secondEndInput?.addEventListener('input', updateValues);
+    lastStartInput?.addEventListener('input', updateValues);
+  }
+
+  /**
+   * 계급 범위 편집기 표시 및 초기값 설정
+   * @param {Array} classes - 계급 배열
+   */
+  showClassRangeEditor(classes) {
+    const editor = document.getElementById('classRangeEditor');
+    if (!editor) return;
+
+    // 편집기 표시
+    editor.style.display = 'block';
+
+    // 기본값 제안
+    if (classes.length >= 3) {
+      const firstEnd = classes[0].max;
+      const secondEnd = classes[1].max;
+      const lastStart = classes[classes.length - 1].min;
+
+      // 입력 필드 placeholder 업데이트
+      const firstEndInput = document.getElementById('firstEnd');
+      const secondEndInput = document.getElementById('secondEnd');
+      const lastStartInput = document.getElementById('lastStart');
+
+      if (firstEndInput) firstEndInput.placeholder = firstEnd;
+      if (secondEndInput) secondEndInput.placeholder = secondEnd;
+      if (lastStartInput) lastStartInput.placeholder = lastStart;
+    }
+  }
+
+  /**
+   * 커스텀 범위로 도수분포표 재생성
+   */
+  regenerateWithCustomRange() {
+    // 데이터가 없으면 아무것도 하지 않음
+    const data = DataStore.getRawData();
+    if (!data || data.length === 0) return;
+
+    try {
+      const firstEnd = parseFloat(document.getElementById('firstEnd')?.value);
+      const secondEnd = parseFloat(document.getElementById('secondEnd')?.value);
+      const lastStart = parseFloat(document.getElementById('lastStart')?.value);
+
+      // 유효한 값이 모두 입력되었는지 확인
+      if (!firstEnd || !secondEnd || !lastStart) return;
+
+      const customRange = { firstEnd, secondEnd, lastStart };
+
+      // 고급 설정 값 가져오기
+      const customLabels = this.getCustomLabels();
+      const tableConfig = this.getTableConfig();
+
+      // 데이터 처리
+      const stats = DataStore.getStats();
+      const { classes } = DataProcessor.createClasses(stats, 0, null, customRange);
+      DataProcessor.calculateFrequencies(data, classes);
+      DataProcessor.calculateRelativeAndCumulative(classes, data.length);
+
+      // 중략 표시 여부 확인
+      const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
+
+      // Store 업데이트
+      DataStore.setClasses(classes);
+      ChartStore.setConfig(customLabels.axis, ellipsisInfo);
+
+      // UI 재렌더링
+      const columnAlignment = TableStore.getAllAlignments();
+      const configWithAlignment = {
+        ...tableConfig,
+        columnAlignment: columnAlignment
+      };
+
+      this.tableRenderer.draw(classes, data.length, configWithAlignment);
+
+      // 차트 데이터 타입 가져오기
+      const dataType = ChartStore.getDataType();
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType);
+
+      // 레이어 패널 재렌더링
+      this.renderLayerPanel();
+
+    } catch (error) {
+      console.error('Custom range error:', error);
+      MessageManager.warning(`범위 설정 오류: ${error.message}`);
+    }
   }
 
   /**
@@ -646,7 +777,10 @@ class FrequencyDistributionApp {
       document.getElementById('resultSection').classList.add('active');
       document.querySelector('.layout-grid').classList.add('two-column');
 
-      // 11. 성공 메시지
+      // 11. 계급 범위 편집기 표시 및 초기값 설정
+      this.showClassRangeEditor(classes);
+
+      // 12. 성공 메시지
       MessageManager.success('도수분포표가 생성되었습니다!');
 
     } catch (error) {

@@ -263,6 +263,42 @@
             <div class="canvas-wrapper">
               <canvas id="chart" role="img" aria-label="도수분포 히스토그램과 상대도수 다각형"></canvas>
             </div>
+
+            <!-- 계급 범위 커스터마이징 섹션 -->
+            <div class="class-range-editor" id="classRangeEditor" style="display: none;">
+              <h3 class="editor-title">📝 계급 범위 커스터마이징</h3>
+              <div class="editor-info">
+                💡 첫 칸, 두 번째 칸, 마지막 칸의 범위를 설정할 수 있습니다. 중간 칸들은 두 번째 칸의 간격을 따라갑니다.
+              </div>
+              <div class="range-inputs">
+                <div class="range-input-group">
+                  <label>첫 칸:</label>
+                  <div class="range-display">
+                    <span class="range-fixed">0</span>
+                    <span class="range-separator">~</span>
+                    <input type="number" id="firstEnd" class="range-input" min="0" step="0.1" placeholder="1">
+                  </div>
+                </div>
+                <div class="range-input-group">
+                  <label>두 번째:</label>
+                  <div class="range-display">
+                    <span class="range-auto" id="secondStart">1</span>
+                    <span class="range-separator">~</span>
+                    <input type="number" id="secondEnd" class="range-input" min="0" step="0.1" placeholder="3">
+                    <span class="interval-display" id="intervalDisplay">(간격: 2)</span>
+                  </div>
+                </div>
+                <div class="range-input-group">
+                  <label>마지막:</label>
+                  <div class="range-display">
+                    <input type="number" id="lastStart" class="range-input" min="0" step="0.1" placeholder="15">
+                    <span class="range-separator">~</span>
+                    <span class="range-auto" id="lastEnd">17</span>
+                    <span class="interval-display">(자동)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

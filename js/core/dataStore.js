@@ -63,6 +63,14 @@ class DataStore {
   }
 
   /**
+   * 계급 데이터만 업데이트
+   * @param {Array} classes - 계급 배열
+   */
+  setClasses(classes) {
+    this.classes = classes;
+  }
+
+  /**
    * 저장소 초기화
    */
   clear() {

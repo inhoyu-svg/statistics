@@ -56,12 +56,18 @@ class DataProcessor {
    * @param {Object} stats - 통계 객체 (calculateBasicStats 반환값)
    * @param {number} classCount - 생성할 계급 개수
    * @param {number|null} customWidth - 커스텀 계급 간격 (선택)
+   * @param {Object|null} customRange - 커스텀 범위 설정 { firstEnd, secondEnd, lastStart }
    * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
    * @example
    * createClasses({ max: 100 }, 5)
    * // { classes: [{min: 0, max: 20, ...}, ...], classWidth: 20 }
    */
-  static createClasses(stats, classCount, customWidth = null) {
+  static createClasses(stats, classCount, customWidth = null, customRange = null) {
+    // 커스텀 범위가 있으면 그것을 사용
+    if (customRange) {
+      return this.createCustomRangeClasses(customRange);
+    }
+
     const { max, range } = stats;
     const classWidth = customWidth || Math.ceil(range / classCount);
 
@@ -97,6 +103,70 @@ class DataProcessor {
       frequency: 0,
       data: [],
       midpoint: (lastClassMin + lastClassMax) / 2
+    });
+
+    return { classes, classWidth };
+  }
+
+  /**
+   * 커스텀 범위로 계급 구간 생성
+   * @param {Object} customRange - { firstEnd, secondEnd, lastStart }
+   * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
+   * @description
+   * - 첫 칸: 0 ~ firstEnd (비어있음)
+   * - 두 번째 칸: firstEnd ~ secondEnd (간격 결정)
+   * - 중간 칸들: 두 번째 칸의 간격으로 자동 생성
+   * - 마지막 칸: lastStart ~ (lastStart + 간격)
+   */
+  static createCustomRangeClasses(customRange) {
+    const { firstEnd, secondEnd, lastStart } = customRange;
+
+    // 유효성 검사
+    if (firstEnd <= 0) {
+      throw new Error('첫 칸의 끝값은 0보다 커야 합니다.');
+    }
+    if (secondEnd <= firstEnd) {
+      throw new Error('두 번째 칸의 끝값은 첫 칸의 끝값보다 커야 합니다.');
+    }
+    if (lastStart <= secondEnd) {
+      throw new Error('마지막 칸의 시작값은 두 번째 칸의 끝값보다 커야 합니다.');
+    }
+
+    // 간격 계산 (두 번째 칸 기준)
+    const classWidth = secondEnd - firstEnd;
+
+    const classes = [];
+
+    // 첫 칸 추가 (0 ~ firstEnd)
+    classes.push({
+      min: 0,
+      max: firstEnd,
+      frequency: 0,
+      data: [],
+      midpoint: firstEnd / 2
+    });
+
+    // 두 번째 칸부터 마지막 칸 직전까지
+    let currentMin = firstEnd;
+    while (currentMin < lastStart) {
+      const currentMax = currentMin + classWidth;
+      classes.push({
+        min: currentMin,
+        max: currentMax,
+        frequency: 0,
+        data: [],
+        midpoint: (currentMin + currentMax) / 2
+      });
+      currentMin = currentMax;
+    }
+
+    // 마지막 칸 추가 (lastStart ~ lastStart + classWidth)
+    classes.push({
+      min: lastStart,
+      max: lastStart + classWidth,
+      frequency: 0,
+      data: [],
+      midpoint: lastStart + (classWidth / 2)
     });
 
     return { classes, classWidth };
