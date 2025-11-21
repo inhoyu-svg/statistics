@@ -230,7 +230,14 @@ class TableRenderer {
         const cellX = this.getCellXPosition(x, columnWidths[i], alignment);
 
         this.ctx.textAlign = alignment;
-        this.ctx.fillText(String(cellText), cellX, cellY);
+
+        // 첫 번째 행의 계급 컬럼인 경우 상첨자 추가 (도수 0인 계급은 이미 필터링됨)
+        if (rowIndex === 0 && label === '계급') {
+          this.drawClassWithSuperscript(cellText, cellX, cellY, classData);
+        } else {
+          this.ctx.fillText(String(cellText), cellX, cellY);
+        }
+
         x += columnWidths[i];
       });
     });
@@ -320,6 +327,73 @@ class TableRenderer {
       default:
         return cellStartX + cellWidth / 2;
     }
+  }
+
+  /**
+   * 계급 텍스트를 상첨자와 함께 그리기
+   * @param {string} cellText - 원본 셀 텍스트 (예: "2 ~ 4")
+   * @param {number} cellX - 셀 중앙 X 좌표
+   * @param {number} cellY - 셀 중앙 Y 좌표
+   * @param {Object} classData - 계급 데이터 객체 (min, max 포함)
+   */
+  drawClassWithSuperscript(cellText, cellX, cellY, classData) {
+    const min = classData.min;
+    const max = classData.max;
+
+    // 폰트 크기 설정
+    const normalFont = CONFIG.TABLE_FONT_DATA; // 기본: 'bold 14px "Noto Sans KR"'
+    const superscriptFont = 'bold 10px "Noto Sans KR"'; // 상첨자용 작은 폰트
+
+    // 텍스트 구성 요소
+    const minText = String(min);
+    const maxText = String(max);
+    const superMin = '(이상)';
+    const superMax = '(미만)';
+    const separator = ' ~ ';
+
+    // 각 구성 요소의 너비 측정
+    this.ctx.font = normalFont;
+    const minWidth = this.ctx.measureText(minText).width;
+    const maxWidth = this.ctx.measureText(maxText).width;
+    const sepWidth = this.ctx.measureText(separator).width;
+
+    this.ctx.font = superscriptFont;
+    const superMinWidth = this.ctx.measureText(superMin).width;
+    const superMaxWidth = this.ctx.measureText(superMax).width;
+
+    // 전체 너비 계산
+    const totalWidth = minWidth + superMinWidth + sepWidth + maxWidth + superMaxWidth;
+
+    // 시작 X 좌표 (중앙 정렬)
+    let x = cellX - totalWidth / 2;
+
+    // Y 좌표 조정
+    const normalY = cellY;
+    const superscriptY = cellY - 4; // 상첨자는 4px 위로
+
+    // 1. min 숫자 그리기
+    this.ctx.font = normalFont;
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText(minText, x, normalY);
+    x += minWidth;
+
+    // 2. (이상) 상첨자 그리기
+    this.ctx.font = superscriptFont;
+    this.ctx.fillText(superMin, x, superscriptY);
+    x += superMinWidth;
+
+    // 3. " ~ " 구분자 그리기
+    this.ctx.font = normalFont;
+    this.ctx.fillText(separator, x, normalY);
+    x += sepWidth;
+
+    // 4. max 숫자 그리기
+    this.ctx.fillText(maxText, x, normalY);
+    x += maxWidth;
+
+    // 5. (미만) 상첨자 그리기
+    this.ctx.font = superscriptFont;
+    this.ctx.fillText(superMax, x, superscriptY);
   }
 
   /**
