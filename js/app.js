@@ -339,15 +339,33 @@ class FrequencyDistributionApp {
       const isCollapsed = this.collapsedGroups.has(layer.id);
       const toggleIcon = isGroup ? (isCollapsed ? '▶' : '▼') : '';
 
+      const visibilityIcon = layer.visible ? '👁️' : '👁️‍🗨️';
+
+      // 타입별 아이콘 및 색상
+      let typeIcon = '';
+      if (layer.id === 'histogram') {
+        typeIcon = '<span class="layer-icon histogram-icon">📊</span>';
+      } else if (layer.id === 'polygon') {
+        typeIcon = '<span class="layer-icon polygon-icon">📈</span>';
+      } else if (layer.id === 'points') {
+        typeIcon = '<span class="layer-icon point-icon">⬤</span>';
+      } else if (layer.id === 'lines') {
+        typeIcon = '<span class="layer-icon line-icon">━</span>';
+      } else if (layer.type === 'bar') {
+        typeIcon = '<span class="layer-icon bar-icon">▓</span>';
+      } else if (layer.type === 'point') {
+        typeIcon = '<span class="layer-icon point-icon">●</span>';
+      } else if (layer.type === 'line') {
+        typeIcon = '<span class="layer-icon line-icon">─</span>';
+      }
+
       return `
         <div class="layer-item ${depthClass}" draggable="true" data-layer-id="${Utils.escapeHtml(layer.id)}">
           ${isGroup ? `<span class="layer-toggle" data-layer-id="${Utils.escapeHtml(layer.id)}">${toggleIcon}</span>` : '<span class="layer-toggle-spacer"></span>'}
           <span class="layer-drag-handle">⋮⋮</span>
-          <div class="layer-visibility">
-            <input type="checkbox" ${layer.visible ? 'checked' : ''} data-layer-id="${Utils.escapeHtml(layer.id)}">
-          </div>
+          <button class="layer-visibility-btn" data-layer-id="${Utils.escapeHtml(layer.id)}" data-visible="${layer.visible}" title="${layer.visible ? '숨기기' : '보이기'}">${visibilityIcon}</button>
+          ${typeIcon}
           <span class="layer-name">${Utils.escapeHtml(layer.name || layer.id)}</span>
-          <span class="layer-type ${typeClass}">${Utils.escapeHtml(layer.type)}</span>
         </div>
       `;
     }).join('');
@@ -371,13 +389,28 @@ class FrequencyDistributionApp {
     // 드래그앤드롭 초기화
     this.initLayerDragAndDrop();
 
-    // 체크박스 이벤트
-    layerList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-      checkbox.addEventListener('change', (e) => {
-        const layerId = e.target.dataset.layerId;
-        const visible = e.target.checked;
-        this.chartRenderer.layerManager.setLayerVisibility(layerId, visible);
-        this.updateChart();
+    // 가시성 토글 버튼 이벤트
+    layerList.querySelectorAll('.layer-visibility-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const layerId = e.currentTarget.dataset.layerId;
+        const currentVisible = e.currentTarget.dataset.visible === 'true';
+        const newVisible = !currentVisible;
+
+        // 레이어 가시성 변경
+        this.chartRenderer.layerManager.setLayerVisibility(layerId, newVisible);
+
+        // 부모 레이어인 경우 모든 자식도 함께 변경
+        const layer = this.chartRenderer.layerManager.findLayer(layerId);
+        if (layer && layer.type === 'group' && layer.children) {
+          layer.children.forEach(child => {
+            this.chartRenderer.layerManager.setLayerVisibility(child.id, newVisible);
+          });
+        }
+
+        // UI 업데이트
+        this.renderLayerPanel();
+        this.chartRenderer.renderFrame();
       });
     });
   }
