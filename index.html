@@ -86,6 +86,14 @@
             <input type="text" id="yAxisLabel" placeholder="상대도수">
           </div>
 
+          <div class="input-group">
+            <label for="calloutTemplate">말풍선 템플릿:</label>
+            <input type="text" id="calloutTemplate" placeholder="계급: {min}~{max}\n상대도수: {relativeFreq}%">
+            <small style="color: #93c5fd; font-size: 12px; margin-top: 4px; display: block;">
+              사용 가능한 변수: {min}, {max}, {midpoint}, {frequency}, {relativeFreq}
+            </small>
+          </div>
+
           <h4>표 컬럼 설정 (드래그하여 순서 변경)</h4>
           <div id="tableConfigPanel"></div>
         </div>

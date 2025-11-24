@@ -6,6 +6,7 @@
 import CONFIG from '../../config.js';
 import { Layer } from '../../animation/index.js';
 import CoordinateSystem from './CoordinateSystem.js';
+import CalloutRenderer from './CalloutRenderer.js';
 
 class LayerFactory {
   /**
@@ -16,8 +17,9 @@ class LayerFactory {
    * @param {Object} coords - 좌표 시스템
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+   * @param {string} calloutTemplate - 말풍선 템플릿
    */
-  static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency') {
+  static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null) {
     layerManager.clearAll();
 
     // 데이터 타입 정보 가져오기
@@ -136,6 +138,72 @@ class LayerFactory {
 
     layerManager.addLayer(histogramGroup);
     layerManager.addLayer(polygonGroup);
+
+    // 말풍선 레이어 생성 (활성화된 경우)
+    if (CONFIG.CALLOUT_ENABLED && calloutTemplate) {
+      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate);
+      if (calloutLayer) {
+        layerManager.addLayer(calloutLayer);
+      }
+    }
+  }
+
+  /**
+   * 말풍선 레이어 생성
+   * @param {Array} classes - 계급 데이터
+   * @param {Array} values - 값 배열
+   * @param {Object} coords - 좌표 시스템
+   * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} dataType - 데이터 타입
+   * @param {string} template - 말풍선 템플릿
+   * @returns {Layer|null} 말풍선 레이어
+   */
+  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template) {
+    // 최상단 포인트 찾기 (y값이 가장 큰 = 상대도수/도수가 가장 큰)
+    let maxValue = -Infinity;
+    let maxIndex = -1;
+
+    values.forEach((value, index) => {
+      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+      if (value > maxValue) {
+        maxValue = value;
+        maxIndex = index;
+      }
+    });
+
+    if (maxIndex === -1) return null;
+
+    // 포인트 좌표 계산
+    const { toX, toY, xScale } = coords;
+    const pointX = toX(maxIndex) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
+    const pointY = toY(maxValue);
+
+    // 말풍선 위치 계산 (포인트 왼쪽 위)
+    const calloutX = pointX - CONFIG.CALLOUT_WIDTH - CONFIG.CALLOUT_OFFSET_X;
+    const calloutY = pointY - CONFIG.CALLOUT_HEIGHT - CONFIG.CALLOUT_OFFSET_Y;
+
+    // 템플릿 치환
+    const text = CalloutRenderer.formatTemplate(template, classes[maxIndex], dataType);
+
+    const calloutLayer = new Layer({
+      id: 'callout',
+      name: '말풍선',
+      type: 'callout',
+      visible: true,
+      data: {
+        x: calloutX,
+        y: calloutY,
+        width: CONFIG.CALLOUT_WIDTH,
+        height: CONFIG.CALLOUT_HEIGHT,
+        text,
+        opacity: 0, // 초기 투명도 (애니메이션용)
+        pointX,
+        pointY,
+        classIndex: maxIndex
+      }
+    });
+
+    return calloutLayer;
   }
 }
 

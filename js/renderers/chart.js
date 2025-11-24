@@ -14,6 +14,7 @@ import LayerFactory from './chart/LayerFactory.js';
 import HistogramRenderer from './chart/HistogramRenderer.js';
 import PolygonRenderer from './chart/PolygonRenderer.js';
 import AxisRenderer from './chart/AxisRenderer.js';
+import CalloutRenderer from './chart/CalloutRenderer.js';
 
 /**
  * @class ChartRenderer
@@ -29,6 +30,7 @@ class ChartRenderer {
     this.histogramRenderer = new HistogramRenderer(this.ctx);
     this.polygonRenderer = new PolygonRenderer(this.ctx);
     this.axisRenderer = new AxisRenderer(this.ctx, this.canvas, this.padding);
+    this.calloutRenderer = new CalloutRenderer(this.ctx);
 
     // Layer 시스템
     this.layerManager = new LayerManager();
@@ -74,8 +76,9 @@ class ChartRenderer {
    * @param {Object} ellipsisInfo - 중략 표시 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    * @param {Object} tableConfig - 테이블 설정
+   * @param {string} calloutTemplate - 말풍선 템플릿
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null) {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null) {
     this.canvas.width = CONFIG.CANVAS_WIDTH;
     this.canvas.height = CONFIG.CANVAS_HEIGHT;
     this.clear();
@@ -134,7 +137,8 @@ class ChartRenderer {
         values,
         coords,
         ellipsisInfo,
-        dataType
+        dataType,
+        calloutTemplate || CONFIG.CALLOUT_TEMPLATE
       );
       this.setupAnimations(classes);
       this.playAnimation();
@@ -189,6 +193,9 @@ class ChartRenderer {
         break;
       case 'line':
         this.polygonRenderer.renderLine(layer);
+        break;
+      case 'callout':
+        this.calloutRenderer.render(layer);
         break;
       case 'group':
         // 그룹은 자식 레이어들을 렌더링
@@ -286,6 +293,19 @@ class ChartRenderer {
           easing: 'linear'
         });
       });
+
+      // 말풍선 애니메이션 (모든 선이 완료된 후)
+      const calloutLayer = this.layerManager.findLayer('callout');
+      if (calloutLayer) {
+        const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
+        this.timeline.addAnimation('callout', {
+          startTime: lineEndTime + 100, // 선 완료 후 100ms 대기
+          duration: 300,
+          effect: 'custom', // 투명도 애니메이션은 직접 처리
+          effectOptions: {},
+          easing: 'easeIn'
+        });
+      }
     }
   }
 
@@ -413,16 +433,25 @@ class ChartRenderer {
 
         layer.data.animationProgress = progress;
 
-        LayerAnimationEffects.apply(
-          this.ctx,
-          progress,
-          anim.effect,
-          anim.effectOptions,
-          () => this.renderLayer(layer)
-        );
+        // 말풍선 레이어는 투명도 애니메이션
+        if (layer.type === 'callout') {
+          layer.data.opacity = progress;
+          this.renderLayer(layer);
+        } else {
+          LayerAnimationEffects.apply(
+            this.ctx,
+            progress,
+            anim.effect,
+            anim.effectOptions,
+            () => this.renderLayer(layer)
+          );
+        }
       } else {
         // 완료된 애니메이션: 완전히 표시 (progress = 1.0)
         layer.data.animationProgress = 1.0;
+        if (layer.type === 'callout') {
+          layer.data.opacity = 1.0;
+        }
         this.renderLayer(layer);
       }
     });

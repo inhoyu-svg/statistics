@@ -481,7 +481,7 @@ class FrequencyDistributionApp {
 
       // 차트 데이터 타입 가져오기
       const dataType = ChartStore.getDataType();
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment);
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
 
       // 레이어 패널 재렌더링
       this.renderLayerPanel();
@@ -766,9 +766,10 @@ class FrequencyDistributionApp {
     const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
     const dataType = ChartStore.getDataType();
     const tableConfig = this.getTableConfigWithAlignment();
+    const customLabels = this.getCustomLabels();
 
     if (classes) {
-      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, tableConfig);
+      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, tableConfig, customLabels.calloutTemplate);
     }
   }
 
@@ -963,7 +964,7 @@ class FrequencyDistributionApp {
 
       // 차트 데이터 타입 가져오기
       const dataType = ChartStore.getDataType();
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment);
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
 
       // 9. 레이어 패널 렌더링
       this.renderLayerPanel();
@@ -1028,12 +1029,13 @@ class FrequencyDistributionApp {
 
   /**
    * 고급 설정에서 커스텀 라벨 가져오기
-   * @returns {{axis: Object, table: Object}} 축 라벨과 표 라벨 객체
-   * @description X축/Y축 라벨과 표 컬럼 라벨을 통합하여 반환
+   * @returns {{axis: Object, table: Object, calloutTemplate: string}} 축 라벨, 표 라벨, 말풍선 템플릿
+   * @description X축/Y축 라벨, 표 컬럼 라벨, 말풍선 템플릿을 통합하여 반환
    */
   getCustomLabels() {
     const xAxisLabel = document.getElementById('xAxisLabel')?.value.trim() || '';
     const yAxisLabel = document.getElementById('yAxisLabel')?.value.trim() || '';
+    const calloutTemplate = document.getElementById('calloutTemplate')?.value.trim() || CONFIG.CALLOUT_TEMPLATE;
 
     const panel = this._getTableConfigPanel();
     if (!panel) return { axis: {}, table: {} };
@@ -1073,7 +1075,8 @@ class FrequencyDistributionApp {
         relativeFrequency: relativeFreqLabel,
         cumulativeFrequency: label5,
         cumulativeRelativeFrequency: label6
-      }
+      },
+      calloutTemplate
     };
   }
 
