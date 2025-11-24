@@ -4,6 +4,7 @@
  */
 
 import CONFIG from '../../config.js';
+import Utils from '../../utils/utils.js';
 import { Layer } from '../../animation/index.js';
 import CoordinateSystem from './CoordinateSystem.js';
 import CalloutRenderer from './CalloutRenderer.js';
@@ -50,7 +51,7 @@ class LayerFactory {
       if (classes[index].frequency === 0) return;
 
       // 계급명 생성 (예: "140~145")
-      const className = `${classes[index].min}~${classes[index].max}`;
+      const className = Utils.getClassName(classes[index]);
 
       const barLayer = new Layer({
         id: `bar-${index}`,
@@ -88,7 +89,7 @@ class LayerFactory {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
       // 계급명 생성
-      const className = `${classes[index].min}~${classes[index].max}`;
+      const className = Utils.getClassName(classes[index]);
 
       const pointLayer = new Layer({
         id: `point-${index}`,
@@ -111,8 +112,8 @@ class LayerFactory {
 
       if (prevIndex !== null) {
         // 시작 계급명과 끝 계급명
-        const fromClassName = `${classes[prevIndex].min}~${classes[prevIndex].max}`;
-        const toClassName = `${classes[index].min}~${classes[index].max}`;
+        const fromClassName = Utils.getClassName(classes[prevIndex]);
+        const toClassName = Utils.getClassName(classes[index]);
 
         const lineLayer = new Layer({
           id: `line-${prevIndex}-${index}`,
@@ -155,7 +156,7 @@ class LayerFactory {
         if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
         if (classes[index].frequency === 0) return;
 
-        const className = `${classes[index].min}~${classes[index].max}`;
+        const className = Utils.getClassName(classes[index]);
 
         const labelLayer = new Layer({
           id: `bar-label-${index}`,

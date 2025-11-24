@@ -50,6 +50,50 @@ class Utils {
     div.textContent = String(text);
     return div.innerHTML;
   }
+
+  /**
+   * 계급명 생성 헬퍼 (min~max 형식)
+   * @param {Object} classData - 계급 데이터 ({ min, max })
+   * @returns {string} 계급명 (예: "140~150")
+   */
+  static getClassName(classData) {
+    return `${classData.min}~${classData.max}`;
+  }
+
+  /**
+   * 수직 그라디언트 생성 (Canvas)
+   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+   * @param {number} x - 시작 X 좌표
+   * @param {number} y - 시작 Y 좌표
+   * @param {number} height - 그라디언트 높이
+   * @param {string} startColor - 시작 색상
+   * @param {string} endColor - 끝 색상
+   * @returns {CanvasGradient} 그라디언트 객체
+   */
+  static createVerticalGradient(ctx, x, y, height, startColor, endColor) {
+    const gradient = ctx.createLinearGradient(x, y, x, y + height);
+    gradient.addColorStop(0, startColor);
+    gradient.addColorStop(1, endColor);
+    return gradient;
+  }
+
+  /**
+   * 선 그라디언트 생성 (Canvas) - 두 점 사이
+   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+   * @param {number} x1 - 시작 X
+   * @param {number} y1 - 시작 Y
+   * @param {number} x2 - 끝 X
+   * @param {number} y2 - 끝 Y
+   * @param {string} startColor - 시작 색상
+   * @param {string} endColor - 끝 색상
+   * @returns {CanvasGradient} 그라디언트 객체
+   */
+  static createLineGradient(ctx, x1, y1, x2, y2, startColor, endColor) {
+    const gradient = ctx.createLinearGradient(x1, Math.min(y1, y2), x2, Math.max(y1, y2));
+    gradient.addColorStop(0, startColor);
+    gradient.addColorStop(1, endColor);
+    return gradient;
+  }
 }
 
 export default Utils;

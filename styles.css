@@ -43,13 +43,31 @@
   --transition-fast: 0.2s ease;
   --transition-base: 0.3s ease;
 
-  /* Chart */
+  /* Chart - Histogram */
   --chart-bar-color: #4141A3;
   --chart-bar-color-end: #2CA0E8;
   --chart-bar-border-color: #57F684;
+  --chart-bar-stroke-start: #54A0F6;
+  --chart-bar-stroke-end: #6DE0FC;
+
+  /* Chart - Polygon */
+  --chart-polygon-point-color: #93DA6A;
+  --chart-polygon-line-start: #AEFF7E;
+  --chart-polygon-line-end: #68994C;
   --chart-line-color-start: #FA716F;
   --chart-line-color-end: #F3A257;
   --chart-polygon-color: #FC9A63;
+
+  /* Chart - Callout */
+  --chart-callout-bg-start: rgba(174, 255, 126, 0.3);
+  --chart-callout-bg-end: rgba(104, 153, 76, 0.3);
+  --chart-callout-border: #93DA6A;
+  --chart-callout-text: #93DA6A;
+
+  /* Message Colors */
+  --color-error-text: #fca5a5;
+  --color-success-text: #6ee7b7;
+  --color-warning-text: #fcd34d;
 
   /* Additional Dark Theme Colors */
   --color-bg-dark: #0f172a;
@@ -189,19 +207,19 @@ h1 {
 .message-box.error {
   background: rgba(239, 68, 68, 0.1);
   border-left: 4px solid var(--color-error);
-  color: #fca5a5;
+  color: var(--color-error-text);
 }
 
 .message-box.success {
   background: rgba(16, 185, 129, 0.1);
   border-left: 4px solid var(--color-success);
-  color: #6ee7b7;
+  color: var(--color-success-text);
 }
 
 .message-box.warning {
   background: rgba(245, 158, 11, 0.1);
   border-left: 4px solid var(--color-warning);
-  color: #fcd34d;
+  color: var(--color-warning-text);
 }
 
 @keyframes slideInRight {

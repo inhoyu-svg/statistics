@@ -39,16 +39,18 @@ class HistogramRenderer {
       gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
       gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
 
-      this.ctx.globalAlpha = 0.5;
+      this.ctx.globalAlpha = CONFIG.CHART_BAR_ALPHA;
       this.ctx.fillStyle = gradient;
       this.ctx.fillRect(x, y, barWidth, h);
-      this.ctx.globalAlpha = 1.0;
+      this.ctx.globalAlpha = CONFIG.CHART_DEFAULT_ALPHA;
 
       // 그라디언트 테두리 (데이터가 있는 경우)
       if (freq[index] > 0) {
-        const strokeGradient = this.ctx.createLinearGradient(x, y, x, y + h);
-        strokeGradient.addColorStop(0, '#54A0F6');
-        strokeGradient.addColorStop(1, '#6DE0FC');
+        const strokeGradient = Utils.createVerticalGradient(
+          this.ctx, x, y, h,
+          CONFIG.getColor('--chart-bar-stroke-start'),
+          CONFIG.getColor('--chart-bar-stroke-end')
+        );
         this.ctx.strokeStyle = strokeGradient;
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(x, y, barWidth, h);
@@ -84,16 +86,18 @@ class HistogramRenderer {
     gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
     gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
 
-    this.ctx.globalAlpha = 0.5;
+    this.ctx.globalAlpha = CONFIG.CHART_BAR_ALPHA;
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(x, animatedY, barWidth, animatedH);
-    this.ctx.globalAlpha = 1.0;
+    this.ctx.globalAlpha = CONFIG.CHART_DEFAULT_ALPHA;
 
     // 그라디언트 테두리 (데이터가 있고 높이가 0보다 클 때만)
     if (frequency > 0 && animatedH > 0) {
-      const strokeGradient = this.ctx.createLinearGradient(x, animatedY, x, animatedY + animatedH);
-      strokeGradient.addColorStop(0, '#54A0F6');
-      strokeGradient.addColorStop(1, '#6DE0FC');
+      const strokeGradient = Utils.createVerticalGradient(
+        this.ctx, x, animatedY, animatedH,
+        CONFIG.getColor('--chart-bar-stroke-start'),
+        CONFIG.getColor('--chart-bar-stroke-end')
+      );
       this.ctx.strokeStyle = strokeGradient;
       this.ctx.lineWidth = 2;
       this.ctx.strokeRect(x, animatedY, barWidth, animatedH);

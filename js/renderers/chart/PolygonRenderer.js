@@ -4,6 +4,7 @@
  */
 
 import CONFIG from '../../config.js';
+import Utils from '../../utils/utils.js';
 import CoordinateSystem from './CoordinateSystem.js';
 
 class PolygonRenderer {
@@ -32,7 +33,7 @@ class PolygonRenderer {
 
       this.ctx.beginPath();
       this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
-      this.ctx.fillStyle = '#93DA6A';
+      this.ctx.fillStyle = CONFIG.getColor('--chart-polygon-point-color');
       this.ctx.fill();
     });
 
@@ -48,9 +49,11 @@ class PolygonRenderer {
         const y2 = toY(relativeFreq);
 
         // 그라디언트 선 (위에서 아래로)
-        const lineGradient = this.ctx.createLinearGradient(x1, Math.min(y1, y2), x2, Math.max(y1, y2));
-        lineGradient.addColorStop(0, '#AEFF7E');
-        lineGradient.addColorStop(1, '#68994C');
+        const lineGradient = Utils.createLineGradient(
+          this.ctx, x1, y1, x2, y2,
+          CONFIG.getColor('--chart-polygon-line-start'),
+          CONFIG.getColor('--chart-polygon-line-end')
+        );
 
         this.ctx.strokeStyle = lineGradient;
         this.ctx.lineWidth = 3;
@@ -77,7 +80,7 @@ class PolygonRenderer {
 
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
-    this.ctx.fillStyle = '#93DA6A';
+    this.ctx.fillStyle = CONFIG.getColor('--chart-polygon-point-color');
     this.ctx.fill();
   }
 
@@ -95,9 +98,11 @@ class PolygonRenderer {
     const y2 = toY(toFreq);
 
     // 그라디언트 선 (위에서 아래로)
-    const lineGradient = this.ctx.createLinearGradient(x1, Math.min(y1, y2), x2, Math.max(y1, y2));
-    lineGradient.addColorStop(0, '#AEFF7E');
-    lineGradient.addColorStop(1, '#68994C');
+    const lineGradient = Utils.createLineGradient(
+      this.ctx, x1, y1, x2, y2,
+      CONFIG.getColor('--chart-polygon-line-start'),
+      CONFIG.getColor('--chart-polygon-line-end')
+    );
 
     this.ctx.strokeStyle = lineGradient;
     this.ctx.lineWidth = 3;

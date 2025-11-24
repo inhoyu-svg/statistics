@@ -4,6 +4,7 @@
  */
 
 import CONFIG from '../../config.js';
+import Utils from '../../utils/utils.js';
 
 class CalloutRenderer {
   /**
@@ -70,15 +71,17 @@ class CalloutRenderer {
     path.closePath();
 
     // 배경 그라데이션
-    const gradient = ctx.createLinearGradient(x, y, x, y + height);
-    gradient.addColorStop(0, 'rgba(174, 255, 126, 0.3)'); // #AEFF7E
-    gradient.addColorStop(1, 'rgba(104, 153, 76, 0.3)');  // #68994C
+    const gradient = Utils.createVerticalGradient(
+      ctx, x, y, height,
+      CONFIG.getColor('--chart-callout-bg-start'),
+      CONFIG.getColor('--chart-callout-bg-end')
+    );
 
     ctx.fillStyle = gradient;
     ctx.fill(path);
 
     // 테두리
-    ctx.strokeStyle = '#93DA6A';
+    ctx.strokeStyle = CONFIG.getColor('--chart-callout-border');
     ctx.lineWidth = 1;
     ctx.stroke(path);
   }
@@ -97,7 +100,7 @@ class CalloutRenderer {
     const lineHeight = CONFIG.CALLOUT_LINE_HEIGHT;
 
     ctx.font = CONFIG.CALLOUT_FONT;
-    ctx.fillStyle = '#93DA6A';
+    ctx.fillStyle = CONFIG.getColor('--chart-callout-text');
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 

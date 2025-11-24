@@ -136,6 +136,11 @@ const CONFIG = {
   // 막대 라벨 설정
   SHOW_BAR_LABELS: false,                   // 막대 위 값 표시 여부 (기본값)
 
+  // 투명도 설정
+  CHART_BAR_ALPHA: 0.5,                     // 막대 투명도
+  CHART_DEFAULT_ALPHA: 1.0,                 // 기본 투명도
+  CALLOUT_BG_ALPHA: 0.3,                    // 말풍선 배경 투명도
+
   // 애니메이션 타이밍 (차트)
   ANIMATION_BAR_DURATION: 300,              // 막대 애니메이션 시간 (ms)
   ANIMATION_POINT_DURATION: 300,            // 점 애니메이션 시간 (ms)
@@ -168,9 +173,18 @@ const CONFIG = {
       '--chart-bar-color': style.getPropertyValue('--chart-bar-color').trim(),
       '--chart-bar-color-end': style.getPropertyValue('--chart-bar-color-end').trim(),
       '--chart-bar-border-color': style.getPropertyValue('--chart-bar-border-color').trim(),
+      '--chart-bar-stroke-start': style.getPropertyValue('--chart-bar-stroke-start').trim(),
+      '--chart-bar-stroke-end': style.getPropertyValue('--chart-bar-stroke-end').trim(),
+      '--chart-polygon-point-color': style.getPropertyValue('--chart-polygon-point-color').trim(),
+      '--chart-polygon-line-start': style.getPropertyValue('--chart-polygon-line-start').trim(),
+      '--chart-polygon-line-end': style.getPropertyValue('--chart-polygon-line-end').trim(),
       '--chart-line-color-start': style.getPropertyValue('--chart-line-color-start').trim(),
       '--chart-line-color-end': style.getPropertyValue('--chart-line-color-end').trim(),
       '--chart-polygon-color': style.getPropertyValue('--chart-polygon-color').trim(),
+      '--chart-callout-bg-start': style.getPropertyValue('--chart-callout-bg-start').trim(),
+      '--chart-callout-bg-end': style.getPropertyValue('--chart-callout-bg-end').trim(),
+      '--chart-callout-border': style.getPropertyValue('--chart-callout-border').trim(),
+      '--chart-callout-text': style.getPropertyValue('--chart-callout-text').trim(),
     };
   },
 

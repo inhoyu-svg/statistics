@@ -228,9 +228,11 @@ class AxisRenderer {
     const y2 = y1 + CONFIG.CHART_LEGEND_ITEM_SPACING;
 
     // 선 (그라디언트)
-    const lineGradient = this.ctx.createLinearGradient(legendX, y2, legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2);
-    lineGradient.addColorStop(0, '#AEFF7E');
-    lineGradient.addColorStop(1, '#68994C');
+    const lineGradient = Utils.createLineGradient(
+      this.ctx, legendX, y2, legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2,
+      CONFIG.getColor('--chart-polygon-line-start'),
+      CONFIG.getColor('--chart-polygon-line-end')
+    );
     this.ctx.strokeStyle = lineGradient;
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
@@ -239,7 +241,7 @@ class AxisRenderer {
     this.ctx.stroke();
 
     // 점 (단색)
-    this.ctx.fillStyle = '#93DA6A';
+    this.ctx.fillStyle = CONFIG.getColor('--chart-polygon-point-color');
     this.ctx.beginPath();
     this.ctx.arc(legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, CONFIG.CHART_LEGEND_POINT_RADIUS, 0, Math.PI * 2);
     this.ctx.fill();
