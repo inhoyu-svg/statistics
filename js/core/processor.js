@@ -371,6 +371,12 @@ class DataProcessor {
         chartConfig.ellipsisInfo = chartRenderer.currentEllipsisInfo;
       }
 
+      // 격자선 설정
+      chartConfig.gridSettings = {
+        showHorizontal: CONFIG.GRID_SHOW_HORIZONTAL,
+        showVertical: CONFIG.GRID_SHOW_VERTICAL
+      };
+
       // 캔버스 크기
       if (chartRenderer.canvas) {
         chartConfig.canvasSize = {
