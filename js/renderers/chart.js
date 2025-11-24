@@ -499,11 +499,11 @@ class ChartRenderer {
       }
     }
 
-    // 하이라이트 상태가 변경될 때만 테이블 재렌더링
+    // 하이라이트 상태가 변경될 때만 테이블 업데이트 (레이어 시스템 사용)
     const currentHighlight = this.lastHighlightInfo;
 
-    // highlightInfo가 null이 되는 경우 재렌더링하지 않음 (깜빡거림 방지)
-    // 대신 새로운 하이라이트가 생기거나 classIndex/progress가 변경될 때만 렌더링
+    // highlightInfo가 null이 되는 경우 업데이트하지 않음 (깜빡거림 방지)
+    // 대신 새로운 하이라이트가 생기거나 classIndex/progress가 변경될 때만 업데이트
     if (highlightInfo !== null) {
       const hasChanged =
         currentHighlight === null ||
@@ -512,8 +512,14 @@ class ChartRenderer {
 
       if (hasChanged) {
         this.lastHighlightInfo = highlightInfo;
-        const total = this.currentClasses.reduce((sum, c) => sum + c.frequency, 0);
-        this.tableRenderer.draw(this.currentClasses, total, this.currentTableConfig, highlightInfo);
+
+        // 레이어 시스템: 이전 하이라이트 해제 후 새로 설정
+        this.tableRenderer.clearHighlight();
+        this.tableRenderer.highlightCell(
+          highlightInfo.classIndex,
+          null, // 행 전체
+          highlightInfo.progress
+        );
       }
     }
     // highlightInfo가 null이면 아무것도 하지 않음 (이전 하이라이트 유지)

@@ -30,6 +30,10 @@ class FrequencyDistributionApp {
     this.columnOrder = [0, 1, 2, 3, 4, 5]; // 컬럼 순서 관리
     this.draggedElement = null;
     this.collapsedGroups = new Set(); // 접힌 그룹 ID 목록
+
+    // 레이어 소스 상태 (기본: 차트)
+    this.currentLayerSource = 'chart';
+
     this.init();
   }
 
@@ -68,6 +72,9 @@ class FrequencyDistributionApp {
 
     // JSON 미리보기 모달 초기화
     this.initJsonPreviewModal();
+
+    // 레이어 소스 선택기 초기화
+    this.initLayerSourceSelector();
   }
 
   /**
@@ -506,14 +513,27 @@ class FrequencyDistributionApp {
 
   /**
    * 레이어 패널 렌더링
-   * @description 차트 레이어 목록을 HTML로 생성하고 이벤트 리스너 등록
+   * @description 선택된 소스(차트/테이블)의 레이어 목록을 HTML로 생성하고 이벤트 리스너 등록
    */
   renderLayerPanel() {
     const layerList = document.getElementById('layerList');
     if (!layerList) return;
 
+    // 선택된 소스에 따라 LayerManager 가져오기
+    let layerManager;
+    if (this.currentLayerSource === 'chart') {
+      layerManager = this.chartRenderer.layerManager;
+    } else if (this.currentLayerSource === 'table') {
+      layerManager = this.tableRenderer.getLayerManager();
+    }
+
+    if (!layerManager) {
+      layerList.innerHTML = '<p class="no-layers">레이어가 없습니다</p>';
+      return;
+    }
+
     // 레이어 목록 가져오기
-    const layers = this.chartRenderer.layerManager.getAllLayers();
+    const layers = layerManager.getAllLayers();
 
     // root 레이어 제외 및 접힌 그룹의 자식 필터링
     const filteredLayers = layers
@@ -1068,6 +1088,19 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 레이어 소스 선택기 초기화
+   */
+  initLayerSourceSelector() {
+    const selector = document.getElementById('layerSourceSelect');
+    if (!selector) return;
+
+    selector.addEventListener('change', (e) => {
+      this.currentLayerSource = e.target.value;
+      this.renderLayerPanel();
+    });
+  }
+
+  /**
    * JSON 미리보기 모달 초기화
    */
   initJsonPreviewModal() {
@@ -1147,8 +1180,22 @@ class FrequencyDistributionApp {
    * 전체 레이어 JSON 미리보기 모달 표시
    */
   showAllLayersJsonPreview() {
+    // 선택된 소스에 따라 LayerManager 가져오기
+    let layerManager;
+    let sourceName;
+
+    if (this.currentLayerSource === 'chart') {
+      layerManager = this.chartRenderer.layerManager;
+      sourceName = '차트';
+    } else if (this.currentLayerSource === 'table') {
+      layerManager = this.tableRenderer.getLayerManager();
+      sourceName = '테이블';
+    }
+
+    if (!layerManager) return;
+
     // 전체 레이어 구조를 JSON으로 직렬화
-    const allLayersJson = this.chartRenderer.layerManager.toJSON();
+    const allLayersJson = layerManager.toJSON();
     const jsonString = JSON.stringify(allLayersJson, null, 2);
 
     // 모달에 JSON 표시
@@ -1161,7 +1208,7 @@ class FrequencyDistributionApp {
     }
 
     if (modalTitle) {
-      modalTitle.textContent = '📄 전체 레이어 JSON 미리보기';
+      modalTitle.textContent = `📄 ${sourceName} 레이어 JSON 미리보기`;
     }
 
     if (modal) {
