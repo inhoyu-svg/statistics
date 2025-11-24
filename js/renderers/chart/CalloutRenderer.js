@@ -71,8 +71,8 @@ class CalloutRenderer {
 
     // 배경 그라데이션
     const gradient = ctx.createLinearGradient(x, y, x, y + height);
-    gradient.addColorStop(0, 'rgba(174, 255, 126, 0.5)'); // #AEFF7E
-    gradient.addColorStop(1, 'rgba(104, 153, 76, 0.5)');  // #68994C
+    gradient.addColorStop(0, 'rgba(174, 255, 126, 0.8)'); // #AEFF7E
+    gradient.addColorStop(1, 'rgba(104, 153, 76, 0.8)');  // #68994C
 
     ctx.fillStyle = gradient;
     ctx.fill(path);

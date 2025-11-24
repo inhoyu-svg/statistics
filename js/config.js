@@ -137,7 +137,7 @@ const CONFIG = {
   CALLOUT_PADDING: 8,                       // 내부 패딩
   CALLOUT_FONT: '16px sans-serif',          // 폰트
   CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
-  CALLOUT_TEMPLATE: '남학생\n{frequency}명', // 기본 템플릿
+  CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
 
   // 색상 캐시 (성능 최적화)
   _colorCache: null,
