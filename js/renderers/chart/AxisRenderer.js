@@ -254,24 +254,24 @@ class AxisRenderer {
 
     // 다각형 범례 (동적 텍스트)
     const y2 = y1 + CONFIG.CHART_LEGEND_ITEM_SPACING;
-    this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-color');
+
+    // 선 (그라디언트)
+    const lineGradient = this.ctx.createLinearGradient(legendX, y2, legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2);
+    lineGradient.addColorStop(0, '#AEFF7E');
+    lineGradient.addColorStop(1, '#68994C');
+    this.ctx.strokeStyle = lineGradient;
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.moveTo(legendX, y2);
     this.ctx.lineTo(legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2);
     this.ctx.stroke();
 
-    const pointGradient = this.ctx.createRadialGradient(
-      legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, 0,
-      legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, CONFIG.CHART_LEGEND_POINT_RADIUS
-    );
-    pointGradient.addColorStop(0, CONFIG.getColor('--chart-line-color-start'));
-    pointGradient.addColorStop(1, CONFIG.getColor('--chart-line-color-end'));
-
-    this.ctx.fillStyle = pointGradient;
+    // 점 (단색)
+    this.ctx.fillStyle = '#93DA6A';
     this.ctx.beginPath();
     this.ctx.arc(legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, CONFIG.CHART_LEGEND_POINT_RADIUS, 0, Math.PI * 2);
     this.ctx.fill();
+
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.fillText(`${legendSuffix} 다각형`, legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y2 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET - 8);
   }
