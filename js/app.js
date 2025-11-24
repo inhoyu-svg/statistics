@@ -80,6 +80,9 @@ class FrequencyDistributionApp {
 
     // 레이어 소스 선택기 초기화
     this.initLayerSourceSelector();
+
+    // 하이라이트 테스트 버튼 초기화
+    this.initHighlightTestButtons();
   }
 
   /**
@@ -978,7 +981,10 @@ class FrequencyDistributionApp {
         exportJsonBtn.style.display = 'block';
       }
 
-      // 13. 성공 메시지
+      // 13. 하이라이트 테스트 버튼 표시
+      this.showHighlightTestButtons();
+
+      // 14. 성공 메시지
       MessageManager.success('도수분포표가 생성되었습니다!');
 
     } catch (error) {
@@ -1114,6 +1120,58 @@ class FrequencyDistributionApp {
     selector.addEventListener('change', (e) => {
       this.currentLayerSource = e.target.value;
       this.renderLayerPanel();
+    });
+  }
+
+  /**
+   * 하이라이트 테스트 버튼 초기화
+   */
+  initHighlightTestButtons() {
+    const highlightCell1Btn = document.getElementById('highlightCell1');
+    const highlightRow2Btn = document.getElementById('highlightRow2');
+    const highlightCell3Btn = document.getElementById('highlightCell3');
+    const clearHighlightBtn = document.getElementById('clearHighlight');
+
+    // 첫 행 도수 셀 하이라이트 (행 0, 열 2)
+    highlightCell1Btn?.addEventListener('click', () => {
+      this.tableRenderer.clearHighlight();
+      this.tableRenderer.highlightCell(0, 2, 1.0);
+    });
+
+    // 두 번째 행 전체 하이라이트 (행 1, 전체)
+    highlightRow2Btn?.addEventListener('click', () => {
+      this.tableRenderer.clearHighlight();
+      this.tableRenderer.highlightCell(1, null, 1.0);
+    });
+
+    // 3행 2열 셀 하이라이트 (행 2, 열 1)
+    highlightCell3Btn?.addEventListener('click', () => {
+      this.tableRenderer.clearHighlight();
+      this.tableRenderer.highlightCell(2, 1, 1.0);
+    });
+
+    // 하이라이트 해제
+    clearHighlightBtn?.addEventListener('click', () => {
+      this.tableRenderer.clearHighlight();
+    });
+  }
+
+  /**
+   * 하이라이트 테스트 버튼 표시
+   */
+  showHighlightTestButtons() {
+    const buttons = [
+      'highlightCell1',
+      'highlightRow2',
+      'highlightCell3',
+      'clearHighlight'
+    ];
+
+    buttons.forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.style.display = 'inline-block';
+      }
     });
   }
 

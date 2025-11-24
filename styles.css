@@ -1009,6 +1009,31 @@ canvas {
   transform: translateY(0);
 }
 
+/* Test Buttons */
+.test-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.test-btn:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(84, 160, 246, 0.3);
+}
+
+.test-btn:active {
+  transform: translateY(0);
+}
+
 /* Speed Control */
 #speedControl {
   color: var(--color-text);
