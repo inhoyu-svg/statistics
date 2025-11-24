@@ -86,28 +86,32 @@ statistics/
 │   │   │   ├── AxisRenderer.js        # 축, 그리드, 범례 (268줄)
 │   │   │   └── CalloutRenderer.js     # 말풍선 (154줄)
 │   │   └── table/          # 테이블 렌더링 서브모듈
-│   │       ├── TableCellRenderer.js   # 셀 렌더링
-│   │       └── TableLayerFactory.js   # 테이블 레이어 생성
+│   │       ├── TableCellRenderer.js   # 셀 렌더링 (253줄)
+│   │       └── TableLayerFactory.js   # 테이블 레이어 생성 (396줄)
 │   ├── animation/          # 애니메이션 시스템
-│   │   ├── index.js        # 통합 export
+│   │   ├── index.js        # 통합 export (49줄)
 │   │   ├── effects/        # 애니메이션 효과
-│   │   │   ├── animation.controller.js  # 애니메이션 컨트롤러
-│   │   │   ├── animation.service.js     # 애니메이션 서비스
-│   │   │   ├── blink.js    # 깜빡임 효과
-│   │   │   ├── draw.js     # 그리기 효과
-│   │   │   ├── fade.js     # 페이드 효과
-│   │   │   ├── scale.js    # 크기 조절 효과
-│   │   │   └── slide.js    # 슬라이드 효과
+│   │   │   ├── animation.controller.js  # 애니메이션 컨트롤러 (118줄)
+│   │   │   ├── animation.service.js     # 애니메이션 서비스 (107줄)
+│   │   │   ├── animation-index.js       # 효과 인덱스 (16줄)
+│   │   │   ├── blink.js    # 깜빡임 효과 (60줄)
+│   │   │   ├── draw.js     # 그리기 효과 (53줄)
+│   │   │   ├── fade.js     # 페이드 효과 (17줄)
+│   │   │   ├── scale.js    # 크기 조절 효과 (36줄)
+│   │   │   ├── slide.js    # 슬라이드 효과 (41줄)
+│   │   │   └── index.js    # 효과 export (10줄)
 │   │   ├── layer/          # 레이어 관리
-│   │   │   ├── layer.controller.js  # 레이어 컨트롤러
-│   │   │   ├── layer.dto.js         # 레이어 데이터 객체
-│   │   │   ├── layer.service.js     # 레이어 서비스
-│   │   │   └── layer.utils.js       # 레이어 유틸리티
+│   │   │   ├── layer.controller.js  # 레이어 컨트롤러 (400줄)
+│   │   │   ├── layer.dto.js         # 레이어 데이터 객체 (105줄)
+│   │   │   ├── layer.service.js     # 레이어 서비스 (144줄)
+│   │   │   ├── layer.utils.js       # 레이어 유틸리티 (60줄)
+│   │   │   └── index.js    # 레이어 export (26줄)
 │   │   └── timeline/       # 타임라인 관리
-│   │       ├── timeline.controller.js  # 타임라인 컨트롤러
-│   │       ├── timeline.dto.js         # 타임라인 데이터 객체
-│   │       ├── timeline.service.js     # 타임라인 서비스
-│   │       └── timeline.utils.js       # 타임라인 유틸리티
+│   │       ├── timeline.controller.js  # 타임라인 컨트롤러 (194줄)
+│   │       ├── timeline.dto.js         # 타임라인 데이터 객체 (19줄)
+│   │       ├── timeline.service.js     # 타임라인 서비스 (144줄)
+│   │       ├── timeline.utils.js       # 타임라인 유틸리티 (28줄)
+│   │       └── index.js    # 타임라인 export (22줄)
 │   └── utils/              # 유틸리티 함수
 │       ├── utils.js        # 공통 유틸리티 (99줄)
 │       ├── validator.js    # 입력 검증 (87줄)
@@ -444,5 +448,5 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
     - USAGE.md: 고급 기능 섹션에 막대 위 값 표시 설명 추가, 중략 기호 수정
     - CLAUDE.md: 폴더 구조 재작성, 애니메이션 시스템 설명 추가, 모든 오류 수정
 - **코드 품질**: 85/100점 (우수한 상태)
-- **문서 정확도**: 98/100점 (매우 우수)
+- **문서 정확도**: 100/100점 (완벽) ✅
 - **현재 상태**: 정상 작동 ✅
