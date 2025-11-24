@@ -259,6 +259,7 @@ class FrequencyDistributionApp {
     ];
 
     // 각 컬럼별 설정 행 생성
+    const defaultVisibleColumns = [true, true, true, true, false, false]; // 누적도수, 누적상대도수 숨김
     columns.forEach((column, index) => {
       const row = document.createElement('div');
       row.className = 'table-config-row';
@@ -266,10 +267,11 @@ class FrequencyDistributionApp {
       row.dataset.columnIndex = index;
 
       const defaultAlignment = CONFIG.TABLE_DEFAULT_ALIGNMENT[column.label] || 'center';
+      const isChecked = defaultVisibleColumns[index] ? 'checked' : '';
 
       row.innerHTML = `
         <span class="drag-handle">⋮⋮</span>
-        <input type="checkbox" class="column-checkbox" data-column-index="${index}" checked>
+        <input type="checkbox" class="column-checkbox" data-column-index="${index}" ${isChecked}>
         <span class="column-label">${column.label}</span>
         <div class="alignment-buttons">
           <button class="align-btn ${defaultAlignment === 'left' ? 'active' : ''}" data-column="${column.label}" data-align="left">L</button>
@@ -1081,7 +1083,7 @@ class FrequencyDistributionApp {
     if (!panel) {
       return {
         labels: customLabels.table,
-        visibleColumns: [true, true, true, true, true, true],
+        visibleColumns: [true, true, true, true, false, false],
         columnOrder: [0, 1, 2, 3, 4, 5],
         showSuperscript: CONFIG.TABLE_SHOW_SUPERSCRIPT
       };

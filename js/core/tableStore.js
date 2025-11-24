@@ -11,10 +11,10 @@ import CONFIG from '../config.js';
  */
 class TableStore {
   constructor() {
-    this.visibleColumns = [true, true, true, true, true, true]; // 6개 컬럼 표시 여부
-    this.columnOrder = [0, 1, 2, 3, 4, 5];                      // 컬럼 순서
-    this.labels = null;                                          // 테이블 라벨
-    this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT }; // 컬럼별 정렬
+    this.visibleColumns = [true, true, true, true, false, false]; // 6개 컬럼 표시 여부 (누적도수, 누적상대도수 숨김)
+    this.columnOrder = [0, 1, 2, 3, 4, 5];                        // 컬럼 순서
+    this.labels = null;                                            // 테이블 라벨
+    this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };  // 컬럼별 정렬
   }
 
   /**
@@ -95,7 +95,7 @@ class TableStore {
    * 기본값으로 초기화
    */
   reset() {
-    this.visibleColumns = [true, true, true, true, true, true];
+    this.visibleColumns = [true, true, true, true, false, false];
     this.columnOrder = [0, 1, 2, 3, 4, 5];
     this.labels = null;
     this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };

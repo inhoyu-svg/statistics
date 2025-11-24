@@ -18,7 +18,7 @@ class TableLayerFactory {
   static createTableLayers(layerManager, classes, total, config = null) {
     // 설정 가져오기
     const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
-    const visibleColumns = config?.visibleColumns || [true, true, true, true, true, true];
+    const visibleColumns = config?.visibleColumns || [true, true, true, true, false, false];
     const columnOrder = config?.columnOrder || [0, 1, 2, 3, 4, 5];
     const columnAlignment = config?.columnAlignment || CONFIG.TABLE_DEFAULT_ALIGNMENT;
     const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
