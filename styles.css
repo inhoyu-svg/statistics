@@ -1401,8 +1401,8 @@ canvas {
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  min-width: 60px;
 }
 
 .layer-type {
@@ -1708,12 +1708,13 @@ canvas {
   border: none;
   font-size: 16px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 2px 4px;
   border-radius: var(--radius-sm);
   color: var(--color-text-light);
   transition: var(--transition-fast);
   opacity: 0.7;
   flex-shrink: 0;
+  min-width: 24px;
 }
 
 .layer-json-btn:hover {
