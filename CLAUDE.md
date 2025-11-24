@@ -236,7 +236,7 @@ Add: 빈 계급 구간 압축 기능 추가
 
 - processor.js에 shouldShowEllipsis() 메서드 추가
 - createCoordinateSystem()에 압축 모드 지원
-- chart.js에 zigzag 패턴과 ≈ 기호 렌더링 추가
+- chart.js에 ≈ 기호 렌더링 추가
 ```
 
 ```
