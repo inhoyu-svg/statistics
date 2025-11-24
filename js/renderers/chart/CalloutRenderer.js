@@ -79,7 +79,7 @@ class CalloutRenderer {
 
     // 테두리
     ctx.strokeStyle = '#93DA6A';
-    ctx.lineWidth = 0.5;
+    ctx.lineWidth = 1;
     ctx.stroke(path);
   }
 
@@ -97,7 +97,7 @@ class CalloutRenderer {
     const lineHeight = CONFIG.CALLOUT_LINE_HEIGHT;
 
     ctx.font = CONFIG.CALLOUT_FONT;
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = '#93DA6A';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 

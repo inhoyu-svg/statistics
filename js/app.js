@@ -1035,7 +1035,12 @@ class FrequencyDistributionApp {
   getCustomLabels() {
     const xAxisLabel = document.getElementById('xAxisLabel')?.value.trim() || '';
     const yAxisLabel = document.getElementById('yAxisLabel')?.value.trim() || '';
-    const calloutTemplate = document.getElementById('calloutTemplate')?.value.trim() || CONFIG.CALLOUT_TEMPLATE;
+
+    // 말풍선 체크박스 상태 확인
+    const showCallout = document.getElementById('showCallout')?.checked || false;
+    const calloutTemplate = showCallout
+      ? (document.getElementById('calloutTemplate')?.value.trim() || CONFIG.CALLOUT_TEMPLATE)
+      : null;
 
     const panel = this._getTableConfigPanel();
     if (!panel) return { axis: {}, table: {} };

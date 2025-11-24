@@ -126,18 +126,18 @@ const CONFIG = {
   DEFAULT_CHART_DATA_TYPE: 'relativeFrequency',
 
   // 말풍선 설정
-  CALLOUT_ENABLED: true,                    // 말풍선 표시 여부
+  CALLOUT_ENABLED: false,                   // 말풍선 표시 여부 (기본값)
   CALLOUT_WIDTH: 73,                        // 말풍선 너비
   CALLOUT_HEIGHT: 36,                       // 말풍선 높이
   CALLOUT_OFFSET_X: 10,                     // 포인트에서 왼쪽으로 오프셋
   CALLOUT_OFFSET_Y: 10,                     // 포인트에서 위로 오프셋
-  CALLOUT_TAIL_WIDTH: 20,                   // 꼬리 너비
-  CALLOUT_TAIL_HEIGHT: 10,                  // 꼬리 높이
+  CALLOUT_TAIL_WIDTH: 20,                   // 꼬리 너비 (미사용)
+  CALLOUT_TAIL_HEIGHT: 10,                  // 꼬리 높이 (미사용)
   CALLOUT_BORDER_RADIUS: 5.46,              // 모서리 둥글기
   CALLOUT_PADDING: 8,                       // 내부 패딩
-  CALLOUT_FONT: '12px sans-serif',          // 폰트
-  CALLOUT_LINE_HEIGHT: 16,                  // 줄 간격
-  CALLOUT_TEMPLATE: '계급: {min}~{max}\n상대도수: {relativeFreq}%', // 기본 템플릿
+  CALLOUT_FONT: '16px sans-serif',          // 폰트
+  CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
+  CALLOUT_TEMPLATE: '남학생\n{frequency}명', // 기본 템플릿
 
   // 색상 캐시 (성능 최적화)
   _colorCache: null,

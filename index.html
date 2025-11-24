@@ -73,6 +73,21 @@
         </label>
       </div>
 
+      <!-- 말풍선 옵션 -->
+      <div class="table-options">
+        <label>
+          <input type="checkbox" id="showCallout">
+          <span>말풍선 표시</span>
+        </label>
+        <div class="input-group" style="margin-top: 8px;">
+          <label for="calloutTemplate">말풍선 텍스트:</label>
+          <input type="text" id="calloutTemplate" placeholder="남학생\n{frequency}명">
+          <small style="color: #93c5fd; font-size: 12px; margin-top: 4px; display: block;">
+            사용 가능한 변수: {min}, {max}, {midpoint}, {frequency}, {relativeFreq}
+          </small>
+        </div>
+      </div>
+
       <!-- 고급 설정 -->
       <details class="advanced-settings">
         <summary>고급 설정</summary>
@@ -84,14 +99,6 @@
           <div class="input-group">
             <label for="yAxisLabel">Y축 라벨:</label>
             <input type="text" id="yAxisLabel" placeholder="상대도수">
-          </div>
-
-          <div class="input-group">
-            <label for="calloutTemplate">말풍선 템플릿:</label>
-            <input type="text" id="calloutTemplate" placeholder="계급: {min}~{max}\n상대도수: {relativeFreq}%">
-            <small style="color: #93c5fd; font-size: 12px; margin-top: 4px; display: block;">
-              사용 가능한 변수: {min}, {max}, {midpoint}, {frequency}, {relativeFreq}
-            </small>
           </div>
 
           <h4>표 컬럼 설정 (드래그하여 순서 변경)</h4>
