@@ -629,19 +629,25 @@ class FrequencyDistributionApp {
         const newVisible = !currentVisible;
 
         // 레이어 가시성 변경
-        this.chartRenderer.layerManager.setLayerVisibility(layerId, newVisible);
+        layerManager.setLayerVisibility(layerId, newVisible);
 
         // 부모 레이어인 경우 모든 자식도 함께 변경
-        const layer = this.chartRenderer.layerManager.findLayer(layerId);
+        const layer = layerManager.findLayer(layerId);
         if (layer && layer.type === 'group' && layer.children) {
           layer.children.forEach(child => {
-            this.chartRenderer.layerManager.setLayerVisibility(child.id, newVisible);
+            layerManager.setLayerVisibility(child.id, newVisible);
           });
         }
 
         // UI 업데이트
         this.renderLayerPanel();
-        this.chartRenderer.renderFrame();
+
+        // 선택된 소스의 렌더러 업데이트
+        if (this.currentLayerSource === 'chart') {
+          this.chartRenderer.renderFrame();
+        } else if (this.currentLayerSource === 'table') {
+          this.tableRenderer.renderFrame();
+        }
       });
     });
 
@@ -1139,10 +1145,10 @@ class FrequencyDistributionApp {
       if (jsonContent) {
         navigator.clipboard.writeText(jsonContent.textContent)
           .then(() => {
-            MessageManager.showSuccess('JSON이 클립보드에 복사되었습니다!');
+            MessageManager.success('JSON이 클립보드에 복사되었습니다!');
           })
           .catch(err => {
-            MessageManager.showError('복사에 실패했습니다: ' + err.message);
+            MessageManager.error('복사에 실패했습니다: ' + err.message);
           });
       }
     });
@@ -1157,9 +1163,22 @@ class FrequencyDistributionApp {
    * @param {string} layerId - 레이어 ID
    */
   showJsonPreview(layerId) {
-    const layer = this.chartRenderer.layerManager.findLayer(layerId);
+    // 현재 선택된 소스의 LayerManager에서 레이어 찾기
+    let layerManager;
+    if (this.currentLayerSource === 'chart') {
+      layerManager = this.chartRenderer.layerManager;
+    } else if (this.currentLayerSource === 'table') {
+      layerManager = this.tableRenderer.getLayerManager();
+    }
+
+    if (!layerManager) {
+      MessageManager.error('레이어 매니저를 찾을 수 없습니다.');
+      return;
+    }
+
+    const layer = layerManager.findLayer(layerId);
     if (!layer) {
-      MessageManager.showError('레이어를 찾을 수 없습니다.');
+      MessageManager.error('레이어를 찾을 수 없습니다.');
       return;
     }
 
