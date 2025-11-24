@@ -138,7 +138,7 @@ class ChartRenderer {
         coords,
         ellipsisInfo,
         dataType,
-        calloutTemplate || CONFIG.CALLOUT_TEMPLATE
+        calloutTemplate
       );
       this.setupAnimations(classes);
       this.playAnimation();
