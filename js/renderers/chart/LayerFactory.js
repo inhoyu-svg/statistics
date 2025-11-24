@@ -139,8 +139,8 @@ class LayerFactory {
     layerManager.addLayer(histogramGroup);
     layerManager.addLayer(polygonGroup);
 
-    // 말풍선 레이어 생성 (활성화된 경우)
-    if (CONFIG.CALLOUT_ENABLED && calloutTemplate) {
+    // 말풍선 레이어 생성 (템플릿이 제공된 경우)
+    if (calloutTemplate) {
       const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate);
       if (calloutLayer) {
         layerManager.addLayer(calloutLayer);
