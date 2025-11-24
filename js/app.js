@@ -1210,8 +1210,27 @@ class FrequencyDistributionApp {
 
     if (!modal || !content) return;
 
-    // 레이어를 JSON으로 변환
-    const json = JSON.stringify(layer.toJSON(), null, 2);
+    // 레이어를 JSON으로 변환 (순환 참조 제거)
+    const layerData = {
+      id: layer.id,
+      name: layer.name,
+      type: layer.type,
+      visible: layer.visible,
+      order: layer.order,
+      p_id: layer.p_id,
+      data: layer.data,
+      childrenCount: layer.children?.length || 0,
+      children: layer.children?.map(child => ({
+        id: child.id,
+        name: child.name,
+        type: child.type,
+        visible: child.visible,
+        order: child.order,
+        data: child.data
+      })) || []
+    };
+
+    const json = JSON.stringify(layerData, null, 2);
     content.textContent = json;
 
     // 모달 표시
