@@ -165,7 +165,6 @@ class ChartRenderer {
       this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
       this.polygonRenderer.draw(values, coords, ellipsisInfo);
       this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
-      this.axisRenderer.drawYValueLabels(values, coords, ellipsisInfo, dataType);
       this.axisRenderer.drawLegend(dataType);
     }
   }
@@ -249,15 +248,16 @@ class ChartRenderer {
     // 막대 라벨 그룹 찾기
     const labelsGroup = this.layerManager.findLayer('bar-labels');
 
-    if (!histogramGroup || !pointsGroup) return;
+    // 히스토그램도 다각형도 없으면 리턴
+    if (!histogramGroup && !polygonGroup) return;
 
-    const bars = histogramGroup.children;
-    const points = pointsGroup.children;
+    const bars = histogramGroup?.children || [];
+    const points = pointsGroup?.children || [];
     const labels = labelsGroup?.children || [];
 
-    // 계급별로 묶어서 순차 애니메이션 (점 개수 기준)
-    // 모든 점을 애니메이션하되, 막대는 있을 때만
-    const classCount = points.length;
+    // 계급별로 묶어서 순차 애니메이션
+    // 기준: 막대와 점 중 더 많은 쪽 (보통 같지만 안전하게)
+    const classCount = Math.max(bars.length, points.length, classes.length);
 
     // 막대 인덱스 매핑 (bar.data.index → bars 배열 인덱스)
     const barIndexMap = new Map();
@@ -271,16 +271,21 @@ class ChartRenderer {
       labelIndexMap.set(label.data.index, idx);
     });
 
-    for (let i = 0; i < classCount; i++) {
-      const point = points[i];
-      const pointClassIndex = point.data.index;
+    // 점 인덱스 매핑 (point.data.index → points 배열 인덱스)
+    const pointIndexMap = new Map();
+    points.forEach((point, idx) => {
+      pointIndexMap.set(point.data.index, idx);
+    });
 
-      // 해당 계급의 막대 찾기
-      const barIdx = barIndexMap.get(pointClassIndex);
+    for (let i = 0; i < classCount; i++) {
+      // 현재 계급 인덱스 i를 기준으로 막대, 점, 라벨 찾기
+      const barIdx = barIndexMap.get(i);
       const bar = barIdx !== undefined ? bars[barIdx] : null;
 
-      // 해당 계급의 라벨 찾기
-      const labelIdx = labelIndexMap.get(pointClassIndex);
+      const pointIdx = pointIndexMap.get(i);
+      const point = pointIdx !== undefined ? points[pointIdx] : null;
+
+      const labelIdx = labelIndexMap.get(i);
       const label = labelIdx !== undefined ? labels[labelIdx] : null;
 
       // 막대 애니메이션 (있으면)
@@ -312,6 +317,18 @@ class ChartRenderer {
           duration: pointDuration,
           effect: 'fade',
           effectOptions: {},
+          easing: 'easeOut'
+        });
+      }
+
+      // 파선 애니메이션 (점과 동일한 타이밍, 우→좌 그리기)
+      const dashedLine = this.layerManager.findLayer(`dashed-line-${i}`);
+      if (dashedLine && dashedLine.visible) {
+        this.timeline.addAnimation(dashedLine.id, {
+          startTime: currentTime,
+          duration: pointDuration,
+          effect: 'draw',
+          effectOptions: { direction: 'right-to-left' },
           easing: 'easeOut'
         });
       }
@@ -457,8 +474,8 @@ class ChartRenderer {
       return { anim, layer, isActive, isCompleted };
     }).filter(item => item !== null);
 
-    // 렌더링 순서: bar → line → point (타입 기준 정렬)
-    const renderOrder = { 'bar': 0, 'line': 1, 'point': 2 };
+    // 렌더링 순서: bar → line → dashed-line → point (타입 기준 정렬)
+    const renderOrder = { 'bar': 0, 'line': 1, 'dashed-line': 2, 'point': 3, 'bar-label': 4, 'callout': 5 };
     allAnimations.sort((a, b) => {
       const orderA = renderOrder[a.layer.type] ?? 999;
       const orderB = renderOrder[b.layer.type] ?? 999;

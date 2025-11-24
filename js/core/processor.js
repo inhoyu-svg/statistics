@@ -371,6 +371,14 @@ class DataProcessor {
         chartConfig.ellipsisInfo = chartRenderer.currentEllipsisInfo;
       }
 
+      // 차트 요소 표시 설정
+      chartConfig.chartElements = {
+        showHistogram: CONFIG.SHOW_HISTOGRAM,
+        showPolygon: CONFIG.SHOW_POLYGON,
+        showBarLabels: CONFIG.SHOW_BAR_LABELS,
+        showDashedLines: CONFIG.SHOW_DASHED_LINES
+      };
+
       // 격자선 설정
       chartConfig.gridSettings = {
         showHorizontal: CONFIG.GRID_SHOW_HORIZONTAL,

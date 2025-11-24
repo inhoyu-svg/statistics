@@ -84,12 +84,12 @@ class LayerFactory {
       visible: true
     });
 
-    // 파선 그룹
+    // 파선 그룹 (독립 레이어)
     const dashedLinesGroup = new Layer({
       id: 'dashed-lines',
       name: '수직 파선',
       type: 'group',
-      visible: true
+      visible: CONFIG.SHOW_DASHED_LINES
     });
 
     // 점 레이어 생성 (도수 0인 계급도 포함)
@@ -145,6 +145,7 @@ class LayerFactory {
     // 파선 레이어 생성 (점에서 Y축까지 수직 파선)
     values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+      if (value === 0) return; // 값이 0인 파선은 생성하지 않음
 
       const className = Utils.getClassName(classes[index]);
 
@@ -155,21 +156,27 @@ class LayerFactory {
         visible: true,
         data: {
           index,
-          relativeFreq: value
+          relativeFreq: value,
+          coords
         }
       });
 
       dashedLinesGroup.addChild(dashedLineLayer);
     });
 
-    // 렌더링 순서: 선 → 파선 → 점 (점이 가장 위에 표시되도록)
+    // 렌더링 순서: 선 → 점 (점이 가장 위에 표시되도록)
     polygonGroup.addChild(linesGroup);
-    polygonGroup.addChild(dashedLinesGroup);
     polygonGroup.addChild(pointsGroup);
 
-    // 렌더링 순서: 히스토그램 → 다각형 → 라벨(조건부) → 말풍선
-    layerManager.addLayer(histogramGroup);
-    layerManager.addLayer(polygonGroup);
+    // 렌더링 순서: 히스토그램 → 파선 → 다각형 → 라벨(조건부) → 말풍선
+    // CONFIG에 따라 조건부 추가
+    if (CONFIG.SHOW_HISTOGRAM) {
+      layerManager.addLayer(histogramGroup);
+    }
+    layerManager.addLayer(dashedLinesGroup);
+    if (CONFIG.SHOW_POLYGON) {
+      layerManager.addLayer(polygonGroup);
+    }
 
     // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
     if (CONFIG.SHOW_BAR_LABELS) {

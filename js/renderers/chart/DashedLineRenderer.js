@@ -18,24 +18,38 @@ class DashedLineRenderer {
    * @param {Layer} layer - 파선 레이어
    */
   render(layer) {
-    const { index, relativeFreq, coords } = layer.data;
+    if (!layer.data) {
+      console.error('❌ layer.data가 없습니다:', layer);
+      return;
+    }
+
+    const { index, relativeFreq, coords, animationProgress = 1.0 } = layer.data;
+
+    if (!coords) {
+      console.error('❌ coords가 없습니다:', layer.data);
+      return;
+    }
+
     const { toX, toY, xScale } = coords;
 
-    // 점의 위치
+    // 점의 위치 (우측 시작점)
     const pointX = toX(index) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
     const pointY = toY(relativeFreq);
 
-    // Y축까지 수직 파선
-    const leftEdgeX = toX(0); // Y축 위치
+    // Y축 위치 (좌측 끝점)
+    const leftEdgeX = toX(0);
+
+    // 애니메이션 진행도에 따라 현재 끝점 계산 (우→좌)
+    const currentEndX = pointX - (pointX - leftEdgeX) * animationProgress;
 
     this.ctx.save();
-    this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-point-color'); // 점과 동일한 색상
+    this.ctx.strokeStyle = CONFIG.getColor('--chart-dashed-line-color');
     this.ctx.lineWidth = 1.5;
     this.ctx.setLineDash([5, 5]); // 파선 패턴 (5px 선, 5px 공백)
 
     this.ctx.beginPath();
     this.ctx.moveTo(pointX, pointY);
-    this.ctx.lineTo(leftEdgeX, pointY);
+    this.ctx.lineTo(currentEndX, pointY);
     this.ctx.stroke();
 
     this.ctx.restore(); // setLineDash 초기화

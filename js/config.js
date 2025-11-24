@@ -133,8 +133,15 @@ const CONFIG = {
   CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
   CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
 
+  // 차트 요소 표시 설정
+  SHOW_HISTOGRAM: true,                     // 히스토그램 표시 여부 (기본값)
+  SHOW_POLYGON: true,                       // 도수 다각형 표시 여부 (기본값)
+
   // 막대 라벨 설정
   SHOW_BAR_LABELS: false,                   // 막대 위 값 표시 여부 (기본값)
+
+  // 파선 설정
+  SHOW_DASHED_LINES: false,                 // 수직 파선 표시 여부 (기본값)
 
   // 격자선 설정
   GRID_SHOW_HORIZONTAL: true,               // 가로 격자선 표시 여부
@@ -189,6 +196,7 @@ const CONFIG = {
       '--chart-line-color-start': style.getPropertyValue('--chart-line-color-start').trim(),
       '--chart-line-color-end': style.getPropertyValue('--chart-line-color-end').trim(),
       '--chart-polygon-color': style.getPropertyValue('--chart-polygon-color').trim(),
+      '--chart-dashed-line-color': style.getPropertyValue('--chart-dashed-line-color').trim(),
       '--chart-callout-bg-start': style.getPropertyValue('--chart-callout-bg-start').trim(),
       '--chart-callout-bg-end': style.getPropertyValue('--chart-callout-bg-end').trim(),
       '--chart-callout-border': style.getPropertyValue('--chart-callout-border').trim(),

@@ -58,6 +58,8 @@ class AxisRenderer {
    * @param {number} gridDivisions - 그리드 분할 수
    */
   drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
+    if (!CONFIG.AXIS_SHOW_Y_LABELS) return;
+
     this.ctx.textAlign = 'right';
     for (let i = 0; i <= gridDivisions; i++) {
       const value = maxY * i / gridDivisions;
@@ -270,46 +272,6 @@ class AxisRenderer {
 
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.fillText(`${legendSuffix} 다각형`, legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y2 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET - 8);
-  }
-
-  /**
-   * Y축 값 라벨 그리기 (파선 끝점)
-   * @param {Array} values - 값 배열
-   * @param {Object} coords - 좌표 시스템
-   * @param {Object} ellipsisInfo - 중략 정보
-   * @param {string} dataType - 데이터 타입
-   */
-  drawYValueLabels(values, coords, ellipsisInfo, dataType = 'relativeFrequency') {
-    if (!CONFIG.AXIS_SHOW_Y_LABELS) return;
-
-    const { toX, toY } = coords;
-    const leftEdgeX = toX(0); // Y축 위치
-
-    this.ctx.save();
-    this.ctx.fillStyle = CONFIG.getColor('--chart-polygon-point-color');
-    this.ctx.font = CONFIG.CHART_FONT_SMALL;
-    this.ctx.textAlign = 'right';
-    this.ctx.textBaseline = 'middle';
-
-    values.forEach((value, index) => {
-      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-      const y = toY(value);
-
-      // 값 포맷팅
-      let labelText;
-      if (dataType === 'frequency') {
-        labelText = Math.round(value).toString();
-      } else {
-        const percentage = value * 100;
-        labelText = Utils.formatNumber(percentage).replace(/\.00$/, '');
-      }
-
-      // Y축 왼쪽에 라벨 표시
-      this.ctx.fillText(labelText, leftEdgeX - 5, y);
-    });
-
-    this.ctx.restore();
   }
 
   /**

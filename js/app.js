@@ -75,6 +75,9 @@ class FrequencyDistributionApp {
     // 막대 라벨 토글 초기화
     this.initBarLabelsToggle();
 
+    // 차트 요소 토글 초기화
+    this.initChartElementsToggle();
+
     // 격자선 토글 초기화
     this.initGridToggle();
 
@@ -277,6 +280,49 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 히스토그램/다각형 표시 토글 이벤트 리스너 등록
+   */
+  initChartElementsToggle() {
+    // 히스토그램 토글
+    const histogramCheckbox = document.getElementById('showHistogram');
+    histogramCheckbox?.addEventListener('change', () => {
+      CONFIG.SHOW_HISTOGRAM = histogramCheckbox.checked;
+
+      if (DataStore.hasData()) {
+        const { classes } = DataStore.getData();
+        const customLabels = this.getCustomLabels();
+        const dataType = ChartStore.getDataType();
+        const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
+        const configWithAlignment = this.getTableConfigWithAlignment();
+
+        this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+        this.chartRenderer.stopAnimation();
+        this.chartRenderer.timeline.currentTime = this.chartRenderer.timeline.duration;
+        this.chartRenderer.renderFrame();
+      }
+    });
+
+    // 다각형 토글
+    const polygonCheckbox = document.getElementById('showPolygon');
+    polygonCheckbox?.addEventListener('change', () => {
+      CONFIG.SHOW_POLYGON = polygonCheckbox.checked;
+
+      if (DataStore.hasData()) {
+        const { classes } = DataStore.getData();
+        const customLabels = this.getCustomLabels();
+        const dataType = ChartStore.getDataType();
+        const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
+        const configWithAlignment = this.getTableConfigWithAlignment();
+
+        this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+        this.chartRenderer.stopAnimation();
+        this.chartRenderer.timeline.currentTime = this.chartRenderer.timeline.duration;
+        this.chartRenderer.renderFrame();
+      }
+    });
+  }
+
+  /**
    * 격자선 표시 토글 이벤트 리스너 등록
    */
   initGridToggle() {
@@ -306,6 +352,13 @@ class FrequencyDistributionApp {
     const xAxisLabelsCheckbox = document.getElementById('showXAxisLabels');
     xAxisLabelsCheckbox?.addEventListener('change', () => {
       CONFIG.AXIS_SHOW_X_LABELS = xAxisLabelsCheckbox.checked;
+      this.redrawChart();
+    });
+
+    // 파선 토글
+    const dashedLinesCheckbox = document.getElementById('showDashedLines');
+    dashedLinesCheckbox?.addEventListener('change', () => {
+      CONFIG.SHOW_DASHED_LINES = dashedLinesCheckbox.checked;
       this.redrawChart();
     });
   }

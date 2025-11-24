@@ -58,6 +58,9 @@
   --chart-line-color-end: #F3A257;
   --chart-polygon-color: #FC9A63;
 
+  /* Chart - Dashed Line */
+  --chart-dashed-line-color: #54A0F6;
+
   /* Chart - Callout */
   --chart-callout-bg-start: rgba(174, 255, 126, 0.3);
   --chart-callout-bg-end: rgba(104, 153, 76, 0.3);

@@ -65,6 +65,21 @@
         </div>
       </div>
 
+      <!-- 차트 요소 표시 옵션 -->
+      <div class="table-options">
+        <label>
+          <input type="checkbox" id="showHistogram" checked>
+          <span>히스토그램 표시</span>
+        </label>
+      </div>
+
+      <div class="table-options">
+        <label>
+          <input type="checkbox" id="showPolygon" checked>
+          <span>도수 다각형 표시</span>
+        </label>
+      </div>
+
       <!-- 표 옵션 -->
       <div class="table-options">
         <label>
@@ -93,6 +108,14 @@
         </label>
       </div>
 
+      <!-- 파선 옵션 -->
+      <div class="table-options">
+        <label>
+          <input type="checkbox" id="showDashedLines">
+          <span>수직 파선 표시</span>
+        </label>
+      </div>
+
       <!-- 고급 설정 -->
       <details class="advanced-settings">
         <summary>고급 설정</summary>
@@ -115,7 +138,7 @@
             <h4>축 값 라벨 표시</h4>
             <label class="checkbox-label">
               <input type="checkbox" id="showYAxisLabels" checked>
-              Y축 값 라벨 (파선 끝점)
+              Y축 값 라벨 (눈금)
             </label>
             <label class="checkbox-label">
               <input type="checkbox" id="showXAxisLabels" checked>
