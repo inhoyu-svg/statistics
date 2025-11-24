@@ -141,6 +141,26 @@
                 aria-label="애니메이션 진행도 조절">
             </div>
           </div>
+
+          <!-- 테이블 하이라이트 테스트 -->
+          <div class="control-group highlight-test-group" style="display: none;">
+            <h3 class="test-title">🎯 테이블 하이라이트 테스트</h3>
+            <div class="test-button-row">
+              <button id="highlightCell1" class="test-btn">첫 행 도수 셀</button>
+              <button id="jsonCell1" class="json-btn">📄 JSON</button>
+            </div>
+            <div class="test-button-row">
+              <button id="highlightRow2" class="test-btn">두 번째 행 전체</button>
+              <button id="jsonRow2" class="json-btn">📄 JSON</button>
+            </div>
+            <div class="test-button-row">
+              <button id="highlightCell3" class="test-btn">3행 2열 셀</button>
+              <button id="jsonCell3" class="json-btn">📄 JSON</button>
+            </div>
+            <div class="test-button-row">
+              <button id="clearHighlight" class="test-btn">하이라이트 해제</button>
+            </div>
+          </div>
         </div>
 
         <!-- 표 + 차트 영역 -->
@@ -149,14 +169,6 @@
             <h2 class="section-title">📋 도수분포표</h2>
             <div class="table-wrapper">
               <canvas id="frequencyTable" role="img" aria-label="도수분포표"></canvas>
-            </div>
-
-            <!-- 셀 하이라이트 테스트 버튼 -->
-            <div class="highlight-test-buttons" style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-              <button id="highlightCell1" class="test-btn" style="display: none;">첫 행 도수 셀</button>
-              <button id="highlightRow2" class="test-btn" style="display: none;">두 번째 행 전체</button>
-              <button id="highlightCell3" class="test-btn" style="display: none;">3행 2열 셀</button>
-              <button id="clearHighlight" class="test-btn" style="display: none;">하이라이트 해제</button>
             </div>
           </div>
 

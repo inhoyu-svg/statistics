@@ -1132,10 +1132,24 @@ class FrequencyDistributionApp {
     const highlightCell3Btn = document.getElementById('highlightCell3');
     const clearHighlightBtn = document.getElementById('clearHighlight');
 
+    const jsonCell1Btn = document.getElementById('jsonCell1');
+    const jsonRow2Btn = document.getElementById('jsonRow2');
+    const jsonCell3Btn = document.getElementById('jsonCell3');
+
     // 첫 행 도수 셀 하이라이트 (행 0, 열 2)
     highlightCell1Btn?.addEventListener('click', () => {
       this.tableRenderer.clearHighlight();
       this.tableRenderer.highlightCell(0, 2, 1.0);
+    });
+
+    // 첫 행 도수 셀 JSON 미리보기
+    jsonCell1Btn?.addEventListener('click', () => {
+      const cellLayer = this.tableRenderer.findCellLayer(0, 2);
+      if (cellLayer) {
+        this.showLayerJsonPreview(cellLayer);
+      } else {
+        MessageManager.error('셀 레이어를 찾을 수 없습니다.');
+      }
     });
 
     // 두 번째 행 전체 하이라이트 (행 1, 전체)
@@ -1144,10 +1158,30 @@ class FrequencyDistributionApp {
       this.tableRenderer.highlightCell(1, null, 1.0);
     });
 
+    // 두 번째 행 JSON 미리보기
+    jsonRow2Btn?.addEventListener('click', () => {
+      const rowLayer = this.tableRenderer.getLayerManager().findLayer('table-row-1');
+      if (rowLayer) {
+        this.showLayerJsonPreview(rowLayer);
+      } else {
+        MessageManager.error('행 레이어를 찾을 수 없습니다.');
+      }
+    });
+
     // 3행 2열 셀 하이라이트 (행 2, 열 1)
     highlightCell3Btn?.addEventListener('click', () => {
       this.tableRenderer.clearHighlight();
       this.tableRenderer.highlightCell(2, 1, 1.0);
+    });
+
+    // 3행 2열 셀 JSON 미리보기
+    jsonCell3Btn?.addEventListener('click', () => {
+      const cellLayer = this.tableRenderer.findCellLayer(2, 1);
+      if (cellLayer) {
+        this.showLayerJsonPreview(cellLayer);
+      } else {
+        MessageManager.error('셀 레이어를 찾을 수 없습니다.');
+      }
     });
 
     // 하이라이트 해제
@@ -1160,19 +1194,28 @@ class FrequencyDistributionApp {
    * 하이라이트 테스트 버튼 표시
    */
   showHighlightTestButtons() {
-    const buttons = [
-      'highlightCell1',
-      'highlightRow2',
-      'highlightCell3',
-      'clearHighlight'
-    ];
+    const group = document.querySelector('.highlight-test-group');
+    if (group) {
+      group.style.display = 'block';
+    }
+  }
 
-    buttons.forEach(id => {
-      const btn = document.getElementById(id);
-      if (btn) {
-        btn.style.display = 'inline-block';
-      }
-    });
+  /**
+   * 레이어 JSON 미리보기 표시 (헬퍼 메서드)
+   * @param {Layer} layer - 표시할 레이어
+   */
+  showLayerJsonPreview(layer) {
+    const modal = document.getElementById('jsonPreviewModal');
+    const content = document.getElementById('jsonPreviewContent');
+
+    if (!modal || !content) return;
+
+    // 레이어를 JSON으로 변환
+    const json = JSON.stringify(layer.toJSON(), null, 2);
+    content.textContent = json;
+
+    // 모달 표시
+    modal.style.display = 'flex';
   }
 
   /**

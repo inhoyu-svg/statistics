@@ -1009,17 +1009,40 @@ canvas {
   transform: translateY(0);
 }
 
+/* Highlight Test Group */
+.highlight-test-group {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.test-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+}
+
+.test-button-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
 /* Test Buttons */
 .test-btn {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-input-bg);
   color: var(--color-text);
   cursor: pointer;
   transition: all var(--transition-base);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
 }
 
 .test-btn:hover {
@@ -1031,6 +1054,32 @@ canvas {
 }
 
 .test-btn:active {
+  transform: translateY(0);
+}
+
+/* JSON Preview Buttons */
+.json-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.json-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.json-btn:active {
   transform: translateY(0);
 }
 
