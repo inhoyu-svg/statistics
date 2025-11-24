@@ -1104,6 +1104,10 @@ class FrequencyDistributionApp {
           });
       }
     });
+
+    // 전체 레이어 JSON 미리보기 버튼
+    const showAllLayersJsonBtn = document.getElementById('showAllLayersJsonBtn');
+    showAllLayersJsonBtn?.addEventListener('click', () => this.showAllLayersJsonPreview());
   }
 
   /**
@@ -1132,6 +1136,32 @@ class FrequencyDistributionApp {
 
     if (modalTitle) {
       modalTitle.textContent = `📄 레이어 JSON 미리보기: ${layer.name || layer.id}`;
+    }
+
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+
+  /**
+   * 전체 레이어 JSON 미리보기 모달 표시
+   */
+  showAllLayersJsonPreview() {
+    // 전체 레이어 구조를 JSON으로 직렬화
+    const allLayersJson = this.chartRenderer.layerManager.toJSON();
+    const jsonString = JSON.stringify(allLayersJson, null, 2);
+
+    // 모달에 JSON 표시
+    const jsonContent = document.getElementById('jsonPreviewContent');
+    const modal = document.getElementById('jsonPreviewModal');
+    const modalTitle = modal?.querySelector('.modal-title');
+
+    if (jsonContent) {
+      jsonContent.textContent = jsonString;
+    }
+
+    if (modalTitle) {
+      modalTitle.textContent = '📄 전체 레이어 JSON 미리보기';
     }
 
     if (modal) {
