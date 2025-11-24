@@ -66,7 +66,7 @@ class TableRenderer {
     this.clear();
 
     // 레이어 생성
-    this.layerManager.clear();
+    this.layerManager.clearAll();
     TableLayerFactory.createTableLayers(
       this.layerManager,
       visibleClasses,
@@ -128,9 +128,10 @@ class TableRenderer {
    */
   renderFrame() {
     this.clear();
-    const rootLayer = this.layerManager.getRoot();
-    if (rootLayer) {
-      this.renderLayer(rootLayer);
+    const rootLayer = this.layerManager.root;
+    if (rootLayer && rootLayer.children.length > 0) {
+      // root의 자식들(도수분포표)을 렌더링
+      rootLayer.children.forEach(child => this.renderLayer(child));
     }
   }
 
@@ -140,11 +141,15 @@ class TableRenderer {
   setupAnimations() {
     this.timeline.clear();
 
-    const rootLayer = this.layerManager.getRoot();
-    if (!rootLayer) return;
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return;
+
+    // 도수분포표 레이어 찾기
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return;
 
     // 데이터 행만 애니메이션 (헤더, 합계는 제외)
-    const dataRows = rootLayer.children.filter(child =>
+    const dataRows = tableLayer.children.filter(child =>
       child.id.startsWith('table-row-') && child.id !== 'table-summary'
     );
 
@@ -203,7 +208,7 @@ class TableRenderer {
    * @param {number} progress - 하이라이트 진행도 (0~1)
    */
   highlightCell(rowIndex, colIndex = null, progress = 1.0) {
-    const rowLayer = this.layerManager.findById(`table-row-${rowIndex}`);
+    const rowLayer = this.layerManager.findLayer(`table-row-${rowIndex}`);
     if (!rowLayer) return;
 
     if (colIndex === null) {
@@ -228,11 +233,15 @@ class TableRenderer {
    * 하이라이트 해제
    */
   clearHighlight() {
-    const rootLayer = this.layerManager.getRoot();
-    if (!rootLayer) return;
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return;
+
+    // 도수분포표 레이어 찾기
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return;
 
     // 모든 데이터 셀의 하이라이트 제거
-    rootLayer.children.forEach(child => {
+    tableLayer.children.forEach(child => {
       if (child.type === 'group' && child.id.startsWith('table-row-')) {
         child.children.forEach(cellLayer => {
           if (cellLayer.type === 'cell' && cellLayer.data.rowType === 'data') {
@@ -261,7 +270,7 @@ class TableRenderer {
    * @returns {Layer|null} 셀 레이어
    */
   findCellLayer(rowIndex, colIndex) {
-    return this.layerManager.findById(`table-row-${rowIndex}-col${colIndex}`);
+    return this.layerManager.findLayer(`table-row-${rowIndex}-col${colIndex}`);
   }
 
   /**

@@ -114,8 +114,8 @@ class TableLayerFactory {
     );
     rootLayer.addChild(summaryLayer);
 
-    // LayerManager에 추가
-    layerManager.setRoot(rootLayer);
+    // LayerManager에 추가 (root의 자식으로)
+    layerManager.addLayer(rootLayer, 'root');
   }
 
   /**
