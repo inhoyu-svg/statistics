@@ -44,10 +44,8 @@ class CalloutRenderer {
   _drawCalloutShape(x, y, width, height) {
     const ctx = this.ctx;
     const radius = CONFIG.CALLOUT_BORDER_RADIUS;
-    const tailWidth = CONFIG.CALLOUT_TAIL_WIDTH;
-    const tailHeight = CONFIG.CALLOUT_TAIL_HEIGHT;
 
-    // 말풍선 Path 생성
+    // 둥근 사각형 Path 생성
     const path = new Path2D();
 
     // 상단 왼쪽 모서리부터 시작 (시계방향)
@@ -61,13 +59,6 @@ class CalloutRenderer {
     path.lineTo(x + width, y + height - radius);
     path.arcTo(x + width, y + height, x + width - radius, y + height, radius);
 
-    // 하단 우측 (꼬리 전)
-    path.lineTo(x + width - tailWidth + 5, y + height);
-
-    // 꼬리 (오른쪽 아래로)
-    path.lineTo(x + width - tailWidth, y + height + tailHeight);
-    path.lineTo(x + width - tailWidth - 10, y + height);
-
     // 하단 좌측 모서리
     path.lineTo(x + radius, y + height);
     path.arcTo(x, y + height, x, y + height - radius, radius);
@@ -79,7 +70,7 @@ class CalloutRenderer {
     path.closePath();
 
     // 배경 그라데이션
-    const gradient = ctx.createLinearGradient(x, y, x, y + height + tailHeight);
+    const gradient = ctx.createLinearGradient(x, y, x, y + height);
     gradient.addColorStop(0, 'rgba(174, 255, 126, 0.5)'); // #AEFF7E
     gradient.addColorStop(1, 'rgba(104, 153, 76, 0.5)');  // #68994C
 
