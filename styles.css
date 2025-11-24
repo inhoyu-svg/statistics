@@ -1230,17 +1230,21 @@ canvas {
   margin-bottom: 0;
 }
 
+/* 레이어 소스 선택 컨테이너 */
+.layer-source-selector {
+  margin-bottom: var(--spacing-md);
+}
+
 /* 레이어 소스 선택 드롭다운 */
 .layer-source-select {
-  padding: 4px 8px;
+  width: 100%;
+  padding: 8px 12px;
   background: rgba(255, 255, 255, 0.1);
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 14px;
   cursor: pointer;
-  margin-left: 12px;
-  margin-right: 8px;
   transition: all var(--transition-fast);
 }
 

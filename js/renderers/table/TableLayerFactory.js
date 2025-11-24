@@ -348,9 +348,10 @@ class TableLayerFactory {
     let x = padding;
 
     filteredCells.forEach((cellText, i) => {
-      // 빈 문자열은 건너뛰기 (병합된 부분)
+      const label = filteredLabels[i];
+
+      // 빈 문자열이 아닌 경우에만 레이어 생성 (병합된 부분은 레이어 없음)
       if (cellText !== '') {
-        const label = filteredLabels[i];
         const cellLayer = new Layer({
           id: `table-summary-col${i}`,
           name: String(cellText),
@@ -375,6 +376,8 @@ class TableLayerFactory {
 
         summaryGroup.addChild(cellLayer);
       }
+
+      // x 좌표는 항상 증가 (빈 칸이든 아니든)
       x += columnWidths[i];
     });
 

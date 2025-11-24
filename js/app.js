@@ -29,7 +29,12 @@ class FrequencyDistributionApp {
 
     this.columnOrder = [0, 1, 2, 3, 4, 5]; // 컬럼 순서 관리
     this.draggedElement = null;
-    this.collapsedGroups = new Set(); // 접힌 그룹 ID 목록
+
+    // 레이어 소스별 접힌 그룹 ID 목록
+    this.collapsedGroups = {
+      chart: new Set(),
+      table: new Set()
+    };
 
     // 레이어 소스 상태 (기본: 차트)
     this.currentLayerSource = 'chart';
@@ -498,15 +503,17 @@ class FrequencyDistributionApp {
   /**
    * 조상 중 하나라도 접혀있는지 확인
    * @param {string} layerId - 확인할 레이어 ID
+   * @param {LayerManager} layerManager - 레이어 매니저
    * @returns {boolean} 조상이 접혀있으면 true
    */
-  isAnyAncestorCollapsed(layerId) {
-    let currentParent = this.chartRenderer.layerManager.findParent(layerId);
+  isAnyAncestorCollapsed(layerId, layerManager) {
+    const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
+    let currentParent = layerManager.findParent(layerId);
     while (currentParent) {
-      if (this.collapsedGroups.has(currentParent.id)) {
+      if (currentCollapsedGroups.has(currentParent.id)) {
         return true;
       }
-      currentParent = this.chartRenderer.layerManager.findParent(currentParent.id);
+      currentParent = layerManager.findParent(currentParent.id);
     }
     return false;
   }
@@ -541,7 +548,7 @@ class FrequencyDistributionApp {
         if (layer.id === 'root') return false;
 
         // 조상 중 하나라도 접혀있으면 숨김
-        if (this.isAnyAncestorCollapsed(layer.id)) {
+        if (this.isAnyAncestorCollapsed(layer.id, layerManager)) {
           return false;
         }
 
@@ -553,11 +560,12 @@ class FrequencyDistributionApp {
       }));
 
     // HTML 생성
+    const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
     layerList.innerHTML = filteredLayers.map(({ layer, depth }) => {
       const typeClass = layer.type;
       const depthClass = `depth-${depth}`;
       const isGroup = layer.type === 'group';
-      const isCollapsed = this.collapsedGroups.has(layer.id);
+      const isCollapsed = currentCollapsedGroups.has(layer.id);
       const toggleIcon = isGroup ? (isCollapsed ? '▶' : '▼') : '';
 
       const visibilityIcon = layer.visible ? '👁️' : '👁️‍🗨️';
@@ -597,11 +605,12 @@ class FrequencyDistributionApp {
       toggle.addEventListener('click', (e) => {
         e.stopPropagation();
         const layerId = e.target.dataset.layerId;
+        const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
 
-        if (this.collapsedGroups.has(layerId)) {
-          this.collapsedGroups.delete(layerId);
+        if (currentCollapsedGroups.has(layerId)) {
+          currentCollapsedGroups.delete(layerId);
         } else {
-          this.collapsedGroups.add(layerId);
+          currentCollapsedGroups.add(layerId);
         }
 
         this.renderLayerPanel();

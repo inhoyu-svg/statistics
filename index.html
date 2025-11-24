@@ -200,14 +200,15 @@
         <aside class="layer-panel" id="layerPanel">
           <div class="layer-panel-header">
             <h2 class="section-title">🎨 레이어 관리</h2>
+            <button id="showAllLayersJsonBtn" class="all-json-btn" title="전체 레이어 JSON 미리보기">📄</button>
+          </div>
 
-            <!-- 레이어 소스 선택 드롭다운 -->
+          <!-- 레이어 소스 선택 드롭다운 -->
+          <div class="layer-source-selector">
             <select id="layerSourceSelect" class="layer-source-select">
               <option value="chart">📈 차트</option>
               <option value="table">📋 테이블</option>
             </select>
-
-            <button id="showAllLayersJsonBtn" class="all-json-btn" title="전체 레이어 JSON 미리보기">📄</button>
           </div>
 
           <div class="layer-list" id="layerList">
