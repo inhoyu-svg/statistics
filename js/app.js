@@ -294,6 +294,20 @@ class FrequencyDistributionApp {
       CONFIG.GRID_SHOW_VERTICAL = verticalCheckbox.checked;
       this.redrawChart();
     });
+
+    // Y축 값 라벨 토글
+    const yAxisLabelsCheckbox = document.getElementById('showYAxisLabels');
+    yAxisLabelsCheckbox?.addEventListener('change', () => {
+      CONFIG.AXIS_SHOW_Y_LABELS = yAxisLabelsCheckbox.checked;
+      this.redrawChart();
+    });
+
+    // X축 값 라벨 토글
+    const xAxisLabelsCheckbox = document.getElementById('showXAxisLabels');
+    xAxisLabelsCheckbox?.addEventListener('change', () => {
+      CONFIG.AXIS_SHOW_X_LABELS = xAxisLabelsCheckbox.checked;
+      this.redrawChart();
+    });
   }
 
   /**

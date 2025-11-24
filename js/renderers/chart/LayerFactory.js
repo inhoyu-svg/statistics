@@ -84,6 +84,14 @@ class LayerFactory {
       visible: true
     });
 
+    // 파선 그룹
+    const dashedLinesGroup = new Layer({
+      id: 'dashed-lines',
+      name: '수직 파선',
+      type: 'group',
+      visible: true
+    });
+
     // 점 레이어 생성 (도수 0인 계급도 포함)
     values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
@@ -134,8 +142,29 @@ class LayerFactory {
       prevIndex = index;
     });
 
-    // 렌더링 순서: 선 → 점 (점이 선 위에 표시되도록)
+    // 파선 레이어 생성 (점에서 Y축까지 수직 파선)
+    values.forEach((value, index) => {
+      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+      const className = Utils.getClassName(classes[index]);
+
+      const dashedLineLayer = new Layer({
+        id: `dashed-line-${index}`,
+        name: `파선(${className})`,
+        type: 'dashed-line',
+        visible: true,
+        data: {
+          index,
+          relativeFreq: value
+        }
+      });
+
+      dashedLinesGroup.addChild(dashedLineLayer);
+    });
+
+    // 렌더링 순서: 선 → 파선 → 점 (점이 가장 위에 표시되도록)
     polygonGroup.addChild(linesGroup);
+    polygonGroup.addChild(dashedLinesGroup);
     polygonGroup.addChild(pointsGroup);
 
     // 렌더링 순서: 히스토그램 → 다각형 → 라벨(조건부) → 말풍선

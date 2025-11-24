@@ -140,6 +140,10 @@ const CONFIG = {
   GRID_SHOW_HORIZONTAL: true,               // 가로 격자선 표시 여부
   GRID_SHOW_VERTICAL: true,                 // 세로 격자선 표시 여부
 
+  // 축 라벨 설정
+  AXIS_SHOW_Y_LABELS: true,                 // Y축 값 라벨 표시 여부 (파선 끝점)
+  AXIS_SHOW_X_LABELS: true,                 // X축 값 라벨 표시 여부
+
   // 투명도 설정
   CHART_BAR_ALPHA: 0.5,                     // 막대 투명도
   CHART_DEFAULT_ALPHA: 1.0,                 // 기본 투명도

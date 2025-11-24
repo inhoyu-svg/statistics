@@ -377,6 +377,12 @@ class DataProcessor {
         showVertical: CONFIG.GRID_SHOW_VERTICAL
       };
 
+      // 축 라벨 설정
+      chartConfig.axisLabelSettings = {
+        showYLabels: CONFIG.AXIS_SHOW_Y_LABELS,
+        showXLabels: CONFIG.AXIS_SHOW_X_LABELS
+      };
+
       // 캔버스 크기
       if (chartRenderer.canvas) {
         chartConfig.canvasSize = {

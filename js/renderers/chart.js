@@ -15,6 +15,7 @@ import HistogramRenderer from './chart/HistogramRenderer.js';
 import PolygonRenderer from './chart/PolygonRenderer.js';
 import AxisRenderer from './chart/AxisRenderer.js';
 import CalloutRenderer from './chart/CalloutRenderer.js';
+import DashedLineRenderer from './chart/DashedLineRenderer.js';
 
 /**
  * @class ChartRenderer
@@ -39,6 +40,7 @@ class ChartRenderer {
     this.polygonRenderer = new PolygonRenderer(this.ctx);
     this.axisRenderer = new AxisRenderer(this.ctx, this.canvas, this.padding);
     this.calloutRenderer = new CalloutRenderer(this.ctx);
+    this.dashedLineRenderer = new DashedLineRenderer(this.ctx);
 
     // Layer 시스템
     this.layerManager = new LayerManager();
@@ -163,6 +165,7 @@ class ChartRenderer {
       this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
       this.polygonRenderer.draw(values, coords, ellipsisInfo);
       this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
+      this.axisRenderer.drawYValueLabels(values, coords, ellipsisInfo, dataType);
       this.axisRenderer.drawLegend(dataType);
     }
   }
@@ -201,6 +204,9 @@ class ChartRenderer {
         break;
       case 'line':
         this.polygonRenderer.renderLine(layer);
+        break;
+      case 'dashed-line':
+        this.dashedLineRenderer.render(layer);
         break;
       case 'bar-label':
         this.histogramRenderer.renderBarLabel(layer);
