@@ -158,12 +158,11 @@ class TableRenderer {
       const startTime = index * 200; // 200ms 간격
       const duration = 300; // 300ms 애니메이션
 
-      this.timeline.addAnimation({
-        layerId: rowLayer.id,
+      this.timeline.addAnimation(rowLayer.id, {
         startTime,
         duration,
         effect: 'fade',
-        options: {
+        effectOptions: {
           from: 0,
           to: 1
         }
