@@ -23,7 +23,15 @@ import CalloutRenderer from './chart/CalloutRenderer.js';
 class ChartRenderer {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) {
+      throw new Error(`Canvas 요소를 찾을 수 없습니다: ${canvasId}`);
+    }
+
     this.ctx = this.canvas.getContext('2d');
+    if (!this.ctx) {
+      throw new Error(`Canvas 2D 컨텍스트를 생성할 수 없습니다: ${canvasId}`);
+    }
+
     this.padding = CONFIG.CHART_PADDING;
 
     // 렌더러 인스턴스 생성

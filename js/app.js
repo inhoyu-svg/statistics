@@ -856,6 +856,17 @@ class FrequencyDistributionApp {
       // JSON 문자열 생성 (들여쓰기 포함)
       const jsonString = JSON.stringify(jsonData, null, 2);
 
+      // 메모리 체크 (50MB 제한)
+      const sizeInBytes = new Blob([jsonString]).size;
+      const sizeInMB = sizeInBytes / (1024 * 1024);
+
+      if (sizeInMB > 50) {
+        throw new Error(
+          `JSON 파일이 너무 큽니다 (${sizeInMB.toFixed(1)}MB). ` +
+          `최대 50MB까지 지원됩니다.`
+        );
+      }
+
       // Blob 생성
       const blob = new Blob([jsonString], { type: 'application/json' });
 
