@@ -54,17 +54,7 @@ class HistogramRenderer {
         this.ctx.strokeRect(x, y, barWidth, h);
       }
 
-      // 라벨: 데이터 타입에 따라 도수 또는 상대도수 표시
-      const labelValue = this._formatLabelValue(value, freq[index], dataType);
-      this.ctx.fillStyle = CONFIG.getColor('--color-text');
-      this.ctx.font = CONFIG.CHART_FONT_REGULAR;
-      this.ctx.textAlign = 'center';
-      // 라벨 위치를 더 위로 (다각형 선과 겹치지 않도록)
-      this.ctx.fillText(
-        labelValue,
-        CoordinateSystem.getBarCenterX(index, toX, xScale),
-        y - CONFIG.CHART_LABEL_OFFSET - 5
-      );
+      // 라벨은 별도 레이어에서 렌더링 (LayerFactory의 bar-label 레이어)
     });
   }
 
@@ -109,19 +99,43 @@ class HistogramRenderer {
       this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
     }
 
-    // 라벨 (progress가 0.5 이상일 때만 표시)
-    if (progress > 0.5) {
-      const labelValue = this._formatLabelValue(relativeFreq, frequency, dataType);
-      this.ctx.fillStyle = CONFIG.getColor('--color-text');
-      this.ctx.font = CONFIG.CHART_FONT_REGULAR;
-      this.ctx.textAlign = 'center';
-      // 라벨 위치를 더 위로 (다각형 선과 겹치지 않도록)
-      this.ctx.fillText(
-        labelValue,
-        CoordinateSystem.getBarCenterX(index, toX, xScale),
-        animatedY - CONFIG.CHART_LABEL_OFFSET - 5
-      );
-    }
+    // 라벨은 별도 레이어에서 렌더링 (LayerFactory의 bar-label 레이어)
+  }
+
+  /**
+   * 막대 라벨 렌더링 (별도 레이어)
+   * @param {Layer} layer - 라벨 레이어
+   */
+  renderBarLabel(layer) {
+    if (!CONFIG.SHOW_BAR_LABELS) return;
+
+    const { index, relativeFreq, frequency, coords, dataType } = layer.data;
+    const { toX, toY, xScale } = coords;
+
+    // 애니메이션 progress 가져오기 (0~1)
+    const progress = layer.data.animationProgress !== undefined ? layer.data.animationProgress : 1;
+
+    // progress가 0.5 이상일 때만 표시 (0.5~1.0 구간을 0~1로 매핑하여 fade)
+    if (progress < 0.5) return;
+
+    // 0.5~1.0을 0~1로 정규화하여 fade 효과
+    const fadeProgress = (progress - 0.5) * 2; // 0.5일 때 0, 1.0일 때 1
+
+    const labelValue = this._formatLabelValue(relativeFreq, frequency, dataType);
+    const y = toY(relativeFreq);
+
+    // fade 효과 적용
+    this.ctx.save();
+    this.ctx.globalAlpha = fadeProgress;
+    this.ctx.fillStyle = CONFIG.getColor('--color-text');
+    this.ctx.font = CONFIG.CHART_FONT_REGULAR;
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(
+      labelValue,
+      CoordinateSystem.getBarCenterX(index, toX, xScale),
+      y - CONFIG.CHART_LABEL_OFFSET - 5
+    );
+    this.ctx.restore();
   }
 
   /**

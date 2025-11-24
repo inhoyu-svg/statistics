@@ -72,6 +72,9 @@ class FrequencyDistributionApp {
     // 상첨자 토글 초기화
     this.initSuperscriptToggle();
 
+    // 막대 라벨 토글 초기화
+    this.initBarLabelsToggle();
+
     // 테이블 설정 패널 초기화
     this.initTableConfigPanel();
 
@@ -238,6 +241,34 @@ class FrequencyDistributionApp {
         const configWithAlignment = this.getTableConfigWithAlignment();
 
         this.tableRenderer.draw(classes, DataStore.getRawData().length, configWithAlignment);
+      }
+    });
+  }
+
+  /**
+   * 막대 라벨 토글 이벤트 리스너 등록
+   */
+  initBarLabelsToggle() {
+    const checkbox = document.getElementById('showBarLabels');
+    checkbox?.addEventListener('change', () => {
+      // CONFIG 상태 업데이트
+      CONFIG.SHOW_BAR_LABELS = checkbox.checked;
+
+      // 데이터가 있을 때만 차트 재생성
+      if (DataStore.hasData()) {
+        const { classes } = DataStore.getData();
+        const customLabels = this.getCustomLabels();
+        const dataType = ChartStore.getDataType();
+        const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
+        const configWithAlignment = this.getTableConfigWithAlignment();
+
+        // 레이어 재생성 (레이어 시스템 사용하되 애니메이션 스킵)
+        this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+
+        // 애니메이션 즉시 완료 (타임라인을 끝으로 이동)
+        this.chartRenderer.stopAnimation();
+        this.chartRenderer.timeline.currentTime = this.chartRenderer.timeline.duration;
+        this.chartRenderer.renderFrame();
       }
     });
   }

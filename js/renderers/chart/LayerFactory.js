@@ -133,11 +133,48 @@ class LayerFactory {
       prevIndex = index;
     });
 
-    polygonGroup.addChild(pointsGroup);
+    // 렌더링 순서: 선 → 점 (점이 선 위에 표시되도록)
     polygonGroup.addChild(linesGroup);
+    polygonGroup.addChild(pointsGroup);
 
+    // 렌더링 순서: 히스토그램 → 다각형 → 라벨(조건부) → 말풍선
     layerManager.addLayer(histogramGroup);
     layerManager.addLayer(polygonGroup);
+
+    // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
+    if (CONFIG.SHOW_BAR_LABELS) {
+      const labelsGroup = new Layer({
+        id: 'bar-labels',
+        name: '막대 라벨',
+        type: 'group',
+        visible: true
+      });
+
+      // 막대 라벨 레이어 생성
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+        if (classes[index].frequency === 0) return;
+
+        const className = `${classes[index].min}~${classes[index].max}`;
+
+        const labelLayer = new Layer({
+          id: `bar-label-${index}`,
+          name: `라벨(${className})`,
+          type: 'bar-label',
+          visible: true,
+          data: {
+            index,
+            relativeFreq: value,
+            frequency: classes[index].frequency,
+            dataType
+          }
+        });
+
+        labelsGroup.addChild(labelLayer);
+      });
+
+      layerManager.addLayer(labelsGroup);
+    }
 
     // 말풍선 레이어 생성 (템플릿이 제공된 경우)
     if (calloutTemplate) {

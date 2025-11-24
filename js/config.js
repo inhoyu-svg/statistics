@@ -139,6 +139,9 @@ const CONFIG = {
   CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
   CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
 
+  // 막대 라벨 설정
+  SHOW_BAR_LABELS: false,                   // 막대 위 값 표시 여부 (기본값)
+
   // 애니메이션 타이밍 (차트)
   ANIMATION_BAR_DURATION: 300,              // 막대 애니메이션 시간 (ms)
   ANIMATION_POINT_DURATION: 300,            // 점 애니메이션 시간 (ms)

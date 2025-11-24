@@ -202,6 +202,9 @@ class ChartRenderer {
       case 'line':
         this.polygonRenderer.renderLine(layer);
         break;
+      case 'bar-label':
+        this.histogramRenderer.renderBarLabel(layer);
+        break;
       case 'callout':
         this.calloutRenderer.render(layer);
         break;
@@ -237,11 +240,14 @@ class ChartRenderer {
     // 다각형 그룹에서 점 찾기
     const polygonGroup = this.layerManager.findLayer('polygon');
     const pointsGroup = polygonGroup?.children.find(c => c.id === 'points');
+    // 막대 라벨 그룹 찾기
+    const labelsGroup = this.layerManager.findLayer('bar-labels');
 
     if (!histogramGroup || !pointsGroup) return;
 
     const bars = histogramGroup.children;
     const points = pointsGroup.children;
+    const labels = labelsGroup?.children || [];
 
     // 계급별로 묶어서 순차 애니메이션 (점 개수 기준)
     // 모든 점을 애니메이션하되, 막대는 있을 때만
@@ -253,6 +259,12 @@ class ChartRenderer {
       barIndexMap.set(bar.data.index, idx);
     });
 
+    // 라벨 인덱스 매핑 (label.data.index → labels 배열 인덱스)
+    const labelIndexMap = new Map();
+    labels.forEach((label, idx) => {
+      labelIndexMap.set(label.data.index, idx);
+    });
+
     for (let i = 0; i < classCount; i++) {
       const point = points[i];
       const pointClassIndex = point.data.index;
@@ -261,12 +273,27 @@ class ChartRenderer {
       const barIdx = barIndexMap.get(pointClassIndex);
       const bar = barIdx !== undefined ? bars[barIdx] : null;
 
+      // 해당 계급의 라벨 찾기
+      const labelIdx = labelIndexMap.get(pointClassIndex);
+      const label = labelIdx !== undefined ? labels[labelIdx] : null;
+
       // 막대 애니메이션 (있으면)
       if (bar) {
         this.timeline.addAnimation(bar.id, {
           startTime: currentTime,
           duration: barDuration,
           effect: 'none', // renderBar에서 높이 애니메이션 처리
+          effectOptions: {},
+          easing: 'easeOut'
+        });
+      }
+
+      // 막대 라벨 애니메이션 (막대와 동일한 타이밍)
+      if (label) {
+        this.timeline.addAnimation(label.id, {
+          startTime: currentTime,
+          duration: barDuration,
+          effect: 'none', // renderBarLabel에서 progress 체크
           effectOptions: {},
           easing: 'easeOut'
         });
