@@ -1401,8 +1401,10 @@ canvas {
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
-  overflow: visible;
-  min-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 100px);
+  padding-right: 8px;
 }
 
 .layer-type {
