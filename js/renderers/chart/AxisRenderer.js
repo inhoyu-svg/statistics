@@ -193,34 +193,6 @@ class AxisRenderer {
   }
 
   /**
-   * 중략 구간 시각적 표시 (zigzag 패턴)
-   * @param {number} startX - 시작 X 좌표
-   * @param {number} endX - 끝 X 좌표
-   * @param {Function} getBaseY - 기준 Y 좌표를 가져오는 함수
-   */
-  drawEllipsisPattern(startX, endX, getBaseY) {
-    const baseY = getBaseY(0);
-    const zigzagHeight = CONFIG.CHART_ZIGZAG_HEIGHT;
-    const zigzagWidth = CONFIG.CHART_ZIGZAG_WIDTH;
-    const centerX = (startX + endX) / 2;
-    const numZigzags = CONFIG.CHART_ZIGZAG_COUNT;
-    const margin = CONFIG.CHART_ZIGZAG_MARGIN;
-
-    this.ctx.strokeStyle = CONFIG.getColor('--color-text-light');
-    this.ctx.lineWidth = 2;
-    this.ctx.beginPath();
-
-    for (let i = 0; i < numZigzags; i++) {
-      const x = centerX - (numZigzags * zigzagWidth / 2) + (i * zigzagWidth);
-      this.ctx.moveTo(x, baseY - margin);
-      this.ctx.lineTo(x + zigzagWidth / 2, baseY - margin - zigzagHeight);
-      this.ctx.lineTo(x + zigzagWidth, baseY - margin);
-    }
-
-    this.ctx.stroke();
-  }
-
-  /**
    * 범례 그리기
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    */

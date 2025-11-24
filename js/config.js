@@ -42,12 +42,6 @@ const CONFIG = {
   CHART_LEGEND_POINT_RADIUS: 4,       // 범례 점 반지름
   CHART_LEGEND_POINT_CENTER_X: 10,    // 범례 점 중심 X 오프셋 (아이템 시작점 기준)
 
-  // 중략(Ellipsis) 패턴 설정
-  CHART_ZIGZAG_HEIGHT: 15,
-  CHART_ZIGZAG_WIDTH: 8,
-  CHART_ZIGZAG_COUNT: 3,
-  CHART_ZIGZAG_MARGIN: 5,
-
   // 중략 판단 기준
   ELLIPSIS_THRESHOLD: 2,
   ELLIPSIS_POSITION_RATIO: 0.25, // 압축 구간에서 이중물결 기호 위치 (0~1 사이 값)
