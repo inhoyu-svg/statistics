@@ -139,7 +139,7 @@ class TableRenderer {
    * 애니메이션 설정
    */
   setupAnimations() {
-    this.timeline.clear();
+    this.timeline.clearAnimations();
 
     const rootLayer = this.layerManager.root;
     if (!rootLayer || rootLayer.children.length === 0) return;
