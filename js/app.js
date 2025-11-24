@@ -65,6 +65,9 @@ class FrequencyDistributionApp {
 
     // 테이블 설정 패널 초기화
     this.initTableConfigPanel();
+
+    // JSON 미리보기 모달 초기화
+    this.initJsonPreviewModal();
   }
 
   /**
@@ -564,6 +567,7 @@ class FrequencyDistributionApp {
           <button class="layer-visibility-btn" data-layer-id="${Utils.escapeHtml(layer.id)}" data-visible="${layer.visible}" title="${layer.visible ? '숨기기' : '보이기'}">${visibilityIcon}</button>
           ${typeIcon}
           <span class="layer-name">${Utils.escapeHtml(layer.name || layer.id)}</span>
+          <button class="layer-json-btn" data-layer-id="${Utils.escapeHtml(layer.id)}" title="JSON 미리보기">📄</button>
         </div>
       `;
     }).join('');
@@ -609,6 +613,15 @@ class FrequencyDistributionApp {
         // UI 업데이트
         this.renderLayerPanel();
         this.chartRenderer.renderFrame();
+      });
+    });
+
+    // JSON 미리보기 버튼 이벤트
+    layerList.querySelectorAll('.layer-json-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const layerId = e.currentTarget.dataset.layerId;
+        this.showJsonPreview(layerId);
       });
     });
   }
@@ -1052,6 +1065,125 @@ class FrequencyDistributionApp {
       columnOrder: this.columnOrder,
       showSuperscript: showSuperscript
     };
+  }
+
+  /**
+   * JSON 미리보기 모달 초기화
+   */
+  initJsonPreviewModal() {
+    const modal = document.getElementById('jsonPreviewModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const copyJsonBtn = document.getElementById('copyJsonBtn');
+    const overlay = modal?.querySelector('.modal-overlay');
+
+    // 닫기 버튼들
+    modalCloseBtn?.addEventListener('click', () => this.closeJsonPreview());
+    closeModalBtn?.addEventListener('click', () => this.closeJsonPreview());
+
+    // 오버레이 클릭으로 닫기
+    overlay?.addEventListener('click', () => this.closeJsonPreview());
+
+    // ESC 키로 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal?.style.display === 'flex') {
+        this.closeJsonPreview();
+      }
+    });
+
+    // JSON 복사 버튼
+    copyJsonBtn?.addEventListener('click', () => {
+      const jsonContent = document.getElementById('jsonPreviewContent');
+      if (jsonContent) {
+        navigator.clipboard.writeText(jsonContent.textContent)
+          .then(() => {
+            MessageManager.showSuccess('JSON이 클립보드에 복사되었습니다!');
+          })
+          .catch(err => {
+            MessageManager.showError('복사에 실패했습니다: ' + err.message);
+          });
+      }
+    });
+  }
+
+  /**
+   * JSON 미리보기 모달 표시
+   * @param {string} layerId - 레이어 ID
+   */
+  showJsonPreview(layerId) {
+    const layer = this.chartRenderer.layerManager.findLayer(layerId);
+    if (!layer) {
+      MessageManager.showError('레이어를 찾을 수 없습니다.');
+      return;
+    }
+
+    // 레이어를 JSON으로 직렬화
+    const layerJson = this.serializeLayerForPreview(layer);
+    const jsonString = JSON.stringify(layerJson, null, 2);
+
+    // 모달에 JSON 표시
+    const jsonContent = document.getElementById('jsonPreviewContent');
+    const modal = document.getElementById('jsonPreviewModal');
+    const modalTitle = modal?.querySelector('.modal-title');
+
+    if (jsonContent) {
+      jsonContent.textContent = jsonString;
+    }
+
+    if (modalTitle) {
+      modalTitle.textContent = `📄 레이어 JSON 미리보기: ${layer.name || layer.id}`;
+    }
+
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+
+  /**
+   * JSON 미리보기 모달 닫기
+   */
+  closeJsonPreview() {
+    const modal = document.getElementById('jsonPreviewModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  /**
+   * 레이어를 미리보기용 JSON으로 직렬화
+   * @param {Layer} layer - 레이어 객체
+   * @returns {Object} JSON 객체
+   */
+  serializeLayerForPreview(layer) {
+    const json = {
+      id: layer.id,
+      name: layer.name,
+      type: layer.type,
+      visible: layer.visible,
+      order: layer.order
+    };
+
+    // p_id 추가 (root가 아닌 경우)
+    if (layer.p_id) {
+      json.p_id = layer.p_id;
+    }
+
+    // data 추가 (있으면)
+    if (layer.data && Object.keys(layer.data).length > 0) {
+      json.data = { ...layer.data };
+      // animationProgress는 제외 (임시 데이터)
+      delete json.data.animationProgress;
+      delete json.data.coords; // 좌표 시스템 객체 제외 (너무 큼)
+      delete json.data.ellipsisInfo; // 중략 정보 제외
+      delete json.data.dataType; // 데이터 타입 제외
+    }
+
+    // children 추가 (그룹인 경우)
+    if (layer.children && layer.children.length > 0) {
+      json.children = layer.children.map(child => this.serializeLayerForPreview(child));
+    }
+
+    return json;
   }
 }
 
