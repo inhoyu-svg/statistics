@@ -179,28 +179,22 @@ const CONFIG = {
   initializeColors() {
     if (this._colorCache) return;
 
-    const style = getComputedStyle(document.documentElement);
     this._colorCache = {
-      '--color-text': style.getPropertyValue('--color-text').trim(),
-      '--color-grid': style.getPropertyValue('--color-grid').trim(),
-      '--color-border': style.getPropertyValue('--color-border').trim(),
-      '--color-text-light': style.getPropertyValue('--color-text-light').trim(),
-      '--chart-bar-color': style.getPropertyValue('--chart-bar-color').trim(),
-      '--chart-bar-color-end': style.getPropertyValue('--chart-bar-color-end').trim(),
-      '--chart-bar-border-color': style.getPropertyValue('--chart-bar-border-color').trim(),
-      '--chart-bar-stroke-start': style.getPropertyValue('--chart-bar-stroke-start').trim(),
-      '--chart-bar-stroke-end': style.getPropertyValue('--chart-bar-stroke-end').trim(),
-      '--chart-polygon-point-color': style.getPropertyValue('--chart-polygon-point-color').trim(),
-      '--chart-polygon-line-start': style.getPropertyValue('--chart-polygon-line-start').trim(),
-      '--chart-polygon-line-end': style.getPropertyValue('--chart-polygon-line-end').trim(),
-      '--chart-line-color-start': style.getPropertyValue('--chart-line-color-start').trim(),
-      '--chart-line-color-end': style.getPropertyValue('--chart-line-color-end').trim(),
-      '--chart-polygon-color': style.getPropertyValue('--chart-polygon-color').trim(),
-      '--chart-dashed-line-color': style.getPropertyValue('--chart-dashed-line-color').trim(),
-      '--chart-callout-bg-start': style.getPropertyValue('--chart-callout-bg-start').trim(),
-      '--chart-callout-bg-end': style.getPropertyValue('--chart-callout-bg-end').trim(),
-      '--chart-callout-border': style.getPropertyValue('--chart-callout-border').trim(),
-      '--chart-callout-text': style.getPropertyValue('--chart-callout-text').trim(),
+      '--color-text': '#e5e7eb',
+      '--color-grid': '#4b5563',
+      '--color-border': '#374151',
+      '--chart-bar-color': '#4141A3',
+      '--chart-bar-color-end': '#2CA0E8',
+      '--chart-bar-stroke-start': '#54A0F6',
+      '--chart-bar-stroke-end': '#6DE0FC',
+      '--chart-polygon-point-color': '#93DA6A',
+      '--chart-polygon-line-start': '#AEFF7E',
+      '--chart-polygon-line-end': '#68994C',
+      '--chart-dashed-line-color': '#54A0F6',
+      '--chart-callout-bg-start': 'rgba(174, 255, 126, 0.3)',
+      '--chart-callout-bg-end': 'rgba(104, 153, 76, 0.3)',
+      '--chart-callout-border': '#93DA6A',
+      '--chart-callout-text': '#93DA6A',
     };
   },
 
