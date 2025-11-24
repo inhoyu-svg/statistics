@@ -61,12 +61,12 @@ class CalloutRenderer {
     path.lineTo(x + width, y + height - radius);
     path.arcTo(x + width, y + height, x + width - radius, y + height, radius);
 
-    // 하단 (꼬리 전)
-    path.lineTo(x + tailWidth + 10, y + height);
+    // 하단 우측 (꼬리 전)
+    path.lineTo(x + width - tailWidth + 5, y + height);
 
-    // 꼬리 (왼쪽 아래로)
-    path.lineTo(x + tailWidth, y + height + tailHeight);
-    path.lineTo(x + tailWidth - 5, y + height);
+    // 꼬리 (오른쪽 아래로)
+    path.lineTo(x + width - tailWidth, y + height + tailHeight);
+    path.lineTo(x + width - tailWidth - 10, y + height);
 
     // 하단 좌측 모서리
     path.lineTo(x + radius, y + height);
@@ -107,18 +107,18 @@ class CalloutRenderer {
 
     ctx.font = CONFIG.CALLOUT_FONT;
     ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
     // 줄바꿈 분할
     const lines = text.split('\n');
 
-    // 텍스트 시작 위치 (중앙 정렬)
+    // 텍스트 시작 위치 (수직 중앙 정렬)
     const totalTextHeight = lines.length * lineHeight;
     const textY = y + (height - totalTextHeight) / 2;
 
     lines.forEach((line, i) => {
-      const textX = x + padding;
+      const textX = x + width / 2; // 가로 중앙
       const lineY = textY + i * lineHeight;
       ctx.fillText(line, textX, lineY);
     });

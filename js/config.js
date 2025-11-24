@@ -128,7 +128,7 @@ const CONFIG = {
   // 말풍선 설정
   CALLOUT_ENABLED: true,                    // 말풍선 표시 여부
   CALLOUT_WIDTH: 73,                        // 말풍선 너비
-  CALLOUT_HEIGHT: 44,                       // 말풍선 높이
+  CALLOUT_HEIGHT: 36,                       // 말풍선 높이
   CALLOUT_OFFSET_X: 10,                     // 포인트에서 왼쪽으로 오프셋
   CALLOUT_OFFSET_Y: 10,                     // 포인트에서 위로 오프셋
   CALLOUT_TAIL_WIDTH: 20,                   // 꼬리 너비
