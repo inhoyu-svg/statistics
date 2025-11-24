@@ -1059,7 +1059,7 @@ canvas {
 
 /* JSON Preview Buttons */
 .json-btn {
-  padding: 6px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.05);
@@ -1070,6 +1070,8 @@ canvas {
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
+  width: 70px;
+  text-align: center;
 }
 
 .json-btn:hover {
