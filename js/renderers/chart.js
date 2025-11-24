@@ -228,15 +228,25 @@ class ChartRenderer {
     const bars = histogramGroup.children;
     const points = pointsGroup.children;
 
-    // 계급별로 묶어서 순차 애니메이션 (막대 개수 기준)
-    // 도수가 0인 계급의 point는 애니메이션하지 않음
-    const classCount = bars.length;
+    // 계급별로 묶어서 순차 애니메이션 (점 개수 기준)
+    // 모든 점을 애니메이션하되, 막대는 있을 때만
+    const classCount = points.length;
+
+    // 막대 인덱스 매핑 (bar.data.index → bars 배열 인덱스)
+    const barIndexMap = new Map();
+    bars.forEach((bar, idx) => {
+      barIndexMap.set(bar.data.index, idx);
+    });
 
     for (let i = 0; i < classCount; i++) {
-      const bar = bars[i];
       const point = points[i];
+      const pointClassIndex = point.data.index;
 
-      // 막대 애니메이션
+      // 해당 계급의 막대 찾기
+      const barIdx = barIndexMap.get(pointClassIndex);
+      const bar = barIdx !== undefined ? bars[barIdx] : null;
+
+      // 막대 애니메이션 (있으면)
       if (bar) {
         this.timeline.addAnimation(bar.id, {
           startTime: currentTime,
@@ -247,7 +257,7 @@ class ChartRenderer {
         });
       }
 
-      // 점 애니메이션 (막대와 동시)
+      // 점 애니메이션 (항상)
       if (point) {
         this.timeline.addAnimation(point.id, {
           startTime: currentTime,

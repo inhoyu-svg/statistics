@@ -81,12 +81,9 @@ class LayerFactory {
       visible: true
     });
 
-    // 점 레이어 생성
+    // 점 레이어 생성 (도수 0인 계급도 포함)
     values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-      // 도수가 0인 점은 레이어 생성하지 않음 (막대와 동일)
-      if (classes[index].frequency === 0) return;
 
       // 계급명 생성
       const className = `${classes[index].min}~${classes[index].max}`;
