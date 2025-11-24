@@ -44,9 +44,12 @@ class HistogramRenderer {
       this.ctx.fillRect(x, y, barWidth, h);
       this.ctx.globalAlpha = 1.0;
 
-      // 녹색 테두리 (데이터가 있는 경우)
+      // 그라디언트 테두리 (데이터가 있는 경우)
       if (freq[index] > 0) {
-        this.ctx.strokeStyle = CONFIG.getColor('--chart-bar-border-color');
+        const strokeGradient = this.ctx.createLinearGradient(x, y, x, y + h);
+        strokeGradient.addColorStop(0, '#54A0F6');
+        strokeGradient.addColorStop(1, '#6DE0FC');
+        this.ctx.strokeStyle = strokeGradient;
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(x, y, barWidth, h);
       }
@@ -96,9 +99,12 @@ class HistogramRenderer {
     this.ctx.fillRect(x, animatedY, barWidth, animatedH);
     this.ctx.globalAlpha = 1.0;
 
-    // 녹색 테두리 (데이터가 있고 높이가 0보다 클 때만)
+    // 그라디언트 테두리 (데이터가 있고 높이가 0보다 클 때만)
     if (frequency > 0 && animatedH > 0) {
-      this.ctx.strokeStyle = CONFIG.getColor('--chart-bar-border-color');
+      const strokeGradient = this.ctx.createLinearGradient(x, animatedY, x, animatedY + animatedH);
+      strokeGradient.addColorStop(0, '#54A0F6');
+      strokeGradient.addColorStop(1, '#6DE0FC');
+      this.ctx.strokeStyle = strokeGradient;
       this.ctx.lineWidth = 2;
       this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
     }
