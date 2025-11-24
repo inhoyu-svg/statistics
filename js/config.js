@@ -136,6 +136,10 @@ const CONFIG = {
   // 막대 라벨 설정
   SHOW_BAR_LABELS: false,                   // 막대 위 값 표시 여부 (기본값)
 
+  // 격자선 설정
+  GRID_SHOW_HORIZONTAL: true,               // 가로 격자선 표시 여부
+  GRID_SHOW_VERTICAL: true,                 // 세로 격자선 표시 여부
+
   // 투명도 설정
   CHART_BAR_ALPHA: 0.5,                     // 막대 투명도
   CHART_DEFAULT_ALPHA: 1.0,                 // 기본 투명도

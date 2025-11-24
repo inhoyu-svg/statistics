@@ -172,23 +172,27 @@ class AxisRenderer {
     this.ctx.lineWidth = 1;
 
     // 가로 격자선 (Y축)
-    for (let i = 0; i <= gridDivisions; i++) {
-      const y = toY(maxY * i / gridDivisions);
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.padding, y);
-      this.ctx.lineTo(this.canvas.width - this.padding, y);
-      this.ctx.stroke();
+    if (CONFIG.GRID_SHOW_HORIZONTAL) {
+      for (let i = 0; i <= gridDivisions; i++) {
+        const y = toY(maxY * i / gridDivisions);
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.padding, y);
+        this.ctx.lineTo(this.canvas.width - this.padding, y);
+        this.ctx.stroke();
+      }
     }
 
     // 세로 격자선 (X축) - 막대 너비와 동일한 간격
-    for (let i = 0; i <= classCount; i++) {
-      if (CoordinateSystem.shouldSkipEllipsis(i, ellipsisInfo)) continue;
+    if (CONFIG.GRID_SHOW_VERTICAL) {
+      for (let i = 0; i <= classCount; i++) {
+        if (CoordinateSystem.shouldSkipEllipsis(i, ellipsisInfo)) continue;
 
-      const x = toX(i);
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, this.padding);
-      this.ctx.lineTo(x, this.canvas.height - this.padding);
-      this.ctx.stroke();
+        const x = toX(i);
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, this.padding);
+        this.ctx.lineTo(x, this.canvas.height - this.padding);
+        this.ctx.stroke();
+      }
     }
   }
 

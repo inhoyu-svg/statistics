@@ -75,6 +75,9 @@ class FrequencyDistributionApp {
     // 막대 라벨 토글 초기화
     this.initBarLabelsToggle();
 
+    // 격자선 토글 초기화
+    this.initGridToggle();
+
     // 테이블 설정 패널 초기화
     this.initTableConfigPanel();
 
@@ -271,6 +274,47 @@ class FrequencyDistributionApp {
         this.chartRenderer.renderFrame();
       }
     });
+  }
+
+  /**
+   * 격자선 표시 토글 이벤트 리스너 등록
+   */
+  initGridToggle() {
+    const horizontalCheckbox = document.getElementById('showHorizontalGrid');
+    const verticalCheckbox = document.getElementById('showVerticalGrid');
+
+    // 가로 격자선 토글
+    horizontalCheckbox?.addEventListener('change', () => {
+      CONFIG.GRID_SHOW_HORIZONTAL = horizontalCheckbox.checked;
+      this.redrawChart();
+    });
+
+    // 세로 격자선 토글
+    verticalCheckbox?.addEventListener('change', () => {
+      CONFIG.GRID_SHOW_VERTICAL = verticalCheckbox.checked;
+      this.redrawChart();
+    });
+  }
+
+  /**
+   * 차트 다시 그리기 (격자선 변경 시)
+   */
+  redrawChart() {
+    if (DataStore.hasData()) {
+      const { classes } = DataStore.getData();
+      const customLabels = this.getCustomLabels();
+      const dataType = ChartStore.getDataType();
+      const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
+      const configWithAlignment = this.getTableConfigWithAlignment();
+
+      // 레이어 재생성 (애니메이션 스킵)
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+
+      // 애니메이션 즉시 완료
+      this.chartRenderer.stopAnimation();
+      this.chartRenderer.timeline.currentTime = this.chartRenderer.timeline.duration;
+      this.chartRenderer.renderFrame();
+    }
   }
 
   /**
