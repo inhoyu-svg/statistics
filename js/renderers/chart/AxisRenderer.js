@@ -173,6 +173,7 @@ class AxisRenderer {
 
     // 가로 격자선 (Y축)
     if (CONFIG.GRID_SHOW_HORIZONTAL) {
+      // 모든 격자선 그리기
       for (let i = 0; i <= gridDivisions; i++) {
         const y = toY(maxY * i / gridDivisions);
         this.ctx.beginPath();
@@ -180,10 +181,18 @@ class AxisRenderer {
         this.ctx.lineTo(this.canvas.width - this.padding, y);
         this.ctx.stroke();
       }
+    } else {
+      // 격자선 꺼져 있어도 X축 기준선(Y=0)은 표시
+      const y0 = toY(0);
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.padding, y0);
+      this.ctx.lineTo(this.canvas.width - this.padding, y0);
+      this.ctx.stroke();
     }
 
     // 세로 격자선 (X축) - 막대 너비와 동일한 간격
     if (CONFIG.GRID_SHOW_VERTICAL) {
+      // 모든 격자선 그리기
       for (let i = 0; i <= classCount; i++) {
         if (CoordinateSystem.shouldSkipEllipsis(i, ellipsisInfo)) continue;
 
@@ -193,6 +202,13 @@ class AxisRenderer {
         this.ctx.lineTo(x, this.canvas.height - this.padding);
         this.ctx.stroke();
       }
+    } else {
+      // 격자선 꺼져 있어도 Y축 기준선(X=0)은 표시
+      const x0 = toX(0);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x0, this.padding);
+      this.ctx.lineTo(x0, this.canvas.height - this.padding);
+      this.ctx.stroke();
     }
   }
 
