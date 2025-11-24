@@ -1259,6 +1259,12 @@ canvas {
   box-shadow: 0 0 0 2px rgba(84, 160, 246, 0.2);
 }
 
+.layer-source-select option {
+  background-color: var(--color-bg-dark);
+  color: var(--color-text);
+  padding: 8px;
+}
+
 .all-json-btn {
   background: none;
   border: none;
