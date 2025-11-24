@@ -1071,7 +1071,7 @@ class FrequencyDistributionApp {
       axis: {
         xAxis: xAxisLabel || label1 || CONFIG.DEFAULT_LABELS.xAxis,
         // Y축 라벨: 사용자가 입력한 경우만 전달 (비어있으면 null로 데이터 타입별 기본값 사용)
-        yAxis: yAxisLabel || label4 || null
+        yAxis: yAxisLabel || null
       },
       table: {
         class: classLabel,
