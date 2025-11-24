@@ -224,11 +224,11 @@ class ChartRenderer {
   setupAnimations(classes) {
     this.timeline.clearAnimations();
 
-    const barDuration = 300; // 막대 애니메이션 시간
-    const pointDuration = 300; // 점 애니메이션 시간
-    const classDelay = 150; // 계급 간 딜레이
-    const lineDuration = 400; // 선 드로잉 시간
-    const lineDelay = 50; // 선 간 딜레이
+    const barDuration = CONFIG.ANIMATION_BAR_DURATION;
+    const pointDuration = CONFIG.ANIMATION_POINT_DURATION;
+    const classDelay = CONFIG.ANIMATION_CLASS_DELAY;
+    const lineDuration = CONFIG.ANIMATION_LINE_DURATION;
+    const lineDelay = CONFIG.ANIMATION_LINE_DELAY;
 
     let currentTime = 0;
 
@@ -290,7 +290,7 @@ class ChartRenderer {
     // 연결선 그룹 애니메이션 (모든 계급 완료 후)
     const linesGroup = polygonGroup?.children.find(c => c.id === 'lines');
     if (linesGroup && linesGroup.children) {
-      currentTime += 200; // 계급 완료 후 대기 시간
+      currentTime += CONFIG.ANIMATION_LINE_START_DELAY;
 
       linesGroup.children.forEach((line, idx) => {
         this.timeline.addAnimation(line.id, {
@@ -307,8 +307,8 @@ class ChartRenderer {
       if (calloutLayer) {
         const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
         this.timeline.addAnimation('callout', {
-          startTime: lineEndTime + 100, // 선 완료 후 100ms 대기
-          duration: 300,
+          startTime: lineEndTime + CONFIG.ANIMATION_CALLOUT_DELAY,
+          duration: CONFIG.ANIMATION_POINT_DURATION,
           effect: 'custom', // 투명도 애니메이션은 직접 처리
           effectOptions: {},
           easing: 'easeIn'

@@ -163,8 +163,8 @@ class TableRenderer {
 
     // 순차적으로 행 페이드인 애니메이션
     dataRows.forEach((rowLayer, index) => {
-      const startTime = index * 200; // 200ms 간격
-      const duration = 300; // 300ms 애니메이션
+      const startTime = index * CONFIG.TABLE_ANIMATION_ROW_INTERVAL;
+      const duration = CONFIG.TABLE_ANIMATION_ROW_DURATION;
 
       this.timeline.addAnimation(rowLayer.id, {
         startTime,

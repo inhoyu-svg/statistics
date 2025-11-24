@@ -25,6 +25,9 @@
   --spacing-lg: 20px;
   --spacing-xl: 30px;
 
+  /* Layer Panel */
+  --layer-depth-offset: 20px;
+
   /* Border Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -1422,8 +1425,8 @@ canvas {
 }
 
 .layer-item.depth-1 {
-  margin-left: 20px;
-  width: calc(100% - 20px);
+  margin-left: var(--layer-depth-offset);
+  width: calc(100% - var(--layer-depth-offset));
   padding-left: var(--spacing-sm);
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(84, 160, 246, 0.2);
@@ -1431,8 +1434,8 @@ canvas {
 }
 
 .layer-item.depth-2 {
-  margin-left: 40px;
-  width: calc(100% - 40px);
+  margin-left: calc(var(--layer-depth-offset) * 2);
+  width: calc(100% - var(--layer-depth-offset) * 2);
   padding-left: var(--spacing-sm);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(84, 160, 246, 0.15);
@@ -1440,8 +1443,8 @@ canvas {
 }
 
 .layer-item.depth-3 {
-  margin-left: 60px;
-  width: calc(100% - 60px);
+  margin-left: calc(var(--layer-depth-offset) * 3);
+  width: calc(100% - var(--layer-depth-offset) * 3);
   padding-left: var(--spacing-sm);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(84, 160, 246, 0.1);

@@ -139,6 +139,22 @@ const CONFIG = {
   CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
   CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
 
+  // 애니메이션 타이밍 (차트)
+  ANIMATION_BAR_DURATION: 300,              // 막대 애니메이션 시간 (ms)
+  ANIMATION_POINT_DURATION: 300,            // 점 애니메이션 시간 (ms)
+  ANIMATION_CLASS_DELAY: 150,               // 계급 간 딜레이 (ms)
+  ANIMATION_LINE_DURATION: 400,             // 선 드로잉 시간 (ms)
+  ANIMATION_LINE_DELAY: 50,                 // 선 간 딜레이 (ms)
+  ANIMATION_LINE_START_DELAY: 200,          // 선 시작 전 대기 시간 (ms)
+  ANIMATION_CALLOUT_DELAY: 100,             // 말풍선 시작 전 대기 시간 (ms)
+
+  // 테이블 애니메이션
+  TABLE_ANIMATION_ROW_INTERVAL: 200,        // 행 간 애니메이션 간격 (ms)
+  TABLE_ANIMATION_ROW_DURATION: 300,        // 행 애니메이션 시간 (ms)
+
+  // 레이어 패널
+  LAYER_DEPTH_OFFSET: 20,                   // 레이어 깊이당 들여쓰기 (px)
+
   // 색상 캐시 (성능 최적화)
   _colorCache: null,
 
