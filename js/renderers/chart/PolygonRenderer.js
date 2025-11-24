@@ -30,16 +30,9 @@ class PolygonRenderer {
       const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
       const centerY = toY(relativeFreq);
 
-      const gradient = this.ctx.createRadialGradient(
-        centerX, centerY, 0,
-        centerX, centerY, CONFIG.CHART_POINT_RADIUS
-      );
-      gradient.addColorStop(0, CONFIG.getColor('--chart-line-color-start'));
-      gradient.addColorStop(1, CONFIG.getColor('--chart-line-color-end'));
-
       this.ctx.beginPath();
       this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
-      this.ctx.fillStyle = gradient;
+      this.ctx.fillStyle = '#93DA6A';
       this.ctx.fill();
     });
 
@@ -54,7 +47,12 @@ class PolygonRenderer {
         const x2 = CoordinateSystem.getBarCenterX(index, toX, xScale);
         const y2 = toY(relativeFreq);
 
-        this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-color');
+        // 그라디언트 선 (위에서 아래로)
+        const lineGradient = this.ctx.createLinearGradient(x1, Math.min(y1, y2), x2, Math.max(y1, y2));
+        lineGradient.addColorStop(0, '#AEFF7E');
+        lineGradient.addColorStop(1, '#68994C');
+
+        this.ctx.strokeStyle = lineGradient;
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
@@ -77,16 +75,9 @@ class PolygonRenderer {
     const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
     const centerY = coords.toY(relativeFreq);
 
-    const gradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, CONFIG.CHART_POINT_RADIUS
-    );
-    gradient.addColorStop(0, CONFIG.getColor('--chart-line-color-start'));
-    gradient.addColorStop(1, CONFIG.getColor('--chart-line-color-end'));
-
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
-    this.ctx.fillStyle = gradient;
+    this.ctx.fillStyle = '#93DA6A';
     this.ctx.fill();
   }
 
@@ -103,7 +94,12 @@ class PolygonRenderer {
     const x2 = CoordinateSystem.getBarCenterX(toIndex, toX, xScale);
     const y2 = toY(toFreq);
 
-    this.ctx.strokeStyle = CONFIG.getColor('--chart-polygon-color');
+    // 그라디언트 선 (위에서 아래로)
+    const lineGradient = this.ctx.createLinearGradient(x1, Math.min(y1, y2), x2, Math.max(y1, y2));
+    lineGradient.addColorStop(0, '#AEFF7E');
+    lineGradient.addColorStop(1, '#68994C');
+
+    this.ctx.strokeStyle = lineGradient;
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.moveTo(x1, y1);
