@@ -1219,11 +1219,15 @@ canvas {
   max-width: 350px;
 }
 
-.layer-controls {
+.layer-panel-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.layer-panel-header .section-title {
+  margin-bottom: 0;
 }
 
 .all-json-btn {
