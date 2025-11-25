@@ -1528,12 +1528,6 @@ class FrequencyDistributionApp {
       ? (document.getElementById('calloutTemplate')?.value.trim() || CONFIG.CALLOUT_TEMPLATE)
       : null;
 
-    const panel = this._getTableConfigPanel();
-    if (!panel) return { axis: {}, table: {} };
-
-    const labelInputs = [...panel.querySelectorAll('.label-input')];
-    const labels = labelInputs.map(input => input.value.trim());
-
     // CONFIG의 기본 라벨 순서
     const defaults = [
       CONFIG.DEFAULT_LABELS.table.class,
@@ -1544,14 +1538,21 @@ class FrequencyDistributionApp {
       CONFIG.DEFAULT_LABELS.table.cumulativeRelativeFrequency
     ];
 
-    const [label1, label2, label3, label4, label5, label6] = labels.map((label, i) =>
-      label || defaults[i]
-    );
+    const panel = this._getTableConfigPanel();
+    let labels = defaults; // 기본값으로 시작
+
+    if (panel) {
+      // 패널이 있으면 사용자 입력값 사용
+      const labelInputs = [...panel.querySelectorAll('.label-input')];
+      labels = labelInputs.map((input, i) => input.value.trim() || defaults[i]);
+    }
+
+    const [label1, label2, label3, label4, label5, label6] = labels;
 
     // X축 라벨과 표의 "계급" 컬럼을 통합
-    const classLabel = label1 || xAxisLabel || CONFIG.DEFAULT_LABELS.table.class;
+    const classLabel = xAxisLabel || label1 || CONFIG.DEFAULT_LABELS.table.class;
     // Y축 라벨과 표의 "상대도수(%)" 컬럼을 통합
-    const relativeFreqLabel = label4 || yAxisLabel || CONFIG.DEFAULT_LABELS.table.relativeFrequency;
+    const relativeFreqLabel = yAxisLabel || label4 || CONFIG.DEFAULT_LABELS.table.relativeFrequency;
 
     return {
       axis: {
