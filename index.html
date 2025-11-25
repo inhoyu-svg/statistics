@@ -32,6 +32,57 @@
           </button>
         </div>
 
+        <!-- 고급 설정 -->
+        <details class="advanced-settings">
+          <summary>⚙️ 고급 설정</summary>
+          <div class="advanced-content">
+            <!-- 격자선 설정 -->
+            <div class="setting-group">
+              <h4>격자선 표시</h4>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showHorizontalGrid" checked>
+                가로 격자선 (Y축)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showVerticalGrid" checked>
+                세로 격자선 (X축)
+              </label>
+            </div>
+
+            <!-- 축 값 라벨 표시 -->
+            <div class="setting-group">
+              <h4>축 값 라벨 표시</h4>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showYAxisLabels" checked>
+                Y축 값 라벨 (왼쪽)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showXAxisLabels" checked>
+                X축 값 라벨
+              </label>
+            </div>
+
+            <!-- 축 라벨 -->
+            <div class="setting-group">
+              <h4>축 라벨</h4>
+              <div class="input-group">
+                <label for="xAxisLabel">X축 라벨:</label>
+                <input type="text" id="xAxisLabel" placeholder="계급">
+              </div>
+              <div class="input-group">
+                <label for="yAxisLabel">Y축 라벨:</label>
+                <input type="text" id="yAxisLabel" placeholder="상대도수">
+              </div>
+            </div>
+
+            <!-- 표 컬럼 설정 -->
+            <div class="setting-group">
+              <h4>표 컬럼 설정 (드래그하여 순서 변경)</h4>
+              <div id="tableConfigPanel"></div>
+            </div>
+          </div>
+        </details>
+
         <!-- Statistics Summary (왼쪽 하단) -->
         <div class="stats-summary" id="statsSummary" role="region" aria-label="통계 요약"></div>
 

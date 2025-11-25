@@ -266,6 +266,12 @@ class FrequencyDistributionApp {
     // 애니메이션 컨트롤 초기화
     this.initAnimationControls();
 
+    // 격자선 토글 초기화
+    this.initGridToggle();
+
+    // 테이블 설정 패널 초기화
+    this.initTableConfigPanel();
+
     // JSON 미리보기 모달 초기화
     this.initJsonPreviewModal();
 
