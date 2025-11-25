@@ -140,6 +140,12 @@ class ChartRenderer {
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
+      // 기존 레이어 페이드아웃 애니메이션 추가 (있는 경우)
+      const hasExistingLayers = this.layerManager.layers.length > 0;
+      if (hasExistingLayers) {
+        this.fadeOutExistingLayers();
+      }
+
       // 애니메이션 모드: Layer 생성 후 애니메이션 재생
       LayerFactory.createLayers(
         this.layerManager,
@@ -151,7 +157,11 @@ class ChartRenderer {
         calloutTemplate
       );
       this.setupAnimations(classes);
-      this.playAnimation();
+
+      // 타임라인이 이미 재생 중이면 playAnimation() 호출하지 않음
+      if (!this.timeline.isPlaying) {
+        this.playAnimation();
+      }
     } else {
       // 정적 렌더링 모드
       this.axisRenderer.drawGrid(
@@ -226,11 +236,50 @@ class ChartRenderer {
   // ==================== Timeline & Animation ====================
 
   /**
+   * 기존 레이어 페이드아웃 애니메이션 추가
+   * 새로운 차트를 그리기 전에 기존 레이어들을 부드럽게 사라지게 함
+   */
+  fadeOutExistingLayers() {
+    const fadeOutDuration = 300; // 페이드아웃 시간 (ms)
+    const startTime = this.timeline.duration;
+
+    // 모든 최상위 레이어에 페이드아웃 애니메이션 추가
+    this.layerManager.layers.forEach(layer => {
+      this.addFadeOutAnimationRecursive(layer, startTime, fadeOutDuration);
+    });
+  }
+
+  /**
+   * 레이어와 자식 레이어들에 재귀적으로 페이드아웃 애니메이션 추가
+   * @param {Layer} layer - 레이어
+   * @param {number} startTime - 시작 시간
+   * @param {number} duration - 지속 시간
+   */
+  addFadeOutAnimationRecursive(layer, startTime, duration) {
+    // 현재 레이어에 페이드아웃 애니메이션 추가
+    this.timeline.addAnimation(layer.id, {
+      startTime,
+      duration,
+      effect: 'fade-out',
+      effectOptions: {},
+      easing: 'easeOut'
+    });
+
+    // 자식 레이어들에도 재귀적으로 추가
+    if (layer.children && layer.children.length > 0) {
+      layer.children.forEach(child => {
+        this.addFadeOutAnimationRecursive(child, startTime, duration);
+      });
+    }
+  }
+
+  /**
    * 애니메이션 시퀀스 설정 (계급별 순차 타임라인)
    * @param {Array} classes - 계급 데이터
    */
   setupAnimations(classes) {
-    this.timeline.clearAnimations();
+    // 타임라인을 초기화하지 않고 기존 애니메이션 뒤에 추가
+    // this.timeline.clearAnimations(); // 제거: 연속 타임라인 유지
 
     const barDuration = CONFIG.ANIMATION_BAR_DURATION;
     const pointDuration = CONFIG.ANIMATION_POINT_DURATION;
@@ -238,7 +287,8 @@ class ChartRenderer {
     const lineDuration = CONFIG.ANIMATION_LINE_DURATION;
     const lineDelay = CONFIG.ANIMATION_LINE_DELAY;
 
-    let currentTime = 0;
+    // 기존 타임라인의 끝에서 시작
+    let currentTime = this.timeline.duration;
 
     // 히스토그램 그룹에서 막대 찾기
     const histogramGroup = this.layerManager.findLayer('histogram');

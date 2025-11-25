@@ -4,6 +4,7 @@
 
 import {
   applyFade,
+  applyFadeOut,
   applySlide,
   applyScale,
   applyDraw,
@@ -64,6 +65,9 @@ export class LayerAnimationEffects {
     switch (effect) {
       case 'fade':
         applyFade(ctx, progress, renderCallback);
+        break;
+      case 'fade-out':
+        applyFadeOut(ctx, progress, renderCallback);
         break;
       case 'slide':
         applySlide(ctx, progress, options, renderCallback);
