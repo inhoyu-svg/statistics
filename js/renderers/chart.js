@@ -256,7 +256,7 @@ class ChartRenderer {
    * 애니메이션 시퀀스 설정 (계급별 순차 타임라인)
    * @param {Array} classes - 계급 데이터
    */
-  setupAnimations(classes) {
+  setupAnimations(datasetResults) {
     this.timeline.clearAnimations();
 
     const barDuration = CONFIG.ANIMATION_BAR_DURATION;
@@ -267,23 +267,39 @@ class ChartRenderer {
 
     let currentTime = 0;
 
-    // 히스토그램 그룹에서 막대 찾기
+    // 히스토그램 그룹에서 막대 찾기 (다중 데이터셋 구조)
     const histogramGroup = this.layerManager.findLayer('histogram');
-    // 다각형 그룹에서 점 찾기
+    // 다각형 그룹에서 점 찾기 (다중 데이터셋 구조)
     const polygonGroup = this.layerManager.findLayer('polygon');
-    const pointsGroup = polygonGroup?.children.find(c => c.id === 'points');
     // 막대 라벨 그룹 찾기
     const labelsGroup = this.layerManager.findLayer('bar-labels');
 
     // 히스토그램도 다각형도 없으면 리턴
     if (!histogramGroup && !polygonGroup) return;
 
-    const bars = histogramGroup?.children || [];
-    const points = pointsGroup?.children || [];
+    // 다중 데이터셋 구조: 각 데이터셋 그룹의 자식들을 모두 수집
+    const bars = [];
+    if (histogramGroup) {
+      histogramGroup.children.forEach(datasetGroup => {
+        bars.push(...datasetGroup.children);
+      });
+    }
+
+    const points = [];
+    if (polygonGroup) {
+      polygonGroup.children.forEach(datasetPolygonGroup => {
+        const pointsGroup = datasetPolygonGroup.children.find(c => c.id.includes('points'));
+        if (pointsGroup) {
+          points.push(...pointsGroup.children);
+        }
+      });
+    }
+
     const labels = labelsGroup?.children || [];
 
     // 계급별로 묶어서 순차 애니메이션
     // 기준: 막대와 점 중 더 많은 쪽 (보통 같지만 안전하게)
+    const classes = datasetResults[0]?.classes || [];
     const classCount = Math.max(bars.length, points.length, classes.length);
 
     // 막대 인덱스 매핑 (bar.data.index → bars 배열 인덱스)
@@ -426,13 +442,13 @@ class ChartRenderer {
    * 레이어 순서가 변경된 경우 애니메이션 타이밍을 재설정
    */
   replayAnimation() {
-    if (!this.animationMode || !this.currentClasses) {
+    if (!this.animationMode || !this.currentDatasetResults) {
       return;
     }
 
     this.stopAnimation();
     this.timeline.clearAnimations();
-    this.setupAnimations(this.currentClasses);
+    this.setupAnimations(this.currentDatasetResults);
     this.playAnimation();
   }
 
