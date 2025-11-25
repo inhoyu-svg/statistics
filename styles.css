@@ -409,6 +409,72 @@ button:active {
   accent-color: var(--color-primary);
 }
 
+/* 다각형 색상 프리셋 */
+.polygon-color-presets {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  margin-left: 28px; /* 체크박스 너비만큼 들여쓰기 */
+}
+
+.polygon-color-presets .preset-label {
+  font-size: 13px;
+  color: var(--color-text-light);
+  margin-right: var(--spacing-xs);
+}
+
+.color-preset-btn {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.color-preset-btn input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.preset-color {
+  display: block;
+  width: 40px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.preset-color:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.color-preset-btn input[type="radio"]:checked + .preset-color {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(84, 160, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+/* 프리셋 그라디언트 */
+.preset-default {
+  background: linear-gradient(180deg, #AEFF7E 0%, #68994C 100%);
+}
+
+.preset-primary {
+  background: linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%);
+}
+
+.preset-secondary {
+  background: linear-gradient(180deg, #D15DA4 0%, #E178F2 100%);
+}
+
+.preset-tertiary {
+  background: linear-gradient(180deg, #F3A257 0%, #FA716F 100%);
+}
+
 .advanced-settings {
   margin-top: var(--spacing-lg);
   border: 1px solid var(--color-border);

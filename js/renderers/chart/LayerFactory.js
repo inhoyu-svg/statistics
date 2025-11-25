@@ -153,7 +153,7 @@ class LayerFactory {
         id: `dashed-line-${index}`,
         name: `파선(${className})`,
         type: 'dashed-line',
-        visible: true,
+        visible: CONFIG.SHOW_DASHED_LINES,
         data: {
           index,
           relativeFreq: value,

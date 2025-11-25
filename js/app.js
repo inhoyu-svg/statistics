@@ -78,6 +78,9 @@ class FrequencyDistributionApp {
     // 차트 요소 토글 초기화
     this.initChartElementsToggle();
 
+    // 다각형 색상 프리셋 초기화
+    this.initPolygonColorPreset();
+
     // 격자선 토글 초기화
     this.initGridToggle();
 
@@ -319,6 +322,34 @@ class FrequencyDistributionApp {
         this.chartRenderer.timeline.currentTime = this.chartRenderer.timeline.duration;
         this.chartRenderer.renderFrame();
       }
+    });
+  }
+
+  /**
+   * 다각형 색상 프리셋 이벤트 리스너 등록
+   */
+  initPolygonColorPreset() {
+    const presetRadios = document.querySelectorAll('input[name="polygonColor"]');
+
+    presetRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          CONFIG.POLYGON_COLOR_PRESET = radio.value;
+
+          if (DataStore.hasData()) {
+            const { classes } = DataStore.getData();
+            const customLabels = this.getCustomLabels();
+            const dataType = ChartStore.getDataType();
+            const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
+            const configWithAlignment = this.getTableConfigWithAlignment();
+
+            this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+            this.chartRenderer.stopAnimation();
+            this.chartRenderer.timeline.currentTime = this.chartRenderer.timeline.duration;
+            this.chartRenderer.renderFrame();
+          }
+        }
+      });
     });
   }
 
@@ -1550,6 +1581,28 @@ class FrequencyDistributionApp {
       visible: layer.visible,
       order: layer.order
     };
+
+    // 레이어별 색상 정보 추가
+    const currentPreset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET] || CONFIG.POLYGON_COLOR_PRESETS.default;
+
+    if (layer.id === 'polygon') {
+      // 다각형 그룹: 그라디언트 색상
+      json.color = `linear-gradient(180deg, ${currentPreset.gradientStart} 0%, ${currentPreset.gradientEnd} 100%)`;
+    } else if (layer.id === 'points') {
+      // 점 그룹: 단색
+      json.color = currentPreset.pointColor;
+    } else if (layer.id === 'lines') {
+      // 선 그룹: 그라디언트 색상
+      json.color = `linear-gradient(180deg, ${currentPreset.gradientStart} 0%, ${currentPreset.gradientEnd} 100%)`;
+    } else if (layer.id === 'histogram') {
+      // 히스토그램 그룹: 고정 그라디언트
+      const barColorStart = CONFIG.getColor('--chart-bar-color');
+      const barColorEnd = CONFIG.getColor('--chart-bar-color-end');
+      json.color = `linear-gradient(180deg, ${barColorStart} 0%, ${barColorEnd} 100%)`;
+    } else if (layer.id === 'dashed-lines') {
+      // 파선 그룹: 단색
+      json.color = CONFIG.getColor('--chart-dashed-line-color');
+    }
 
     // p_id 추가 (root가 아닌 경우)
     if (layer.p_id) {

@@ -251,11 +251,17 @@ class AxisRenderer {
     // 다각형 범례 (동적 텍스트)
     const y2 = y1 + CONFIG.CHART_LEGEND_ITEM_SPACING;
 
+    // 현재 프리셋의 색상 가져오기
+    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
+    const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
+    const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
+    const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
+
     // 선 (그라디언트)
     const lineGradient = Utils.createLineGradient(
       this.ctx, legendX, y2, legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2,
-      CONFIG.getColor('--chart-polygon-line-start'),
-      CONFIG.getColor('--chart-polygon-line-end')
+      gradientStart,
+      gradientEnd
     );
     this.ctx.strokeStyle = lineGradient;
     this.ctx.lineWidth = 3;
@@ -265,7 +271,7 @@ class AxisRenderer {
     this.ctx.stroke();
 
     // 점 (단색)
-    this.ctx.fillStyle = CONFIG.getColor('--chart-polygon-point-color');
+    this.ctx.fillStyle = pointColor;
     this.ctx.beginPath();
     this.ctx.arc(legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, CONFIG.CHART_LEGEND_POINT_RADIUS, 0, Math.PI * 2);
     this.ctx.fill();

@@ -284,6 +284,28 @@ class DataProcessor {
         data: {}
       };
 
+      // 레이어별 색상 정보 추가
+      const currentPreset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET] || CONFIG.POLYGON_COLOR_PRESETS.default;
+
+      if (layer.id === 'polygon') {
+        // 다각형 그룹: 그라디언트 색상
+        serialized.color = `linear-gradient(180deg, ${currentPreset.gradientStart} 0%, ${currentPreset.gradientEnd} 100%)`;
+      } else if (layer.id === 'points') {
+        // 점 그룹: 단색
+        serialized.color = currentPreset.pointColor;
+      } else if (layer.id === 'lines') {
+        // 선 그룹: 그라디언트 색상
+        serialized.color = `linear-gradient(180deg, ${currentPreset.gradientStart} 0%, ${currentPreset.gradientEnd} 100%)`;
+      } else if (layer.id === 'histogram') {
+        // 히스토그램 그룹: 고정 그라디언트
+        const barColorStart = CONFIG.getColor('--chart-bar-color');
+        const barColorEnd = CONFIG.getColor('--chart-bar-color-end');
+        serialized.color = `linear-gradient(180deg, ${barColorStart} 0%, ${barColorEnd} 100%)`;
+      } else if (layer.id === 'dashed-lines') {
+        // 파선 그룹: 단색
+        serialized.color = CONFIG.getColor('--chart-dashed-line-color');
+      }
+
       // 레이어 데이터 추가 (data 속성이 있으면)
       if (layer.data && typeof layer.data === 'object') {
         serialized.data = { ...layer.data };
@@ -390,6 +412,9 @@ class DataProcessor {
         showYLabels: CONFIG.AXIS_SHOW_Y_LABELS,
         showXLabels: CONFIG.AXIS_SHOW_X_LABELS
       };
+
+      // 색상 프리셋 정보 (참고용)
+      chartConfig.colorPreset = CONFIG.POLYGON_COLOR_PRESET;
 
       // 캔버스 크기
       if (chartRenderer.canvas) {

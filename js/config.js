@@ -143,6 +143,31 @@ const CONFIG = {
   // 파선 설정
   SHOW_DASHED_LINES: false,                 // 수직 파선 표시 여부 (기본값)
 
+  // 다각형 색상 프리셋
+  POLYGON_COLOR_PRESET: 'default',          // 기본 색상 프리셋
+  POLYGON_COLOR_PRESETS: {
+    default: {
+      gradientStart: '#AEFF7E',
+      gradientEnd: '#68994C',
+      pointColor: '#8DCF66'
+    },
+    primary: {
+      gradientStart: '#54A0F6',
+      gradientEnd: '#6DE0FC',
+      pointColor: '#61C1F9'
+    },
+    secondary: {
+      gradientStart: '#D15DA4',
+      gradientEnd: '#E178F2',
+      pointColor: '#D96BCB'
+    },
+    tertiary: {
+      gradientStart: '#F3A257',
+      gradientEnd: '#FA716F',
+      pointColor: '#F68D61'
+    }
+  },
+
   // 격자선 설정
   GRID_SHOW_HORIZONTAL: true,               // 가로 격자선 표시 여부
   GRID_SHOW_VERTICAL: true,                 // 세로 격자선 표시 여부

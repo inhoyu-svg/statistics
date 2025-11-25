@@ -24,6 +24,12 @@ class PolygonRenderer {
   draw(relativeFreqs, coords, ellipsisInfo) {
     const { toX, toY, xScale } = coords;
 
+    // 현재 프리셋의 색상 가져오기
+    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
+    const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
+    const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
+    const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
+
     // 점 그리기
     relativeFreqs.forEach((relativeFreq, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
@@ -33,7 +39,7 @@ class PolygonRenderer {
 
       this.ctx.beginPath();
       this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
-      this.ctx.fillStyle = CONFIG.getColor('--chart-polygon-point-color');
+      this.ctx.fillStyle = pointColor;
       this.ctx.fill();
     });
 
@@ -51,8 +57,8 @@ class PolygonRenderer {
         // 그라디언트 선 (위에서 아래로)
         const lineGradient = Utils.createLineGradient(
           this.ctx, x1, y1, x2, y2,
-          CONFIG.getColor('--chart-polygon-line-start'),
-          CONFIG.getColor('--chart-polygon-line-end')
+          gradientStart,
+          gradientEnd
         );
 
         this.ctx.strokeStyle = lineGradient;
@@ -78,9 +84,13 @@ class PolygonRenderer {
     const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
     const centerY = coords.toY(relativeFreq);
 
+    // 현재 프리셋의 점 색상 사용
+    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
+    const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
+
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
-    this.ctx.fillStyle = CONFIG.getColor('--chart-polygon-point-color');
+    this.ctx.fillStyle = pointColor;
     this.ctx.fill();
   }
 
@@ -97,11 +107,16 @@ class PolygonRenderer {
     const x2 = CoordinateSystem.getBarCenterX(toIndex, toX, xScale);
     const y2 = toY(toFreq);
 
+    // 현재 프리셋의 그라디언트 색상 사용
+    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
+    const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
+    const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
+
     // 그라디언트 선 (위에서 아래로)
     const lineGradient = Utils.createLineGradient(
       this.ctx, x1, y1, x2, y2,
-      CONFIG.getColor('--chart-polygon-line-start'),
-      CONFIG.getColor('--chart-polygon-line-end')
+      gradientStart,
+      gradientEnd
     );
 
     this.ctx.strokeStyle = lineGradient;
