@@ -155,6 +155,10 @@ const CONFIG = {
   CALLOUT_POSITION_Y: 10,                   // 상단 여백 (CHART_PADDING 기준)
   CALLOUT_TEXT_WIDTH_RATIO: 0.6,            // 텍스트가 차지하는 너비 비율 (나머지는 여백)
 
+  // 말풍선 연결선 (말풍선 → 최고점)
+  CALLOUT_CONNECTOR_LINE_WIDTH: 2,          // 점선 두께
+  CALLOUT_CONNECTOR_DASH_PATTERN: [5, 5],   // 점선 패턴 [dash, gap]
+
   // 차트 요소 표시 설정
   SHOW_HISTOGRAM: true,                     // 히스토그램 표시 여부 (기본값)
   SHOW_POLYGON: true,                       // 도수 다각형 표시 여부 (기본값)

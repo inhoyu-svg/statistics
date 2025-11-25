@@ -19,7 +19,7 @@ class CalloutRenderer {
    * @param {Layer} layer - 말풍선 레이어
    */
   render(layer) {
-    const { x, y, text, width, height, opacity, polygonPreset } = layer.data;
+    const { x, y, text, width, height, opacity, polygonPreset, pointX, pointY } = layer.data;
 
     if (!text || opacity === 0) return;
 
@@ -28,6 +28,9 @@ class CalloutRenderer {
 
     // 말풍선 도형 그리기
     this._drawCalloutShape(x, y, width, height);
+
+    // 말풍선에서 최고점까지 점선 연결
+    this._drawConnectorLine(x, y, width, height, pointX, pointY, polygonPreset);
 
     // 오른쪽 세로 막대 그리기
     this._drawAccentBar(x, y, width, height, polygonPreset);
@@ -51,6 +54,46 @@ class CalloutRenderer {
     // 일반 사각형 그리기 (둥글기 없음)
     ctx.fillStyle = CONFIG.getColor('--chart-callout-bg-start');
     ctx.fillRect(x, y, width, height);
+  }
+
+  /**
+   * 말풍선에서 최고점까지 점선 연결
+   * @param {number} x - 말풍선 왼쪽 상단 x
+   * @param {number} y - 말풍선 왼쪽 상단 y
+   * @param {number} width - 말풍선 너비
+   * @param {number} height - 말풍선 높이
+   * @param {number} pointX - 최고점 x 좌표
+   * @param {number} pointY - 최고점 y 좌표
+   * @param {string} polygonPreset - 다각형 색상 프리셋
+   */
+  _drawConnectorLine(x, y, width, height, pointX, pointY, polygonPreset) {
+    const ctx = this.ctx;
+
+    // 시작점: 말풍선 오른쪽 끝 세로 막대의 중앙
+    const startX = x + width;
+    const startY = y + height / 2;
+
+    // 끝점: 도수 다각형의 최고점
+    const endX = pointX;
+    const endY = pointY;
+
+    // 프리셋에 따른 선 색상
+    const preset = polygonPreset || 'default';
+    const lineColor = CONFIG.CALLOUT_ACCENT_COLORS[preset] || CONFIG.CALLOUT_ACCENT_COLORS.default;
+
+    // 점선 스타일 설정
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = CONFIG.CALLOUT_CONNECTOR_LINE_WIDTH;
+    ctx.setLineDash(CONFIG.CALLOUT_CONNECTOR_DASH_PATTERN);
+
+    // 점선 그리기
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    // 점선 스타일 초기화 (다른 렌더링에 영향 없도록)
+    ctx.setLineDash([]);
   }
 
   /**
