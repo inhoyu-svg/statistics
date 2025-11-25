@@ -304,7 +304,11 @@ class FrequencyDistributionApp {
     this.chartRenderer.enableAnimation();
 
     // 재생/일시정지/정지
-    playBtn?.addEventListener('click', () => this.chartRenderer.playAnimation());
+    playBtn?.addEventListener('click', () => {
+      // 진행도를 0%로 리셋 후 재생
+      this.chartRenderer.timeline.currentTime = 0;
+      this.chartRenderer.playAnimation();
+    });
     pauseBtn?.addEventListener('click', () => this.chartRenderer.pauseAnimation());
     stopBtn?.addEventListener('click', () => this.chartRenderer.stopAnimation());
 
@@ -892,42 +896,77 @@ class FrequencyDistributionApp {
     const layerList = document.getElementById('layerList');
     if (!layerList) return;
 
-    // 선택된 소스에 따라 LayerManager 가져오기
-    let layerManager;
+    // 선택된 소스에 따라 레이어 가져오기
+    let layers = [];
+    let layerManager = null;
+
     if (this.currentLayerSource === 'chart') {
       layerManager = this.chartRenderer.layerManager;
+      if (!layerManager) {
+        layerList.innerHTML = '<p class="no-layers">레이어가 없습니다</p>';
+        return;
+      }
+      layers = layerManager.getAllLayers();
+
     } else if (this.currentLayerSource === 'table') {
-      layerManager = this.tableRenderer.getLayerManager();
+      // 모든 테이블 렌더러의 레이어 통합
+      if (this.tableRenderers.length === 0) {
+        layerList.innerHTML = '<p class="no-layers">레이어가 없습니다</p>';
+        return;
+      }
+
+      // 각 테이블의 레이어를 가져와서 통합
+      this.tableRenderers.forEach((renderer, tableIndex) => {
+        const tableLayerManager = renderer.getLayerManager();
+        if (tableLayerManager) {
+          const tableLayers = tableLayerManager.getAllLayers();
+
+          // 각 레이어에 tableIndex와 tableLayerManager 정보 추가
+          tableLayers.forEach(({ layer, depth }) => {
+            layers.push({
+              layer,
+              depth,
+              tableIndex,
+              tableLayerManager
+            });
+          });
+        }
+      });
+
+      if (layers.length === 0) {
+        layerList.innerHTML = '<p class="no-layers">레이어가 없습니다</p>';
+        return;
+      }
     }
 
-    if (!layerManager) {
+    if (layers.length === 0) {
       layerList.innerHTML = '<p class="no-layers">레이어가 없습니다</p>';
       return;
     }
 
-    // 레이어 목록 가져오기
-    const layers = layerManager.getAllLayers();
-
     // root 레이어 제외 및 접힌 그룹의 자식 필터링
     const filteredLayers = layers
-      .filter(({ layer }) => {
+      .filter(({ layer, tableIndex, tableLayerManager }) => {
         if (layer.id === 'root') return false;
 
         // 조상 중 하나라도 접혀있으면 숨김
-        if (this.isAnyAncestorCollapsed(layer.id, layerManager)) {
+        const currentLayerManager = this.currentLayerSource === 'table' ? tableLayerManager : layerManager;
+        if (this.isAnyAncestorCollapsed(layer.id, currentLayerManager)) {
           return false;
         }
 
         return true;
       })
-      .map(({ layer, depth }) => ({
+      .map(({ layer, depth, tableIndex, tableLayerManager }) => ({
         layer,
-        depth: depth - 1 // depth 1 감소 (histogram/polygon이 depth-0이 됨)
+        depth: depth - 1, // depth 1 감소 (histogram/polygon이 depth-0이 됨)
+        tableIndex, // 테이블 모드일 때 사용
+        tableLayerManager // 테이블 모드일 때 사용
       }));
 
     // HTML 생성
     const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
-    layerList.innerHTML = filteredLayers.map(({ layer, depth }) => {
+    layerList.innerHTML = filteredLayers.map(({ layer, depth, tableIndex, tableLayerManager }) => {
       const typeClass = layer.type;
       const depthClass = `depth-${depth}`;
       const isGroup = layer.type === 'group';
@@ -935,6 +974,12 @@ class FrequencyDistributionApp {
       const toggleIcon = isGroup ? (isCollapsed ? '▶' : '▼') : '';
 
       const visibilityIcon = layer.visible ? '👁️' : '👁️‍🗨️';
+
+      // 테이블 모드일 때 레이어 이름 앞에 "테이블 N:" 접두사 추가
+      let layerName = layer.name || layer.id;
+      if (this.currentLayerSource === 'table' && tableIndex !== undefined) {
+        layerName = `테이블 ${tableIndex + 1}: ${layerName}`;
+      }
 
       // 타입별 아이콘 및 색상
       let typeIcon = '';
@@ -954,14 +999,17 @@ class FrequencyDistributionApp {
         typeIcon = '<span class="layer-icon line-icon">─</span>';
       }
 
+      // data-table-index 속성 추가 (테이블 모드일 때만)
+      const tableIndexAttr = (this.currentLayerSource === 'table' && tableIndex !== undefined) ? ` data-table-index="${tableIndex}"` : '';
+
       return `
-        <div class="layer-item ${depthClass}" draggable="true" data-layer-id="${Utils.escapeHtml(layer.id)}">
-          ${isGroup ? `<span class="layer-toggle" data-layer-id="${Utils.escapeHtml(layer.id)}">${toggleIcon}</span>` : '<span class="layer-toggle-spacer"></span>'}
+        <div class="layer-item ${depthClass}" draggable="true" data-layer-id="${Utils.escapeHtml(layer.id)}"${tableIndexAttr}>
+          ${isGroup ? `<span class="layer-toggle" data-layer-id="${Utils.escapeHtml(layer.id)}"${tableIndexAttr}>${toggleIcon}</span>` : '<span class="layer-toggle-spacer"></span>'}
           <span class="layer-drag-handle">⋮⋮</span>
-          <button class="layer-visibility-btn" data-layer-id="${Utils.escapeHtml(layer.id)}" data-visible="${layer.visible}" title="${layer.visible ? '숨기기' : '보이기'}">${visibilityIcon}</button>
+          <button class="layer-visibility-btn" data-layer-id="${Utils.escapeHtml(layer.id)}" data-visible="${layer.visible}"${tableIndexAttr} title="${layer.visible ? '숨기기' : '보이기'}">${visibilityIcon}</button>
           ${typeIcon}
-          <span class="layer-name">${Utils.escapeHtml(layer.name || layer.id)}</span>
-          <button class="layer-json-btn" data-layer-id="${Utils.escapeHtml(layer.id)}" title="JSON 미리보기">📄</button>
+          <span class="layer-name">${Utils.escapeHtml(layerName)}</span>
+          <button class="layer-json-btn" data-layer-id="${Utils.escapeHtml(layer.id)}"${tableIndexAttr} title="JSON 미리보기">📄</button>
         </div>
       `;
     }).join('');
@@ -994,14 +1042,28 @@ class FrequencyDistributionApp {
         const currentVisible = e.currentTarget.dataset.visible === 'true';
         const newVisible = !currentVisible;
 
+        // 테이블 모드일 때 해당 테이블의 layerManager 사용
+        let targetLayerManager = layerManager;
+        let targetRenderer = null;
+
+        if (this.currentLayerSource === 'table') {
+          const tableIndex = parseInt(e.currentTarget.dataset.tableIndex);
+          if (!isNaN(tableIndex) && this.tableRenderers[tableIndex]) {
+            targetRenderer = this.tableRenderers[tableIndex];
+            targetLayerManager = targetRenderer.getLayerManager();
+          }
+        }
+
+        if (!targetLayerManager) return;
+
         // 레이어 가시성 변경
-        layerManager.setLayerVisibility(layerId, newVisible);
+        targetLayerManager.setLayerVisibility(layerId, newVisible);
 
         // 부모 레이어인 경우 모든 자식도 함께 변경
-        const layer = layerManager.findLayer(layerId);
+        const layer = targetLayerManager.findLayer(layerId);
         if (layer && layer.type === 'group' && layer.children) {
           layer.children.forEach(child => {
-            layerManager.setLayerVisibility(child.id, newVisible);
+            targetLayerManager.setLayerVisibility(child.id, newVisible);
           });
         }
 
@@ -1011,8 +1073,8 @@ class FrequencyDistributionApp {
         // 선택된 소스의 렌더러 업데이트
         if (this.currentLayerSource === 'chart') {
           this.chartRenderer.renderFrame();
-        } else if (this.currentLayerSource === 'table') {
-          this.tableRenderer.renderFrame();
+        } else if (this.currentLayerSource === 'table' && targetRenderer) {
+          targetRenderer.renderFrame();
         }
       });
     });
@@ -1022,7 +1084,8 @@ class FrequencyDistributionApp {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const layerId = e.currentTarget.dataset.layerId;
-        this.showJsonPreview(layerId);
+        const tableIndex = e.currentTarget.dataset.tableIndex;
+        this.showJsonPreview(layerId, tableIndex);
       });
     });
   }
@@ -1333,7 +1396,7 @@ class FrequencyDistributionApp {
           }
 
           // 3.6. 테이블 렌더링
-          const tableConfig = this.getDefaultTableConfig();
+          const tableConfig = this.getTableConfigWithAlignment();
           currentTableRenderer.draw(classes, data.length, tableConfig);
 
           // 3.7. 처리된 데이터셋 저장
@@ -1824,13 +1887,22 @@ class FrequencyDistributionApp {
    * JSON 미리보기 모달 표시
    * @param {string} layerId - 레이어 ID
    */
-  showJsonPreview(layerId) {
+  showJsonPreview(layerId, tableIndex = null) {
     // 현재 선택된 소스의 LayerManager에서 레이어 찾기
     let layerManager;
     if (this.currentLayerSource === 'chart') {
       layerManager = this.chartRenderer.layerManager;
     } else if (this.currentLayerSource === 'table') {
-      layerManager = this.tableRenderer.getLayerManager();
+      // 테이블 모드: tableIndex로 해당 테이블의 layerManager 사용
+      if (tableIndex !== null && tableIndex !== undefined) {
+        const tableIdx = parseInt(tableIndex);
+        if (!isNaN(tableIdx) && this.tableRenderers[tableIdx]) {
+          layerManager = this.tableRenderers[tableIdx].getLayerManager();
+        }
+      } else {
+        // tableIndex가 없으면 첫 번째 테이블 사용 (하위 호환)
+        layerManager = this.tableRenderer.getLayerManager();
+      }
     }
 
     if (!layerManager) {

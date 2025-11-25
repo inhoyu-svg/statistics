@@ -153,7 +153,7 @@ class ChartRenderer {
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
-      // 애니메이션 모드: Layer 생성 후 애니메이션 재생
+      // 애니메이션 모드: Layer 생성 후 진행도 100%로 설정 (자동 재생 안 함)
       LayerFactory.createLayers(
         this.layerManager,
         classes,
@@ -165,10 +165,9 @@ class ChartRenderer {
       );
       this.setupAnimations(classes);
 
-      // 타임라인이 이미 재생 중이면 playAnimation() 호출하지 않음
-      if (!this.timeline.isPlaying) {
-        this.playAnimation();
-      }
+      // 자동 재생하지 않고 진행도 100% 상태로 설정
+      this.timeline.currentTime = this.timeline.duration;
+      this.renderFrame(); // 최종 상태 렌더링
     } else {
       // 정적 렌더링 모드
       this.axisRenderer.drawGrid(
