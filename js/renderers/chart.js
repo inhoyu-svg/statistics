@@ -286,11 +286,17 @@ class ChartRenderer {
     }
 
     const points = [];
+    const lines = [];
     if (polygonGroup) {
       polygonGroup.children.forEach(datasetPolygonGroup => {
         const pointsGroup = datasetPolygonGroup.children.find(c => c.id.includes('points'));
         if (pointsGroup) {
           points.push(...pointsGroup.children);
+        }
+
+        const linesGroup = datasetPolygonGroup.children.find(c => c.id.includes('lines'));
+        if (linesGroup) {
+          lines.push(...linesGroup.children);
         }
       });
     }
@@ -380,12 +386,11 @@ class ChartRenderer {
       currentTime += Math.max(barDuration, pointDuration) + classDelay;
     }
 
-    // 연결선 그룹 애니메이션 (모든 계급 완료 후)
-    const linesGroup = polygonGroup?.children.find(c => c.id === 'lines');
-    if (linesGroup && linesGroup.children) {
+    // 연결선 애니메이션 (모든 계급 완료 후)
+    if (lines.length > 0) {
       currentTime += CONFIG.ANIMATION_LINE_START_DELAY;
 
-      linesGroup.children.forEach((line, idx) => {
+      lines.forEach((line, idx) => {
         this.timeline.addAnimation(line.id, {
           startTime: currentTime + (idx * lineDelay),
           duration: lineDuration,
@@ -394,19 +399,22 @@ class ChartRenderer {
           easing: 'linear'
         });
       });
+    }
 
-      // 말풍선 애니메이션 (모든 선이 완료된 후)
-      const calloutLayer = this.layerManager.findLayer('callout');
-      if (calloutLayer) {
-        const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
-        this.timeline.addAnimation('callout', {
-          startTime: lineEndTime + CONFIG.ANIMATION_CALLOUT_DELAY,
+    // 말풍선 그룹 애니메이션 (모든 선이 완료된 후)
+    const calloutsGroup = this.layerManager.findLayer('callouts');
+    if (calloutsGroup && calloutsGroup.children) {
+      const lineEndTime = currentTime + (lines.length * lineDelay) + lineDuration;
+
+      calloutsGroup.children.forEach((calloutLayer, idx) => {
+        this.timeline.addAnimation(calloutLayer.id, {
+          startTime: lineEndTime + CONFIG.ANIMATION_CALLOUT_DELAY + (idx * 100),
           duration: CONFIG.ANIMATION_POINT_DURATION,
           effect: 'custom', // 투명도 애니메이션은 직접 처리
           effectOptions: {},
           easing: 'easeIn'
         });
-      }
+      });
     }
   }
 
