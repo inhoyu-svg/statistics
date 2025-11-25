@@ -11,16 +11,15 @@ import CalloutRenderer from './CalloutRenderer.js';
 
 class LayerFactory {
   /**
-   * 레이어 생성
+   * 레이어 생성 (다중 데이터셋 지원)
    * @param {LayerManager} layerManager - 레이어 매니저
-   * @param {Array} classes - 계급 데이터
-   * @param {Array} values - 값 배열 (상대도수 또는 도수)
+   * @param {Array} datasetResults - 데이터셋 결과 배열 (각 객체: {id, name, preset, classes, frequencies, relativeFreqs})
    * @param {Object} coords - 좌표 시스템
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    * @param {string} calloutTemplate - 말풍선 템플릿
    */
-  static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null) {
+  static createLayers(layerManager, datasetResults, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null) {
     layerManager.clearAll();
 
     // 데이터 타입 정보 가져오기
@@ -43,47 +42,6 @@ class LayerFactory {
       visible: true
     });
 
-    // 막대 레이어 생성
-    values.forEach((value, index) => {
-      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-      // 도수가 0인 막대는 레이어 생성하지 않음
-      if (classes[index].frequency === 0) return;
-
-      // 계급명 생성 (예: "140~145")
-      const className = Utils.getClassName(classes[index]);
-
-      const barLayer = new Layer({
-        id: `bar-${index}`,
-        name: className,
-        type: 'bar',
-        visible: true,
-        data: {
-          index,
-          relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
-          frequency: classes[index].frequency
-        }
-      });
-
-      histogramGroup.addChild(barLayer);
-    });
-
-    // 점 그룹
-    const pointsGroup = new Layer({
-      id: 'points',
-      name: '점',
-      type: 'group',
-      visible: true
-    });
-
-    // 선 그룹
-    const linesGroup = new Layer({
-      id: 'lines',
-      name: '선',
-      type: 'group',
-      visible: true
-    });
-
     // 파선 그룹 (독립 레이어)
     const dashedLinesGroup = new Layer({
       id: 'dashed-lines',
@@ -92,84 +50,214 @@ class LayerFactory {
       visible: CONFIG.SHOW_DASHED_LINES
     });
 
-    // 점 레이어 생성 (도수 0인 계급도 포함)
-    values.forEach((value, index) => {
-      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+    // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
+    const labelsGroup = CONFIG.SHOW_BAR_LABELS ? new Layer({
+      id: 'bar-labels',
+      name: '막대 라벨',
+      type: 'group',
+      visible: true
+    }) : null;
 
-      // 계급명 생성
-      const className = Utils.getClassName(classes[index]);
-
-      const pointLayer = new Layer({
-        id: `point-${index}`,
-        name: `점(${className})`,
-        type: 'point',
-        visible: true,
-        data: {
-          index,
-          relativeFreq: value // 실제로는 value (상대도수 또는 도수)
-        }
-      });
-
-      pointsGroup.addChild(pointLayer);
+    // 말풍선 그룹
+    const calloutsGroup = new Layer({
+      id: 'callouts',
+      name: '말풍선',
+      type: 'group',
+      visible: true
     });
 
-    // 선 레이어 생성
-    let prevIndex = null;
-    values.forEach((value, index) => {
-      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+    // 각 데이터셋에 대해 레이어 생성
+    datasetResults.forEach((dataset, datasetIndex) => {
+      const { id, name, preset, classes, frequencies, relativeFreqs } = dataset;
+      const values = dataType === 'frequency' ? frequencies : relativeFreqs;
 
-      if (prevIndex !== null) {
-        // 시작 계급명과 끝 계급명
-        const fromClassName = Utils.getClassName(classes[prevIndex]);
-        const toClassName = Utils.getClassName(classes[index]);
+      // 데이터셋별 히스토그램 서브그룹
+      const datasetHistogramGroup = new Layer({
+        id: `histogram-${id}`,
+        name: `${name} 막대`,
+        type: 'group',
+        visible: true
+      });
 
-        const lineLayer = new Layer({
-          id: `line-${prevIndex}-${index}`,
-          name: `선(${fromClassName}→${toClassName})`,
-          type: 'line',
+      // 막대 레이어 생성
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+        if (frequencies[index] === 0) return;
+
+        const className = Utils.getClassName(classes[index]);
+
+        const barLayer = new Layer({
+          id: `bar-${id}-${index}`,
+          name: `${name}-${className}`,
+          type: 'bar',
           visible: true,
           data: {
-            fromIndex: prevIndex,
-            toIndex: index,
-            fromFreq: values[prevIndex],
-            toFreq: value
+            index,
+            relativeFreq: value,
+            frequency: frequencies[index],
+            coords,
+            dataType,
+            preset
           }
         });
 
-        linesGroup.addChild(lineLayer);
-      }
-
-      prevIndex = index;
-    });
-
-    // 파선 레이어 생성 (점에서 Y축까지 수직 파선)
-    values.forEach((value, index) => {
-      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-      if (value === 0) return; // 값이 0인 파선은 생성하지 않음
-
-      const className = Utils.getClassName(classes[index]);
-
-      const dashedLineLayer = new Layer({
-        id: `dashed-line-${index}`,
-        name: `파선(${className})`,
-        type: 'dashed-line',
-        visible: CONFIG.SHOW_DASHED_LINES,
-        data: {
-          index,
-          relativeFreq: value,
-          coords
-        }
+        datasetHistogramGroup.addChild(barLayer);
       });
 
-      dashedLinesGroup.addChild(dashedLineLayer);
+      histogramGroup.addChild(datasetHistogramGroup);
+
+      // 데이터셋별 다각형 서브그룹
+      const datasetPolygonGroup = new Layer({
+        id: `polygon-${id}`,
+        name: `${name} 다각형`,
+        type: 'group',
+        visible: true
+      });
+
+      // 선 그룹
+      const linesGroup = new Layer({
+        id: `lines-${id}`,
+        name: `${name} 선`,
+        type: 'group',
+        visible: true
+      });
+
+      // 점 그룹
+      const pointsGroup = new Layer({
+        id: `points-${id}`,
+        name: `${name} 점`,
+        type: 'group',
+        visible: true
+      });
+
+      // 점 레이어 생성
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+        const className = Utils.getClassName(classes[index]);
+
+        const pointLayer = new Layer({
+          id: `point-${id}-${index}`,
+          name: `${name}-점(${className})`,
+          type: 'point',
+          visible: true,
+          data: {
+            index,
+            relativeFreq: value,
+            coords,
+            preset
+          }
+        });
+
+        pointsGroup.addChild(pointLayer);
+      });
+
+      // 선 레이어 생성
+      let prevIndex = null;
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+        if (prevIndex !== null) {
+          const fromClassName = Utils.getClassName(classes[prevIndex]);
+          const toClassName = Utils.getClassName(classes[index]);
+
+          const lineLayer = new Layer({
+            id: `line-${id}-${prevIndex}-${index}`,
+            name: `${name}-선(${fromClassName}→${toClassName})`,
+            type: 'line',
+            visible: true,
+            data: {
+              fromIndex: prevIndex,
+              toIndex: index,
+              fromFreq: values[prevIndex],
+              toFreq: value,
+              coords,
+              preset
+            }
+          });
+
+          linesGroup.addChild(lineLayer);
+        }
+
+        prevIndex = index;
+      });
+
+      // 렌더링 순서: 선 → 점
+      datasetPolygonGroup.addChild(linesGroup);
+      datasetPolygonGroup.addChild(pointsGroup);
+      polygonGroup.addChild(datasetPolygonGroup);
+
+      // 파선 레이어 생성 (첫 번째 데이터셋만 - 공유)
+      if (datasetIndex === 0) {
+        values.forEach((value, index) => {
+          if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+          if (value === 0) return;
+
+          const className = Utils.getClassName(classes[index]);
+
+          const dashedLineLayer = new Layer({
+            id: `dashed-line-${index}`,
+            name: `파선(${className})`,
+            type: 'dashed-line',
+            visible: CONFIG.SHOW_DASHED_LINES,
+            data: {
+              index,
+              relativeFreq: value,
+              coords
+            }
+          });
+
+          dashedLinesGroup.addChild(dashedLineLayer);
+        });
+      }
+
+      // 막대 라벨 레이어 생성
+      if (labelsGroup) {
+        values.forEach((value, index) => {
+          if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+          if (frequencies[index] === 0) return;
+
+          const className = Utils.getClassName(classes[index]);
+
+          const labelLayer = new Layer({
+            id: `bar-label-${id}-${index}`,
+            name: `${name}-라벨(${className})`,
+            type: 'bar-label',
+            visible: true,
+            data: {
+              index,
+              relativeFreq: value,
+              frequency: frequencies[index],
+              coords,
+              dataType,
+              preset
+            }
+          });
+
+          labelsGroup.addChild(labelLayer);
+        });
+      }
+
+      // 말풍선 레이어 생성
+      if (calloutTemplate) {
+        const calloutLayer = this._createCalloutLayer(
+          classes,
+          values,
+          coords,
+          ellipsisInfo,
+          dataType,
+          calloutTemplate,
+          preset,
+          datasetIndex,
+          name
+        );
+        if (calloutLayer) {
+          calloutsGroup.addChild(calloutLayer);
+        }
+      }
     });
 
-    // 렌더링 순서: 선 → 점 (점이 가장 위에 표시되도록)
-    polygonGroup.addChild(linesGroup);
-    polygonGroup.addChild(pointsGroup);
-
     // 렌더링 순서: 히스토그램 → 파선 → 다각형 → 라벨(조건부) → 말풍선
-    // CONFIG에 따라 조건부 추가
     if (CONFIG.SHOW_HISTOGRAM) {
       layerManager.addLayer(histogramGroup);
     }
@@ -177,48 +265,11 @@ class LayerFactory {
     if (CONFIG.SHOW_POLYGON) {
       layerManager.addLayer(polygonGroup);
     }
-
-    // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
-    if (CONFIG.SHOW_BAR_LABELS) {
-      const labelsGroup = new Layer({
-        id: 'bar-labels',
-        name: '막대 라벨',
-        type: 'group',
-        visible: true
-      });
-
-      // 막대 라벨 레이어 생성
-      values.forEach((value, index) => {
-        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-        if (classes[index].frequency === 0) return;
-
-        const className = Utils.getClassName(classes[index]);
-
-        const labelLayer = new Layer({
-          id: `bar-label-${index}`,
-          name: `라벨(${className})`,
-          type: 'bar-label',
-          visible: true,
-          data: {
-            index,
-            relativeFreq: value,
-            frequency: classes[index].frequency,
-            dataType
-          }
-        });
-
-        labelsGroup.addChild(labelLayer);
-      });
-
+    if (labelsGroup) {
       layerManager.addLayer(labelsGroup);
     }
-
-    // 말풍선 레이어 생성 (템플릿이 제공된 경우)
     if (calloutTemplate) {
-      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate);
-      if (calloutLayer) {
-        layerManager.addLayer(calloutLayer);
-      }
+      layerManager.addLayer(calloutsGroup);
     }
   }
 
@@ -230,9 +281,12 @@ class LayerFactory {
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {string} dataType - 데이터 타입
    * @param {string} template - 말풍선 템플릿
+   * @param {string} preset - 색상 프리셋
+   * @param {number} datasetIndex - 데이터셋 인덱스 (Y 위치 오프셋 계산용)
+   * @param {string} datasetName - 데이터셋 이름
    * @returns {Layer|null} 말풍선 레이어
    */
-  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template) {
+  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, preset = 'default', datasetIndex = 0, datasetName = '') {
     // 최상단 포인트 찾기 (y값이 가장 큰 = 상대도수/도수가 가장 큰)
     let maxValue = -Infinity;
     let maxIndex = -1;
@@ -253,9 +307,9 @@ class LayerFactory {
     // 말풍선 너비 동적 계산 (텍스트 길이 기반)
     const calloutWidth = CalloutRenderer.calculateCalloutWidth(text);
 
-    // 말풍선 위치 (차트 왼쪽 상단 고정)
+    // 말풍선 위치 (차트 왼쪽 상단 고정, 데이터셋마다 Y 오프셋 추가)
     const calloutX = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_X;
-    const calloutY = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_Y;
+    const calloutY = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_Y + (datasetIndex * CONFIG.DATASET_CALLOUT_Y_OFFSET);
 
     // 포인트 좌표 계산 (애니메이션 참조용)
     const { toX, toY, xScale } = coords;
@@ -263,8 +317,8 @@ class LayerFactory {
     const pointY = toY(maxValue);
 
     const calloutLayer = new Layer({
-      id: 'callout',
-      name: '말풍선',
+      id: `callout-${datasetIndex}`,
+      name: `${datasetName} 말풍선`,
       type: 'callout',
       visible: true,
       data: {
@@ -277,7 +331,7 @@ class LayerFactory {
         pointX,
         pointY,
         classIndex: maxIndex,
-        polygonPreset: CONFIG.POLYGON_COLOR_PRESET // 다각형 프리셋 추가
+        polygonPreset: preset // 데이터셋 프리셋 사용
       }
     });
 

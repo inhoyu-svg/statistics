@@ -22,8 +22,9 @@ class HistogramRenderer {
    * @param {Object} coords - 좌표 시스템 객체
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+   * @param {string} preset - 색상 프리셋 (향후 확장용, 현재는 미사용)
    */
-  draw(values, freq, coords, ellipsisInfo, dataType = 'relativeFrequency') {
+  draw(values, freq, coords, ellipsisInfo, dataType = 'relativeFrequency', preset = 'default') {
     const { toX, toY, xScale } = coords;
 
     values.forEach((value, index) => {
@@ -65,7 +66,7 @@ class HistogramRenderer {
    * @param {Layer} layer - 막대 레이어
    */
   renderBar(layer) {
-    const { index, relativeFreq, frequency, coords, dataType } = layer.data;
+    const { index, relativeFreq, frequency, coords, dataType, preset = 'default' } = layer.data;
     const { toX, toY, xScale } = coords;
 
     // 애니메이션 progress 가져오기 (0~1)
@@ -81,7 +82,7 @@ class HistogramRenderer {
     const animatedY = baseY - animatedH;
     const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
 
-    // 그라디언트 막대
+    // 그라디언트 막대 (프리셋은 향후 확장용, 현재는 기본 색상 사용)
     const gradient = this.ctx.createLinearGradient(x, animatedY, x, animatedY + animatedH);
     gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
     gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));

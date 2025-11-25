@@ -81,14 +81,14 @@ class ChartRenderer {
 
   /**
    * 히스토그램과 상대도수 다각형 그리기
-   * @param {Array} classes - 계급 데이터 배열
+   * @param {Array} datasetResults - 데이터셋 결과 배열 또는 단일 classes 배열 (하위 호환)
    * @param {Object} axisLabels - 축 라벨 커스터마이징 객체
    * @param {Object} ellipsisInfo - 중략 표시 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    * @param {Object} tableConfig - 테이블 설정
    * @param {string} calloutTemplate - 말풍선 템플릿
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null) {
+  draw(datasetResults, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null) {
     this.canvas.width = CONFIG.CANVAS_WIDTH;
     this.canvas.height = CONFIG.CANVAS_HEIGHT;
     this.clear();
@@ -96,24 +96,46 @@ class ChartRenderer {
     // 새로운 차트 그리기 시작 - 하이라이트 초기화
     this.lastHighlightInfo = null;
 
-    const freq = classes.map(c => c.frequency);
-    const total = freq.reduce((a, b) => a + b, 0);
+    // 하위 호환성: datasetResults가 classes 배열인 경우
+    const isOldFormat = datasetResults.length > 0 && datasetResults[0].hasOwnProperty('frequency');
 
-    if (total === 0) {
-      this.axisRenderer.drawNoDataMessage();
-      return;
+    if (isOldFormat) {
+      // 구 형식: classes 배열 → datasetResults 형식으로 변환
+      const classes = datasetResults;
+      const freq = classes.map(c => c.frequency);
+      const total = freq.reduce((a, b) => a + b, 0);
+      const relativeFreqs = freq.map(f => f / total);
+
+      datasetResults = [{
+        id: 1,
+        name: CONFIG.DEFAULT_DATASET_NAME,
+        preset: 'default',
+        classes: classes,
+        frequencies: freq,
+        relativeFreqs: relativeFreqs
+      }];
     }
 
-    // 데이터 타입에 따라 값 배열 및 maxY 계산
-    const relativeFreqs = freq.map(f => f / total);
-    let values, maxY;
+    // 공통 계급 정보 가져오기
+    const classes = DataStore.getClasses() || datasetResults[0].classes;
 
-    if (dataType === 'frequency') {
-      values = freq;
-      maxY = Math.max(...freq);
-    } else { // 'relativeFrequency' (기본값)
-      values = relativeFreqs;
-      maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+    // 모든 데이터셋의 최대값 계산
+    let maxY = 0;
+    datasetResults.forEach(ds => {
+      if (dataType === 'frequency') {
+        maxY = Math.max(maxY, ...ds.frequencies);
+      } else {
+        maxY = Math.max(maxY, ...ds.relativeFreqs);
+      }
+    });
+
+    if (dataType === 'relativeFrequency') {
+      maxY = maxY * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+    }
+
+    if (maxY === 0) {
+      this.axisRenderer.drawNoDataMessage();
+      return;
     }
 
     // 좌표 시스템 생성
@@ -128,11 +150,10 @@ class ChartRenderer {
 
     // 차트 데이터 저장 (애니메이션 모드용)
     this.currentClasses = classes;
-    this.currentValues = values;
-    this.currentFreq = freq;
+    this.currentDatasetResults = datasetResults;
     this.currentCoords = coords;
     this.currentEllipsisInfo = ellipsisInfo;
-    this.currentMaxY = coords.adjustedMaxY; // 조정된 maxY 사용
+    this.currentMaxY = coords.adjustedMaxY;
     this.currentAxisLabels = axisLabels;
     this.currentDataType = dataType;
     this.currentGridDivisions = coords.gridDivisions;
@@ -143,14 +164,13 @@ class ChartRenderer {
       // 애니메이션 모드: Layer 생성 후 애니메이션 재생
       LayerFactory.createLayers(
         this.layerManager,
-        classes,
-        values,
+        datasetResults,
         coords,
         ellipsisInfo,
         dataType,
         calloutTemplate
       );
-      this.setupAnimations(classes);
+      this.setupAnimations(datasetResults);
       this.playAnimation();
     } else {
       // 정적 렌더링 모드
@@ -162,8 +182,14 @@ class ChartRenderer {
         ellipsisInfo,
         coords.gridDivisions
       );
-      this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
-      this.polygonRenderer.draw(values, coords, ellipsisInfo);
+
+      // 각 데이터셋 렌더링
+      datasetResults.forEach(ds => {
+        const values = dataType === 'frequency' ? ds.frequencies : ds.relativeFreqs;
+        this.histogramRenderer.draw(values, ds.frequencies, coords, ellipsisInfo, dataType, ds.preset);
+        this.polygonRenderer.draw(values, coords, ellipsisInfo, ds.preset);
+      });
+
       this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
       this.axisRenderer.drawLegend(dataType);
     }

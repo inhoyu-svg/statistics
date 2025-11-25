@@ -1119,31 +1119,44 @@ class FrequencyDistributionApp {
         return;
       }
 
-      // 6. 데이터 처리
-      const stats = DataProcessor.calculateBasicStats(data);
-      const { classes } = DataProcessor.createClasses(stats, classCount, customWidth);
-      DataProcessor.calculateFrequencies(data, classes);
-      DataProcessor.calculateRelativeAndCumulative(classes, data.length);
+      // 6. 모든 데이터셋 처리
+      const allDatasets = DataStore.getAllDatasets();
+      const result = DataProcessor.createClassesForMultipleDatasets(allDatasets, classCount, customWidth);
 
-      // 중략 표시 여부 확인
-      const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
+      // 공통 계급과 데이터셋별 결과
+      const { classes, datasets: datasetResults } = result;
+
+      // 중략 표시 여부 확인 (첫 번째 데이터셋 기준)
+      const ellipsisInfo = DataProcessor.shouldShowEllipsis(datasetResults[0].classes);
 
       // 7. Store에 데이터 저장
-      DataStore.setData(data, stats, classes);
+      // 각 데이터셋에 통계 정보 업데이트
+      datasetResults.forEach(dsResult => {
+        DataStore.updateDataset(dsResult.id, {
+          stats: dsResult.stats,
+          frequencies: dsResult.frequencies,
+          relativeFreqs: dsResult.relativeFreqs
+        });
+      });
+
+      // 공통 계급 저장
+      DataStore.setClasses(classes);
+
       TableStore.setConfig(tableConfig.visibleColumns, tableConfig.columnOrder, tableConfig.labels);
       ChartStore.setConfig(customLabels.axis, ellipsisInfo);
 
-      // 8. UI 렌더링 (커스텀 라벨 전달)
-      UIRenderer.renderStatsCards(stats);
+      // 8. UI 렌더링 (첫 번째 데이터셋 통계 표시)
+      UIRenderer.renderStatsCards(datasetResults[0].stats);
 
       // tableConfig에 columnAlignment 추가
       const configWithAlignment = this.getTableConfigWithAlignment();
 
-      this.tableRenderer.draw(classes, data.length, configWithAlignment);
-
       // 차트 데이터 타입 가져오기
       const dataType = ChartStore.getDataType();
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+
+      // 테이블 및 차트 렌더링 (여러 데이터셋 전달)
+      this.tableRenderer.draw(datasetResults, configWithAlignment);
+      this.chartRenderer.draw(datasetResults, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
 
       // 9. 레이어 패널 렌더링
       this.renderLayerPanel();

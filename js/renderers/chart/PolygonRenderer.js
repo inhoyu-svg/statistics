@@ -20,15 +20,16 @@ class PolygonRenderer {
    * @param {Array} relativeFreqs - 상대도수 배열
    * @param {Object} coords - 좌표 시스템 객체
    * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} preset - 색상 프리셋 ('default', 'primary', 'secondary', 'tertiary')
    */
-  draw(relativeFreqs, coords, ellipsisInfo) {
+  draw(relativeFreqs, coords, ellipsisInfo, preset = 'default') {
     const { toX, toY, xScale } = coords;
 
-    // 현재 프리셋의 색상 가져오기
-    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
-    const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
-    const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
-    const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
+    // 프리셋 색상 가져오기
+    const presetColors = CONFIG.POLYGON_COLOR_PRESETS[preset];
+    const pointColor = presetColors?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
+    const gradientStart = presetColors?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
+    const gradientEnd = presetColors?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
 
     // 점 그리기
     relativeFreqs.forEach((relativeFreq, index) => {
@@ -78,15 +79,15 @@ class PolygonRenderer {
    * @param {Layer} layer - 점 레이어
    */
   renderPoint(layer) {
-    const { index, relativeFreq, coords } = layer.data;
+    const { index, relativeFreq, coords, preset = 'default' } = layer.data;
     const { toX, xScale } = coords;
 
     const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
     const centerY = coords.toY(relativeFreq);
 
-    // 현재 프리셋의 점 색상 사용
-    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
-    const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
+    // 프리셋 색상 사용
+    const presetColors = CONFIG.POLYGON_COLOR_PRESETS[preset];
+    const pointColor = presetColors?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
 
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
@@ -99,7 +100,7 @@ class PolygonRenderer {
    * @param {Layer} layer - 선 레이어
    */
   renderLine(layer) {
-    const { fromIndex, toIndex, fromFreq, toFreq, coords } = layer.data;
+    const { fromIndex, toIndex, fromFreq, toFreq, coords, preset = 'default' } = layer.data;
     const { toX, toY, xScale } = coords;
 
     const x1 = CoordinateSystem.getBarCenterX(fromIndex, toX, xScale);
@@ -107,10 +108,10 @@ class PolygonRenderer {
     const x2 = CoordinateSystem.getBarCenterX(toIndex, toX, xScale);
     const y2 = toY(toFreq);
 
-    // 현재 프리셋의 그라디언트 색상 사용
-    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
-    const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
-    const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
+    // 프리셋 색상 사용
+    const presetColors = CONFIG.POLYGON_COLOR_PRESETS[preset];
+    const gradientStart = presetColors?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
+    const gradientEnd = presetColors?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
 
     // 그라디언트 선 (위에서 아래로)
     const lineGradient = Utils.createLineGradient(
