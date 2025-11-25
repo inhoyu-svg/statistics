@@ -76,12 +76,25 @@ class FrequencyDistributionApp {
 
     // 제목 설정
     const title = section.querySelector('.dataset-title');
-    title.textContent = `📊 데이터셋 ${datasetId}`;
+    const colorIndicator = title.querySelector('.dataset-color-indicator');
 
-    // 색상 프리셋 라디오 버튼에 name 속성 설정
+    // innerHTML을 사용하여 색상 인디케이터와 텍스트 모두 설정
+    title.innerHTML = `<span class="dataset-color-indicator" data-color="default"></span>📊 데이터셋 ${datasetId}`;
+
+    // 색상 인디케이터 요소 다시 찾기
+    const indicator = title.querySelector('.dataset-color-indicator');
+
+    // 색상 프리셋 라디오 버튼에 name 속성 설정 및 이벤트 리스너 추가
     const colorRadios = section.querySelectorAll('.dataset-polygon-color');
     colorRadios.forEach(radio => {
       radio.name = `polygonColor-${datasetId}`;
+
+      // 색상 변경 이벤트 리스너
+      radio.addEventListener('change', (e) => {
+        if (indicator) {
+          indicator.setAttribute('data-color', e.target.value);
+        }
+      });
     });
 
     // 삭제 버튼 이벤트 리스너

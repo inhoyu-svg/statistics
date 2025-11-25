@@ -185,6 +185,31 @@ h1 {
   gap: var(--spacing-sm);
 }
 
+/* 데이터셋 색상 인디케이터 */
+.dataset-color-indicator {
+  display: inline-block;
+  width: 40px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+/* 색상 프리셋별 그라데이션 */
+.dataset-color-indicator[data-color="default"] {
+  background: linear-gradient(135deg, #AEFF7E 0%, #68994C 100%);
+}
+
+.dataset-color-indicator[data-color="primary"] {
+  background: linear-gradient(135deg, #54A0F6 0%, #6DE0FC 100%);
+}
+
+.dataset-color-indicator[data-color="secondary"] {
+  background: linear-gradient(135deg, #D15DA4 0%, #E178F2 100%);
+}
+
+.dataset-color-indicator[data-color="tertiary"] {
+  background: linear-gradient(135deg, #F3A257 0%, #FA716F 100%);
+}
+
 .dataset-remove-btn {
   width: 28px;
   height: 28px;
