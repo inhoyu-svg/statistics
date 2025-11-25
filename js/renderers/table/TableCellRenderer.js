@@ -20,30 +20,46 @@ class TableCellRenderer {
   renderGrid(layer) {
     const { x, y, width, height, rowCount, columnWidths } = layer.data;
 
-    this.ctx.strokeStyle = CONFIG.getColor('--color-border');
-    this.ctx.lineWidth = 1;
-
-    // 외곽선
-    this.ctx.strokeRect(x, y, width, height);
+    // 하단 선만 (두께 2, 밝은 회색)
+    this.ctx.strokeStyle = '#888888';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y + height);
+    this.ctx.lineTo(x + width, y + height);
+    this.ctx.stroke();
 
     // 수평선
     for (let i = 1; i <= rowCount; i++) {
       const lineY = y + CONFIG.TABLE_HEADER_HEIGHT + (i - 1) * CONFIG.TABLE_ROW_HEIGHT;
+
+      // 첫 번째 선(헤더 아래) 또는 마지막 선(합계 위)은 두께 2, 밝은 회색
+      if (i === 1 || i === rowCount) {
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeStyle = '#888888';
+      } else {
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = '#555555';
+      }
+
       this.ctx.beginPath();
       this.ctx.moveTo(x, lineY);
       this.ctx.lineTo(x + width, lineY);
       this.ctx.stroke();
     }
 
-    // 수직선
+    // 수직선 (점선, 헤더 영역 제외, 밝은 회색)
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeStyle = '#888888';
+    this.ctx.setLineDash([5, 3]); // 5px 선, 3px 간격
     let lineX = x;
     for (let i = 0; i < columnWidths.length - 1; i++) {
       lineX += columnWidths[i];
       this.ctx.beginPath();
-      this.ctx.moveTo(lineX, y);
+      this.ctx.moveTo(lineX, y + CONFIG.TABLE_HEADER_HEIGHT);
       this.ctx.lineTo(lineX, y + height);
       this.ctx.stroke();
     }
+    this.ctx.setLineDash([]); // 실선으로 복원
   }
 
   /**
@@ -53,16 +69,8 @@ class TableCellRenderer {
   renderHeaderCell(layer) {
     const { x, y, width, height, cellText, alignment } = layer.data;
 
-    // 헤더 배경 (그라디언트)
-    const gradient = this.ctx.createLinearGradient(x, y, x, y + height);
-    gradient.addColorStop(0, CONFIG.getColor('--color-primary'));
-    gradient.addColorStop(1, CONFIG.getColor('--color-primary-dark'));
-
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(x, y, width, height);
-
     // 헤더 텍스트
-    this.ctx.fillStyle = 'white';
+    this.ctx.fillStyle = '#8DCF66';
     this.ctx.font = CONFIG.TABLE_FONT_HEADER;
     this.ctx.textBaseline = 'middle';
     this.ctx.textAlign = alignment;
@@ -93,23 +101,6 @@ class TableCellRenderer {
       colLabel
     } = layer.data;
 
-    // 배경색 결정
-    if (highlighted && highlightProgress > 0) {
-      // 하이라이트: 밝은 파란색 배경
-      const alpha = Math.min(highlightProgress, 1) * 0.3;
-      this.ctx.fillStyle = `rgba(84, 160, 246, ${alpha})`;
-      this.ctx.fillRect(x, y, width, height);
-
-      // 테두리 추가
-      this.ctx.strokeStyle = 'rgba(84, 160, 246, 0.8)';
-      this.ctx.lineWidth = 2;
-      this.ctx.strokeRect(x, y, width, height);
-    } else if (isEvenRow) {
-      // 짝수 행 기본 배경색
-      this.ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
-      this.ctx.fillRect(x, y, width, height);
-    }
-
     // 텍스트 그리기
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.font = CONFIG.TABLE_FONT_DATA;
@@ -135,14 +126,6 @@ class TableCellRenderer {
    */
   renderSummaryCell(layer) {
     const { x, y, width, height, cellText, alignment } = layer.data;
-
-    // 합계 행 배경
-    const gradient = this.ctx.createLinearGradient(x, y, x, y + height);
-    gradient.addColorStop(0, CONFIG.getColor('--color-primary'));
-    gradient.addColorStop(1, CONFIG.getColor('--color-primary-dark'));
-
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(x, y, width, height);
 
     // 합계 텍스트
     this.ctx.fillStyle = 'white';

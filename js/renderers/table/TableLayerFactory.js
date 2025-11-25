@@ -362,15 +362,10 @@ class TableLayerFactory {
     filteredCells.forEach((cellText, i) => {
       const label = filteredLabels[i];
 
-      // 빈 문자열이 아닌 경우에만 레이어 생성 (병합된 부분은 레이어 없음)
-      if (cellText !== '') {
-        // 첫 번째 셀("합계")인 경우 다음 셀(계급값)도 병합
-        let cellWidth = columnWidths[i];
-        if (cellText === '합계' && i + 1 < filteredCells.length && filteredCells[i + 1] === '') {
-          cellWidth += columnWidths[i + 1]; // 다음 셀 너비도 포함
-        }
+      // 모든 셀에 대해 레이어 생성
+      const cellWidth = columnWidths[i];
 
-        const cellLayer = new Layer({
+      const cellLayer = new Layer({
           id: `${tableId}-table-summary-col${cellIndex}`,
           name: String(cellText),
           type: 'cell',
@@ -390,11 +385,10 @@ class TableLayerFactory {
             highlighted: false,
             highlightProgress: 0
           }
-        });
+      });
 
-        summaryGroup.addChild(cellLayer);
-        cellIndex++;
-      }
+      summaryGroup.addChild(cellLayer);
+      cellIndex++;
 
       // x 좌표는 항상 증가 (빈 칸이든 아니든)
       x += columnWidths[i];
