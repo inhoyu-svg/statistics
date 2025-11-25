@@ -22,15 +22,14 @@
         💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56
       </div>
 
-      <!-- 데이터셋 관리 섹션 -->
-      <div class="datasets-section">
-        <div class="datasets-header">
-          <h3>📊 데이터셋 관리</h3>
-          <button id="addDatasetBtn" class="add-dataset-btn" type="button" title="데이터셋 추가">+ 추가</button>
-        </div>
-        <div id="datasetsContainer" class="datasets-container">
-          <!-- 데이터셋 카드들이 동적으로 생성됨 -->
-        </div>
+      <div class="input-group">
+        <label for="dataInput">데이터 입력:</label>
+        <textarea
+          id="dataInput"
+          placeholder="예: 23, 45, 67, 34, 56, 78, 45, 89, 12, 34"
+          aria-describedby="dataInputHelp"
+          rows="3">2, 5, 8, 5, 2, 3, 7, 9, 4, 6, 5, 8, 3, 2, 7</textarea>
+        <span id="dataInputHelp" class="sr-only">쉼표나 공백으로 구분된 숫자를 입력하세요</span>
       </div>
 
       <div class="row">

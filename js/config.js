@@ -159,12 +159,6 @@ const CONFIG = {
   CALLOUT_CONNECTOR_LINE_WIDTH: 2,          // 점선 두께
   CALLOUT_CONNECTOR_DASH_PATTERN: [5, 5],   // 점선 패턴 [dash, gap]
 
-  // 데이터셋 설정
-  MAX_DATASETS: 4,                          // 최대 데이터셋 개수
-  DEFAULT_DATASET_NAME: '데이터셋',          // 기본 데이터셋 이름
-  DATASET_CALLOUT_Y_OFFSET: 50,             // 데이터셋별 말풍선 Y 간격
-  DEFAULT_PRESET_ORDER: ['default', 'primary', 'secondary', 'tertiary'], // 기본 프리셋 순서
-
   // 차트 요소 표시 설정
   SHOW_HISTOGRAM: true,                     // 히스토그램 표시 여부 (기본값)
   SHOW_POLYGON: true,                       // 도수 다각형 표시 여부 (기본값)

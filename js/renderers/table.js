@@ -45,64 +45,24 @@ class TableRenderer {
   }
 
   /**
-   * 도수분포표 그리기 (다중 데이터셋 지원)
-   * @param {Array} datasetResults - 데이터셋 결과 배열 또는 클래스 배열 (하위 호환)
+   * 도수분포표 그리기
+   * @param {Array} classes - 계급 데이터 배열
+   * @param {number} total - 전체 데이터 개수
    * @param {Object} config - 테이블 설정 객체
    * @param {Object} highlightInfo - 하이라이트 정보 (레거시 지원)
    */
-  draw(datasetResults, config = null, highlightInfo = null) {
-    // 하위 호환성: 기존 (classes, total, config) 형식 감지
-    const isOldFormat = datasetResults.length > 0 && datasetResults[0].hasOwnProperty('frequency');
+  draw(classes, total, config = null, highlightInfo = null) {
+    // 도수가 0이 아닌 계급만 필터링
+    const visibleClasses = classes.filter(c => c.frequency > 0);
 
-    let datasets;
-    let visibleClasses;
-
-    if (isOldFormat) {
-      // 기존 형식: classes 배열
-      const classes = datasetResults;
-      visibleClasses = classes.filter(c => c.frequency > 0);
-
-      if (visibleClasses.length === 0) {
-        this.drawNoDataMessage();
-        return;
-      }
-
-      const total = visibleClasses.reduce((sum, c) => sum + c.frequency, 0);
-
-      // 단일 데이터셋으로 변환
-      datasets = [{
-        id: 1,
-        name: CONFIG.DEFAULT_DATASET_NAME,
-        preset: 'default',
-        classes: visibleClasses,
-        frequencies: visibleClasses.map(c => c.frequency),
-        relativeFreqs: visibleClasses.map(c => c.relativeFreq)
-      }];
-    } else {
-      // 새 형식: datasetResults 배열
-      datasets = datasetResults;
-
-      // 모든 데이터셋을 고려하여 표시할 클래스 결정
-      if (datasets.length === 0 || !datasets[0].classes) {
-        this.drawNoDataMessage();
-        return;
-      }
-
-      // 어느 데이터셋에서든 도수가 0이 아닌 계급 표시
-      const allClasses = datasets[0].classes;
-      visibleClasses = allClasses.filter((c, index) => {
-        return datasets.some(ds => ds.frequencies[index] > 0);
-      });
-
-      if (visibleClasses.length === 0) {
-        this.drawNoDataMessage();
-        return;
-      }
+    if (visibleClasses.length === 0) {
+      this.drawNoDataMessage();
+      return;
     }
 
     // 설정 저장
     this.currentClasses = visibleClasses;
-    this.currentDatasets = datasets;
+    this.currentTotal = total;
     this.currentConfig = config;
 
     // Canvas 크기 계산
@@ -113,11 +73,12 @@ class TableRenderer {
     this.canvas.height = canvasHeight;
     this.clear();
 
-    // 레이어 생성 (다중 데이터셋 지원)
+    // 레이어 생성
     this.layerManager.clearAll();
     TableLayerFactory.createTableLayers(
       this.layerManager,
-      datasets,
+      visibleClasses,
+      total,
       config
     );
 

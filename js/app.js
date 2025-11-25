@@ -49,8 +49,12 @@ class FrequencyDistributionApp {
     const generateBtn = document.getElementById('generateBtn');
     generateBtn.addEventListener('click', () => this.generate());
 
-    // 데이터셋 관리 초기화
-    this.initDatasets();
+    // Enter 키로도 생성 가능
+    document.getElementById('dataInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        this.generate();
+      }
+    });
 
     // JSON 내보내기 버튼
     const exportJsonBtn = document.getElementById('exportJsonBtn');
@@ -1076,16 +1080,17 @@ class FrequencyDistributionApp {
     try {
       MessageManager.hide();
 
-      // 1. 첫 번째 데이터셋 가져오기
-      const firstDataset = DataStore.getFirstDataset();
-      if (!firstDataset || !firstDataset.data || firstDataset.data.length === 0) {
+      // 1. 입력 값 가져오기
+      const input = document.getElementById('dataInput').value.trim();
+      if (!input) {
         MessageManager.error('데이터를 입력해주세요!');
         return;
       }
 
-      const data = firstDataset.data;
+      // 2. 데이터 파싱
+      const data = DataProcessor.parseInput(input);
 
-      // 2. 데이터 검증
+      // 3. 데이터 검증
       const dataValidation = Validator.validateData(data);
       if (!dataValidation.valid) {
         MessageManager.error(dataValidation.message);
@@ -1119,44 +1124,31 @@ class FrequencyDistributionApp {
         return;
       }
 
-      // 6. 모든 데이터셋 처리
-      const allDatasets = DataStore.getAllDatasets();
-      const result = DataProcessor.createClassesForMultipleDatasets(allDatasets, classCount, customWidth);
+      // 6. 데이터 처리
+      const stats = DataProcessor.calculateBasicStats(data);
+      const { classes } = DataProcessor.createClasses(stats, classCount, customWidth);
+      DataProcessor.calculateFrequencies(data, classes);
+      DataProcessor.calculateRelativeAndCumulative(classes, data.length);
 
-      // 공통 계급과 데이터셋별 결과
-      const { classes, datasets: datasetResults } = result;
-
-      // 중략 표시 여부 확인 (첫 번째 데이터셋 기준)
-      const ellipsisInfo = DataProcessor.shouldShowEllipsis(datasetResults[0].classes);
+      // 중략 표시 여부 확인
+      const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
 
       // 7. Store에 데이터 저장
-      // 각 데이터셋에 통계 정보 업데이트
-      datasetResults.forEach(dsResult => {
-        DataStore.updateDataset(dsResult.id, {
-          stats: dsResult.stats,
-          frequencies: dsResult.frequencies,
-          relativeFreqs: dsResult.relativeFreqs
-        });
-      });
-
-      // 공통 계급 저장
-      DataStore.setClasses(classes);
-
+      DataStore.setData(data, stats, classes);
       TableStore.setConfig(tableConfig.visibleColumns, tableConfig.columnOrder, tableConfig.labels);
       ChartStore.setConfig(customLabels.axis, ellipsisInfo);
 
-      // 8. UI 렌더링 (첫 번째 데이터셋 통계 표시)
-      UIRenderer.renderStatsCards(datasetResults[0].stats);
+      // 8. UI 렌더링 (커스텀 라벨 전달)
+      UIRenderer.renderStatsCards(stats);
 
       // tableConfig에 columnAlignment 추가
       const configWithAlignment = this.getTableConfigWithAlignment();
 
+      this.tableRenderer.draw(classes, data.length, configWithAlignment);
+
       // 차트 데이터 타입 가져오기
       const dataType = ChartStore.getDataType();
-
-      // 테이블 및 차트 렌더링 (여러 데이터셋 전달)
-      this.tableRenderer.draw(datasetResults, configWithAlignment);
-      this.chartRenderer.draw(datasetResults, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
 
       // 9. 레이어 패널 렌더링
       this.renderLayerPanel();
@@ -1633,168 +1625,6 @@ class FrequencyDistributionApp {
     }
 
     return json;
-  }
-
-  /**
-   * 데이터셋 관리 초기화
-   */
-  initDatasets() {
-    // "데이터셋 추가" 버튼 이벤트
-    const addDatasetBtn = document.getElementById('addDatasetBtn');
-    addDatasetBtn?.addEventListener('click', () => this.handleAddDataset());
-
-    // 초기 데이터셋 1개 추가
-    const defaultData = '2, 5, 8, 5, 2, 3, 7, 9, 4, 6, 5, 8, 3, 2, 7';
-    DataStore.addDataset('데이터셋 1', Utils.parseData(defaultData), 'default');
-
-    // UI 렌더링
-    this.renderDatasetCards();
-  }
-
-  /**
-   * 데이터셋 추가 핸들러
-   */
-  handleAddDataset() {
-    const count = DataStore.getDatasetCount();
-
-    // 최대 개수 체크
-    if (count >= CONFIG.MAX_DATASETS) {
-      MessageManager.show(`최대 ${CONFIG.MAX_DATASETS}개의 데이터셋만 추가할 수 있습니다.`, 'warning');
-      return;
-    }
-
-    // 자동으로 프리셋 할당
-    const preset = CONFIG.DEFAULT_PRESET_ORDER[count % CONFIG.DEFAULT_PRESET_ORDER.length];
-    const name = `${CONFIG.DEFAULT_DATASET_NAME} ${count + 1}`;
-
-    DataStore.addDataset(name, [], preset);
-    this.renderDatasetCards();
-  }
-
-  /**
-   * 데이터셋 제거 핸들러
-   * @param {number} id - 데이터셋 ID
-   */
-  handleRemoveDataset(id) {
-    // 최소 1개는 유지
-    if (DataStore.getDatasetCount() <= 1) {
-      MessageManager.show('최소 1개의 데이터셋이 필요합니다.', 'warning');
-      return;
-    }
-
-    DataStore.removeDataset(id);
-    this.renderDatasetCards();
-  }
-
-  /**
-   * 데이터셋 이름 변경 핸들러
-   * @param {number} id - 데이터셋 ID
-   * @param {string} name - 새 이름
-   */
-  handleDatasetNameChange(id, name) {
-    DataStore.updateDataset(id, { name });
-  }
-
-  /**
-   * 데이터셋 프리셋 변경 핸들러
-   * @param {number} id - 데이터셋 ID
-   * @param {string} preset - 새 프리셋
-   */
-  handleDatasetPresetChange(id, preset) {
-    DataStore.updateDataset(id, { preset });
-    this.renderDatasetCards(); // border 색상 업데이트를 위해 재렌더링
-  }
-
-  /**
-   * 데이터셋 데이터 변경 핸들러
-   * @param {number} id - 데이터셋 ID
-   * @param {string} value - 입력 값
-   */
-  handleDatasetDataChange(id, value) {
-    try {
-      // 빈 문자열이 아닐 때만 파싱 및 업데이트
-      if (value.trim() !== '') {
-        const data = Utils.parseData(value);
-        DataStore.updateDataset(id, { data });
-      }
-    } catch (error) {
-      // 입력 중이므로 에러 무시 (생성 버튼 클릭 시 검증)
-    }
-  }
-
-  /**
-   * 데이터셋 카드 렌더링
-   */
-  renderDatasetCards() {
-    const container = document.getElementById('datasetsContainer');
-    if (!container) return;
-
-    const datasets = DataStore.getAllDatasets();
-
-    // 카드 생성
-    container.innerHTML = datasets.map(dataset => this.createDatasetCardHTML(dataset)).join('');
-
-    // 이벤트 리스너 등록
-    datasets.forEach(dataset => {
-      const card = container.querySelector(`[data-dataset-id="${dataset.id}"]`);
-      if (!card) return;
-
-      // 이름 변경
-      const nameInput = card.querySelector('.dataset-name-input');
-      nameInput?.addEventListener('input', (e) => {
-        this.handleDatasetNameChange(dataset.id, e.target.value);
-      });
-
-      // 프리셋 변경
-      const presetSelect = card.querySelector('.dataset-preset-select');
-      presetSelect?.addEventListener('change', (e) => {
-        this.handleDatasetPresetChange(dataset.id, e.target.value);
-      });
-
-      // 데이터 변경
-      const dataInput = card.querySelector('.dataset-data-input');
-      dataInput?.addEventListener('input', (e) => {
-        this.handleDatasetDataChange(dataset.id, e.target.value);
-      });
-
-      // 제거 버튼
-      const removeBtn = card.querySelector('.remove-dataset-btn');
-      removeBtn?.addEventListener('click', () => {
-        this.handleRemoveDataset(dataset.id);
-      });
-    });
-  }
-
-  /**
-   * 데이터셋 카드 HTML 생성
-   * @param {Object} dataset - 데이터셋
-   * @returns {string} HTML 문자열
-   */
-  createDatasetCardHTML(dataset) {
-    const dataStr = dataset.data ? dataset.data.join(', ') : '';
-
-    return `
-      <div class="dataset-card" data-dataset-id="${dataset.id}" data-preset="${dataset.preset}">
-        <div class="dataset-card-header">
-          <input
-            type="text"
-            class="dataset-name-input"
-            value="${Utils.escapeHtml(dataset.name)}"
-            placeholder="데이터셋 이름">
-          <select class="dataset-preset-select">
-            <option value="default" ${dataset.preset === 'default' ? 'selected' : ''}>Default (초록)</option>
-            <option value="primary" ${dataset.preset === 'primary' ? 'selected' : ''}>Primary (파랑)</option>
-            <option value="secondary" ${dataset.preset === 'secondary' ? 'selected' : ''}>Secondary (핑크)</option>
-            <option value="tertiary" ${dataset.preset === 'tertiary' ? 'selected' : ''}>Tertiary (주황)</option>
-          </select>
-          <button class="remove-dataset-btn" title="데이터셋 제거">−</button>
-        </div>
-        <textarea
-          class="dataset-data-input"
-          placeholder="데이터를 쉼표 또는 공백으로 구분하여 입력하세요..."
-          rows="2">${Utils.escapeHtml(dataStr)}</textarea>
-      </div>
-    `;
   }
 }
 

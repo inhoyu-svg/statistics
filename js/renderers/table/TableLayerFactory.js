@@ -9,40 +9,42 @@ import { Layer } from '../../animation/index.js';
 
 class TableLayerFactory {
   /**
-   * 테이블 레이어 생성 (LayerManager에 추가) - 다중 데이터셋 지원
+   * 테이블 레이어 생성 (LayerManager에 추가)
    * @param {LayerManager} layerManager - 레이어 매니저
-   * @param {Array} datasets - 데이터셋 배열 (각 객체: {id, name, preset, classes, frequencies, relativeFreqs})
+   * @param {Array} classes - 계급 데이터 배열 (도수 > 0인 것만)
+   * @param {number} total - 전체 데이터 개수
    * @param {Object} config - 테이블 설정
    */
-  static createTableLayers(layerManager, datasets, config = null) {
-    if (!datasets || datasets.length === 0) return;
-
+  static createTableLayers(layerManager, classes, total, config = null) {
     // 설정 가져오기
     const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
+    const visibleColumns = config?.visibleColumns || [true, true, true, true, false, false];
+    const columnOrder = config?.columnOrder || [0, 1, 2, 3, 4, 5];
     const columnAlignment = config?.columnAlignment || CONFIG.TABLE_DEFAULT_ALIGNMENT;
     const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
 
-    // 첫 번째 데이터셋의 classes를 기준으로 사용 (공통 class ranges)
-    const allClasses = datasets[0].classes;
+    // 원본 라벨 배열
+    const allLabels = [
+      tableLabels.class,
+      tableLabels.midpoint,
+      tableLabels.frequency,
+      tableLabels.relativeFrequency,
+      tableLabels.cumulativeFrequency,
+      tableLabels.cumulativeRelativeFrequency
+    ];
 
-    // 어느 데이터셋에서든 도수가 0이 아닌 계급만 필터링 (원본 인덱스 유지)
-    const visibleClassesWithIndex = allClasses
-      .map((c, originalIndex) => ({ classData: c, originalIndex }))
-      .filter(item => datasets.some(ds => ds.frequencies[item.originalIndex] > 0));
+    // columnOrder에 따라 재정렬
+    const orderedLabels = columnOrder.map(i => allLabels[i]);
+    const orderedVisibleColumns = columnOrder.map(i => visibleColumns[i]);
 
-    // 다중 데이터셋용 헤더 생성
-    const headers = [tableLabels.class]; // 계급 컬럼
-    datasets.forEach(ds => {
-      headers.push(`${ds.name}\n${tableLabels.frequency}`);
-      headers.push(`${ds.name}\n${tableLabels.relativeFrequency}`);
-    });
-
-    const columnCount = headers.length;
+    // 표시할 컬럼만 필터링
+    const filteredLabels = orderedLabels.filter((_, i) => orderedVisibleColumns[i]);
+    const columnCount = filteredLabels.length;
 
     // Canvas 크기 계산
     const padding = CONFIG.TABLE_PADDING;
     const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
-    const rowCount = visibleClassesWithIndex.length + 1; // +1 for summary row
+    const rowCount = classes.length + 1; // +1 for summary row
     const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
     // 열 너비 계산
@@ -76,37 +78,39 @@ class TableLayerFactory {
 
     // 헤더 레이어 생성
     const headerLayer = this._createHeaderLayer(
-      headers,
+      filteredLabels,
       columnWidths,
       columnAlignment,
       padding
     );
     rootLayer.addChild(headerLayer);
 
-    // 데이터 행 레이어 생성 (다중 데이터셋)
-    visibleClassesWithIndex.forEach((item, rowIndex) => {
-      const rowLayer = this._createMultiDatasetRowLayer(
-        item.classData,
+    // 데이터 행 레이어 생성
+    classes.forEach((classData, rowIndex) => {
+      const rowLayer = this._createDataRowLayer(
+        classData,
         rowIndex,
-        item.originalIndex,
-        datasets,
         columnWidths,
+        orderedVisibleColumns,
+        columnOrder,
         columnAlignment,
         showSuperscript,
         padding,
-        headers
+        filteredLabels
       );
       rootLayer.addChild(rowLayer);
     });
 
-    // 합계 행 레이어 생성 (다중 데이터셋)
-    const summaryLayer = this._createMultiDatasetSummaryLayer(
-      datasets,
-      visibleClassesWithIndex.length,
+    // 합계 행 레이어 생성
+    const summaryLayer = this._createSummaryRowLayer(
+      total,
+      classes.length,
       columnWidths,
+      orderedVisibleColumns,
+      columnOrder,
       columnAlignment,
       padding,
-      headers
+      filteredLabels
     );
     rootLayer.addChild(summaryLayer);
 
@@ -382,162 +386,6 @@ class TableLayerFactory {
       }
 
       // x 좌표는 항상 증가 (빈 칸이든 아니든)
-      x += columnWidths[i];
-    });
-
-    return summaryGroup;
-  }
-
-  /**
-   * 다중 데이터셋 데이터 행 레이어 생성
-   * @param {Object} classData - 계급 데이터
-   * @param {number} rowIndex - 표시 행 인덱스 (필터링 후)
-   * @param {number} originalIndex - 원본 계급 인덱스 (필터링 전)
-   * @param {Array} datasets - 데이터셋 배열
-   * @param {Array} columnWidths - 열 너비 배열
-   * @param {Object} columnAlignment - 컬럼별 정렬 설정
-   * @param {boolean} showSuperscript - 상첨자 표시 여부
-   * @param {number} padding - 패딩
-   * @param {Array} headers - 헤더 라벨 배열
-   * @returns {Layer} 데이터 행 그룹 레이어
-   */
-  static _createMultiDatasetRowLayer(
-    classData,
-    rowIndex,
-    originalIndex,
-    datasets,
-    columnWidths,
-    columnAlignment,
-    showSuperscript,
-    padding,
-    headers
-  ) {
-    const rowGroup = new Layer({
-      id: `table-row-${rowIndex}`,
-      name: `데이터 행 ${rowIndex}`,
-      type: 'group',
-      visible: true,
-      order: rowIndex + 2,
-      data: {
-        rowIndex
-      }
-    });
-
-    const y = padding + CONFIG.TABLE_HEADER_HEIGHT + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
-
-    // 첫 번째 셀: 계급
-    const cells = [`${classData.min} ~ ${classData.max}`];
-
-    // 각 데이터셋에 대해 도수와 상대도수 추가 (원본 인덱스 사용)
-    datasets.forEach(ds => {
-      const freq = ds.frequencies[originalIndex] || 0;
-      const relFreq = ds.relativeFreqs[originalIndex] || 0;
-      cells.push(freq);
-      cells.push(`${Utils.formatNumberClean(relFreq * 100)}%`);
-    });
-
-    let x = padding;
-
-    cells.forEach((cellText, i) => {
-      const label = headers[i];
-      const cellLayer = new Layer({
-        id: `table-row-${rowIndex}-col${i}`,
-        name: String(cellText),
-        type: 'cell',
-        visible: true,
-        order: i,
-        data: {
-          rowType: 'data',
-          rowIndex,
-          colIndex: i,
-          colLabel: label,
-          cellText: String(cellText),
-          x,
-          y,
-          width: columnWidths[i],
-          height: CONFIG.TABLE_ROW_HEIGHT,
-          alignment: columnAlignment[label] || 'center',
-          highlighted: false,
-          highlightProgress: 0,
-          classData: rowIndex === 0 && i === 0 ? classData : null,
-          showSuperscript: rowIndex === 0 && i === 0 ? showSuperscript : false,
-          isEvenRow: rowIndex % 2 === 1
-        }
-      });
-
-      rowGroup.addChild(cellLayer);
-      x += columnWidths[i];
-    });
-
-    return rowGroup;
-  }
-
-  /**
-   * 다중 데이터셋 합계 행 레이어 생성
-   * @param {Array} datasets - 데이터셋 배열
-   * @param {number} dataRowCount - 데이터 행 개수
-   * @param {Array} columnWidths - 열 너비 배열
-   * @param {Object} columnAlignment - 컬럼별 정렬 설정
-   * @param {number} padding - 패딩
-   * @param {Array} headers - 헤더 라벨 배열
-   * @returns {Layer} 합계 행 그룹 레이어
-   */
-  static _createMultiDatasetSummaryLayer(
-    datasets,
-    dataRowCount,
-    columnWidths,
-    columnAlignment,
-    padding,
-    headers
-  ) {
-    const summaryGroup = new Layer({
-      id: 'table-summary',
-      name: '합계 행',
-      type: 'group',
-      visible: true,
-      order: dataRowCount + 2,
-      data: {}
-    });
-
-    const y = padding + CONFIG.TABLE_HEADER_HEIGHT + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
-
-    // 첫 번째 셀: "합계"
-    const cells = ['합계'];
-
-    // 각 데이터셋에 대해 합계 추가
-    datasets.forEach(ds => {
-      const total = ds.frequencies.reduce((sum, f) => sum + f, 0);
-      cells.push(total);
-      cells.push('100%');
-    });
-
-    let x = padding;
-
-    cells.forEach((cellText, i) => {
-      const label = headers[i];
-      const cellLayer = new Layer({
-        id: `table-summary-col${i}`,
-        name: String(cellText),
-        type: 'cell',
-        visible: true,
-        order: i,
-        data: {
-          rowType: 'summary',
-          rowIndex: dataRowCount,
-          colIndex: i,
-          colLabel: label,
-          cellText: String(cellText),
-          x,
-          y,
-          width: columnWidths[i],
-          height: CONFIG.TABLE_ROW_HEIGHT,
-          alignment: columnAlignment[label] || 'center',
-          highlighted: false,
-          highlightProgress: 0
-        }
-      });
-
-      summaryGroup.addChild(cellLayer);
       x += columnWidths[i];
     });
 

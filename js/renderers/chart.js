@@ -6,7 +6,6 @@
  */
 
 import CONFIG from '../config.js';
-import DataStore from '../core/dataStore.js';
 import { LayerManager, LayerTimeline, LayerAnimationEffects } from '../animation/index.js';
 
 // 분할된 렌더러 모듈들
@@ -82,14 +81,14 @@ class ChartRenderer {
 
   /**
    * 히스토그램과 상대도수 다각형 그리기
-   * @param {Array} datasetResults - 데이터셋 결과 배열 또는 단일 classes 배열 (하위 호환)
+   * @param {Array} classes - 계급 데이터 배열
    * @param {Object} axisLabels - 축 라벨 커스터마이징 객체
    * @param {Object} ellipsisInfo - 중략 표시 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    * @param {Object} tableConfig - 테이블 설정
    * @param {string} calloutTemplate - 말풍선 템플릿
    */
-  draw(datasetResults, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null) {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null) {
     this.canvas.width = CONFIG.CANVAS_WIDTH;
     this.canvas.height = CONFIG.CANVAS_HEIGHT;
     this.clear();
@@ -97,46 +96,24 @@ class ChartRenderer {
     // 새로운 차트 그리기 시작 - 하이라이트 초기화
     this.lastHighlightInfo = null;
 
-    // 하위 호환성: datasetResults가 classes 배열인 경우
-    const isOldFormat = datasetResults.length > 0 && datasetResults[0].hasOwnProperty('frequency');
+    const freq = classes.map(c => c.frequency);
+    const total = freq.reduce((a, b) => a + b, 0);
 
-    if (isOldFormat) {
-      // 구 형식: classes 배열 → datasetResults 형식으로 변환
-      const classes = datasetResults;
-      const freq = classes.map(c => c.frequency);
-      const total = freq.reduce((a, b) => a + b, 0);
-      const relativeFreqs = freq.map(f => f / total);
-
-      datasetResults = [{
-        id: 1,
-        name: CONFIG.DEFAULT_DATASET_NAME,
-        preset: 'default',
-        classes: classes,
-        frequencies: freq,
-        relativeFreqs: relativeFreqs
-      }];
-    }
-
-    // 공통 계급 정보 가져오기
-    const classes = DataStore.getClasses() || datasetResults[0].classes;
-
-    // 모든 데이터셋의 최대값 계산
-    let maxY = 0;
-    datasetResults.forEach(ds => {
-      if (dataType === 'frequency') {
-        maxY = Math.max(maxY, ...ds.frequencies);
-      } else {
-        maxY = Math.max(maxY, ...ds.relativeFreqs);
-      }
-    });
-
-    if (dataType === 'relativeFrequency') {
-      maxY = maxY * CONFIG.CHART_Y_SCALE_MULTIPLIER;
-    }
-
-    if (maxY === 0) {
+    if (total === 0) {
       this.axisRenderer.drawNoDataMessage();
       return;
+    }
+
+    // 데이터 타입에 따라 값 배열 및 maxY 계산
+    const relativeFreqs = freq.map(f => f / total);
+    let values, maxY;
+
+    if (dataType === 'frequency') {
+      values = freq;
+      maxY = Math.max(...freq);
+    } else { // 'relativeFrequency' (기본값)
+      values = relativeFreqs;
+      maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
     }
 
     // 좌표 시스템 생성
@@ -151,10 +128,11 @@ class ChartRenderer {
 
     // 차트 데이터 저장 (애니메이션 모드용)
     this.currentClasses = classes;
-    this.currentDatasetResults = datasetResults;
+    this.currentValues = values;
+    this.currentFreq = freq;
     this.currentCoords = coords;
     this.currentEllipsisInfo = ellipsisInfo;
-    this.currentMaxY = coords.adjustedMaxY;
+    this.currentMaxY = coords.adjustedMaxY; // 조정된 maxY 사용
     this.currentAxisLabels = axisLabels;
     this.currentDataType = dataType;
     this.currentGridDivisions = coords.gridDivisions;
@@ -165,13 +143,14 @@ class ChartRenderer {
       // 애니메이션 모드: Layer 생성 후 애니메이션 재생
       LayerFactory.createLayers(
         this.layerManager,
-        datasetResults,
+        classes,
+        values,
         coords,
         ellipsisInfo,
         dataType,
         calloutTemplate
       );
-      this.setupAnimations(datasetResults);
+      this.setupAnimations(classes);
       this.playAnimation();
     } else {
       // 정적 렌더링 모드
@@ -183,14 +162,8 @@ class ChartRenderer {
         ellipsisInfo,
         coords.gridDivisions
       );
-
-      // 각 데이터셋 렌더링
-      datasetResults.forEach(ds => {
-        const values = dataType === 'frequency' ? ds.frequencies : ds.relativeFreqs;
-        this.histogramRenderer.draw(values, ds.frequencies, coords, ellipsisInfo, dataType, ds.preset);
-        this.polygonRenderer.draw(values, coords, ellipsisInfo, ds.preset);
-      });
-
+      this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
+      this.polygonRenderer.draw(values, coords, ellipsisInfo);
       this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
       this.axisRenderer.drawLegend(dataType);
     }
@@ -256,7 +229,7 @@ class ChartRenderer {
    * 애니메이션 시퀀스 설정 (계급별 순차 타임라인)
    * @param {Array} classes - 계급 데이터
    */
-  setupAnimations(datasetResults) {
+  setupAnimations(classes) {
     this.timeline.clearAnimations();
 
     const barDuration = CONFIG.ANIMATION_BAR_DURATION;
@@ -267,45 +240,23 @@ class ChartRenderer {
 
     let currentTime = 0;
 
-    // 히스토그램 그룹에서 막대 찾기 (다중 데이터셋 구조)
+    // 히스토그램 그룹에서 막대 찾기
     const histogramGroup = this.layerManager.findLayer('histogram');
-    // 다각형 그룹에서 점 찾기 (다중 데이터셋 구조)
+    // 다각형 그룹에서 점 찾기
     const polygonGroup = this.layerManager.findLayer('polygon');
+    const pointsGroup = polygonGroup?.children.find(c => c.id === 'points');
     // 막대 라벨 그룹 찾기
     const labelsGroup = this.layerManager.findLayer('bar-labels');
 
     // 히스토그램도 다각형도 없으면 리턴
     if (!histogramGroup && !polygonGroup) return;
 
-    // 다중 데이터셋 구조: 각 데이터셋 그룹의 자식들을 모두 수집
-    const bars = [];
-    if (histogramGroup) {
-      histogramGroup.children.forEach(datasetGroup => {
-        bars.push(...datasetGroup.children);
-      });
-    }
-
-    const points = [];
-    const lines = [];
-    if (polygonGroup) {
-      polygonGroup.children.forEach(datasetPolygonGroup => {
-        const pointsGroup = datasetPolygonGroup.children.find(c => c.id.includes('points'));
-        if (pointsGroup) {
-          points.push(...pointsGroup.children);
-        }
-
-        const linesGroup = datasetPolygonGroup.children.find(c => c.id.includes('lines'));
-        if (linesGroup) {
-          lines.push(...linesGroup.children);
-        }
-      });
-    }
-
+    const bars = histogramGroup?.children || [];
+    const points = pointsGroup?.children || [];
     const labels = labelsGroup?.children || [];
 
     // 계급별로 묶어서 순차 애니메이션
     // 기준: 막대와 점 중 더 많은 쪽 (보통 같지만 안전하게)
-    const classes = datasetResults[0]?.classes || [];
     const classCount = Math.max(bars.length, points.length, classes.length);
 
     // 막대 인덱스 매핑 (bar.data.index → bars 배열 인덱스)
@@ -386,11 +337,12 @@ class ChartRenderer {
       currentTime += Math.max(barDuration, pointDuration) + classDelay;
     }
 
-    // 연결선 애니메이션 (모든 계급 완료 후)
-    if (lines.length > 0) {
+    // 연결선 그룹 애니메이션 (모든 계급 완료 후)
+    const linesGroup = polygonGroup?.children.find(c => c.id === 'lines');
+    if (linesGroup && linesGroup.children) {
       currentTime += CONFIG.ANIMATION_LINE_START_DELAY;
 
-      lines.forEach((line, idx) => {
+      linesGroup.children.forEach((line, idx) => {
         this.timeline.addAnimation(line.id, {
           startTime: currentTime + (idx * lineDelay),
           duration: lineDuration,
@@ -399,22 +351,19 @@ class ChartRenderer {
           easing: 'linear'
         });
       });
-    }
 
-    // 말풍선 그룹 애니메이션 (모든 선이 완료된 후)
-    const calloutsGroup = this.layerManager.findLayer('callouts');
-    if (calloutsGroup && calloutsGroup.children) {
-      const lineEndTime = currentTime + (lines.length * lineDelay) + lineDuration;
-
-      calloutsGroup.children.forEach((calloutLayer, idx) => {
-        this.timeline.addAnimation(calloutLayer.id, {
-          startTime: lineEndTime + CONFIG.ANIMATION_CALLOUT_DELAY + (idx * 100),
+      // 말풍선 애니메이션 (모든 선이 완료된 후)
+      const calloutLayer = this.layerManager.findLayer('callout');
+      if (calloutLayer) {
+        const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
+        this.timeline.addAnimation('callout', {
+          startTime: lineEndTime + CONFIG.ANIMATION_CALLOUT_DELAY,
           duration: CONFIG.ANIMATION_POINT_DURATION,
           effect: 'custom', // 투명도 애니메이션은 직접 처리
           effectOptions: {},
           easing: 'easeIn'
         });
-      });
+      }
     }
   }
 
@@ -450,13 +399,13 @@ class ChartRenderer {
    * 레이어 순서가 변경된 경우 애니메이션 타이밍을 재설정
    */
   replayAnimation() {
-    if (!this.animationMode || !this.currentDatasetResults) {
+    if (!this.animationMode || !this.currentClasses) {
       return;
     }
 
     this.stopAnimation();
     this.timeline.clearAnimations();
-    this.setupAnimations(this.currentDatasetResults);
+    this.setupAnimations(this.currentClasses);
     this.playAnimation();
   }
 
