@@ -102,7 +102,7 @@ class TableLayerFactory {
     // 합계 행 레이어 생성 (다중 데이터셋)
     const summaryLayer = this._createMultiDatasetSummaryLayer(
       datasets,
-      classes.length,
+      visibleClassesWithIndex.length,
       columnWidths,
       columnAlignment,
       padding,
