@@ -221,7 +221,7 @@ class LayerFactory {
 
     // 말풍선 레이어 생성 (템플릿이 제공된 경우)
     if (calloutTemplate) {
-      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, timestamp);
+      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, timestamp, layerManager);
       if (calloutLayer) {
         layerManager.addLayer(calloutLayer);
       }
@@ -237,9 +237,10 @@ class LayerFactory {
    * @param {string} dataType - 데이터 타입
    * @param {string} template - 말풍선 템플릿
    * @param {number} timestamp - 타임스탬프 (레이어 ID 중복 방지)
+   * @param {LayerManager} layerManager - 레이어 매니저 (기존 말풍선 개수 확인용)
    * @returns {Layer|null} 말풍선 레이어
    */
-  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, timestamp) {
+  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, timestamp, layerManager) {
     // 최상단 포인트 찾기 (y값이 가장 큰 = 상대도수/도수가 가장 큰)
     let maxValue = -Infinity;
     let maxIndex = -1;
@@ -260,9 +261,14 @@ class LayerFactory {
     // 말풍선 너비 동적 계산 (텍스트 길이 기반)
     const calloutWidth = CalloutRenderer.calculateCalloutWidth(text);
 
-    // 말풍선 위치 (차트 왼쪽 상단 고정)
+    // 기존 말풍선 개수 확인 (세로 배치용)
+    const existingCallouts = layerManager.getAllLayers().filter(({ layer }) => layer.type === 'callout');
+    const calloutCount = existingCallouts.length;
+    const calloutSpacing = 10; // 말풍선 간격
+
+    // 말풍선 위치 (차트 왼쪽 상단, 기존 말풍선 아래에 배치)
     const calloutX = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_X;
-    const calloutY = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_Y;
+    const calloutY = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_Y + (calloutCount * (CONFIG.CALLOUT_HEIGHT + calloutSpacing));
 
     // 포인트 좌표 계산 (애니메이션 참조용)
     const { toX, toY, xScale } = coords;

@@ -78,27 +78,6 @@ class FrequencyDistributionApp {
     const title = section.querySelector('.dataset-title');
     title.textContent = `📊 데이터셋 ${datasetId}`;
 
-    // 차트 데이터 타입 라디오 버튼 생성
-    const radioContainer = section.querySelector('.dataset-chart-data-type');
-    CONFIG.CHART_DATA_TYPES.forEach((typeInfo, index) => {
-      const radioItem = document.createElement('div');
-      radioItem.className = 'radio-item';
-
-      const radio = document.createElement('input');
-      radio.type = 'radio';
-      radio.name = `chartDataType-${datasetId}`;
-      radio.value = typeInfo.id;
-      radio.className = 'dataset-chart-type-radio';
-      radio.checked = typeInfo.id === 'relativeFrequency';
-
-      const label = document.createElement('label');
-      label.textContent = typeInfo.label;
-      label.prepend(radio);
-
-      radioItem.appendChild(label);
-      radioContainer.appendChild(radioItem);
-    });
-
     // 색상 프리셋 라디오 버튼에 name 속성 설정
     const colorRadios = section.querySelectorAll('.dataset-polygon-color');
     colorRadios.forEach(radio => {
@@ -162,7 +141,7 @@ class FrequencyDistributionApp {
   }
 
   /**
-   * 새 데이터셋 추가 후 도수분포표 생성
+   * 새 데이터셋 추가 (섹션만 생성, 렌더링 안 함)
    */
   addDatasetAndGenerate() {
     // 다음 데이터셋 ID 계산
@@ -171,8 +150,7 @@ class FrequencyDistributionApp {
     // 새 데이터셋 섹션 생성
     this.createDatasetSection(nextId);
 
-    // 추가 모드로 생성 (기존 테이블 유지)
-    this.generate(false);
+    // 렌더링은 하지 않음 - 사용자가 "도수분포표 생성" 버튼 클릭 시 렌더링
   }
 
   /**
@@ -198,10 +176,6 @@ class FrequencyDistributionApp {
       const classCount = parseInt(classCountInput?.value) || 5;
       const classWidth = classWidthInput?.value ? parseFloat(classWidthInput.value) : null;
 
-      // 차트 데이터 타입
-      const dataTypeRadio = section.querySelector('.dataset-chart-type-radio:checked');
-      const dataType = dataTypeRadio?.value || 'relativeFrequency';
-
       // 차트 표시 옵션
       const showHistogram = section.querySelector('.dataset-show-histogram')?.checked ?? true;
       const showPolygon = section.querySelector('.dataset-show-polygon')?.checked ?? true;
@@ -224,7 +198,6 @@ class FrequencyDistributionApp {
         classCount,
         classWidth,
         settings: {
-          dataType,
           showHistogram,
           showPolygon,
           showSuperscript,
@@ -265,6 +238,9 @@ class FrequencyDistributionApp {
   init() {
     // 첫 번째 데이터셋 섹션 생성
     this.createDatasetSection(1);
+
+    // 차트 데이터 유형 라디오 버튼 초기화 (고급 설정)
+    this.initChartDataTypeRadios();
 
     const generateBtn = document.getElementById('generateBtn');
     generateBtn?.addEventListener('click', () => this.generate(true)); // true: 새로 시작
@@ -1386,6 +1362,25 @@ class FrequencyDistributionApp {
       // 5. 모든 데이터셋에 대해 차트 렌더링 (겹쳐 그리기)
       const customLabels = this.getCustomLabels();
       const tableConfig = this.getDefaultTableConfig();
+      const dataType = ChartStore.getDataType(); // 전역 차트 데이터 유형
+
+      // 5.1. 통합 좌표 시스템을 위한 최대 Y값 계산
+      let unifiedMaxY = 0;
+      for (const dataset of processedDatasets) {
+        const freq = dataset.classes.map(c => c.frequency);
+        const total = freq.reduce((a, b) => a + b, 0);
+
+        if (total > 0) {
+          if (dataType === 'frequency') {
+            const maxFreq = Math.max(...freq);
+            unifiedMaxY = Math.max(unifiedMaxY, maxFreq);
+          } else { // 'relativeFrequency'
+            const relativeFreqs = freq.map(f => f / total);
+            const maxRelative = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+            unifiedMaxY = Math.max(unifiedMaxY, maxRelative);
+          }
+        }
+      }
 
       for (let i = 0; i < processedDatasets.length; i++) {
         const dataset = processedDatasets[i];
@@ -1405,10 +1400,11 @@ class FrequencyDistributionApp {
           dataset.classes,
           customLabels.axis,
           dataset.ellipsisInfo,
-          dataset.settings.dataType,
+          dataType, // 전역 설정 사용
           tableConfig,
           dataset.settings.calloutTemplate,
-          clearCanvas
+          clearCanvas,
+          unifiedMaxY // 통합 최대 Y값
         );
       }
 

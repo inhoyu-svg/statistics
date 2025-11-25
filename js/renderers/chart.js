@@ -88,8 +88,9 @@ class ChartRenderer {
    * @param {Object} tableConfig - 테이블 설정
    * @param {string} calloutTemplate - 말풍선 템플릿
    * @param {boolean} clearCanvas - 캔버스 및 레이어 초기화 여부 (기본: true)
+   * @param {number} unifiedMaxY - 통합 최대 Y값 (여러 데이터셋 사용 시, 없으면 자동 계산)
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true) {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null) {
     if (clearCanvas) {
       // 캔버스 초기화
       this.canvas.width = CONFIG.CANVAS_WIDTH;
@@ -122,10 +123,10 @@ class ChartRenderer {
 
     if (dataType === 'frequency') {
       values = freq;
-      maxY = Math.max(...freq);
+      maxY = unifiedMaxY !== null ? unifiedMaxY : Math.max(...freq);
     } else { // 'relativeFrequency' (기본값)
       values = relativeFreqs;
-      maxY = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+      maxY = unifiedMaxY !== null ? unifiedMaxY : Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
     }
 
     // 좌표 시스템 생성
