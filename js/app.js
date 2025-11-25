@@ -876,11 +876,16 @@ class FrequencyDistributionApp {
    * @param {LayerManager} layerManager - 레이어 매니저
    * @returns {boolean} 조상이 접혀있으면 true
    */
-  isAnyAncestorCollapsed(layerId, layerManager) {
+  isAnyAncestorCollapsed(layerId, layerManager, tableIndex = null) {
     const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
     let currentParent = layerManager.findParent(layerId);
     while (currentParent) {
-      if (currentCollapsedGroups.has(currentParent.id)) {
+      // 테이블 모드일 때 고유 키로 체크
+      const uniqueKey = (this.currentLayerSource === 'table' && tableIndex !== null && tableIndex !== undefined)
+        ? `${tableIndex}-${currentParent.id}`
+        : currentParent.id;
+
+      if (currentCollapsedGroups.has(uniqueKey)) {
         return true;
       }
       currentParent = layerManager.findParent(currentParent.id);
@@ -951,7 +956,7 @@ class FrequencyDistributionApp {
 
         // 조상 중 하나라도 접혀있으면 숨김
         const currentLayerManager = this.currentLayerSource === 'table' ? tableLayerManager : layerManager;
-        if (this.isAnyAncestorCollapsed(layer.id, currentLayerManager)) {
+        if (this.isAnyAncestorCollapsed(layer.id, currentLayerManager, tableIndex)) {
           return false;
         }
 
@@ -970,7 +975,12 @@ class FrequencyDistributionApp {
       const typeClass = layer.type;
       const depthClass = `depth-${depth}`;
       const isGroup = layer.type === 'group';
-      const isCollapsed = currentCollapsedGroups.has(layer.id);
+
+      // 테이블 모드일 때 고유 키로 collapsed 상태 체크
+      const uniqueKey = (this.currentLayerSource === 'table' && tableIndex !== undefined)
+        ? `${tableIndex}-${layer.id}`
+        : layer.id;
+      const isCollapsed = currentCollapsedGroups.has(uniqueKey);
       const toggleIcon = isGroup ? (isCollapsed ? '▶' : '▼') : '';
 
       const visibilityIcon = layer.visible ? '👁️' : '👁️‍🗨️';
@@ -1019,12 +1029,18 @@ class FrequencyDistributionApp {
       toggle.addEventListener('click', (e) => {
         e.stopPropagation();
         const layerId = e.target.dataset.layerId;
+        const tableIndex = e.target.dataset.tableIndex;
         const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
 
-        if (currentCollapsedGroups.has(layerId)) {
-          currentCollapsedGroups.delete(layerId);
+        // 테이블 모드일 때 고유 키 생성 (tableIndex-layerId)
+        const uniqueKey = (this.currentLayerSource === 'table' && tableIndex !== undefined)
+          ? `${tableIndex}-${layerId}`
+          : layerId;
+
+        if (currentCollapsedGroups.has(uniqueKey)) {
+          currentCollapsedGroups.delete(uniqueKey);
         } else {
-          currentCollapsedGroups.add(layerId);
+          currentCollapsedGroups.add(uniqueKey);
         }
 
         this.renderLayerPanel();
