@@ -24,6 +24,11 @@ class TableRenderer {
       throw new Error(`Canvas 2D 컨텍스트를 생성할 수 없습니다: ${canvasId}`);
     }
 
+    // canvasId에서 tableId 추출
+    // 예: 'frequencyTable' → 'table-1', 'frequencyTable-2' → 'table-2'
+    this.canvasId = canvasId;
+    this.tableId = this.extractTableId(canvasId);
+
     this.padding = CONFIG.TABLE_PADDING;
 
     // Layer 시스템
@@ -42,6 +47,25 @@ class TableRenderer {
 
     // 타임라인 콜백
     this.timeline.onUpdate = () => this.renderFrame();
+  }
+
+  /**
+   * canvasId에서 tableId 추출
+   * @param {string} canvasId - Canvas ID (예: 'frequencyTable', 'frequencyTable-2')
+   * @returns {string} 테이블 ID (예: 'table-1', 'table-2')
+   */
+  extractTableId(canvasId) {
+    // 'frequencyTable' → 'table-1'
+    // 'frequencyTable-2' → 'table-2'
+    if (canvasId === 'frequencyTable') {
+      return 'table-1';
+    }
+    const match = canvasId.match(/frequencyTable-(\d+)/);
+    if (match) {
+      return `table-${match[1]}`;
+    }
+    // 기본값
+    return 'table-1';
   }
 
   /**
@@ -79,7 +103,8 @@ class TableRenderer {
       this.layerManager,
       visibleClasses,
       total,
-      config
+      config,
+      this.tableId
     );
 
     // 레거시 하이라이트 정보 적용 (있는 경우)
@@ -158,7 +183,7 @@ class TableRenderer {
 
     // 데이터 행만 애니메이션 (헤더, 합계는 제외)
     const dataRows = tableLayer.children.filter(child =>
-      child.id.startsWith('table-row-') && child.id !== 'table-summary'
+      child.id.startsWith(`${this.tableId}-table-row-`) && child.id !== `${this.tableId}-table-summary`
     );
 
     // 순차적으로 행 페이드인 애니메이션
@@ -215,7 +240,7 @@ class TableRenderer {
    * @param {number} progress - 하이라이트 진행도 (0~1)
    */
   highlightCell(rowIndex, colIndex = null, progress = 1.0) {
-    const rowLayer = this.layerManager.findLayer(`table-row-${rowIndex}`);
+    const rowLayer = this.layerManager.findLayer(`${this.tableId}-table-row-${rowIndex}`);
     if (!rowLayer) return;
 
     if (colIndex === null) {
@@ -249,7 +274,7 @@ class TableRenderer {
 
     // 모든 데이터 셀의 하이라이트 제거
     tableLayer.children.forEach(child => {
-      if (child.type === 'group' && child.id.startsWith('table-row-')) {
+      if (child.type === 'group' && child.id.startsWith(`${this.tableId}-table-row-`)) {
         child.children.forEach(cellLayer => {
           if (cellLayer.type === 'cell' && cellLayer.data.rowType === 'data') {
             cellLayer.data.highlighted = false;
@@ -277,7 +302,7 @@ class TableRenderer {
    * @returns {Layer|null} 셀 레이어
    */
   findCellLayer(rowIndex, colIndex) {
-    return this.layerManager.findLayer(`table-row-${rowIndex}-col${colIndex}`);
+    return this.layerManager.findLayer(`${this.tableId}-table-row-${rowIndex}-col${colIndex}`);
   }
 
   /**

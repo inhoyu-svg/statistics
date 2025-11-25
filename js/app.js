@@ -1342,15 +1342,16 @@ class FrequencyDistributionApp {
 
   /**
    * JSON 데이터 내보내기
-   * @description 현재 레이어 구조와 타임라인을 JSON 파일로 다운로드
+   * @description 현재 차트 및 테이블 레이어 구조와 타임라인을 JSON 파일로 다운로드
    */
   exportJson() {
     try {
-      // 레이어와 타임라인 데이터 추출
-      const jsonData = DataProcessor.exportChartData(
+      // 차트 및 테이블 레이어와 타임라인 데이터 추출
+      const jsonData = DataProcessor.exportData(
         this.chartRenderer.layerManager,
         this.chartRenderer.timeline,
-        this.chartRenderer
+        this.chartRenderer,
+        this.tableRenderers
       );
 
       // JSON 문자열 생성 (들여쓰기 포함)

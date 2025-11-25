@@ -259,14 +259,15 @@ class DataProcessor {
   }
 
   /**
-   * 차트 데이터를 JSON으로 내보내기
-   * @param {Object} layerManager - 레이어 매니저 인스턴스
-   * @param {Object} timeline - 타임라인 인스턴스
+   * 차트 및 테이블 데이터를 JSON으로 내보내기
+   * @param {Object} chartLayerManager - 차트 레이어 매니저 인스턴스
+   * @param {Object} chartTimeline - 차트 타임라인 인스턴스
    * @param {Object} chartRenderer - 차트 렌더러 인스턴스 (좌표 시스템 정보)
-   * @returns {Object} JSON 형식의 차트 데이터
+   * @param {Array<Object>} tableRenderers - 테이블 렌더러 배열 (옵셔널)
+   * @returns {Object} JSON 형식의 차트 및 테이블 데이터
    * @description 레이어 구조와 애니메이션 정보를 JSON으로 직렬화
    */
-  static exportChartData(layerManager, timeline, chartRenderer = null) {
+  static exportData(chartLayerManager, chartTimeline, chartRenderer = null, tableRenderers = []) {
     /**
      * 레이어를 재귀적으로 직렬화
      * @param {Object} layer - 레이어 객체
@@ -319,20 +320,20 @@ class DataProcessor {
       return serialized;
     };
 
-    // root 레이어 직렬화
-    const rootLayer = layerManager.root || layerManager.rootLayer;
-    if (!rootLayer) {
-      throw new Error('Root layer not found');
+    // 차트 root 레이어 직렬화
+    const chartRootLayer = chartLayerManager.root || chartLayerManager.rootLayer;
+    if (!chartRootLayer) {
+      throw new Error('Chart root layer not found');
     }
 
-    const serializedRoot = serializeLayer(rootLayer);
+    const serializedChartRoot = serializeLayer(chartRootLayer);
 
-    // 타임라인 애니메이션 정보
-    let animations = [];
+    // 차트 타임라인 애니메이션 정보
+    let chartAnimations = [];
 
-    // timeline.animations가 Map인 경우
-    if (timeline.animations instanceof Map) {
-      animations = Array.from(timeline.animations.entries()).map(([layerId, anim]) => ({
+    // chartTimeline.animations가 Map인 경우
+    if (chartTimeline.animations instanceof Map) {
+      chartAnimations = Array.from(chartTimeline.animations.entries()).map(([layerId, anim]) => ({
         layerId: layerId,
         startTime: anim.startTime || 0,
         duration: anim.duration || 1000,
@@ -341,9 +342,9 @@ class DataProcessor {
         easing: anim.easing || 'linear'
       }));
     }
-    // timeline.animations가 배열인 경우
-    else if (Array.isArray(timeline.animations)) {
-      animations = timeline.animations.map(anim => ({
+    // chartTimeline.animations가 배열인 경우
+    else if (Array.isArray(chartTimeline.animations)) {
+      chartAnimations = chartTimeline.animations.map(anim => ({
         layerId: anim.layerId,
         startTime: anim.startTime || 0,
         duration: anim.duration || 1000,
@@ -352,9 +353,9 @@ class DataProcessor {
         easing: anim.easing || 'linear'
       }));
     }
-    // timeline.timeline 배열이 있는 경우
-    else if (Array.isArray(timeline.timeline)) {
-      animations = timeline.timeline.map(anim => ({
+    // chartTimeline.timeline 배열이 있는 경우
+    else if (Array.isArray(chartTimeline.timeline)) {
+      chartAnimations = chartTimeline.timeline.map(anim => ({
         layerId: anim.layerId,
         startTime: anim.startTime || 0,
         duration: anim.duration || 1000,
@@ -435,15 +436,88 @@ class DataProcessor {
       }
     }
 
+    // 테이블 레이어 직렬화
+    const tables = [];
+    if (tableRenderers && tableRenderers.length > 0) {
+      tableRenderers.forEach((tableRenderer, index) => {
+        try {
+          const tableLayerManager = tableRenderer.getLayerManager();
+          const tableTimeline = tableRenderer.timeline;
+
+          if (!tableLayerManager) {
+            console.warn(`테이블 ${index + 1} LayerManager를 찾을 수 없습니다.`);
+            return;
+          }
+
+          const tableRootLayer = tableLayerManager.root || tableLayerManager.rootLayer;
+          if (!tableRootLayer) {
+            console.warn(`테이블 ${index + 1} root 레이어를 찾을 수 없습니다.`);
+            return;
+          }
+
+          const serializedTableRoot = serializeLayer(tableRootLayer);
+
+          // 테이블 타임라인 애니메이션 정보
+          let tableAnimations = [];
+          if (tableTimeline) {
+            if (tableTimeline.animations instanceof Map) {
+              tableAnimations = Array.from(tableTimeline.animations.entries()).map(([layerId, anim]) => ({
+                layerId: layerId,
+                startTime: anim.startTime || 0,
+                duration: anim.duration || 1000,
+                effect: anim.effect || 'auto',
+                effectOptions: anim.effectOptions || {},
+                easing: anim.easing || 'linear'
+              }));
+            } else if (Array.isArray(tableTimeline.animations)) {
+              tableAnimations = tableTimeline.animations.map(anim => ({
+                layerId: anim.layerId,
+                startTime: anim.startTime || 0,
+                duration: anim.duration || 1000,
+                effect: anim.effect || 'auto',
+                effectOptions: anim.effectOptions || {},
+                easing: anim.easing || 'linear'
+              }));
+            } else if (Array.isArray(tableTimeline.timeline)) {
+              tableAnimations = tableTimeline.timeline.map(anim => ({
+                layerId: anim.layerId,
+                startTime: anim.startTime || 0,
+                duration: anim.duration || 1000,
+                effect: anim.effect || 'auto',
+                effectOptions: anim.effectOptions || {},
+                easing: anim.easing || 'linear'
+              }));
+            }
+          }
+
+          tables.push({
+            id: tableRenderer.tableId || `table-${index + 1}`,
+            canvasId: tableRenderer.canvasId || `frequencyTable-${index + 1}`,
+            root: serializedTableRoot,
+            timeline: {
+              animations: tableAnimations,
+              currentTime: tableTimeline?.currentTime || 0,
+              duration: tableTimeline?.duration || 0
+            }
+          });
+        } catch (error) {
+          console.error(`테이블 ${index + 1} 직렬화 오류:`, error);
+        }
+      });
+    }
+
     return {
       version: '3.0.0',
-      root: serializedRoot,
-      timeline: {
-        animations: animations,
-        currentTime: timeline.currentTime || 0,
-        duration: timeline.duration || 0
+      chart: {
+        root: serializedChartRoot,
+        timeline: {
+          animations: chartAnimations,
+          currentTime: chartTimeline.currentTime || 0,
+          duration: chartTimeline.duration || 0
+        },
+        config: chartConfig
       },
-      chartConfig: chartConfig
+      tables: tables
     };
   }
 }

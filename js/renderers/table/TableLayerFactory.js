@@ -14,8 +14,9 @@ class TableLayerFactory {
    * @param {Array} classes - 계급 데이터 배열 (도수 > 0인 것만)
    * @param {number} total - 전체 데이터 개수
    * @param {Object} config - 테이블 설정
+   * @param {string} tableId - 테이블 고유 ID (기본값: 'table-1')
    */
-  static createTableLayers(layerManager, classes, total, config = null) {
+  static createTableLayers(layerManager, classes, total, config = null, tableId = 'table-1') {
     // 설정 가져오기
     const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
     const visibleColumns = config?.visibleColumns || [true, true, true, true, false, false];
@@ -52,7 +53,7 @@ class TableLayerFactory {
 
     // 루트 레이어 생성
     const rootLayer = new Layer({
-      id: 'table-root',
+      id: `${tableId}-table-root`,
       name: '도수분포표',
       type: 'group',
       visible: true,
@@ -72,7 +73,8 @@ class TableLayerFactory {
       canvasHeight,
       padding,
       rowCount,
-      columnWidths
+      columnWidths,
+      tableId
     );
     rootLayer.addChild(gridLayer);
 
@@ -81,7 +83,8 @@ class TableLayerFactory {
       filteredLabels,
       columnWidths,
       columnAlignment,
-      padding
+      padding,
+      tableId
     );
     rootLayer.addChild(headerLayer);
 
@@ -96,7 +99,8 @@ class TableLayerFactory {
         columnAlignment,
         showSuperscript,
         padding,
-        filteredLabels
+        filteredLabels,
+        tableId
       );
       rootLayer.addChild(rowLayer);
     });
@@ -110,7 +114,8 @@ class TableLayerFactory {
       columnOrder,
       columnAlignment,
       padding,
-      filteredLabels
+      filteredLabels,
+      tableId
     );
     rootLayer.addChild(summaryLayer);
 
@@ -138,14 +143,15 @@ class TableLayerFactory {
    * @param {number} padding - 패딩
    * @param {number} rowCount - 행 개수
    * @param {Array} columnWidths - 열 너비 배열
+   * @param {string} tableId - 테이블 고유 ID
    * @returns {Layer} 격자선 레이어
    */
-  static _createGridLayer(canvasWidth, canvasHeight, padding, rowCount, columnWidths) {
+  static _createGridLayer(canvasWidth, canvasHeight, padding, rowCount, columnWidths, tableId) {
     const totalWidth = canvasWidth - padding * 2;
     const totalHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
 
     return new Layer({
-      id: 'table-grid',
+      id: `${tableId}-table-grid`,
       name: '격자선',
       type: 'grid',
       visible: true,
@@ -167,11 +173,12 @@ class TableLayerFactory {
    * @param {Array} columnWidths - 열 너비 배열
    * @param {Object} columnAlignment - 컬럼별 정렬 설정
    * @param {number} padding - 패딩
+   * @param {string} tableId - 테이블 고유 ID
    * @returns {Layer} 헤더 그룹 레이어
    */
-  static _createHeaderLayer(headers, columnWidths, columnAlignment, padding) {
+  static _createHeaderLayer(headers, columnWidths, columnAlignment, padding, tableId) {
     const headerGroup = new Layer({
-      id: 'table-header',
+      id: `${tableId}-table-header`,
       name: '헤더 행',
       type: 'group',
       visible: true,
@@ -184,7 +191,7 @@ class TableLayerFactory {
 
     headers.forEach((header, i) => {
       const cellLayer = new Layer({
-        id: `table-header-col${i}`,
+        id: `${tableId}-table-header-col${i}`,
         name: header,
         type: 'cell',
         visible: true,
@@ -223,6 +230,7 @@ class TableLayerFactory {
    * @param {boolean} showSuperscript - 상첨자 표시 여부
    * @param {number} padding - 패딩
    * @param {Array} filteredLabels - 필터링된 라벨 배열
+   * @param {string} tableId - 테이블 고유 ID
    * @returns {Layer} 데이터 행 그룹 레이어
    */
   static _createDataRowLayer(
@@ -234,10 +242,11 @@ class TableLayerFactory {
     columnAlignment,
     showSuperscript,
     padding,
-    filteredLabels
+    filteredLabels,
+    tableId
   ) {
     const rowGroup = new Layer({
-      id: `table-row-${rowIndex}`,
+      id: `${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
       type: 'group',
       visible: true,
@@ -270,7 +279,7 @@ class TableLayerFactory {
     cells.forEach((cellText, i) => {
       const label = filteredLabels[i];
       const cellLayer = new Layer({
-        id: `table-row-${rowIndex}-col${i}`,
+        id: `${tableId}-table-row-${rowIndex}-col${i}`,
         name: String(cellText),
         type: 'cell',
         visible: true,
@@ -313,6 +322,7 @@ class TableLayerFactory {
    * @param {Object} columnAlignment - 컬럼별 정렬 설정
    * @param {number} padding - 패딩
    * @param {Array} filteredLabels - 필터링된 라벨 배열
+   * @param {string} tableId - 테이블 고유 ID
    * @returns {Layer} 합계 행 그룹 레이어
    */
   static _createSummaryRowLayer(
@@ -323,10 +333,11 @@ class TableLayerFactory {
     columnOrder,
     columnAlignment,
     padding,
-    filteredLabels
+    filteredLabels,
+    tableId
   ) {
     const summaryGroup = new Layer({
-      id: 'table-summary',
+      id: `${tableId}-table-summary`,
       name: '합계 행',
       type: 'group',
       visible: true,
@@ -360,7 +371,7 @@ class TableLayerFactory {
         }
 
         const cellLayer = new Layer({
-          id: `table-summary-col${cellIndex}`,
+          id: `${tableId}-table-summary-col${cellIndex}`,
           name: String(cellText),
           type: 'cell',
           visible: true,
