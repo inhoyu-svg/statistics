@@ -1712,8 +1712,11 @@ class FrequencyDistributionApp {
    */
   handleDatasetDataChange(id, value) {
     try {
-      const data = Utils.parseData(value);
-      DataStore.updateDataset(id, { data });
+      // 빈 문자열이 아닐 때만 파싱 및 업데이트
+      if (value.trim() !== '') {
+        const data = Utils.parseData(value);
+        DataStore.updateDataset(id, { data });
+      }
     } catch (error) {
       // 입력 중이므로 에러 무시 (생성 버튼 클릭 시 검증)
     }
