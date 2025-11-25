@@ -25,6 +25,23 @@ class Utils {
   }
 
   /**
+   * 데이터 문자열을 숫자 배열로 파싱
+   * @param {string} str - 쉼표 또는 공백으로 구분된 숫자 문자열
+   * @returns {Array<number>} 숫자 배열
+   */
+  static parseData(str) {
+    if (!str || typeof str !== 'string') return [];
+
+    // 쉼표와 공백을 모두 구분자로 사용
+    return str
+      .split(/[,\s]+/)
+      .map(s => s.trim())
+      .filter(s => s !== '')
+      .map(s => parseFloat(s))
+      .filter(n => !isNaN(n));
+  }
+
+  /**
    * 배열이 비어있는지 확인
    */
   static isEmpty(arr) {
