@@ -23,7 +23,12 @@ class TableLayerFactory {
     const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
 
     // 첫 번째 데이터셋의 classes를 기준으로 사용 (공통 class ranges)
-    const classes = datasets[0].classes.filter(c => c.frequency > 0);
+    const allClasses = datasets[0].classes;
+
+    // 어느 데이터셋에서든 도수가 0이 아닌 계급만 필터링 (원본 인덱스 유지)
+    const visibleClassesWithIndex = allClasses
+      .map((c, originalIndex) => ({ classData: c, originalIndex }))
+      .filter(item => datasets.some(ds => ds.frequencies[item.originalIndex] > 0));
 
     // 다중 데이터셋용 헤더 생성
     const headers = [tableLabels.class]; // 계급 컬럼
@@ -37,7 +42,7 @@ class TableLayerFactory {
     // Canvas 크기 계산
     const padding = CONFIG.TABLE_PADDING;
     const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
-    const rowCount = classes.length + 1; // +1 for summary row
+    const rowCount = visibleClassesWithIndex.length + 1; // +1 for summary row
     const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
     // 열 너비 계산
@@ -79,10 +84,11 @@ class TableLayerFactory {
     rootLayer.addChild(headerLayer);
 
     // 데이터 행 레이어 생성 (다중 데이터셋)
-    classes.forEach((classData, rowIndex) => {
+    visibleClassesWithIndex.forEach((item, rowIndex) => {
       const rowLayer = this._createMultiDatasetRowLayer(
-        classData,
+        item.classData,
         rowIndex,
+        item.originalIndex,
         datasets,
         columnWidths,
         columnAlignment,
@@ -385,7 +391,8 @@ class TableLayerFactory {
   /**
    * 다중 데이터셋 데이터 행 레이어 생성
    * @param {Object} classData - 계급 데이터
-   * @param {number} rowIndex - 행 인덱스
+   * @param {number} rowIndex - 표시 행 인덱스 (필터링 후)
+   * @param {number} originalIndex - 원본 계급 인덱스 (필터링 전)
    * @param {Array} datasets - 데이터셋 배열
    * @param {Array} columnWidths - 열 너비 배열
    * @param {Object} columnAlignment - 컬럼별 정렬 설정
@@ -397,6 +404,7 @@ class TableLayerFactory {
   static _createMultiDatasetRowLayer(
     classData,
     rowIndex,
+    originalIndex,
     datasets,
     columnWidths,
     columnAlignment,
@@ -420,10 +428,10 @@ class TableLayerFactory {
     // 첫 번째 셀: 계급
     const cells = [`${classData.min} ~ ${classData.max}`];
 
-    // 각 데이터셋에 대해 도수와 상대도수 추가
+    // 각 데이터셋에 대해 도수와 상대도수 추가 (원본 인덱스 사용)
     datasets.forEach(ds => {
-      const freq = ds.frequencies[rowIndex] || 0;
-      const relFreq = ds.relativeFreqs[rowIndex] || 0;
+      const freq = ds.frequencies[originalIndex] || 0;
+      const relFreq = ds.relativeFreqs[originalIndex] || 0;
       cells.push(freq);
       cells.push(`${Utils.formatNumberClean(relFreq * 100)}%`);
     });

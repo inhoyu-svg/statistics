@@ -82,13 +82,17 @@ class TableRenderer {
       // 새 형식: datasetResults 배열
       datasets = datasetResults;
 
-      // 첫 번째 데이터셋의 클래스를 기준으로 visibleClasses 설정
+      // 모든 데이터셋을 고려하여 표시할 클래스 결정
       if (datasets.length === 0 || !datasets[0].classes) {
         this.drawNoDataMessage();
         return;
       }
 
-      visibleClasses = datasets[0].classes.filter(c => c.frequency > 0);
+      // 어느 데이터셋에서든 도수가 0이 아닌 계급 표시
+      const allClasses = datasets[0].classes;
+      visibleClasses = allClasses.filter((c, index) => {
+        return datasets.some(ds => ds.frequencies[index] > 0);
+      });
 
       if (visibleClasses.length === 0) {
         this.drawNoDataMessage();

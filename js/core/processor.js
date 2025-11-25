@@ -323,7 +323,8 @@ class DataProcessor {
         stats: dataset.stats,
         classes: datasetClasses,
         frequencies: datasetClasses.map(c => c.frequency),
-        relativeFreqs: datasetClasses.map(c => c.relativeFreq)
+        // relativeFreq를 숫자(0-1 범위)로 변환하여 저장 (차트에서 사용)
+        relativeFreqs: datasetClasses.map(c => c.frequency / dataset.data.length)
       };
     });
 
