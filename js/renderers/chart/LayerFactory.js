@@ -21,7 +21,11 @@ class LayerFactory {
    * @param {string} calloutTemplate - 말풍선 템플릿
    */
   static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null) {
-    layerManager.clearAll();
+    // clearAll() 제거: 기존 레이어 유지하면서 새 레이어 추가
+    // layerManager.clearAll();
+
+    // 레이어 ID 중복 방지를 위한 타임스탬프
+    const timestamp = Date.now();
 
     // 데이터 타입 정보 가져오기
     const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
@@ -29,7 +33,7 @@ class LayerFactory {
 
     // 히스토그램 그룹
     const histogramGroup = new Layer({
-      id: 'histogram',
+      id: `histogram-${timestamp}`,
       name: '히스토그램',
       type: 'group',
       visible: true
@@ -37,7 +41,7 @@ class LayerFactory {
 
     // 다각형 그룹 (동적 이름)
     const polygonGroup = new Layer({
-      id: 'polygon',
+      id: `polygon-${timestamp}`,
       name: polygonName,
       type: 'group',
       visible: true
@@ -54,7 +58,7 @@ class LayerFactory {
       const className = Utils.getClassName(classes[index]);
 
       const barLayer = new Layer({
-        id: `bar-${index}`,
+        id: `bar-${timestamp}-${index}`,
         name: className,
         type: 'bar',
         visible: true,
@@ -70,7 +74,7 @@ class LayerFactory {
 
     // 점 그룹
     const pointsGroup = new Layer({
-      id: 'points',
+      id: `points-${timestamp}`,
       name: '점',
       type: 'group',
       visible: true
@@ -78,7 +82,7 @@ class LayerFactory {
 
     // 선 그룹
     const linesGroup = new Layer({
-      id: 'lines',
+      id: `lines-${timestamp}`,
       name: '선',
       type: 'group',
       visible: true
@@ -86,7 +90,7 @@ class LayerFactory {
 
     // 파선 그룹 (독립 레이어)
     const dashedLinesGroup = new Layer({
-      id: 'dashed-lines',
+      id: `dashed-lines-${timestamp}`,
       name: '수직 파선',
       type: 'group',
       visible: CONFIG.SHOW_DASHED_LINES
@@ -100,7 +104,7 @@ class LayerFactory {
       const className = Utils.getClassName(classes[index]);
 
       const pointLayer = new Layer({
-        id: `point-${index}`,
+        id: `point-${timestamp}-${index}`,
         name: `점(${className})`,
         type: 'point',
         visible: true,
@@ -124,7 +128,7 @@ class LayerFactory {
         const toClassName = Utils.getClassName(classes[index]);
 
         const lineLayer = new Layer({
-          id: `line-${prevIndex}-${index}`,
+          id: `line-${timestamp}-${prevIndex}-${index}`,
           name: `선(${fromClassName}→${toClassName})`,
           type: 'line',
           visible: true,
@@ -150,7 +154,7 @@ class LayerFactory {
       const className = Utils.getClassName(classes[index]);
 
       const dashedLineLayer = new Layer({
-        id: `dashed-line-${index}`,
+        id: `dashed-line-${timestamp}-${index}`,
         name: `파선(${className})`,
         type: 'dashed-line',
         visible: CONFIG.SHOW_DASHED_LINES,
@@ -181,7 +185,7 @@ class LayerFactory {
     // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
     if (CONFIG.SHOW_BAR_LABELS) {
       const labelsGroup = new Layer({
-        id: 'bar-labels',
+        id: `bar-labels-${timestamp}`,
         name: '막대 라벨',
         type: 'group',
         visible: true
@@ -195,7 +199,7 @@ class LayerFactory {
         const className = Utils.getClassName(classes[index]);
 
         const labelLayer = new Layer({
-          id: `bar-label-${index}`,
+          id: `bar-label-${timestamp}-${index}`,
           name: `라벨(${className})`,
           type: 'bar-label',
           visible: true,
@@ -215,7 +219,7 @@ class LayerFactory {
 
     // 말풍선 레이어 생성 (템플릿이 제공된 경우)
     if (calloutTemplate) {
-      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate);
+      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, timestamp);
       if (calloutLayer) {
         layerManager.addLayer(calloutLayer);
       }
@@ -230,9 +234,10 @@ class LayerFactory {
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {string} dataType - 데이터 타입
    * @param {string} template - 말풍선 템플릿
+   * @param {number} timestamp - 타임스탬프 (레이어 ID 중복 방지)
    * @returns {Layer|null} 말풍선 레이어
    */
-  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template) {
+  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, timestamp) {
     // 최상단 포인트 찾기 (y값이 가장 큰 = 상대도수/도수가 가장 큰)
     let maxValue = -Infinity;
     let maxIndex = -1;
@@ -263,7 +268,7 @@ class LayerFactory {
     const pointY = toY(maxValue);
 
     const calloutLayer = new Layer({
-      id: 'callout',
+      id: `callout-${timestamp}`,
       name: '말풍선',
       type: 'callout',
       visible: true,

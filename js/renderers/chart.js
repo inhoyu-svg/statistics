@@ -140,12 +140,6 @@ class ChartRenderer {
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
-      // 기존 레이어 페이드아웃 애니메이션 추가 (있는 경우)
-      const hasExistingLayers = this.layerManager.layers.length > 0;
-      if (hasExistingLayers) {
-        this.fadeOutExistingLayers();
-      }
-
       // 애니메이션 모드: Layer 생성 후 애니메이션 재생
       LayerFactory.createLayers(
         this.layerManager,
@@ -290,13 +284,16 @@ class ChartRenderer {
     // 기존 타임라인의 끝에서 시작
     let currentTime = this.timeline.duration;
 
-    // 히스토그램 그룹에서 막대 찾기
-    const histogramGroup = this.layerManager.findLayer('histogram');
-    // 다각형 그룹에서 점 찾기
-    const polygonGroup = this.layerManager.findLayer('polygon');
-    const pointsGroup = polygonGroup?.children.find(c => c.id === 'points');
-    // 막대 라벨 그룹 찾기
-    const labelsGroup = this.layerManager.findLayer('bar-labels');
+    // 가장 최근에 추가된 레이어 찾기 (ID에 timestamp가 붙어있음)
+    const allLayers = this.layerManager.getAllLayers().map(item => item.layer);
+    const reversedLayers = [...allLayers].reverse();
+
+    const histogramGroup = reversedLayers.find(l => l.id.startsWith('histogram'));
+    const polygonGroup = reversedLayers.find(l => l.id.startsWith('polygon'));
+    const labelsGroup = reversedLayers.find(l => l.id.startsWith('bar-labels'));
+    const dashedLinesGroup = reversedLayers.find(l => l.id.startsWith('dashed-lines'));
+
+    const pointsGroup = polygonGroup?.children.find(c => c.id.startsWith('points'));
 
     // 히스토그램도 다각형도 없으면 리턴
     if (!histogramGroup && !polygonGroup) return;
@@ -372,7 +369,7 @@ class ChartRenderer {
       }
 
       // 파선 애니메이션 (점과 동일한 타이밍, 우→좌 그리기)
-      const dashedLine = this.layerManager.findLayer(`dashed-line-${i}`);
+      const dashedLine = dashedLinesGroup?.children.find(d => d.data?.index === i);
       if (dashedLine && dashedLine.visible) {
         this.timeline.addAnimation(dashedLine.id, {
           startTime: currentTime,
@@ -388,7 +385,7 @@ class ChartRenderer {
     }
 
     // 연결선 그룹 애니메이션 (모든 계급 완료 후)
-    const linesGroup = polygonGroup?.children.find(c => c.id === 'lines');
+    const linesGroup = polygonGroup?.children.find(c => c.id.startsWith('lines'));
     if (linesGroup && linesGroup.children) {
       currentTime += CONFIG.ANIMATION_LINE_START_DELAY;
 
@@ -403,10 +400,10 @@ class ChartRenderer {
       });
 
       // 말풍선 애니메이션 (모든 선이 완료된 후)
-      const calloutLayer = this.layerManager.findLayer('callout');
+      const calloutLayer = reversedLayers.find(l => l.id.startsWith('callout'));
       if (calloutLayer) {
         const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
-        this.timeline.addAnimation('callout', {
+        this.timeline.addAnimation(calloutLayer.id, {
           startTime: lineEndTime + CONFIG.ANIMATION_CALLOUT_DELAY,
           duration: CONFIG.ANIMATION_POINT_DURATION,
           effect: 'custom', // 투명도 애니메이션은 직접 처리

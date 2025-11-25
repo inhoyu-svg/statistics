@@ -22,10 +22,14 @@ import ChartStore from './core/chartStore.js';
 class FrequencyDistributionApp {
   constructor() {
     this.chartRenderer = new ChartRenderer('chart');
-    this.tableRenderer = new TableRenderer('frequencyTable');
 
-    // ChartRenderer가 TableRenderer를 참조할 수 있도록 연결
-    this.chartRenderer.setTableRenderer(this.tableRenderer);
+    // 테이블 관리
+    this.tableRenderers = []; // 여러 테이블 렌더러
+    this.tableCounter = 0; // 테이블 카운터
+    this.tableRenderer = null; // 첫 번째 테이블 (호환성 유지)
+
+    // 첫 번째 테이블 렌더러 초기화
+    this.initFirstTableRenderer();
 
     this.columnOrder = [0, 1, 2, 3, 4, 5]; // 컬럼 순서 관리
     this.draggedElement = null;
@@ -43,16 +47,31 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 첫 번째 테이블 렌더러 초기화
+   */
+  initFirstTableRenderer() {
+    this.tableRenderer = new TableRenderer('frequencyTable');
+    this.tableRenderers.push(this.tableRenderer);
+    this.tableCounter = 1;
+  }
+
+  /**
    * 이벤트 리스너 초기화
    */
   init() {
     const generateBtn = document.getElementById('generateBtn');
-    generateBtn.addEventListener('click', () => this.generate());
+    generateBtn.addEventListener('click', () => this.generate(true)); // true: 새로 시작
 
-    // Enter 키로도 생성 가능
+    // 도수분포표 추가 버튼
+    const addBtn = document.getElementById('addBtn');
+    addBtn.addEventListener('click', () => this.generate(false)); // false: 추가
+
+    // Enter 키로도 생성 가능 (Ctrl+Enter: 생성, Shift+Enter: 추가)
     document.getElementById('dataInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && e.ctrlKey) {
-        this.generate();
+        this.generate(true); // Ctrl+Enter: 새로 생성
+      } else if (e.key === 'Enter' && e.shiftKey) {
+        this.generate(false); // Shift+Enter: 추가
       }
     });
 
@@ -1073,10 +1092,11 @@ class FrequencyDistributionApp {
 
   /**
    * 도수분포표 생성 메인 로직
+   * @param {boolean} reset - true: 기존 테이블 초기화 후 새로 생성, false: 기존 테이블 유지하며 추가
    * @description 입력 데이터를 파싱하고 검증한 후, 도수분포표와 히스토그램 생성
    * @throws {Error} 데이터 처리 중 오류 발생 시
    */
-  generate() {
+  generate(reset = true) {
     try {
       MessageManager.hide();
 
@@ -1124,6 +1144,19 @@ class FrequencyDistributionApp {
         return;
       }
 
+      // 5.5. 테이블 생성/추가 모드 처리
+      let currentTableRenderer;
+      if (reset) {
+        // 리셋 모드: 추가 테이블 제거 및 첫 번째 테이블만 사용
+        this.clearExtraTables();
+        currentTableRenderer = this.tableRenderers[0];
+        this.tableRenderer = currentTableRenderer;
+      } else {
+        // 추가 모드: 새 테이블 캔버스 생성 및 렌더러 추가
+        currentTableRenderer = this.createNewTable();
+        this.tableRenderer = currentTableRenderer;
+      }
+
       // 6. 데이터 처리
       const stats = DataProcessor.calculateBasicStats(data);
       const { classes } = DataProcessor.createClasses(stats, classCount, customWidth);
@@ -1144,7 +1177,7 @@ class FrequencyDistributionApp {
       // tableConfig에 columnAlignment 추가
       const configWithAlignment = this.getTableConfigWithAlignment();
 
-      this.tableRenderer.draw(classes, data.length, configWithAlignment);
+      currentTableRenderer.draw(classes, data.length, configWithAlignment);
 
       // 차트 데이터 타입 가져오기
       const dataType = ChartStore.getDataType();
@@ -1176,6 +1209,54 @@ class FrequencyDistributionApp {
       console.error('Error:', error);
       MessageManager.error(`오류가 발생했습니다: ${error.message}`);
     }
+  }
+
+  /**
+   * 추가 테이블 제거 (첫 번째 테이블만 유지)
+   */
+  clearExtraTables() {
+    const tableWrapper = document.querySelector('.table-wrapper');
+    if (!tableWrapper) return;
+
+    // 첫 번째 캔버스를 제외한 모든 테이블 섹션 제거
+    const tableSections = tableWrapper.querySelectorAll('.table-section-item');
+    tableSections.forEach(section => section.remove());
+
+    // tableRenderers 배열을 첫 번째만 유지
+    this.tableRenderers = this.tableRenderers.slice(0, 1);
+    this.tableCounter = 1;
+  }
+
+  /**
+   * 새 테이블 캔버스 생성 및 렌더러 추가
+   * @returns {TableRenderer} 새로 생성된 테이블 렌더러
+   */
+  createNewTable() {
+    const tableWrapper = document.querySelector('.table-wrapper');
+    if (!tableWrapper) {
+      throw new Error('테이블 래퍼를 찾을 수 없습니다.');
+    }
+
+    // 카운터 증가
+    this.tableCounter++;
+    const tableId = `frequencyTable-${this.tableCounter}`;
+
+    // 새 테이블 섹션 생성
+    const tableSection = document.createElement('div');
+    tableSection.className = 'table-section-item';
+    tableSection.innerHTML = `
+      <h3 class="table-dataset-title">📋 데이터셋 ${this.tableCounter}</h3>
+      <canvas id="${tableId}" role="img" aria-label="도수분포표 ${this.tableCounter}"></canvas>
+    `;
+
+    // 테이블 래퍼에 추가
+    tableWrapper.appendChild(tableSection);
+
+    // 새 렌더러 생성 및 저장
+    const newRenderer = new TableRenderer(tableId);
+    this.tableRenderers.push(newRenderer);
+
+    return newRenderer;
   }
 
   /**
