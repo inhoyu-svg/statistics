@@ -247,17 +247,20 @@ class LayerFactory {
 
     if (maxIndex === -1) return null;
 
-    // 포인트 좌표 계산
+    // 템플릿 치환
+    const text = CalloutRenderer.formatTemplate(template, classes[maxIndex], dataType);
+
+    // 말풍선 너비 동적 계산 (텍스트 길이 기반)
+    const calloutWidth = CalloutRenderer.calculateCalloutWidth(text);
+
+    // 말풍선 위치 (차트 왼쪽 상단 고정)
+    const calloutX = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_X;
+    const calloutY = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_Y;
+
+    // 포인트 좌표 계산 (애니메이션 참조용)
     const { toX, toY, xScale } = coords;
     const pointX = toX(maxIndex) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
     const pointY = toY(maxValue);
-
-    // 말풍선 위치 계산 (포인트 왼쪽 위)
-    const calloutX = pointX - CONFIG.CALLOUT_WIDTH - CONFIG.CALLOUT_OFFSET_X;
-    const calloutY = pointY - CONFIG.CALLOUT_HEIGHT - CONFIG.CALLOUT_OFFSET_Y;
-
-    // 템플릿 치환
-    const text = CalloutRenderer.formatTemplate(template, classes[maxIndex], dataType);
 
     const calloutLayer = new Layer({
       id: 'callout',
@@ -267,7 +270,7 @@ class LayerFactory {
       data: {
         x: calloutX,
         y: calloutY,
-        width: CONFIG.CALLOUT_WIDTH,
+        width: calloutWidth,
         height: CONFIG.CALLOUT_HEIGHT,
         text,
         opacity: 0, // 초기 투명도 (애니메이션용)

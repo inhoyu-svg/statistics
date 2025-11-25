@@ -33,7 +33,7 @@ class CalloutRenderer {
     this._drawAccentBar(x, y, width, height, polygonPreset);
 
     // 텍스트 그리기
-    this._drawText(x, y, width, height, text);
+    this._drawText(x, y, width, height, text, polygonPreset);
 
     this.ctx.restore();
   }
@@ -81,14 +81,19 @@ class CalloutRenderer {
    * @param {number} width - 말풍선 너비
    * @param {number} height - 말풍선 높이
    * @param {string} text - 텍스트 (\\n으로 줄바꿈)
+   * @param {string} polygonPreset - 다각형 색상 프리셋
    */
-  _drawText(x, y, width, height, text) {
+  _drawText(x, y, width, height, text, polygonPreset) {
     const ctx = this.ctx;
     const padding = CONFIG.CALLOUT_PADDING;
     const lineHeight = CONFIG.CALLOUT_LINE_HEIGHT;
 
+    // 프리셋에 따른 텍스트 색상
+    const preset = polygonPreset || 'default';
+    const textColor = CONFIG.CALLOUT_TEXT_COLORS[preset] || CONFIG.CALLOUT_TEXT_COLORS.default;
+
     ctx.font = CONFIG.CALLOUT_FONT;
-    ctx.fillStyle = CONFIG.getColor('--chart-callout-text');
+    ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -136,6 +141,49 @@ class CalloutRenderer {
       .replace(/{value}/g, value)
       .replace(/{valueSuffix}/g, valueSuffix)
       .replace(/\\n/g, '\n'); // 줄바꿈 지원
+  }
+
+  /**
+   * 텍스트 너비 측정 (줄바꿈 고려하여 최대 너비 반환)
+   * @param {string} text - 텍스트 (\\n으로 줄바꿈)
+   * @param {string} font - 폰트
+   * @returns {number} 텍스트 너비 (px)
+   */
+  static measureTextWidth(text, font = CONFIG.CALLOUT_FONT) {
+    // 임시 캔버스 생성
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+
+    // 줄바꿈이 있는 경우 각 줄의 최대 너비 반환
+    const lines = text.split('\n');
+    let maxWidth = 0;
+
+    lines.forEach(line => {
+      const metrics = ctx.measureText(line);
+      maxWidth = Math.max(maxWidth, metrics.width);
+    });
+
+    return maxWidth;
+  }
+
+  /**
+   * 말풍선 너비 계산 (텍스트 너비 + 여백)
+   * 여백은 전체 너비의 1/5씩 양쪽 (총 2/5), 텍스트는 3/5
+   * @param {string} text - 텍스트
+   * @param {string} font - 폰트
+   * @returns {number} 말풍선 너비 (px)
+   */
+  static calculateCalloutWidth(text, font = CONFIG.CALLOUT_FONT) {
+    const textWidth = this.measureTextWidth(text, font);
+    const accentBarWidth = CONFIG.CALLOUT_ACCENT_BAR_WIDTH;
+
+    // 텍스트가 전체의 60%를 차지하도록
+    // 너비 = 텍스트너비 / 0.6
+    const totalWidth = textWidth / CONFIG.CALLOUT_TEXT_WIDTH_RATIO;
+
+    // 세로 막대 너비를 포함한 최종 너비
+    return Math.ceil(totalWidth) + accentBarWidth;
   }
 }
 

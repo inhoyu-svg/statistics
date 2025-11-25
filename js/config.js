@@ -142,6 +142,19 @@ const CONFIG = {
     tertiary: '#FF764F'
   },
 
+  // 말풍선 텍스트 색상 (세로 막대와 동일)
+  CALLOUT_TEXT_COLORS: {
+    default: '#89EC4E',
+    primary: '#008AFF',
+    secondary: '#E749AF',
+    tertiary: '#FF764F'
+  },
+
+  // 말풍선 위치 (차트 왼쪽 상단 고정)
+  CALLOUT_POSITION_X: 10,                   // 왼쪽 여백 (CHART_PADDING 기준)
+  CALLOUT_POSITION_Y: 10,                   // 상단 여백 (CHART_PADDING 기준)
+  CALLOUT_TEXT_WIDTH_RATIO: 0.6,            // 텍스트가 차지하는 너비 비율 (나머지는 여백)
+
   // 차트 요소 표시 설정
   SHOW_HISTOGRAM: true,                     // 히스토그램 표시 여부 (기본값)
   SHOW_POLYGON: true,                       // 도수 다각형 표시 여부 (기본값)
