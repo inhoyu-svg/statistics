@@ -129,7 +129,7 @@ const CONFIG = {
   CALLOUT_TAIL_HEIGHT: 10,                  // 꼬리 높이 (미사용)
   CALLOUT_BORDER_RADIUS: 0,                 // 모서리 둥글기 (0 = 둥글기 없음)
   CALLOUT_PADDING: 8,                       // 내부 패딩
-  CALLOUT_FONT: '16px sans-serif',          // 폰트
+  CALLOUT_FONT: '20px sans-serif',          // 폰트
   CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
   CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
   CALLOUT_ACCENT_BAR_WIDTH: 4,              // 오른쪽 세로 막대 너비
