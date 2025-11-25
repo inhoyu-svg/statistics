@@ -6,6 +6,7 @@
  */
 
 import CONFIG from '../config.js';
+import DataStore from '../core/dataStore.js';
 import { LayerManager, LayerTimeline, LayerAnimationEffects } from '../animation/index.js';
 
 // 분할된 렌더러 모듈들
