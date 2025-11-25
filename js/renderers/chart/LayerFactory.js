@@ -149,26 +149,29 @@ class LayerFactory {
     });
 
     // 파선 레이어 생성 (점에서 Y축까지 수직 파선)
-    values.forEach((value, index) => {
-      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-      if (value === 0) return; // 값이 0인 파선은 생성하지 않음
+    // SHOW_DASHED_LINES가 true일 때만 생성
+    if (CONFIG.SHOW_DASHED_LINES) {
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+        if (value === 0) return; // 값이 0인 파선은 생성하지 않음
 
-      const className = Utils.getClassName(classes[index]);
+        const className = Utils.getClassName(classes[index]);
 
-      const dashedLineLayer = new Layer({
-        id: `dashed-line-${timestamp}-${index}`,
-        name: `파선(${className})`,
-        type: 'dashed-line',
-        visible: CONFIG.SHOW_DASHED_LINES,
-        data: {
-          index,
-          relativeFreq: value,
-          coords
-        }
+        const dashedLineLayer = new Layer({
+          id: `dashed-line-${timestamp}-${index}`,
+          name: `파선(${className})`,
+          type: 'dashed-line',
+          visible: true,
+          data: {
+            index,
+            relativeFreq: value,
+            coords
+          }
+        });
+
+        dashedLinesGroup.addChild(dashedLineLayer);
       });
-
-      dashedLinesGroup.addChild(dashedLineLayer);
-    });
+    }
 
     // 렌더링 순서: 선 → 점 (점이 가장 위에 표시되도록)
     polygonGroup.addChild(linesGroup);
@@ -179,7 +182,9 @@ class LayerFactory {
     if (CONFIG.SHOW_HISTOGRAM) {
       layerManager.addLayer(histogramGroup);
     }
-    layerManager.addLayer(dashedLinesGroup);
+    if (CONFIG.SHOW_DASHED_LINES) {
+      layerManager.addLayer(dashedLinesGroup);
+    }
     if (CONFIG.SHOW_POLYGON) {
       layerManager.addLayer(polygonGroup);
     }
