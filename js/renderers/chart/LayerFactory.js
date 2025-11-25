@@ -110,7 +110,8 @@ class LayerFactory {
         visible: true,
         data: {
           index,
-          relativeFreq: value // 실제로는 value (상대도수 또는 도수)
+          relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
+          colorPreset: CONFIG.POLYGON_COLOR_PRESET // 색상 프리셋 저장
         }
       });
 
@@ -136,7 +137,8 @@ class LayerFactory {
             fromIndex: prevIndex,
             toIndex: index,
             fromFreq: values[prevIndex],
-            toFreq: value
+            toFreq: value,
+            colorPreset: CONFIG.POLYGON_COLOR_PRESET // 색상 프리셋 저장
           }
         });
 

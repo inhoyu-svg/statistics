@@ -87,14 +87,26 @@ class ChartRenderer {
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    * @param {Object} tableConfig - 테이블 설정
    * @param {string} calloutTemplate - 말풍선 템플릿
+   * @param {boolean} clearCanvas - 캔버스 및 레이어 초기화 여부 (기본: true)
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null) {
-    this.canvas.width = CONFIG.CANVAS_WIDTH;
-    this.canvas.height = CONFIG.CANVAS_HEIGHT;
-    this.clear();
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true) {
+    if (clearCanvas) {
+      // 캔버스 초기화
+      this.canvas.width = CONFIG.CANVAS_WIDTH;
+      this.canvas.height = CONFIG.CANVAS_HEIGHT;
+      this.clear();
 
-    // 새로운 차트 그리기 시작 - 하이라이트 초기화
-    this.lastHighlightInfo = null;
+      // 레이어 매니저 초기화 (겹침 방지) - root의 자식 레이어 모두 제거
+      this.layerManager.root.children = [];
+      // 타임라인 초기화
+      this.timeline.animations = new Map(); // Map 객체로 초기화
+      this.timeline.timeline = [];
+      this.timeline.currentTime = 0;
+      this.timeline.duration = 0;
+
+      // 새로운 차트 그리기 시작 - 하이라이트 초기화
+      this.lastHighlightInfo = null;
+    }
 
     const freq = classes.map(c => c.frequency);
     const total = freq.reduce((a, b) => a + b, 0);

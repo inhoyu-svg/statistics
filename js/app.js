@@ -162,6 +162,20 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 새 데이터셋 추가 후 도수분포표 생성
+   */
+  addDatasetAndGenerate() {
+    // 다음 데이터셋 ID 계산
+    const nextId = DatasetStore.getCount() + 1;
+
+    // 새 데이터셋 섹션 생성
+    this.createDatasetSection(nextId);
+
+    // 추가 모드로 생성 (기존 테이블 유지)
+    this.generate(false);
+  }
+
+  /**
    * 데이터셋 입력값 읽기
    * @param {number} datasetId - 데이터셋 ID
    * @returns {Object|null} 데이터셋 입력값 객체 또는 null
@@ -257,7 +271,7 @@ class FrequencyDistributionApp {
 
     // 도수분포표 추가 버튼
     const addBtn = document.getElementById('addBtn');
-    addBtn?.addEventListener('click', () => this.generate(false)); // false: 추가
+    addBtn?.addEventListener('click', () => this.addDatasetAndGenerate()); // 새 데이터셋 추가 후 생성
 
     // JSON 내보내기 버튼
     const exportJsonBtn = document.getElementById('exportJsonBtn');
@@ -1369,18 +1383,34 @@ class FrequencyDistributionApp {
       const firstDataset = processedDatasets[0];
       UIRenderer.renderStatsCards(firstDataset.stats);
 
-      // 5. 차트 렌더링 (첫 번째 데이터셋만 임시로 표시)
-      // TODO: 나중에 다중 데이터셋 렌더링으로 변경
+      // 5. 모든 데이터셋에 대해 차트 렌더링 (겹쳐 그리기)
       const customLabels = this.getCustomLabels();
       const tableConfig = this.getDefaultTableConfig();
-      this.chartRenderer.draw(
-        firstDataset.classes,
-        customLabels.axis,
-        firstDataset.ellipsisInfo,
-        firstDataset.settings.dataType,
-        tableConfig,
-        firstDataset.settings.calloutTemplate
-      );
+
+      for (let i = 0; i < processedDatasets.length; i++) {
+        const dataset = processedDatasets[i];
+
+        // 각 데이터셋의 설정을 CONFIG에 반영
+        CONFIG.SHOW_HISTOGRAM = dataset.settings.showHistogram;
+        CONFIG.SHOW_POLYGON = dataset.settings.showPolygon;
+        CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
+        CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
+        CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
+        CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
+
+        // 첫 번째 데이터셋만 캔버스 초기화, 나머지는 겹쳐 그리기
+        const clearCanvas = (i === 0);
+
+        this.chartRenderer.draw(
+          dataset.classes,
+          customLabels.axis,
+          dataset.ellipsisInfo,
+          dataset.settings.dataType,
+          tableConfig,
+          dataset.settings.calloutTemplate,
+          clearCanvas
+        );
+      }
 
       // 6. Store에 첫 번째 데이터셋 저장 (기존 호환성 유지)
       DataStore.setData(firstDataset.data, firstDataset.stats, firstDataset.classes);

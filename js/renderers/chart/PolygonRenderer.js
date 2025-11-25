@@ -78,14 +78,15 @@ class PolygonRenderer {
    * @param {Layer} layer - 점 레이어
    */
   renderPoint(layer) {
-    const { index, relativeFreq, coords } = layer.data;
+    const { index, relativeFreq, coords, colorPreset } = layer.data;
     const { toX, xScale } = coords;
 
     const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
     const centerY = coords.toY(relativeFreq);
 
-    // 현재 프리셋의 점 색상 사용
-    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
+    // 레이어에 저장된 색상 프리셋 사용 (없으면 현재 CONFIG 사용)
+    const presetName = colorPreset || CONFIG.POLYGON_COLOR_PRESET;
+    const preset = CONFIG.POLYGON_COLOR_PRESETS[presetName];
     const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
 
     this.ctx.beginPath();
@@ -99,7 +100,7 @@ class PolygonRenderer {
    * @param {Layer} layer - 선 레이어
    */
   renderLine(layer) {
-    const { fromIndex, toIndex, fromFreq, toFreq, coords } = layer.data;
+    const { fromIndex, toIndex, fromFreq, toFreq, coords, colorPreset } = layer.data;
     const { toX, toY, xScale } = coords;
 
     const x1 = CoordinateSystem.getBarCenterX(fromIndex, toX, xScale);
@@ -107,8 +108,9 @@ class PolygonRenderer {
     const x2 = CoordinateSystem.getBarCenterX(toIndex, toX, xScale);
     const y2 = toY(toFreq);
 
-    // 현재 프리셋의 그라디언트 색상 사용
-    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
+    // 레이어에 저장된 색상 프리셋 사용 (없으면 현재 CONFIG 사용)
+    const presetName = colorPreset || CONFIG.POLYGON_COLOR_PRESET;
+    const preset = CONFIG.POLYGON_COLOR_PRESETS[presetName];
     const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
     const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
 
