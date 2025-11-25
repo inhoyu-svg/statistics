@@ -17,6 +17,7 @@ import TableRenderer from './renderers/table.js';
 import DataStore from './core/dataStore.js';
 import TableStore from './core/tableStore.js';
 import ChartStore from './core/chartStore.js';
+import DatasetStore from './core/datasetStore.js';
 
 // ========== 애플리케이션 컨트롤러 ==========
 class FrequencyDistributionApp {
@@ -56,55 +57,214 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 데이터셋 섹션 생성
+   * @param {number} datasetId - 데이터셋 ID
+   */
+  createDatasetSection(datasetId) {
+    const template = document.getElementById('datasetSectionTemplate');
+    if (!template) {
+      console.error('데이터셋 템플릿을 찾을 수 없습니다.');
+      return;
+    }
+
+    // 템플릿 복제
+    const section = template.content.cloneNode(true);
+    const details = section.querySelector('.dataset-section');
+
+    // 데이터셋 ID 설정
+    details.setAttribute('data-dataset-id', datasetId);
+
+    // 제목 설정
+    const title = section.querySelector('.dataset-title');
+    title.textContent = `📊 데이터셋 ${datasetId}`;
+
+    // 차트 데이터 타입 라디오 버튼 생성
+    const radioContainer = section.querySelector('.dataset-chart-data-type');
+    CONFIG.CHART_DATA_TYPES.forEach((typeInfo, index) => {
+      const radioItem = document.createElement('div');
+      radioItem.className = 'radio-item';
+
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = `chartDataType-${datasetId}`;
+      radio.value = typeInfo.id;
+      radio.className = 'dataset-chart-type-radio';
+      radio.checked = typeInfo.id === 'relativeFrequency';
+
+      const label = document.createElement('label');
+      label.textContent = typeInfo.label;
+      label.prepend(radio);
+
+      radioItem.appendChild(label);
+      radioContainer.appendChild(radioItem);
+    });
+
+    // 색상 프리셋 라디오 버튼에 name 속성 설정
+    const colorRadios = section.querySelectorAll('.dataset-polygon-color');
+    colorRadios.forEach(radio => {
+      radio.name = `polygonColor-${datasetId}`;
+    });
+
+    // 삭제 버튼 이벤트 리스너
+    const removeBtn = section.querySelector('.dataset-remove-btn');
+    removeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.removeDatasetSection(datasetId);
+    });
+
+    // 아코디언 컨테이너에 추가
+    const accordion = document.getElementById('datasetsAccordion');
+    accordion?.appendChild(section);
+
+    // DatasetStore에 데이터셋 추가
+    DatasetStore.addDataset({ id: datasetId });
+  }
+
+  /**
+   * 데이터셋 섹션 제거
+   * @param {number} datasetId - 제거할 데이터셋 ID
+   */
+  removeDatasetSection(datasetId) {
+    // 최소 1개는 유지
+    if (DatasetStore.getCount() <= 1) {
+      MessageManager.warning('최소 1개의 데이터셋이 필요합니다.');
+      return;
+    }
+
+    // DOM에서 제거
+    const section = document.querySelector(`.dataset-section[data-dataset-id="${datasetId}"]`);
+    section?.remove();
+
+    // DatasetStore에서 제거
+    DatasetStore.removeDataset(datasetId);
+
+    // 테이블 제거 (해당 ID의 테이블이 있으면)
+    this.removeTableByDatasetId(datasetId);
+
+    MessageManager.success('데이터셋이 제거되었습니다.');
+  }
+
+  /**
+   * 데이터셋 ID로 테이블 제거
+   * @param {number} datasetId - 데이터셋 ID
+   */
+  removeTableByDatasetId(datasetId) {
+    const tableId = datasetId === 1 ? 'frequencyTable' : `frequencyTable-${datasetId}`;
+    const tableCanvas = document.getElementById(tableId);
+    const tableSection = tableCanvas?.closest('.table-section-item');
+    tableSection?.remove();
+
+    // tableRenderers 배열에서도 제거
+    const rendererIndex = this.tableRenderers.findIndex(r => r.canvasId === tableId);
+    if (rendererIndex !== -1) {
+      this.tableRenderers.splice(rendererIndex, 1);
+    }
+  }
+
+  /**
+   * 데이터셋 입력값 읽기
+   * @param {number} datasetId - 데이터셋 ID
+   * @returns {Object|null} 데이터셋 입력값 객체 또는 null
+   */
+  getDatasetInputValues(datasetId) {
+    const section = document.querySelector(`.dataset-section[data-dataset-id="${datasetId}"]`);
+    if (!section) return null;
+
+    try {
+      // 데이터 입력
+      const dataInput = section.querySelector('.dataset-data-input');
+      const rawData = dataInput?.value.trim();
+      if (!rawData) {
+        return null; // 빈 데이터는 null 반환
+      }
+
+      // 계급 설정
+      const classCountInput = section.querySelector('.dataset-class-count');
+      const classWidthInput = section.querySelector('.dataset-class-width');
+      const classCount = parseInt(classCountInput?.value) || 5;
+      const classWidth = classWidthInput?.value ? parseFloat(classWidthInput.value) : null;
+
+      // 차트 데이터 타입
+      const dataTypeRadio = section.querySelector('.dataset-chart-type-radio:checked');
+      const dataType = dataTypeRadio?.value || 'relativeFrequency';
+
+      // 차트 표시 옵션
+      const showHistogram = section.querySelector('.dataset-show-histogram')?.checked ?? true;
+      const showPolygon = section.querySelector('.dataset-show-polygon')?.checked ?? true;
+      const showSuperscript = section.querySelector('.dataset-show-superscript')?.checked ?? true;
+      const showBarLabels = section.querySelector('.dataset-show-bar-labels')?.checked ?? false;
+      const showDashedLines = section.querySelector('.dataset-show-dashed-lines')?.checked ?? false;
+      const showCallout = section.querySelector('.dataset-show-callout')?.checked ?? false;
+
+      // 색상 프리셋
+      const colorRadio = section.querySelector('.dataset-polygon-color:checked');
+      const colorPreset = colorRadio?.value || 'default';
+
+      // 말풍선 템플릿
+      const calloutTemplateInput = section.querySelector('.dataset-callout-template');
+      const calloutTemplate = calloutTemplateInput?.value || '';
+
+      return {
+        datasetId,
+        rawData,
+        classCount,
+        classWidth,
+        settings: {
+          dataType,
+          showHistogram,
+          showPolygon,
+          showSuperscript,
+          showBarLabels,
+          showDashedLines,
+          showCallout,
+          calloutTemplate,
+          colorPreset
+        }
+      };
+    } catch (error) {
+      console.error(`데이터셋 ${datasetId} 입력값 읽기 오류:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 모든 데이터셋의 입력값 읽기
+   * @returns {Array} 데이터셋 입력값 배열 (빈 데이터는 제외)
+   */
+  getAllDatasetInputValues() {
+    const datasets = DatasetStore.getAllDatasets();
+    const results = [];
+
+    for (const dataset of datasets) {
+      const inputValues = this.getDatasetInputValues(dataset.id);
+      if (inputValues) {
+        results.push(inputValues);
+      }
+    }
+
+    return results;
+  }
+
+  /**
    * 이벤트 리스너 초기화
    */
   init() {
+    // 첫 번째 데이터셋 섹션 생성
+    this.createDatasetSection(1);
+
     const generateBtn = document.getElementById('generateBtn');
-    generateBtn.addEventListener('click', () => this.generate(true)); // true: 새로 시작
+    generateBtn?.addEventListener('click', () => this.generate(true)); // true: 새로 시작
 
     // 도수분포표 추가 버튼
     const addBtn = document.getElementById('addBtn');
-    addBtn.addEventListener('click', () => this.generate(false)); // false: 추가
-
-    // Enter 키로도 생성 가능 (Ctrl+Enter: 생성, Shift+Enter: 추가)
-    document.getElementById('dataInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.ctrlKey) {
-        this.generate(true); // Ctrl+Enter: 새로 생성
-      } else if (e.key === 'Enter' && e.shiftKey) {
-        this.generate(false); // Shift+Enter: 추가
-      }
-    });
+    addBtn?.addEventListener('click', () => this.generate(false)); // false: 추가
 
     // JSON 내보내기 버튼
     const exportJsonBtn = document.getElementById('exportJsonBtn');
     exportJsonBtn?.addEventListener('click', () => this.exportJson());
 
-    // 차트 데이터 타입 라디오 버튼 동적 생성
-    this.initChartDataTypeRadios();
-
     // 애니메이션 컨트롤 초기화
     this.initAnimationControls();
-
-    // 계급 범위 편집기 초기화
-    this.initClassRangeEditor();
-
-    // 상첨자 토글 초기화
-    this.initSuperscriptToggle();
-
-    // 막대 라벨 토글 초기화
-    this.initBarLabelsToggle();
-
-    // 차트 요소 토글 초기화
-    this.initChartElementsToggle();
-
-    // 다각형 색상 프리셋 초기화
-    this.initPolygonColorPreset();
-
-    // 격자선 토글 초기화
-    this.initGridToggle();
-
-    // 테이블 설정 패널 초기화
-    this.initTableConfigPanel();
 
     // JSON 미리보기 모달 초기화
     this.initJsonPreviewModal();
@@ -1100,115 +1260,176 @@ class FrequencyDistributionApp {
     try {
       MessageManager.hide();
 
-      // 1. 입력 값 가져오기
-      const input = document.getElementById('dataInput').value.trim();
-      if (!input) {
+      // 1. 모든 데이터셋의 입력값 가져오기
+      const allDatasetInputs = this.getAllDatasetInputValues();
+
+      if (allDatasetInputs.length === 0) {
         MessageManager.error('데이터를 입력해주세요!');
         return;
       }
 
-      // 2. 데이터 파싱
-      const data = DataProcessor.parseInput(input);
-
-      // 3. 데이터 검증
-      const dataValidation = Validator.validateData(data);
-      if (!dataValidation.valid) {
-        MessageManager.error(dataValidation.message);
-        return;
-      }
-
-      // 4. 계급 설정 검증
-      const classCount = parseInt(document.getElementById('classCount').value);
-      const classCountValidation = Validator.validateClassCount(classCount);
-      if (!classCountValidation.valid) {
-        MessageManager.error(classCountValidation.message);
-        return;
-      }
-
-      const classWidthInput = document.getElementById('classWidth').value;
-      const customWidth = classWidthInput ? parseFloat(classWidthInput) : null;
-      const classWidthValidation = Validator.validateClassWidth(customWidth);
-      if (!classWidthValidation.valid) {
-        MessageManager.error(classWidthValidation.message);
-        return;
-      }
-
-      // 5. 고급 설정 값 가져오기
-      const customLabels = this.getCustomLabels();
-      const tableConfig = this.getTableConfig();
-
-      // 표 컬럼 검증
-      const columnValidation = Validator.validateTableColumns(tableConfig.visibleColumns);
-      if (!columnValidation.valid) {
-        MessageManager.error(columnValidation.message);
-        return;
-      }
-
-      // 5.5. 테이블 생성/추가 모드 처리
-      let currentTableRenderer;
+      // 2. 리셋 모드인 경우 추가 테이블 제거
       if (reset) {
-        // 리셋 모드: 추가 테이블 제거 및 첫 번째 테이블만 사용
         this.clearExtraTables();
-        currentTableRenderer = this.tableRenderers[0];
-        this.tableRenderer = currentTableRenderer;
-      } else {
-        // 추가 모드: 새 테이블 캔버스 생성 및 렌더러 추가
-        currentTableRenderer = this.createNewTable();
-        this.tableRenderer = currentTableRenderer;
       }
 
-      // 6. 데이터 처리
-      const stats = DataProcessor.calculateBasicStats(data);
-      const { classes } = DataProcessor.createClasses(stats, classCount, customWidth);
-      DataProcessor.calculateFrequencies(data, classes);
-      DataProcessor.calculateRelativeAndCumulative(classes, data.length);
+      // 3. 각 데이터셋 처리
+      let processedCount = 0;
+      const processedDatasets = [];
 
-      // 중략 표시 여부 확인
-      const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
+      for (let i = 0; i < allDatasetInputs.length; i++) {
+        const inputValues = allDatasetInputs[i];
 
-      // 7. Store에 데이터 저장
-      DataStore.setData(data, stats, classes);
-      TableStore.setConfig(tableConfig.visibleColumns, tableConfig.columnOrder, tableConfig.labels);
-      ChartStore.setConfig(customLabels.axis, ellipsisInfo);
+        try {
+          // 3.1. 데이터 파싱
+          const data = DataProcessor.parseInput(inputValues.rawData);
 
-      // 8. UI 렌더링 (커스텀 라벨 전달)
-      UIRenderer.renderStatsCards(stats);
+          // 3.2. 데이터 검증
+          const dataValidation = Validator.validateData(data);
+          if (!dataValidation.valid) {
+            MessageManager.warning(`데이터셋 ${inputValues.datasetId}: ${dataValidation.message}`);
+            continue;
+          }
 
-      // tableConfig에 columnAlignment 추가
-      const configWithAlignment = this.getTableConfigWithAlignment();
+          // 3.3. 계급 설정 검증
+          const classCountValidation = Validator.validateClassCount(inputValues.classCount);
+          if (!classCountValidation.valid) {
+            MessageManager.warning(`데이터셋 ${inputValues.datasetId}: ${classCountValidation.message}`);
+            continue;
+          }
 
-      currentTableRenderer.draw(classes, data.length, configWithAlignment);
+          const classWidthValidation = Validator.validateClassWidth(inputValues.classWidth);
+          if (!classWidthValidation.valid) {
+            MessageManager.warning(`데이터셋 ${inputValues.datasetId}: ${classWidthValidation.message}`);
+            continue;
+          }
 
-      // 차트 데이터 타입 가져오기
-      const dataType = ChartStore.getDataType();
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+          // 3.4. 데이터 처리
+          const stats = DataProcessor.calculateBasicStats(data);
+          const { classes } = DataProcessor.createClasses(stats, inputValues.classCount, inputValues.classWidth);
+          DataProcessor.calculateFrequencies(data, classes);
+          DataProcessor.calculateRelativeAndCumulative(classes, data.length);
 
-      // 9. 레이어 패널 렌더링
+          // 중략 표시 여부 확인
+          const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
+
+          // 3.5. 테이블 렌더러 선택/생성
+          let currentTableRenderer;
+          if (reset && processedCount === 0) {
+            // 첫 번째 데이터셋: 기존 첫 번째 테이블 사용
+            currentTableRenderer = this.tableRenderers[0];
+          } else if (!reset || processedCount > 0) {
+            // 추가 모드 또는 두 번째 이상 데이터셋: 새 테이블 생성
+            currentTableRenderer = this.createNewTable();
+          }
+
+          // 3.6. 테이블 렌더링
+          const tableConfig = this.getDefaultTableConfig();
+          currentTableRenderer.draw(classes, data.length, tableConfig);
+
+          // 3.7. 처리된 데이터셋 저장
+          processedDatasets.push({
+            datasetId: inputValues.datasetId,
+            data,
+            stats,
+            classes,
+            ellipsisInfo,
+            settings: inputValues.settings
+          });
+
+          // 3.8. DatasetStore 업데이트
+          DatasetStore.updateDataset(inputValues.datasetId, {
+            data,
+            stats,
+            classes,
+            ellipsisInfo,
+            settings: inputValues.settings
+          });
+
+          processedCount++;
+
+        } catch (error) {
+          console.error(`데이터셋 ${inputValues.datasetId} 처리 오류:`, error);
+          MessageManager.warning(`데이터셋 ${inputValues.datasetId}: ${error.message}`);
+        }
+      }
+
+      if (processedCount === 0) {
+        MessageManager.error('처리할 수 있는 유효한 데이터가 없습니다.');
+        return;
+      }
+
+      // 4. 첫 번째 데이터셋으로 UI 업데이트 (통계 카드)
+      const firstDataset = processedDatasets[0];
+      UIRenderer.renderStatsCards(firstDataset.stats);
+
+      // 5. 차트 렌더링 (첫 번째 데이터셋만 임시로 표시)
+      // TODO: 나중에 다중 데이터셋 렌더링으로 변경
+      const customLabels = this.getCustomLabels();
+      const tableConfig = this.getDefaultTableConfig();
+      this.chartRenderer.draw(
+        firstDataset.classes,
+        customLabels.axis,
+        firstDataset.ellipsisInfo,
+        firstDataset.settings.dataType,
+        tableConfig,
+        firstDataset.settings.calloutTemplate
+      );
+
+      // 6. Store에 첫 번째 데이터셋 저장 (기존 호환성 유지)
+      DataStore.setData(firstDataset.data, firstDataset.stats, firstDataset.classes);
+      ChartStore.setConfig(customLabels.axis, firstDataset.ellipsisInfo);
+
+      // 7. 레이어 패널 렌더링
       this.renderLayerPanel();
 
-      // 10. 결과 섹션 표시 및 2열 레이아웃 전환
+      // 8. 결과 섹션 표시 및 2열 레이아웃 전환
       document.getElementById('resultSection').classList.add('active');
       document.querySelector('.layout-grid').classList.add('two-column');
 
-      // 11. 계급 범위 편집기 표시 및 초기값 설정
-      this.showClassRangeEditor(classes);
+      // 9. 계급 범위 편집기 표시 (첫 번째 데이터셋)
+      this.showClassRangeEditor(firstDataset.classes);
 
-      // 12. JSON 내보내기 버튼 표시
+      // 10. JSON 내보내기 버튼 표시
       const exportJsonBtn = document.getElementById('exportJsonBtn');
       if (exportJsonBtn) {
         exportJsonBtn.style.display = 'block';
       }
 
-      // 13. 하이라이트 테스트 버튼 표시
+      // 11. 하이라이트 테스트 버튼 표시
       this.showHighlightTestButtons();
 
-      // 14. 성공 메시지
-      MessageManager.success('도수분포표가 생성되었습니다!');
+      // 12. 성공 메시지
+      if (processedCount === 1) {
+        MessageManager.success('도수분포표가 생성되었습니다!');
+      } else {
+        MessageManager.success(`${processedCount}개의 도수분포표가 생성되었습니다!`);
+      }
 
     } catch (error) {
       console.error('Error:', error);
       MessageManager.error(`오류가 발생했습니다: ${error.message}`);
     }
+  }
+
+  /**
+   * 기본 테이블 설정 가져오기
+   * @returns {Object} 테이블 설정 객체
+   */
+  getDefaultTableConfig() {
+    return {
+      visibleColumns: [true, true, true, true, false, false],
+      columnOrder: [0, 1, 2, 3, 4, 5],
+      labels: {},
+      columnAlignment: {
+        0: 'center',
+        1: 'center',
+        2: 'center',
+        3: 'center',
+        4: 'center',
+        5: 'center'
+      }
+    };
   }
 
   /**

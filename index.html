@@ -17,184 +17,20 @@
     <div class="layout-grid">
       <!-- Left Column: Input Section -->
       <aside class="left-column">
-        <section class="input-section" aria-label="데이터 입력 섹션">
-      <div class="info" role="note">
-        💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56
-      </div>
-
-      <div class="input-group">
-        <label for="dataInput">데이터 입력:</label>
-        <textarea
-          id="dataInput"
-          placeholder="예: 23, 45, 67, 34, 56, 78, 45, 89, 12, 34"
-          aria-describedby="dataInputHelp"
-          rows="3">2, 5, 8, 5, 2, 3, 7, 9, 4, 6, 5, 8, 3, 2, 7</textarea>
-        <span id="dataInputHelp" class="sr-only">쉼표나 공백으로 구분된 숫자를 입력하세요</span>
-      </div>
-
-      <div class="row">
-        <div class="input-group">
-          <label for="classCount">계급 개수:</label>
-          <input
-            type="number"
-            id="classCount"
-            value="5"
-            min="3"
-            max="20"
-            aria-describedby="classCountHelp">
-          <span id="classCountHelp" class="sr-only">3에서 20 사이의 값을 입력하세요</span>
+        <!-- 데이터셋 아코디언 컨테이너 -->
+        <div id="datasetsAccordion" class="datasets-accordion">
+          <!-- 데이터셋 섹션들이 동적으로 생성됩니다 -->
         </div>
-        <div class="input-group">
-          <label for="classWidth">계급 간격 (선택):</label>
-          <input
-            type="number"
-            id="classWidth"
-            placeholder="자동 계산"
-            step="0.1"
-            min="0.1"
-            aria-describedby="classWidthHelp">
-          <span id="classWidthHelp" class="sr-only">비워두면 자동으로 계산됩니다</span>
+
+        <!-- 버튼 그룹 -->
+        <div class="button-group">
+          <button id="generateBtn" type="button" aria-label="도수분포표 생성">
+            도수분포표 생성
+          </button>
+          <button id="addBtn" type="button" aria-label="도수분포표 추가" class="secondary-btn">
+            + 도수분포표 추가
+          </button>
         </div>
-      </div>
-
-      <!-- 차트 데이터 유형 선택 -->
-      <div class="chart-data-type-section">
-        <h4>📊 차트 데이터 유형</h4>
-        <div class="radio-group" id="chartDataTypeRadios">
-          <!-- 동적 생성됨 -->
-        </div>
-      </div>
-
-      <!-- 차트 요소 표시 옵션 -->
-      <div class="table-options">
-        <label>
-          <input type="checkbox" id="showHistogram" checked>
-          <span>히스토그램 표시</span>
-        </label>
-      </div>
-
-      <div class="table-options">
-        <label>
-          <input type="checkbox" id="showPolygon" checked>
-          <span>도수 다각형 표시</span>
-        </label>
-        <div class="polygon-color-presets" id="polygonColorPresets">
-          <span class="preset-label">색상:</span>
-          <label class="color-preset-btn" data-preset="default">
-            <input type="radio" name="polygonColor" value="default" checked>
-            <span class="preset-color preset-default"></span>
-          </label>
-          <label class="color-preset-btn" data-preset="primary">
-            <input type="radio" name="polygonColor" value="primary">
-            <span class="preset-color preset-primary"></span>
-          </label>
-          <label class="color-preset-btn" data-preset="secondary">
-            <input type="radio" name="polygonColor" value="secondary">
-            <span class="preset-color preset-secondary"></span>
-          </label>
-          <label class="color-preset-btn" data-preset="tertiary">
-            <input type="radio" name="polygonColor" value="tertiary">
-            <span class="preset-color preset-tertiary"></span>
-          </label>
-        </div>
-      </div>
-
-      <!-- 표 옵션 -->
-      <div class="table-options">
-        <label>
-          <input type="checkbox" id="showSuperscript" checked>
-          <span>첫 계급에 상첨자 표시 (이상/미만)</span>
-        </label>
-      </div>
-
-      <!-- 말풍선 옵션 -->
-      <div class="table-options">
-        <label>
-          <input type="checkbox" id="showCallout">
-          <span>말풍선 표시</span>
-        </label>
-        <div class="input-group" style="margin-top: 8px;">
-          <label for="calloutTemplate">말풍선 텍스트:</label>
-          <input type="text" id="calloutTemplate" placeholder="남학생\n{frequency}명">
-        </div>
-      </div>
-
-      <!-- 막대 라벨 옵션 -->
-      <div class="table-options">
-        <label>
-          <input type="checkbox" id="showBarLabels">
-          <span>막대 위 값 표시</span>
-        </label>
-      </div>
-
-      <!-- 파선 옵션 -->
-      <div class="table-options">
-        <label>
-          <input type="checkbox" id="showDashedLines">
-          <span>수직 파선 표시</span>
-        </label>
-      </div>
-
-      <!-- 고급 설정 -->
-      <details class="advanced-settings">
-        <summary>고급 설정</summary>
-        <div class="advanced-content">
-          <!-- 격자선 설정 -->
-          <div class="setting-group">
-            <h4>격자선 표시</h4>
-            <label class="checkbox-label">
-              <input type="checkbox" id="showHorizontalGrid" checked>
-              가로 격자선 (Y축)
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="showVerticalGrid" checked>
-              세로 격자선 (X축)
-            </label>
-          </div>
-
-          <!-- 축 값 라벨 표시 -->
-          <div class="setting-group">
-            <h4>축 값 라벨 표시</h4>
-            <label class="checkbox-label">
-              <input type="checkbox" id="showYAxisLabels" checked>
-              Y축 값 라벨 (눈금)
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="showXAxisLabels" checked>
-              X축 값 라벨
-            </label>
-          </div>
-
-          <!-- 축 라벨 -->
-          <div class="setting-group">
-            <h4>축 라벨</h4>
-            <div class="input-group">
-              <label for="xAxisLabel">X축 라벨:</label>
-              <input type="text" id="xAxisLabel" placeholder="계급">
-            </div>
-            <div class="input-group">
-              <label for="yAxisLabel">Y축 라벨:</label>
-              <input type="text" id="yAxisLabel" placeholder="상대도수">
-            </div>
-          </div>
-
-          <!-- 표 컬럼 설정 -->
-          <div class="setting-group">
-            <h4>표 컬럼 설정 (드래그하여 순서 변경)</h4>
-            <div id="tableConfigPanel"></div>
-          </div>
-        </div>
-      </details>
-
-      <div class="button-group">
-        <button id="generateBtn" type="button" aria-label="도수분포표 생성">
-          도수분포표 생성
-        </button>
-        <button id="addBtn" type="button" aria-label="도수분포표 추가" class="secondary-btn">
-          + 도수분포표 추가
-        </button>
-      </div>
-        </section>
 
         <!-- Statistics Summary (왼쪽 하단) -->
         <div class="stats-summary" id="statsSummary" role="region" aria-label="통계 요약"></div>
@@ -356,6 +192,129 @@
       </div>
     </div>
   </main>
+
+  <!-- 데이터셋 섹션 템플릿 -->
+  <template id="datasetSectionTemplate">
+    <details class="dataset-section" open>
+      <summary class="dataset-header">
+        <span class="dataset-title">📊 데이터셋 1</span>
+        <button class="dataset-remove-btn" type="button" title="삭제">✕</button>
+      </summary>
+      <div class="dataset-content">
+        <div class="info" role="note">
+          💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56
+        </div>
+
+        <div class="input-group">
+          <label class="dataset-data-label">데이터 입력:</label>
+          <textarea
+            class="dataset-data-input"
+            placeholder="예: 23, 45, 67, 34, 56, 78, 45, 89, 12, 34"
+            rows="3">2, 5, 8, 5, 2, 3, 7, 9, 4, 6, 5, 8, 3, 2, 7</textarea>
+        </div>
+
+        <div class="row">
+          <div class="input-group">
+            <label>계급 개수:</label>
+            <input
+              type="number"
+              class="dataset-class-count"
+              value="5"
+              min="3"
+              max="20">
+          </div>
+          <div class="input-group">
+            <label>계급 간격 (선택):</label>
+            <input
+              type="number"
+              class="dataset-class-width"
+              placeholder="자동 계산"
+              step="0.1"
+              min="0.1">
+          </div>
+        </div>
+
+        <!-- 차트 데이터 유형 선택 -->
+        <div class="chart-data-type-section">
+          <h4>📊 차트 데이터 유형</h4>
+          <div class="radio-group dataset-chart-data-type">
+            <!-- 동적 생성됨 -->
+          </div>
+        </div>
+
+        <!-- 차트 요소 표시 옵션 -->
+        <div class="table-options">
+          <label>
+            <input type="checkbox" class="dataset-show-histogram" checked>
+            <span>히스토그램 표시</span>
+          </label>
+        </div>
+
+        <div class="table-options">
+          <label>
+            <input type="checkbox" class="dataset-show-polygon" checked>
+            <span>도수 다각형 표시</span>
+          </label>
+          <div class="polygon-color-presets">
+            <span class="preset-label">색상:</span>
+            <label class="color-preset-btn" data-preset="default">
+              <input type="radio" class="dataset-polygon-color" value="default" checked>
+              <span class="preset-color preset-default"></span>
+            </label>
+            <label class="color-preset-btn" data-preset="primary">
+              <input type="radio" class="dataset-polygon-color" value="primary">
+              <span class="preset-color preset-primary"></span>
+            </label>
+            <label class="color-preset-btn" data-preset="secondary">
+              <input type="radio" class="dataset-polygon-color" value="secondary">
+              <span class="preset-color preset-secondary"></span>
+            </label>
+            <label class="color-preset-btn" data-preset="tertiary">
+              <input type="radio" class="dataset-polygon-color" value="tertiary">
+              <span class="preset-color preset-tertiary"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 표 옵션 -->
+        <div class="table-options">
+          <label>
+            <input type="checkbox" class="dataset-show-superscript" checked>
+            <span>첫 계급에 상첨자 표시 (이상/미만)</span>
+          </label>
+        </div>
+
+        <!-- 말풍선 옵션 -->
+        <div class="table-options">
+          <label>
+            <input type="checkbox" class="dataset-show-callout">
+            <span>말풍선 표시</span>
+          </label>
+          <div class="input-group" style="margin-top: 8px;">
+            <label>말풍선 텍스트:</label>
+            <input type="text" class="dataset-callout-template" placeholder="{datasetName}\n{frequency}명">
+          </div>
+        </div>
+
+        <!-- 막대 라벨 옵션 -->
+        <div class="table-options">
+          <label>
+            <input type="checkbox" class="dataset-show-bar-labels">
+            <span>막대 위 값 표시</span>
+          </label>
+        </div>
+
+        <!-- 파선 옵션 -->
+        <div class="table-options">
+          <label>
+            <input type="checkbox" class="dataset-show-dashed-lines">
+            <span>수직 파선 표시</span>
+          </label>
+        </div>
+      </div>
+    </details>
+  </template>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
