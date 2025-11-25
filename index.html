@@ -161,7 +161,12 @@
         <!-- 표 + 차트 영역 -->
         <section class="result-section" id="resultSection" aria-label="분석 결과">
           <div class="table-section">
-            <h2 class="section-title">📋 도수분포표</h2>
+            <div class="table-header">
+              <h2 class="section-title">📋 도수분포표</h2>
+              <div id="datasetTabs" class="dataset-tabs">
+                <!-- 데이터셋 탭 버튼 동적 생성 -->
+              </div>
+            </div>
             <div class="table-wrapper">
               <canvas id="frequencyTable" role="img" aria-label="도수분포표"></canvas>
             </div>

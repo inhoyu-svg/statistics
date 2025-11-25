@@ -1107,6 +1107,66 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 데이터셋 탭 렌더링
+   * @param {number} count - 데이터셋 개수
+   */
+  renderDatasetTabs(count) {
+    const tabsContainer = document.getElementById('datasetTabs');
+    if (!tabsContainer) return;
+
+    tabsContainer.innerHTML = '';
+
+    // 탭 버튼 생성
+    for (let i = 0; i < count; i++) {
+      const btn = document.createElement('button');
+      btn.className = `dataset-tab-btn ${i === 0 ? 'active' : ''}`;
+      btn.textContent = `데이터셋 ${i + 1}`;
+      btn.dataset.tabIndex = i;
+      btn.addEventListener('click', () => this.toggleDatasetTab(i));
+      tabsContainer.appendChild(btn);
+    }
+
+    // 초기 상태: 첫 번째 탭만 표시
+    this.updateTableVisibility();
+  }
+
+  /**
+   * 데이터셋 탭 토글 (복수 선택 가능)
+   * @param {number} index - 토글할 탭 인덱스
+   */
+  toggleDatasetTab(index) {
+    const tabs = document.querySelectorAll('.dataset-tab-btn');
+    const targetTab = tabs[index];
+
+    if (targetTab) {
+      // active 상태 토글
+      targetTab.classList.toggle('active');
+
+      // 테이블 표시 업데이트
+      this.updateTableVisibility();
+    }
+  }
+
+  /**
+   * 선택된 탭에 따라 테이블 표시/숨김 업데이트
+   */
+  updateTableVisibility() {
+    const tabs = document.querySelectorAll('.dataset-tab-btn');
+    const tableWrapper = document.querySelector('.table-wrapper');
+    if (!tableWrapper) return;
+
+    const allCanvases = tableWrapper.querySelectorAll('canvas');
+
+    // 각 탭의 active 상태에 따라 해당 테이블 표시/숨김
+    tabs.forEach((tab, i) => {
+      const isActive = tab.classList.contains('active');
+      if (allCanvases[i]) {
+        allCanvases[i].style.display = isActive ? 'block' : 'none';
+      }
+    });
+  }
+
+  /**
    * 레이어 드래그앤드롭 초기화
    */
   initLayerDragAndDrop() {
@@ -1507,23 +1567,26 @@ class FrequencyDistributionApp {
       // 7. 레이어 패널 렌더링
       this.renderLayerPanel();
 
-      // 8. 결과 섹션 표시 및 2열 레이아웃 전환
+      // 8. 데이터셋 탭 렌더링
+      this.renderDatasetTabs(processedCount);
+
+      // 9. 결과 섹션 표시 및 2열 레이아웃 전환
       document.getElementById('resultSection').classList.add('active');
       document.querySelector('.layout-grid').classList.add('two-column');
 
-      // 9. 계급 범위 편집기 표시 (첫 번째 데이터셋)
+      // 10. 계급 범위 편집기 표시 (첫 번째 데이터셋)
       this.showClassRangeEditor(firstDataset.classes);
 
-      // 10. JSON 내보내기 버튼 표시
+      // 11. JSON 내보내기 버튼 표시
       const exportJsonBtn = document.getElementById('exportJsonBtn');
       if (exportJsonBtn) {
         exportJsonBtn.style.display = 'block';
       }
 
-      // 11. 하이라이트 테스트 버튼 표시
+      // 12. 하이라이트 테스트 버튼 표시
       this.showHighlightTestButtons();
 
-      // 12. 성공 메시지
+      // 13. 성공 메시지
       if (processedCount === 1) {
         MessageManager.success('도수분포표가 생성되었습니다!');
       } else {
@@ -1563,9 +1626,11 @@ class FrequencyDistributionApp {
     const tableWrapper = document.querySelector('.table-wrapper');
     if (!tableWrapper) return;
 
-    // 첫 번째 캔버스를 제외한 모든 테이블 섹션 제거
-    const tableSections = tableWrapper.querySelectorAll('.table-section-item');
-    tableSections.forEach(section => section.remove());
+    // 첫 번째 캔버스를 제외한 모든 추가 캔버스 제거
+    const allCanvases = tableWrapper.querySelectorAll('canvas');
+    allCanvases.forEach((canvas, i) => {
+      if (i > 0) canvas.remove();
+    });
 
     // tableRenderers 배열을 첫 번째만 유지
     this.tableRenderers = this.tableRenderers.slice(0, 1);
@@ -1586,16 +1651,14 @@ class FrequencyDistributionApp {
     this.tableCounter++;
     const tableId = `frequencyTable-${this.tableCounter}`;
 
-    // 새 테이블 섹션 생성
-    const tableSection = document.createElement('div');
-    tableSection.className = 'table-section-item';
-    tableSection.innerHTML = `
-      <h3 class="table-dataset-title">📋 데이터셋 ${this.tableCounter}</h3>
-      <canvas id="${tableId}" role="img" aria-label="도수분포표 ${this.tableCounter}"></canvas>
-    `;
+    // 새 캔버스 생성 (첫 번째 테이블과 동일한 구조)
+    const canvas = document.createElement('canvas');
+    canvas.id = tableId;
+    canvas.role = 'img';
+    canvas.setAttribute('aria-label', `도수분포표 ${this.tableCounter}`);
 
     // 테이블 래퍼에 추가
-    tableWrapper.appendChild(tableSection);
+    tableWrapper.appendChild(canvas);
 
     // 새 렌더러 생성 및 저장
     const newRenderer = new TableRenderer(tableId);
