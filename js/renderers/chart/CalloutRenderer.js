@@ -19,7 +19,7 @@ class CalloutRenderer {
    * @param {Layer} layer - 말풍선 레이어
    */
   render(layer) {
-    const { x, y, text, width, height, opacity } = layer.data;
+    const { x, y, text, width, height, opacity, polygonPreset } = layer.data;
 
     if (!text || opacity === 0) return;
 
@@ -29,6 +29,9 @@ class CalloutRenderer {
     // 말풍선 도형 그리기
     this._drawCalloutShape(x, y, width, height);
 
+    // 오른쪽 세로 막대 그리기
+    this._drawAccentBar(x, y, width, height, polygonPreset);
+
     // 텍스트 그리기
     this._drawText(x, y, width, height, text);
 
@@ -36,7 +39,7 @@ class CalloutRenderer {
   }
 
   /**
-   * 말풍선 도형 그리기 (배경 + 테두리)
+   * 말풍선 도형 그리기 (배경만, 테두리 없음)
    * @param {number} x - 말풍선 왼쪽 상단 x
    * @param {number} y - 말풍선 왼쪽 상단 y
    * @param {number} width - 너비
@@ -44,46 +47,31 @@ class CalloutRenderer {
    */
   _drawCalloutShape(x, y, width, height) {
     const ctx = this.ctx;
-    const radius = CONFIG.CALLOUT_BORDER_RADIUS;
 
-    // 둥근 사각형 Path 생성
-    const path = new Path2D();
+    // 일반 사각형 그리기 (둥글기 없음)
+    ctx.fillStyle = CONFIG.getColor('--chart-callout-bg-start');
+    ctx.fillRect(x, y, width, height);
+  }
 
-    // 상단 왼쪽 모서리부터 시작 (시계방향)
-    path.moveTo(x + radius, y);
+  /**
+   * 오른쪽 세로 막대 그리기
+   * @param {number} x - 말풍선 왼쪽 상단 x
+   * @param {number} y - 말풍선 왼쪽 상단 y
+   * @param {number} width - 말풍선 너비
+   * @param {number} height - 말풍선 높이
+   * @param {string} polygonPreset - 다각형 색상 프리셋
+   */
+  _drawAccentBar(x, y, width, height, polygonPreset) {
+    const ctx = this.ctx;
+    const barWidth = CONFIG.CALLOUT_ACCENT_BAR_WIDTH;
 
-    // 상단 우측 모서리
-    path.lineTo(x + width - radius, y);
-    path.arcTo(x + width, y, x + width, y + radius, radius);
+    // 프리셋에 따른 색상 가져오기 (기본값: default)
+    const preset = polygonPreset || 'default';
+    const barColor = CONFIG.CALLOUT_ACCENT_COLORS[preset] || CONFIG.CALLOUT_ACCENT_COLORS.default;
 
-    // 우측 하단 모서리
-    path.lineTo(x + width, y + height - radius);
-    path.arcTo(x + width, y + height, x + width - radius, y + height, radius);
-
-    // 하단 좌측 모서리
-    path.lineTo(x + radius, y + height);
-    path.arcTo(x, y + height, x, y + height - radius, radius);
-
-    // 좌측 상단 모서리
-    path.lineTo(x, y + radius);
-    path.arcTo(x, y, x + radius, y, radius);
-
-    path.closePath();
-
-    // 배경 그라데이션
-    const gradient = Utils.createVerticalGradient(
-      ctx, x, y, height,
-      CONFIG.getColor('--chart-callout-bg-start'),
-      CONFIG.getColor('--chart-callout-bg-end')
-    );
-
-    ctx.fillStyle = gradient;
-    ctx.fill(path);
-
-    // 테두리
-    ctx.strokeStyle = CONFIG.getColor('--chart-callout-border');
-    ctx.lineWidth = 1;
-    ctx.stroke(path);
+    // 오른쪽 끝에 세로 막대 그리기
+    ctx.fillStyle = barColor;
+    ctx.fillRect(x + width - barWidth, y, barWidth, height);
   }
 
   /**

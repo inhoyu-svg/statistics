@@ -62,9 +62,8 @@
   --chart-dashed-line-color: #54A0F6;
 
   /* Chart - Callout */
-  --chart-callout-bg-start: rgba(174, 255, 126, 0.3);
-  --chart-callout-bg-end: rgba(104, 153, 76, 0.3);
-  --chart-callout-border: #93DA6A;
+  --chart-callout-bg-start: rgba(255, 255, 255, 0.2);
+  --chart-callout-bg-end: rgba(255, 255, 255, 0.2);
   --chart-callout-text: #93DA6A;
 
   /* Message Colors */

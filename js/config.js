@@ -127,11 +127,20 @@ const CONFIG = {
   CALLOUT_OFFSET_Y: 10,                     // 포인트에서 위로 오프셋
   CALLOUT_TAIL_WIDTH: 20,                   // 꼬리 너비 (미사용)
   CALLOUT_TAIL_HEIGHT: 10,                  // 꼬리 높이 (미사용)
-  CALLOUT_BORDER_RADIUS: 5.46,              // 모서리 둥글기
+  CALLOUT_BORDER_RADIUS: 0,                 // 모서리 둥글기 (0 = 둥글기 없음)
   CALLOUT_PADDING: 8,                       // 내부 패딩
   CALLOUT_FONT: '16px sans-serif',          // 폰트
   CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
   CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
+  CALLOUT_ACCENT_BAR_WIDTH: 4,              // 오른쪽 세로 막대 너비
+
+  // 말풍선 세로 막대 색상 (다각형 프리셋별)
+  CALLOUT_ACCENT_COLORS: {
+    default: '#89EC4E',
+    primary: '#008AFF',
+    secondary: '#E749AF',
+    tertiary: '#FF764F'
+  },
 
   // 차트 요소 표시 설정
   SHOW_HISTOGRAM: true,                     // 히스토그램 표시 여부 (기본값)
@@ -216,9 +225,8 @@ const CONFIG = {
       '--chart-polygon-line-start': '#AEFF7E',
       '--chart-polygon-line-end': '#68994C',
       '--chart-dashed-line-color': '#54A0F6',
-      '--chart-callout-bg-start': 'rgba(174, 255, 126, 0.3)',
-      '--chart-callout-bg-end': 'rgba(104, 153, 76, 0.3)',
-      '--chart-callout-border': '#93DA6A',
+      '--chart-callout-bg-start': 'rgba(255, 255, 255, 0.2)',
+      '--chart-callout-bg-end': 'rgba(255, 255, 255, 0.2)',
       '--chart-callout-text': '#93DA6A',
     };
   },

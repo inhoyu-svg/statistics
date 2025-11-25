@@ -273,7 +273,8 @@ class LayerFactory {
         opacity: 0, // 초기 투명도 (애니메이션용)
         pointX,
         pointY,
-        classIndex: maxIndex
+        classIndex: maxIndex,
+        polygonPreset: CONFIG.POLYGON_COLOR_PRESET // 다각형 프리셋 추가
       }
     });
 
