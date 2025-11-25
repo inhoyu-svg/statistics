@@ -114,7 +114,7 @@ class AxisRenderer {
       this.ctx.translate(ellipsisX, ellipsisY);
       this.ctx.rotate(Math.PI / 2); // 90도 회전
       this.ctx.font = CONFIG.CHART_FONT_LARGE;
-      this.ctx.fillStyle = CONFIG.getColor('--color-text');
+      this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
       this.ctx.fillText('≈', 0, 0);
       this.ctx.restore();
 
@@ -172,32 +172,29 @@ class AxisRenderer {
    * @param {number} gridDivisions - 그리드 분할 수
    */
   drawGrid(toX, toY, maxY, classCount, ellipsisInfo, gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
-    this.ctx.strokeStyle = CONFIG.getColor('--color-grid');
     this.ctx.lineWidth = 1;
+    this.ctx.globalAlpha = 1.0; // 투명도 제거
 
-    // 가로 격자선 (Y축)
+    // 가로 격자선 (Y축) - Y=0 제외
     if (CONFIG.GRID_SHOW_HORIZONTAL) {
-      // 모든 격자선 그리기
+      this.ctx.strokeStyle = CONFIG.getColor('--color-grid-horizontal');
       for (let i = 0; i <= gridDivisions; i++) {
-        const y = toY(maxY * i / gridDivisions);
+        const value = maxY * i / gridDivisions;
+        if (value === 0) continue; // Y=0 (X축 기준선) 건너뛰기
+
+        const y = toY(value);
         this.ctx.beginPath();
         this.ctx.moveTo(this.padding, y);
         this.ctx.lineTo(this.canvas.width - this.padding, y);
         this.ctx.stroke();
       }
-    } else {
-      // 격자선 꺼져 있어도 X축 기준선(Y=0)은 표시
-      const y0 = toY(0);
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.padding, y0);
-      this.ctx.lineTo(this.canvas.width - this.padding, y0);
-      this.ctx.stroke();
     }
 
-    // 세로 격자선 (X축) - 막대 너비와 동일한 간격
+    // 세로 격자선 (X축) - X=0 제외
     if (CONFIG.GRID_SHOW_VERTICAL) {
-      // 모든 격자선 그리기
+      this.ctx.strokeStyle = CONFIG.getColor('--color-grid-vertical');
       for (let i = 0; i <= classCount; i++) {
+        if (i === 0) continue; // X=0 (Y축 기준선) 건너뛰기
         if (CoordinateSystem.shouldSkipEllipsis(i, ellipsisInfo)) continue;
 
         const x = toX(i);
@@ -206,14 +203,24 @@ class AxisRenderer {
         this.ctx.lineTo(x, this.canvas.height - this.padding);
         this.ctx.stroke();
       }
-    } else {
-      // 격자선 꺼져 있어도 Y축 기준선(X=0)은 표시
-      const x0 = toX(0);
-      this.ctx.beginPath();
-      this.ctx.moveTo(x0, this.padding);
-      this.ctx.lineTo(x0, this.canvas.height - this.padding);
-      this.ctx.stroke();
     }
+
+    // 기준선 (X축, Y축)을 별도로 그려서 #888888 색상 적용
+    this.ctx.strokeStyle = CONFIG.getColor('--color-axis');
+
+    // X축 기준선 (Y=0)
+    const y0 = toY(0);
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.padding, y0);
+    this.ctx.lineTo(this.canvas.width - this.padding, y0);
+    this.ctx.stroke();
+
+    // Y축 기준선 (X=0)
+    const x0 = toX(0);
+    this.ctx.beginPath();
+    this.ctx.moveTo(x0, this.padding);
+    this.ctx.lineTo(x0, this.canvas.height - this.padding);
+    this.ctx.stroke();
   }
 
   /**

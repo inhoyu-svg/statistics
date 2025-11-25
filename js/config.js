@@ -232,7 +232,10 @@ const CONFIG = {
 
     this._colorCache = {
       '--color-text': '#e5e7eb',
-      '--color-grid': '#4b5563',
+      '--color-grid-vertical': '#555555',
+      '--color-grid-horizontal': '#888888',
+      '--color-axis': '#888888',
+      '--color-ellipsis': '#555555',
       '--color-border': '#374151',
       '--chart-bar-color': '#4141A3',
       '--chart-bar-color-end': '#2CA0E8',
