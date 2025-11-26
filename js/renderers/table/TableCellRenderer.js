@@ -467,7 +467,7 @@ class TableCellRenderer {
         const mainWidth = this.ctx.measureText(mainText).width;
 
         // 괄호 텍스트 너비 측정 (작은 폰트)
-        const smallFont = bold ? 'bold 14px sans-serif' : '14px sans-serif';
+        const smallFont = bold ? 'bold 12px sans-serif' : '12px sans-serif';
         this.ctx.font = smallFont;
         const parenWidth = this.ctx.measureText(parenText).width;
 
