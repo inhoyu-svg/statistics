@@ -441,7 +441,7 @@ class TableCellRenderer {
    */
   _renderCellText(text, x, y, alignment, color, bold = false) {
     const str = String(text).trim();
-    const fontSize = 18;
+    const fontSize = 24;
 
     // 숫자 또는 알파벳만 포함된 경우 KaTeX 폰트 사용
     if (this._isNumericOrAlpha(str)) {
