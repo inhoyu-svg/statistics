@@ -51,14 +51,18 @@ class TableLayerFactory {
     // 열 너비 계산
     const columnWidths = this._calculateColumnWidths(canvasWidth, padding, columnCount);
 
+    // 테이블 타입
+    const tableType = CONFIG.TABLE_TYPES.FREQUENCY;
+
     // 루트 레이어 생성
     const rootLayer = new Layer({
-      id: `${tableId}-table-root`,
+      id: `${tableType}-${tableId}-table-root`,
       name: '도수분포표',
       type: 'group',
       visible: true,
       order: 0,
       data: {
+        tableType,
         canvasWidth,
         canvasHeight,
         padding,
@@ -153,7 +157,7 @@ class TableLayerFactory {
     const totalHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
 
     return new Layer({
-      id: `${tableId}-table-grid`,
+      id: `frequency-${tableId}-table-grid`,
       name: '격자선',
       type: 'grid',
       visible: true,
@@ -181,7 +185,7 @@ class TableLayerFactory {
    */
   static _createHeaderLayer(headers, columnWidths, columnAlignment, padding, tableId) {
     const headerGroup = new Layer({
-      id: `${tableId}-table-header`,
+      id: `frequency-${tableId}-table-header`,
       name: '헤더 행',
       type: 'group',
       visible: true,
@@ -194,7 +198,7 @@ class TableLayerFactory {
 
     headers.forEach((header, i) => {
       const cellLayer = new Layer({
-        id: `${tableId}-table-header-col${i}`,
+        id: `frequency-${tableId}-table-header-col${i}`,
         name: header,
         type: 'cell',
         visible: true,
@@ -249,7 +253,7 @@ class TableLayerFactory {
     tableId
   ) {
     const rowGroup = new Layer({
-      id: `${tableId}-table-row-${rowIndex}`,
+      id: `frequency-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
       type: 'group',
       visible: true,
@@ -288,7 +292,7 @@ class TableLayerFactory {
       const isClassColumn = originalIndex === 0; // 계급 컬럼 여부
 
       const cellLayer = new Layer({
-        id: `${tableId}-table-row-${rowIndex}-col${i}`,
+        id: `frequency-${tableId}-table-row-${rowIndex}-col${i}`,
         name: String(cellText),
         type: 'cell',
         visible: true,
@@ -346,7 +350,7 @@ class TableLayerFactory {
     tableId
   ) {
     const summaryGroup = new Layer({
-      id: `${tableId}-table-summary`,
+      id: `frequency-${tableId}-table-summary`,
       name: '합계 행',
       type: 'group',
       visible: true,
@@ -375,7 +379,7 @@ class TableLayerFactory {
       const cellWidth = columnWidths[i];
 
       const cellLayer = new Layer({
-          id: `${tableId}-table-summary-col${cellIndex}`,
+          id: `frequency-${tableId}-table-summary-col${cellIndex}`,
           name: String(cellText),
           type: 'cell',
           visible: true,

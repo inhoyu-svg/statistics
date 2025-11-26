@@ -48,6 +48,7 @@ class CategoryMatrixFactory {
       rowCount,
       columnWidths,
       tableId,
+      tableType: CONFIG.TABLE_TYPES.CATEGORY_MATRIX,
       hasSummaryRow: false
     });
     rootLayer.addChild(gridLayer);
@@ -89,7 +90,7 @@ class CategoryMatrixFactory {
    */
   static _createHeaderLayer(headers, columnWidths, padding, tableId) {
     const headerGroup = new Layer({
-      id: `${tableId}-table-header`,
+      id: `category-matrix-${tableId}-table-header`,
       name: '헤더 행',
       type: 'group',
       visible: true,
@@ -105,7 +106,7 @@ class CategoryMatrixFactory {
 
     allHeaders.forEach((header, i) => {
       const cellLayer = new Layer({
-        id: `${tableId}-table-header-col${i}`,
+        id: `category-matrix-${tableId}-table-header-col${i}`,
         name: header || '(빈 셀)',
         type: 'cell',
         visible: true,
@@ -139,7 +140,7 @@ class CategoryMatrixFactory {
    */
   static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId) {
     const rowGroup = new Layer({
-      id: `${tableId}-table-row-${rowIndex}`,
+      id: `category-matrix-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
       type: 'group',
       visible: true,
@@ -157,7 +158,7 @@ class CategoryMatrixFactory {
       const isLabelColumn = colIndex === 0;
 
       const cellLayer = new Layer({
-        id: `${tableId}-table-row-${rowIndex}-col${colIndex}`,
+        id: `category-matrix-${tableId}-table-row-${rowIndex}-col${colIndex}`,
         name: String(cellText),
         type: 'cell',
         visible: true,

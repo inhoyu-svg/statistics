@@ -86,7 +86,7 @@ class StemLeafFactory {
     const totalHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
 
     return new Layer({
-      id: `${tableId}-table-grid`,
+      id: `stem-leaf-${tableId}-table-grid`,
       name: '격자선',
       type: 'stem-leaf-grid', // 특수 타입
       visible: true,
@@ -110,7 +110,7 @@ class StemLeafFactory {
    */
   static _createHeaderLayer(leftLabel, rightLabel, columnWidths, padding, tableId) {
     const headerGroup = new Layer({
-      id: `${tableId}-table-header`,
+      id: `stem-leaf-${tableId}-table-header`,
       name: '헤더 행',
       type: 'group',
       visible: true,
@@ -128,7 +128,7 @@ class StemLeafFactory {
     let x = padding;
     headers.forEach((header, i) => {
       const cellLayer = new Layer({
-        id: `${tableId}-table-header-col${i}`,
+        id: `stem-leaf-${tableId}-table-header-col${i}`,
         name: header.text,
         type: 'cell',
         visible: true,
@@ -161,7 +161,7 @@ class StemLeafFactory {
    */
   static _createStemLeafRowLayer(stemData, rowIndex, columnWidths, padding, tableId) {
     const rowGroup = new Layer({
-      id: `${tableId}-table-row-${rowIndex}`,
+      id: `stem-leaf-${tableId}-table-row-${rowIndex}`,
       name: `줄기 ${stemData.stem}`,
       type: 'group',
       visible: true,
@@ -175,7 +175,7 @@ class StemLeafFactory {
     // 왼쪽 잎 (오른쪽 정렬, 내림차순)
     const leftLeavesText = stemData.leftLeaves.join('      ');
     const leftCell = new Layer({
-      id: `${tableId}-table-row-${rowIndex}-col0`,
+      id: `stem-leaf-${tableId}-table-row-${rowIndex}-col0`,
       name: `왼쪽 잎: ${leftLeavesText}`,
       type: 'cell',
       visible: true,
@@ -202,7 +202,7 @@ class StemLeafFactory {
 
     // 줄기 (가운데 정렬)
     const stemCell = new Layer({
-      id: `${tableId}-table-row-${rowIndex}-col1`,
+      id: `stem-leaf-${tableId}-table-row-${rowIndex}-col1`,
       name: `줄기: ${stemData.stem}`,
       type: 'cell',
       visible: true,
@@ -230,7 +230,7 @@ class StemLeafFactory {
     // 오른쪽 잎 (왼쪽 정렬, 오름차순)
     const rightLeavesText = stemData.rightLeaves.join('      ');
     const rightCell = new Layer({
-      id: `${tableId}-table-row-${rowIndex}-col2`,
+      id: `stem-leaf-${tableId}-table-row-${rowIndex}-col2`,
       name: `오른쪽 잎: ${rightLeavesText}`,
       type: 'cell',
       visible: true,

@@ -39,6 +39,7 @@ class BaseTableFactory {
       rowCount,
       columnWidths,
       tableId,
+      tableType = '',
       headerHeight = CONFIG.TABLE_HEADER_HEIGHT,
       rowHeight = CONFIG.TABLE_ROW_HEIGHT,
       hasSummaryRow = false
@@ -46,9 +47,10 @@ class BaseTableFactory {
 
     const totalWidth = canvasWidth - padding * 2;
     const totalHeight = headerHeight + (rowCount * rowHeight);
+    const idPrefix = tableType ? `${tableType}-` : '';
 
     return new Layer({
-      id: `${tableId}-table-grid`,
+      id: `${idPrefix}${tableId}-table-grid`,
       name: '격자선',
       type: 'grid',
       visible: true,
@@ -79,12 +81,15 @@ class BaseTableFactory {
       columnAlignment = {},
       padding,
       tableId,
+      tableType = '',
       headerHeight = CONFIG.TABLE_HEADER_HEIGHT,
       rowHeaderLabel = null  // 행 헤더 컬럼 라벨 (이원 분류표용)
     } = options;
 
+    const idPrefix = tableType ? `${tableType}-` : '';
+
     const headerGroup = new Layer({
-      id: `${tableId}-table-header`,
+      id: `${idPrefix}${tableId}-table-header`,
       name: '헤더 행',
       type: 'group',
       visible: true,
@@ -100,7 +105,7 @@ class BaseTableFactory {
 
     allHeaders.forEach((header, i) => {
       const cellLayer = new Layer({
-        id: `${tableId}-table-header-col${i}`,
+        id: `${idPrefix}${tableId}-table-header-col${i}`,
         name: header,
         type: 'cell',
         visible: true,
@@ -136,6 +141,7 @@ class BaseTableFactory {
   static createCellLayer(options) {
     const {
       tableId,
+      tableType = '',
       rowIndex,
       colIndex,
       cellText,
@@ -148,8 +154,10 @@ class BaseTableFactory {
       colLabel = ''
     } = options;
 
+    const idPrefix = tableType ? `${tableType}-` : '';
+
     return new Layer({
-      id: `${tableId}-table-row-${rowIndex}-col${colIndex}`,
+      id: `${idPrefix}${tableId}-table-row-${rowIndex}-col${colIndex}`,
       name: String(cellText),
       type: 'cell',
       visible: true,
@@ -186,11 +194,13 @@ class BaseTableFactory {
       padding,
       columnCount,
       rowCount,
-      tableType
+      tableType = ''
     } = options;
 
+    const idPrefix = tableType ? `${tableType}-` : '';
+
     return new Layer({
-      id: `${tableId}-table-root`,
+      id: `${idPrefix}${tableId}-table-root`,
       name: tableName,
       type: 'group',
       visible: true,

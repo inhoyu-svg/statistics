@@ -42,9 +42,12 @@ class CrossTableFactory {
     // 열 너비 계산
     const columnWidths = this._calculateColumnWidths(canvasWidth, padding, columnCount);
 
+    // 테이블 타입
+    const tableType = CONFIG.TABLE_TYPES.CROSS_TABLE;
+
     // 루트 레이어 생성
     const rootLayer = new Layer({
-      id: `${tableId}-table-root`,
+      id: `${tableType}-${tableId}-table-root`,
       name: '이원 분류표',
       type: 'group',
       visible: true,
@@ -148,7 +151,7 @@ class CrossTableFactory {
     const totalHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
 
     return new Layer({
-      id: `${tableId}-table-grid`,
+      id: `cross-table-${tableId}-table-grid`,
       name: '격자선',
       type: 'cross-table-grid',  // 이원분류표 전용 타입
       visible: true,
@@ -174,7 +177,7 @@ class CrossTableFactory {
    */
   static _createMergedHeaderLayer(columnWidths, padding, tableId) {
     const mergedHeaderGroup = new Layer({
-      id: `${tableId}-table-merged-header`,
+      id: `cross-table-${tableId}-table-merged-header`,
       name: '병합 헤더',
       type: 'group',
       visible: true,
@@ -186,7 +189,7 @@ class CrossTableFactory {
 
     // 첫 번째 열은 빈 칸
     const emptyCell = new Layer({
-      id: `${tableId}-table-merged-header-empty`,
+      id: `cross-table-${tableId}-table-merged-header-empty`,
       name: '(빈 셀)',
       type: 'cell',
       visible: true,
@@ -210,7 +213,7 @@ class CrossTableFactory {
     // 나머지 열은 "상대도수" 병합
     const mergedWidth = columnWidths.slice(1).reduce((a, b) => a + b, 0);
     const mergedCell = new Layer({
-      id: `${tableId}-table-merged-header-title`,
+      id: `cross-table-${tableId}-table-merged-header-title`,
       name: CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT,
       type: 'cell',
       visible: true,
@@ -241,7 +244,7 @@ class CrossTableFactory {
    */
   static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId) {
     const headerGroup = new Layer({
-      id: `${tableId}-table-header`,
+      id: `cross-table-${tableId}-table-header`,
       name: '컬럼 헤더',
       type: 'group',
       visible: true,
@@ -257,7 +260,7 @@ class CrossTableFactory {
 
     allHeaders.forEach((header, i) => {
       const cellLayer = new Layer({
-        id: `${tableId}-table-header-col${i}`,
+        id: `cross-table-${tableId}-table-header-col${i}`,
         name: header,
         type: 'cell',
         visible: true,
@@ -291,7 +294,7 @@ class CrossTableFactory {
    */
   static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId) {
     const rowGroup = new Layer({
-      id: `${tableId}-table-row-${rowIndex}`,
+      id: `cross-table-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
       type: 'group',
       visible: true,
@@ -317,7 +320,7 @@ class CrossTableFactory {
       }
 
       const cellLayer = new Layer({
-        id: `${tableId}-table-row-${rowIndex}-col${colIndex}`,
+        id: `cross-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
         name: String(displayText),
         type: 'cell',
         visible: true,
@@ -353,7 +356,7 @@ class CrossTableFactory {
    */
   static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId) {
     const summaryGroup = new Layer({
-      id: `${tableId}-table-summary`,
+      id: `cross-table-${tableId}-table-summary`,
       name: '합계 행',
       type: 'group',
       visible: true,
@@ -377,7 +380,7 @@ class CrossTableFactory {
       }
 
       const cellLayer = new Layer({
-        id: `${tableId}-table-summary-col${colIndex}`,
+        id: `cross-table-${tableId}-table-summary-col${colIndex}`,
         name: String(displayText),
         type: 'cell',
         visible: true,
