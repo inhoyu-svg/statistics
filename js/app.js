@@ -136,11 +136,14 @@ class FrequencyDistributionApp {
       hintElement.innerHTML = `💡 ${typeInfo.hint}`;
     }
 
-    // 데이터 입력 필드 placeholder 업데이트
+    // 데이터 입력 필드 placeholder 및 기본 데이터 업데이트
     const dataInput = section.querySelector('.dataset-data-input');
     if (dataInput) {
       dataInput.placeholder = typeInfo.placeholder;
-      // 기존 데이터 유지 (사용자가 원하면 직접 지울 수 있음)
+      // 타입 변경 시 해당 타입의 기본 데이터로 교체
+      if (typeInfo.defaultData) {
+        dataInput.value = typeInfo.defaultData;
+      }
     }
 
     // 도수분포표 전용 옵션 표시/숨김
