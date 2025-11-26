@@ -199,10 +199,9 @@ class TableCellRenderer {
     this.ctx.stroke();
     this.ctx.setLineDash([]);
 
-    // 수평 구분선 (점선)
+    // 수평 구분선 (실선)
     this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
     this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_DARK;
-    this.ctx.setLineDash(CONFIG.TABLE_GRID_DASH_PATTERN);
 
     for (let i = 1; i < rowCount; i++) {
       const lineY = y + CONFIG.TABLE_HEADER_HEIGHT + (i * CONFIG.TABLE_ROW_HEIGHT);
@@ -211,8 +210,6 @@ class TableCellRenderer {
       this.ctx.lineTo(x + width, lineY);
       this.ctx.stroke();
     }
-
-    this.ctx.setLineDash([]);
   }
 
   /**
