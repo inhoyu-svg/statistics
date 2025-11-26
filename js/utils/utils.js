@@ -94,6 +94,20 @@ class Utils {
     gradient.addColorStop(1, endColor);
     return gradient;
   }
+
+  /**
+   * 타임스탬프 문자열 생성 (YYYYMMDD-HHmmss 형식)
+   * @param {Date} date - Date 객체 (기본값: 현재 시간)
+   * @returns {string} 포맷된 타임스탬프
+   */
+  static formatTimestamp(date = new Date()) {
+    return date.getFullYear() +
+      String(date.getMonth() + 1).padStart(2, '0') +
+      String(date.getDate()).padStart(2, '0') + '-' +
+      String(date.getHours()).padStart(2, '0') +
+      String(date.getMinutes()).padStart(2, '0') +
+      String(date.getSeconds()).padStart(2, '0');
+  }
 }
 
 export default Utils;

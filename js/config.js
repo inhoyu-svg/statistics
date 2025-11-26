@@ -157,6 +157,13 @@ const CONFIG = {
     }
   },
 
+  // 테이블 기본 컬럼 설정
+  TABLE_DEFAULT_VISIBLE_COLUMNS: [true, true, true, true, false, false], // 누적도수, 누적상대도수 숨김
+  TABLE_DEFAULT_COLUMN_ORDER: [0, 1, 2, 3, 4, 5],
+
+  // 범위 밖 데이터 미리보기 최대 개수
+  OUT_OF_RANGE_MAX_DISPLAY: 10,
+
   // 테이블 컬럼별 기본 정렬
   TABLE_DEFAULT_ALIGNMENT: {
     '계급': 'center',

@@ -682,7 +682,7 @@ class FrequencyDistributionApp {
     ];
 
     // 각 컬럼별 설정 행 생성
-    const defaultVisibleColumns = [true, true, true, true, false, false]; // 누적도수, 누적상대도수 숨김
+    const defaultVisibleColumns = CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS;
     columns.forEach((column, index) => {
       const row = document.createElement('div');
       row.className = 'table-config-row';
@@ -935,10 +935,7 @@ class FrequencyDistributionApp {
     const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
     let currentParent = layerManager.findParent(layerId);
     while (currentParent) {
-      // 테이블 모드일 때 고유 키로 체크
-      const uniqueKey = (this.currentLayerSource === 'table' && tableIndex !== null && tableIndex !== undefined)
-        ? `${tableIndex}-${currentParent.id}`
-        : currentParent.id;
+      const uniqueKey = this._getLayerUniqueKey(currentParent.id, tableIndex);
 
       if (currentCollapsedGroups.has(uniqueKey)) {
         return true;
@@ -946,6 +943,19 @@ class FrequencyDistributionApp {
       currentParent = layerManager.findParent(currentParent.id);
     }
     return false;
+  }
+
+  /**
+   * 레이어 고유 키 생성
+   * @param {string} layerId - 레이어 ID
+   * @param {number|string|null} tableIndex - 테이블 인덱스 (테이블 모드일 때만 사용)
+   * @returns {string} 고유 키
+   */
+  _getLayerUniqueKey(layerId, tableIndex = null) {
+    if (this.currentLayerSource === 'table' && tableIndex !== null && tableIndex !== undefined) {
+      return `${tableIndex}-${layerId}`;
+    }
+    return layerId;
   }
 
   /**
@@ -1032,9 +1042,7 @@ class FrequencyDistributionApp {
       const isGroup = layer.type === 'group';
 
       // 테이블 모드일 때 고유 키로 collapsed 상태 체크
-      const uniqueKey = (this.currentLayerSource === 'table' && tableIndex !== undefined)
-        ? `${tableIndex}-${layer.id}`
-        : layer.id;
+      const uniqueKey = this._getLayerUniqueKey(layer.id, tableIndex);
       const isCollapsed = currentCollapsedGroups.has(uniqueKey);
       const toggleIcon = isGroup ? (isCollapsed ? '▶' : '▼') : '';
 
@@ -1088,9 +1096,7 @@ class FrequencyDistributionApp {
         const currentCollapsedGroups = this.collapsedGroups[this.currentLayerSource];
 
         // 테이블 모드일 때 고유 키 생성 (tableIndex-layerId)
-        const uniqueKey = (this.currentLayerSource === 'table' && tableIndex !== undefined)
-          ? `${tableIndex}-${layerId}`
-          : layerId;
+        const uniqueKey = this._getLayerUniqueKey(layerId, tableIndex);
 
         if (currentCollapsedGroups.has(uniqueKey)) {
           currentCollapsedGroups.delete(uniqueKey);
@@ -1427,14 +1433,7 @@ class FrequencyDistributionApp {
       const blob = new Blob([jsonString], { type: 'application/json' });
 
       // 파일명 생성 (YYYYMMDD-HHmmss)
-      const now = new Date();
-      const timestamp = now.getFullYear() +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        String(now.getDate()).padStart(2, '0') + '-' +
-        String(now.getHours()).padStart(2, '0') +
-        String(now.getMinutes()).padStart(2, '0') +
-        String(now.getSeconds()).padStart(2, '0');
-      const filename = `chart-data-${timestamp}.json`;
+      const filename = `chart-data-${Utils.formatTimestamp()}.json`;
 
       // 다운로드 링크 생성 및 클릭
       const link = document.createElement('a');
@@ -1728,8 +1727,8 @@ class FrequencyDistributionApp {
    */
   getDefaultTableConfig() {
     return {
-      visibleColumns: [true, true, true, true, false, false],
-      columnOrder: [0, 1, 2, 3, 4, 5],
+      visibleColumns: [...CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS],
+      columnOrder: [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER],
       labels: {},
       columnAlignment: {
         0: 'center',
@@ -1894,8 +1893,8 @@ class FrequencyDistributionApp {
     if (!panel) {
       return {
         labels: customLabels.table,
-        visibleColumns: [true, true, true, true, false, false],
-        columnOrder: [0, 1, 2, 3, 4, 5],
+        visibleColumns: [...CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS],
+        columnOrder: [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER],
         showSuperscript: CONFIG.TABLE_SHOW_SUPERSCRIPT
       };
     }
@@ -1965,7 +1964,7 @@ class FrequencyDistributionApp {
 
     // 두 번째 행 JSON 미리보기
     jsonRow2Btn?.addEventListener('click', () => {
-      const rowLayer = this.tableRenderer.getLayerManager().findLayer('table-row-1');
+      const rowLayer = this.tableRenderer.findRowLayer(1);
       if (rowLayer) {
         this.showLayerJsonPreview(rowLayer);
       } else {

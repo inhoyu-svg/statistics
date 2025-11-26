@@ -3,6 +3,8 @@
  * 여러 데이터셋의 상태를 독립적으로 관리
  */
 
+import CONFIG from '../config.js';
+
 class DatasetStore {
   constructor() {
     this.datasets = [];
@@ -39,8 +41,8 @@ class DatasetStore {
         showSuperscript: options.showSuperscript !== undefined ? options.showSuperscript : true
       },
       tableConfig: options.tableConfig || {
-        visibleColumns: [true, true, true, true, false, false],
-        columnOrder: [0, 1, 2, 3, 4, 5],
+        visibleColumns: [...CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS],
+        columnOrder: [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER],
         labels: {},
         columnAlignment: {}
       },

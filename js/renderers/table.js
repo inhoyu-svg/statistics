@@ -424,7 +424,18 @@ class TableRenderer {
    * @returns {Layer|null} 셀 레이어
    */
   findCellLayer(rowIndex, colIndex) {
-    return this.layerManager.findLayer(`${this.tableId}-table-row-${rowIndex}-col${colIndex}`);
+    const prefix = this._getLayerIdPrefix();
+    return this.layerManager.findLayer(`${prefix}-table-row-${rowIndex}-col${colIndex}`);
+  }
+
+  /**
+   * 행 레이어 찾기
+   * @param {number} rowIndex - 행 인덱스
+   * @returns {Layer|null} 행 레이어
+   */
+  findRowLayer(rowIndex) {
+    const prefix = this._getLayerIdPrefix();
+    return this.layerManager.findLayer(`${prefix}-table-row-${rowIndex}`);
   }
 
   /**

@@ -206,7 +206,7 @@ class DataProcessor {
 
     // 범위 밖 데이터가 있으면 경고
     if (outOfRangeData.length > 0) {
-      const maxDisplay = 10;
+      const maxDisplay = CONFIG.OUT_OF_RANGE_MAX_DISPLAY;
       const preview = outOfRangeData.slice(0, maxDisplay).join(', ');
       const message = outOfRangeData.length > maxDisplay
         ? `${outOfRangeData.length}개의 데이터가 계급 범위를 벗어났습니다: ${preview}... 외 ${outOfRangeData.length - maxDisplay}개`
@@ -328,41 +328,26 @@ class DataProcessor {
 
     const serializedChartRoot = serializeLayer(chartRootLayer);
 
+    // 애니메이션 객체 정규화 헬퍼
+    const normalizeAnimation = (anim, layerId = null) => ({
+      layerId: layerId || anim.layerId,
+      startTime: anim.startTime || 0,
+      duration: anim.duration || 1000,
+      effect: anim.effect || 'auto',
+      effectOptions: anim.effectOptions || {},
+      easing: anim.easing || 'linear'
+    });
+
     // 차트 타임라인 애니메이션 정보
     let chartAnimations = [];
 
-    // chartTimeline.animations가 Map인 경우
     if (chartTimeline.animations instanceof Map) {
-      chartAnimations = Array.from(chartTimeline.animations.entries()).map(([layerId, anim]) => ({
-        layerId: layerId,
-        startTime: anim.startTime || 0,
-        duration: anim.duration || 1000,
-        effect: anim.effect || 'auto',
-        effectOptions: anim.effectOptions || {},
-        easing: anim.easing || 'linear'
-      }));
-    }
-    // chartTimeline.animations가 배열인 경우
-    else if (Array.isArray(chartTimeline.animations)) {
-      chartAnimations = chartTimeline.animations.map(anim => ({
-        layerId: anim.layerId,
-        startTime: anim.startTime || 0,
-        duration: anim.duration || 1000,
-        effect: anim.effect || 'auto',
-        effectOptions: anim.effectOptions || {},
-        easing: anim.easing || 'linear'
-      }));
-    }
-    // chartTimeline.timeline 배열이 있는 경우
-    else if (Array.isArray(chartTimeline.timeline)) {
-      chartAnimations = chartTimeline.timeline.map(anim => ({
-        layerId: anim.layerId,
-        startTime: anim.startTime || 0,
-        duration: anim.duration || 1000,
-        effect: anim.effect || 'auto',
-        effectOptions: anim.effectOptions || {},
-        easing: anim.easing || 'linear'
-      }));
+      chartAnimations = Array.from(chartTimeline.animations.entries())
+        .map(([layerId, anim]) => normalizeAnimation(anim, layerId));
+    } else if (Array.isArray(chartTimeline.animations)) {
+      chartAnimations = chartTimeline.animations.map(anim => normalizeAnimation(anim));
+    } else if (Array.isArray(chartTimeline.timeline)) {
+      chartAnimations = chartTimeline.timeline.map(anim => normalizeAnimation(anim));
     }
 
     // 차트 설정 정보 (좌표 시스템, 축 라벨, 데이터 타입 등)
