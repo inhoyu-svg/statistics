@@ -67,7 +67,7 @@ const CONFIG = {
   TABLE_ROW_HEIGHT: 40,
   TABLE_HEADER_HEIGHT: 45,
   TABLE_PADDING: 10,
-  TABLE_FONT_HEADER: 'bold 14px sans-serif',
+  TABLE_FONT_HEADER: 'bold 18px sans-serif',
   TABLE_FONT_DATA: '14px sans-serif',
   TABLE_FONT_SUMMARY: 'bold 14px sans-serif',
   TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
