@@ -173,7 +173,7 @@ class StemLeafFactory {
     let x = padding;
 
     // 왼쪽 잎 (오른쪽 정렬, 내림차순)
-    const leftLeavesText = stemData.leftLeaves.join(' ');
+    const leftLeavesText = stemData.leftLeaves.join('      ');
     const leftCell = new Layer({
       id: `${tableId}-table-row-${rowIndex}-col0`,
       name: `왼쪽 잎: ${leftLeavesText}`,
@@ -228,7 +228,7 @@ class StemLeafFactory {
     x += columnWidths[1];
 
     // 오른쪽 잎 (왼쪽 정렬, 오름차순)
-    const rightLeavesText = stemData.rightLeaves.join(' ');
+    const rightLeavesText = stemData.rightLeaves.join('      ');
     const rightCell = new Layer({
       id: `${tableId}-table-row-${rowIndex}-col2`,
       name: `오른쪽 잎: ${rightLeavesText}`,

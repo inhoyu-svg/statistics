@@ -107,8 +107,8 @@ const CONFIG = {
   TABLE_HEADER_HEIGHT: 45,
   TABLE_PADDING: 10,
   TABLE_FONT_HEADER: 'bold 18px sans-serif',
-  TABLE_FONT_DATA: '14px sans-serif',
-  TABLE_FONT_SUMMARY: 'bold 14px sans-serif',
+  TABLE_FONT_DATA: '18px sans-serif',
+  TABLE_FONT_SUMMARY: 'bold 18px sans-serif',
   TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
   TABLE_SUPERSCRIPT_Y_OFFSET: 4, // 상첨자 위치 오프셋 (위로 이동)
 
@@ -117,6 +117,7 @@ const CONFIG = {
   TABLE_GRID_COLOR_DARK: '#555555',       // 어두운 격자선 (데이터 행 구분선)
   TABLE_HEADER_TEXT_COLOR: '#8DCF66',     // 헤더 텍스트 색상
   TABLE_CELL_PADDING: 8,                  // 셀 내부 패딩
+  TABLE_STEM_LEAF_PADDING: 20,            // 줄기-잎 데이터 셀 패딩 (세로선과의 간격)
   TABLE_GRID_DASH_PATTERN: [5, 3],        // 수직 점선 패턴 [선, 간격]
   TABLE_EMPTY_CANVAS_HEIGHT: 100,         // 빈 테이블 캔버스 높이
   TABLE_FONT_SUPERSCRIPT: '11px sans-serif', // 상첨자 폰트

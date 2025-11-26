@@ -319,9 +319,9 @@ class TableCellRenderer {
   renderStemCell(layer) {
     const { x, y, width, height, cellText, alignment } = layer.data;
 
-    // 줄기 텍스트 (볼드)
-    this.ctx.fillStyle = CONFIG.TABLE_HEADER_TEXT_COLOR;
-    this.ctx.font = CONFIG.TABLE_FONT_SUMMARY;
+    // 줄기 텍스트 (일반, 흰색)
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.font = CONFIG.TABLE_FONT_DATA;
     this.ctx.textBaseline = 'middle';
     this.ctx.textAlign = alignment;
 
@@ -344,7 +344,18 @@ class TableCellRenderer {
     this.ctx.textBaseline = 'middle';
     this.ctx.textAlign = alignment;
 
-    const cellX = this._getCellXPosition(x, width, alignment);
+    // 줄기-잎 전용 패딩 적용 (세로선과의 간격 확보)
+    const stemLeafPadding = CONFIG.TABLE_STEM_LEAF_PADDING;
+    let cellX;
+    if (alignment === 'left') {
+      // 오른쪽 잎: 왼쪽 정렬, 세로선에서 패딩만큼 떨어짐
+      cellX = x + stemLeafPadding;
+    } else if (alignment === 'right') {
+      // 왼쪽 잎: 오른쪽 정렬, 세로선에서 패딩만큼 떨어짐
+      cellX = x + width - stemLeafPadding;
+    } else {
+      cellX = x + width / 2;
+    }
     const cellY = y + height / 2;
 
     this.ctx.fillText(cellText, cellX, cellY);
