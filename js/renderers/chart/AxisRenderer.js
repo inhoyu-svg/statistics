@@ -41,14 +41,11 @@ class AxisRenderer {
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.font = CONFIG.CHART_FONT_BOLD;
 
-    // Y축 라벨
-    this.drawYAxisLabels(toY, maxY, dataType, gridDivisions);
+    // Y축 라벨 (마지막 라벨은 yLabel로 대체)
+    this.drawYAxisLabels(toY, maxY, dataType, gridDivisions, yLabel);
 
-    // X축 라벨
-    this.drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo);
-
-    // 축 제목
-    this.drawAxisTitles(xLabel, yLabel);
+    // X축 라벨 (마지막 라벨은 xLabel로 대체)
+    this.drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel);
   }
 
   /**
@@ -57,14 +54,29 @@ class AxisRenderer {
    * @param {number} maxY - Y축 최댓값
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    * @param {number} gridDivisions - 그리드 분할 수
+   * @param {string} yLabel - Y축 제목 (마지막 라벨 대체용)
    */
-  drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
+  drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS, yLabel = '') {
     if (!CONFIG.AXIS_SHOW_Y_LABELS) return;
 
     const color = CONFIG.getColor('--color-text');
 
     for (let i = 0; i <= gridDivisions; i++) {
       const value = maxY * i / gridDivisions;
+
+      // 마지막 라벨은 축 제목으로 대체 (4글자 초과 시 폰트 축소)
+      if (i === gridDivisions && yLabel) {
+        const fontSize = yLabel.length > 4 ? 11 : 14;
+        this.ctx.font = `${fontSize}px sans-serif`;
+        this.ctx.fillStyle = color;
+        this.ctx.textAlign = 'right';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(yLabel,
+          this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
+          toY(value) + CONFIG.CHART_LABEL_OFFSET
+        );
+        continue;
+      }
 
       // 데이터 타입에 따라 포맷팅
       let formattedValue;
@@ -92,8 +104,9 @@ class AxisRenderer {
    * @param {number} xScale - X축 스케일
    * @param {Function} toY - Y 좌표 변환 함수
    * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} xLabel - X축 제목 (마지막 라벨 대체용)
    */
-  drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo) {
+  drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel = '') {
     if (!CONFIG.AXIS_SHOW_X_LABELS) return;
 
     const color = CONFIG.getColor('--color-text');
@@ -125,10 +138,13 @@ class AxisRenderer {
         );
       }
 
-      // 마지막 값 (KaTeX 폰트)
-      KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
-        toX(classes.length - 1) + xScale, labelY,
-        { fontSize: 14, color: color, align: 'center', baseline: 'middle' }
+      // 마지막 라벨: 축 제목으로 대체
+      this.ctx.font = '14px sans-serif';
+      this.ctx.fillStyle = color;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText(xLabel || String(classes[classes.length - 1].max),
+        toX(classes.length - 1) + xScale, labelY
       );
     } else {
       // 중략 없이 전체 표시 (KaTeX 폰트)
@@ -140,30 +156,37 @@ class AxisRenderer {
         );
       });
 
+      // 마지막 라벨: 축 제목으로 대체
       if (classes.length > 0) {
-        KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
-          toX(classes.length), labelY,
-          { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
+        this.ctx.font = '14px sans-serif';
+        this.ctx.fillStyle = color;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(xLabel || String(classes[classes.length - 1].max),
+          toX(classes.length), labelY
         );
       }
     }
   }
 
   /**
-   * 축 제목 그리기
+   * 축 제목 그리기 (축 끝 라벨링)
    * @param {string} xLabel - X축 제목
    * @param {string} yLabel - Y축 제목
    */
   drawAxisTitles(xLabel, yLabel) {
-    this.ctx.font = CONFIG.CHART_FONT_BOLD;
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(xLabel, this.canvas.width / 2, this.canvas.height - CONFIG.CHART_X_TITLE_Y_OFFSET);
+    this.ctx.font = CONFIG.CHART_FONT_REGULAR;
+    this.ctx.fillStyle = CONFIG.getColor('--color-text');
 
-    this.ctx.save();
-    this.ctx.translate(CONFIG.CHART_Y_TITLE_X_OFFSET, this.canvas.height / 2);
-    this.ctx.rotate(-Math.PI / 2);
-    this.ctx.fillText(yLabel, 0, 0);
-    this.ctx.restore();
+    // X축 제목: 오른쪽 끝
+    this.ctx.textAlign = 'right';
+    this.ctx.textBaseline = 'top';
+    this.ctx.fillText(xLabel, this.canvas.width - this.padding, this.canvas.height - this.padding + 5);
+
+    // Y축 제목: 위쪽 끝 (가로)
+    this.ctx.textAlign = 'left';
+    this.ctx.textBaseline = 'bottom';
+    this.ctx.fillText(yLabel, this.padding, this.padding - 5);
   }
 
   /**

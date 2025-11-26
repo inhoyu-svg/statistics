@@ -143,10 +143,10 @@ const CONFIG = {
   AXIS_ELLIPSIS_SYMBOL: '≈',              // 이중물결 기호
   LEGEND_LABEL_HISTOGRAM: '히스토그램',    // 범례 히스토그램 라벨
 
-  // 기본 라벨 (고급 설정)
+  // 기본 라벨 (고급 설정) - 축 끝 라벨링용 괄호 포함
   DEFAULT_LABELS: {
-    xAxis: '계급',
-    yAxis: '상대도수',
+    xAxis: '(계급)',
+    yAxis: '(상대도수)',
     table: {
       class: '계급',
       midpoint: '계급값',
@@ -179,13 +179,13 @@ const CONFIG = {
     {
       id: 'relativeFrequency',
       label: '상대도수 (%)',
-      yAxisLabel: '상대도수(%)',
+      yAxisLabel: '(상대도수)',
       legendSuffix: '상대도수'
     },
     {
       id: 'frequency',
       label: '도수',
-      yAxisLabel: '도수',
+      yAxisLabel: '(도수)',
       legendSuffix: '도수'
     }
     // 향후 확장 가능:
