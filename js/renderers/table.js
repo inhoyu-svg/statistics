@@ -149,6 +149,9 @@ class TableRenderer {
       case 'stem-leaf-grid':
         this.cellRenderer.renderStemLeafGrid(layer);
         break;
+      case 'stem-leaf-single-grid':
+        this.cellRenderer.renderStemLeafSingleGrid(layer);
+        break;
       case 'cell':
         this._renderCellByRowType(layer);
         break;

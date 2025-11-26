@@ -149,7 +149,52 @@ class TableCellRenderer {
   }
 
   /**
-   * 줄기-잎 격자선 렌더링
+   * 줄기-잎 단일 모드 격자선 렌더링 (2열: 줄기 | 잎)
+   * @param {Layer} layer - 줄기-잎 격자선 레이어
+   */
+  renderStemLeafSingleGrid(layer) {
+    const { x, y, width, height, rowCount, stemColumnEnd } = layer.data;
+
+    // 외곽선
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+
+    // 하단 선만
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y + height);
+    this.ctx.lineTo(x + width, y + height);
+    this.ctx.stroke();
+
+    // 헤더 아래 선
+    const headerY = y + CONFIG.TABLE_HEADER_HEIGHT;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, headerY);
+    this.ctx.lineTo(x + width, headerY);
+    this.ctx.stroke();
+
+    // 줄기 열 오른쪽 세로선 (점선, 헤더 아래부터)
+    this.ctx.setLineDash(CONFIG.TABLE_GRID_DASH_PATTERN);
+    this.ctx.beginPath();
+    this.ctx.moveTo(stemColumnEnd, headerY);
+    this.ctx.lineTo(stemColumnEnd, y + height);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+
+    // 수평 구분선 (실선)
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_DARK;
+
+    for (let i = 1; i < rowCount; i++) {
+      const lineY = y + CONFIG.TABLE_HEADER_HEIGHT + (i * CONFIG.TABLE_ROW_HEIGHT);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, lineY);
+      this.ctx.lineTo(x + width, lineY);
+      this.ctx.stroke();
+    }
+  }
+
+  /**
+   * 줄기-잎 비교 모드 격자선 렌더링 (3열: 잎 | 줄기 | 잎)
    * @param {Layer} layer - 줄기-잎 격자선 레이어
    */
   renderStemLeafGrid(layer) {
