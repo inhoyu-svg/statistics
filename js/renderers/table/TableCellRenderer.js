@@ -365,7 +365,7 @@ class TableCellRenderer {
     const color = CONFIG.getColor('--color-text');
 
     // 폰트 설정 (KaTeX 폰트 사용)
-    const fontSize = 18;
+    const fontSize = 24;
     const katexFont = `${fontSize}px KaTeX_Main, Times New Roman, serif`;
     const superscriptFont = CONFIG.TABLE_FONT_SUPERSCRIPT;
 
