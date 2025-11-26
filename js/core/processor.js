@@ -268,51 +268,60 @@ class DataProcessor {
    * @description 레이어 구조와 애니메이션 정보를 JSON으로 직렬화
    */
   static exportData(chartLayerManager, chartTimeline, chartRenderer = null, tableRenderers = []) {
+    const defaults = CONFIG.JSON_DEFAULTS;
+
     /**
-     * 레이어를 재귀적으로 직렬화
+     * 레이어를 재귀적으로 직렬화 (기본값 생략)
      * @param {Object} layer - 레이어 객체
      * @returns {Object} 직렬화된 레이어
      */
     const serializeLayer = (layer) => {
+      // 필수 필드만 포함
       const serialized = {
         id: layer.id || 'unknown',
         name: layer.name || layer.id || 'Untitled',
-        type: layer.type || 'group',
-        visible: layer.visible !== undefined ? layer.visible : true,
-        order: layer.order !== undefined ? layer.order : 0,
-        p_id: layer.p_id || null,
-        children: [],
-        data: {}
+        type: layer.type || 'group'
       };
+
+      // 기본값과 다른 경우만 포함
+      const visible = layer.visible !== undefined ? layer.visible : true;
+      if (visible !== defaults.layer.visible) {
+        serialized.visible = visible;
+      }
+
+      const order = layer.order !== undefined ? layer.order : 0;
+      if (order !== defaults.layer.order) {
+        serialized.order = order;
+      }
+
+      const p_id = layer.p_id || null;
+      if (p_id !== defaults.layer.p_id) {
+        serialized.p_id = p_id;
+      }
 
       // 레이어별 색상 정보 추가
       const currentPreset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET] || CONFIG.POLYGON_COLOR_PRESETS.default;
 
       if (layer.id === 'polygon') {
-        // 다각형 그룹: 그라디언트 색상
         serialized.color = `linear-gradient(180deg, ${currentPreset.gradientStart} 0%, ${currentPreset.gradientEnd} 100%)`;
       } else if (layer.id === 'points') {
-        // 점 그룹: 단색
         serialized.color = currentPreset.pointColor;
       } else if (layer.id === 'lines') {
-        // 선 그룹: 그라디언트 색상
         serialized.color = `linear-gradient(180deg, ${currentPreset.gradientStart} 0%, ${currentPreset.gradientEnd} 100%)`;
       } else if (layer.id === 'histogram') {
-        // 히스토그램 그룹: 고정 그라디언트
         const barColorStart = CONFIG.getColor('--chart-bar-color');
         const barColorEnd = CONFIG.getColor('--chart-bar-color-end');
         serialized.color = `linear-gradient(180deg, ${barColorStart} 0%, ${barColorEnd} 100%)`;
       } else if (layer.id === 'dashed-lines') {
-        // 파선 그룹: 단색
         serialized.color = CONFIG.getColor('--chart-dashed-line-color');
       }
 
-      // 레이어 데이터 추가 (data 속성이 있으면)
-      if (layer.data && typeof layer.data === 'object') {
+      // 레이어 데이터 추가 (비어있지 않은 경우만)
+      if (layer.data && typeof layer.data === 'object' && Object.keys(layer.data).length > 0) {
         serialized.data = { ...layer.data };
       }
 
-      // 자식 레이어 재귀 직렬화
+      // 자식 레이어 재귀 직렬화 (비어있지 않은 경우만)
       if (layer.children && Array.isArray(layer.children) && layer.children.length > 0) {
         serialized.children = layer.children.map(serializeLayer);
       }
@@ -328,15 +337,44 @@ class DataProcessor {
 
     const serializedChartRoot = serializeLayer(chartRootLayer);
 
-    // 애니메이션 객체 정규화 헬퍼
-    const normalizeAnimation = (anim, layerId = null) => ({
-      layerId: layerId || anim.layerId,
-      startTime: anim.startTime || 0,
-      duration: anim.duration || 1000,
-      effect: anim.effect || 'auto',
-      effectOptions: anim.effectOptions || {},
-      easing: anim.easing || 'linear'
-    });
+    /**
+     * 애니메이션 객체 정규화 (기본값 생략)
+     * @param {Object} anim - 애니메이션 객체
+     * @param {string} layerId - 레이어 ID
+     * @returns {Object} 정규화된 애니메이션
+     */
+    const normalizeAnimation = (anim, layerId = null) => {
+      const result = {
+        layerId: layerId || anim.layerId
+      };
+
+      const startTime = anim.startTime || 0;
+      if (startTime !== defaults.animation.startTime) {
+        result.startTime = startTime;
+      }
+
+      const duration = anim.duration || 1000;
+      if (duration !== defaults.animation.duration) {
+        result.duration = duration;
+      }
+
+      const effect = anim.effect || 'auto';
+      if (effect !== defaults.animation.effect) {
+        result.effect = effect;
+      }
+
+      // effectOptions: 비어있지 않은 경우만 포함
+      if (anim.effectOptions && Object.keys(anim.effectOptions).length > 0) {
+        result.effectOptions = anim.effectOptions;
+      }
+
+      const easing = anim.easing || 'linear';
+      if (easing !== defaults.animation.easing) {
+        result.easing = easing;
+      }
+
+      return result;
+    };
 
     // 차트 타임라인 애니메이션 정보
     let chartAnimations = [];
@@ -379,28 +417,52 @@ class DataProcessor {
         chartConfig.ellipsisInfo = chartRenderer.currentEllipsisInfo;
       }
 
-      // 차트 요소 표시 설정
-      chartConfig.chartElements = {
-        showHistogram: CONFIG.SHOW_HISTOGRAM,
-        showPolygon: CONFIG.SHOW_POLYGON,
-        showBarLabels: CONFIG.SHOW_BAR_LABELS,
-        showDashedLines: CONFIG.SHOW_DASHED_LINES
-      };
+      // 차트 요소 표시 설정 (기본값과 다른 경우만 포함)
+      const chartElements = {};
+      if (CONFIG.SHOW_HISTOGRAM !== defaults.chartElements.showHistogram) {
+        chartElements.showHistogram = CONFIG.SHOW_HISTOGRAM;
+      }
+      if (CONFIG.SHOW_POLYGON !== defaults.chartElements.showPolygon) {
+        chartElements.showPolygon = CONFIG.SHOW_POLYGON;
+      }
+      if (CONFIG.SHOW_BAR_LABELS !== defaults.chartElements.showBarLabels) {
+        chartElements.showBarLabels = CONFIG.SHOW_BAR_LABELS;
+      }
+      if (CONFIG.SHOW_DASHED_LINES !== defaults.chartElements.showDashedLines) {
+        chartElements.showDashedLines = CONFIG.SHOW_DASHED_LINES;
+      }
+      if (Object.keys(chartElements).length > 0) {
+        chartConfig.chartElements = chartElements;
+      }
 
-      // 격자선 설정
-      chartConfig.gridSettings = {
-        showHorizontal: CONFIG.GRID_SHOW_HORIZONTAL,
-        showVertical: CONFIG.GRID_SHOW_VERTICAL
-      };
+      // 격자선 설정 (기본값과 다른 경우만 포함)
+      const gridSettings = {};
+      if (CONFIG.GRID_SHOW_HORIZONTAL !== defaults.gridSettings.showHorizontal) {
+        gridSettings.showHorizontal = CONFIG.GRID_SHOW_HORIZONTAL;
+      }
+      if (CONFIG.GRID_SHOW_VERTICAL !== defaults.gridSettings.showVertical) {
+        gridSettings.showVertical = CONFIG.GRID_SHOW_VERTICAL;
+      }
+      if (Object.keys(gridSettings).length > 0) {
+        chartConfig.gridSettings = gridSettings;
+      }
 
-      // 축 라벨 설정
-      chartConfig.axisLabelSettings = {
-        showYLabels: CONFIG.AXIS_SHOW_Y_LABELS,
-        showXLabels: CONFIG.AXIS_SHOW_X_LABELS
-      };
+      // 축 라벨 설정 (기본값과 다른 경우만 포함)
+      const axisLabelSettings = {};
+      if (CONFIG.AXIS_SHOW_Y_LABELS !== defaults.axisLabelSettings.showYLabels) {
+        axisLabelSettings.showYLabels = CONFIG.AXIS_SHOW_Y_LABELS;
+      }
+      if (CONFIG.AXIS_SHOW_X_LABELS !== defaults.axisLabelSettings.showXLabels) {
+        axisLabelSettings.showXLabels = CONFIG.AXIS_SHOW_X_LABELS;
+      }
+      if (Object.keys(axisLabelSettings).length > 0) {
+        chartConfig.axisLabelSettings = axisLabelSettings;
+      }
 
-      // 색상 프리셋 정보 (참고용)
-      chartConfig.colorPreset = CONFIG.POLYGON_COLOR_PRESET;
+      // 색상 프리셋 정보 (기본값과 다른 경우만 포함)
+      if (CONFIG.POLYGON_COLOR_PRESET !== defaults.colorPreset) {
+        chartConfig.colorPreset = CONFIG.POLYGON_COLOR_PRESET;
+      }
 
       // 캔버스 크기
       if (chartRenderer.canvas) {
@@ -442,67 +504,199 @@ class DataProcessor {
 
           const serializedTableRoot = serializeLayer(tableRootLayer);
 
-          // 테이블 타임라인 애니메이션 정보
+          // 테이블 타임라인 애니메이션 정보 (normalizeAnimation 재사용)
           let tableAnimations = [];
           if (tableTimeline) {
             if (tableTimeline.animations instanceof Map) {
-              tableAnimations = Array.from(tableTimeline.animations.entries()).map(([layerId, anim]) => ({
-                layerId: layerId,
-                startTime: anim.startTime || 0,
-                duration: anim.duration || 1000,
-                effect: anim.effect || 'auto',
-                effectOptions: anim.effectOptions || {},
-                easing: anim.easing || 'linear'
-              }));
+              tableAnimations = Array.from(tableTimeline.animations.entries())
+                .map(([layerId, anim]) => normalizeAnimation(anim, layerId));
             } else if (Array.isArray(tableTimeline.animations)) {
-              tableAnimations = tableTimeline.animations.map(anim => ({
-                layerId: anim.layerId,
-                startTime: anim.startTime || 0,
-                duration: anim.duration || 1000,
-                effect: anim.effect || 'auto',
-                effectOptions: anim.effectOptions || {},
-                easing: anim.easing || 'linear'
-              }));
+              tableAnimations = tableTimeline.animations.map(anim => normalizeAnimation(anim));
             } else if (Array.isArray(tableTimeline.timeline)) {
-              tableAnimations = tableTimeline.timeline.map(anim => ({
-                layerId: anim.layerId,
-                startTime: anim.startTime || 0,
-                duration: anim.duration || 1000,
-                effect: anim.effect || 'auto',
-                effectOptions: anim.effectOptions || {},
-                easing: anim.easing || 'linear'
-              }));
+              tableAnimations = tableTimeline.timeline.map(anim => normalizeAnimation(anim));
             }
           }
 
-          tables.push({
+          // 테이블 데이터 구성 (기본값 생략)
+          const tableData = {
             id: tableRenderer.tableId || `table-${index + 1}`,
             canvasId: tableRenderer.canvasId || `frequencyTable-${index + 1}`,
-            root: serializedTableRoot,
-            timeline: {
-              animations: tableAnimations,
-              currentTime: tableTimeline?.currentTime || 0,
-              duration: tableTimeline?.duration || 0
-            }
-          });
+            root: serializedTableRoot
+          };
+
+          // 타임라인 (애니메이션이 있거나 기본값과 다른 경우만 포함)
+          const tableTimelineData = {};
+          if (tableAnimations.length > 0) {
+            tableTimelineData.animations = tableAnimations;
+          }
+          const tableCurrentTime = tableTimeline?.currentTime || 0;
+          if (tableCurrentTime !== defaults.timeline.currentTime) {
+            tableTimelineData.currentTime = tableCurrentTime;
+          }
+          const tableDuration = tableTimeline?.duration || 0;
+          if (tableDuration !== defaults.timeline.duration) {
+            tableTimelineData.duration = tableDuration;
+          }
+          if (Object.keys(tableTimelineData).length > 0) {
+            tableData.timeline = tableTimelineData;
+          }
+
+          tables.push(tableData);
         } catch (error) {
           console.error(`테이블 ${index + 1} 직렬화 오류:`, error);
         }
       });
     }
 
-    return {
-      version: '3.0.0',
+    // 차트 타임라인 구성 (기본값 생략)
+    const chartTimelineData = {};
+    if (chartAnimations.length > 0) {
+      chartTimelineData.animations = chartAnimations;
+    }
+    const chartCurrentTime = chartTimeline.currentTime || 0;
+    if (chartCurrentTime !== defaults.timeline.currentTime) {
+      chartTimelineData.currentTime = chartCurrentTime;
+    }
+    const chartDuration = chartTimeline.duration || 0;
+    if (chartDuration !== defaults.timeline.duration) {
+      chartTimelineData.duration = chartDuration;
+    }
+
+    // 최종 결과 구성
+    const result = {
+      version: '4.0.0',
       chart: {
-        root: serializedChartRoot,
-        timeline: {
-          animations: chartAnimations,
-          currentTime: chartTimeline.currentTime || 0,
-          duration: chartTimeline.duration || 0
+        root: serializedChartRoot
+      }
+    };
+
+    // 타임라인 (비어있지 않은 경우만 포함)
+    if (Object.keys(chartTimelineData).length > 0) {
+      result.chart.timeline = chartTimelineData;
+    }
+
+    // config (비어있지 않은 경우만 포함)
+    if (Object.keys(chartConfig).length > 0) {
+      result.chart.config = chartConfig;
+    }
+
+    // 테이블 (비어있지 않은 경우만 포함)
+    if (tables.length > 0) {
+      result.tables = tables;
+    }
+
+    return result;
+  }
+
+  /**
+   * JSON 데이터 불러오기 (기본값 복원)
+   * @param {Object} jsonData - 경량화된 JSON 데이터
+   * @returns {Object} 기본값이 복원된 데이터 객체
+   * @description 생략된 필드에 기본값을 적용하여 완전한 데이터 구조 복원
+   */
+  static importData(jsonData) {
+    const defaults = CONFIG.JSON_DEFAULTS;
+    const version = jsonData.version || '3.0.0';
+
+    /**
+     * 레이어 역직렬화 (기본값 적용)
+     * @param {Object} layerData - 직렬화된 레이어 데이터
+     * @returns {Object} 기본값이 복원된 레이어
+     */
+    const deserializeLayer = (layerData) => {
+      return {
+        id: layerData.id,
+        name: layerData.name || layerData.id,
+        type: layerData.type || 'group',
+        visible: layerData.visible ?? defaults.layer.visible,
+        order: layerData.order ?? defaults.layer.order,
+        p_id: layerData.p_id ?? defaults.layer.p_id,
+        color: layerData.color || null,
+        children: (layerData.children || []).map(deserializeLayer),
+        data: layerData.data || {}
+      };
+    };
+
+    /**
+     * 애니메이션 역직렬화 (기본값 적용)
+     * @param {Object} anim - 직렬화된 애니메이션 데이터
+     * @returns {Object} 기본값이 복원된 애니메이션
+     */
+    const deserializeAnimation = (anim) => {
+      return {
+        layerId: anim.layerId,
+        startTime: anim.startTime ?? defaults.animation.startTime,
+        duration: anim.duration ?? defaults.animation.duration,
+        effect: anim.effect ?? defaults.animation.effect,
+        effectOptions: anim.effectOptions || {},
+        easing: anim.easing ?? defaults.animation.easing
+      };
+    };
+
+    /**
+     * 차트 설정 역직렬화 (기본값 병합)
+     * @param {Object} config - 직렬화된 설정 데이터
+     * @returns {Object} 기본값이 복원된 설정
+     */
+    const deserializeConfig = (config) => {
+      if (!config) return null;
+
+      return {
+        chartElements: {
+          ...defaults.chartElements,
+          ...config.chartElements
         },
+        gridSettings: {
+          ...defaults.gridSettings,
+          ...config.gridSettings
+        },
+        axisLabelSettings: {
+          ...defaults.axisLabelSettings,
+          ...config.axisLabelSettings
+        },
+        colorPreset: config.colorPreset ?? defaults.colorPreset,
+        coords: config.coords || null,
+        axisLabels: config.axisLabels || null,
+        dataType: config.dataType || null,
+        ellipsisInfo: config.ellipsisInfo || null,
+        canvasSize: config.canvasSize || null,
+        tableData: config.tableData || null
+      };
+    };
+
+    // 차트 데이터 복원
+    const chartRoot = jsonData.chart?.root
+      ? deserializeLayer(jsonData.chart.root)
+      : null;
+
+    const chartTimeline = {
+      animations: (jsonData.chart?.timeline?.animations || []).map(deserializeAnimation),
+      currentTime: jsonData.chart?.timeline?.currentTime ?? defaults.timeline.currentTime,
+      duration: jsonData.chart?.timeline?.duration ?? defaults.timeline.duration
+    };
+
+    const chartConfig = deserializeConfig(jsonData.chart?.config);
+
+    // 테이블 데이터 복원
+    const tables = (jsonData.tables || []).map(table => ({
+      id: table.id,
+      canvasId: table.canvasId,
+      root: deserializeLayer(table.root),
+      timeline: {
+        animations: (table.timeline?.animations || []).map(deserializeAnimation),
+        currentTime: table.timeline?.currentTime ?? defaults.timeline.currentTime,
+        duration: table.timeline?.duration ?? defaults.timeline.duration
+      }
+    }));
+
+    return {
+      version,
+      chart: {
+        root: chartRoot,
+        timeline: chartTimeline,
         config: chartConfig
       },
-      tables: tables
+      tables
     };
   }
 }

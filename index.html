@@ -96,10 +96,16 @@
         <!-- Statistics Summary (왼쪽 하단) -->
         <div class="stats-summary" id="statsSummary" role="region" aria-label="통계 요약"></div>
 
-        <!-- JSON 내보내기 버튼 -->
-        <button id="exportJsonBtn" class="export-btn" type="button" aria-label="차트 데이터 JSON 내보내기" style="display: none;">
-          💾 JSON 내보내기
-        </button>
+        <!-- JSON 내보내기/불러오기 버튼 -->
+        <div class="json-buttons" style="display: none;">
+          <button id="exportJsonBtn" class="export-btn" type="button" aria-label="차트 데이터 JSON 내보내기">
+            💾 JSON 내보내기
+          </button>
+          <button id="importJsonBtn" class="export-btn" type="button" aria-label="JSON 데이터 불러오기">
+            📂 JSON 불러오기
+          </button>
+          <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+        </div>
       </aside>
 
       <!-- Right Column: Results Section -->

@@ -317,9 +317,14 @@ class FrequencyDistributionApp {
     const addBtn = document.getElementById('addBtn');
     addBtn?.addEventListener('click', () => this.addDatasetAndGenerate()); // 새 데이터셋 추가 후 생성
 
-    // JSON 내보내기 버튼
+    // JSON 내보내기/불러오기 버튼
     const exportJsonBtn = document.getElementById('exportJsonBtn');
     exportJsonBtn?.addEventListener('click', () => this.exportJson());
+
+    const importJsonBtn = document.getElementById('importJsonBtn');
+    const jsonFileInput = document.getElementById('jsonFileInput');
+    importJsonBtn?.addEventListener('click', () => jsonFileInput?.click());
+    jsonFileInput?.addEventListener('change', (e) => this.handleJsonFileSelect(e));
 
     // 애니메이션 컨트롤 초기화
     this.initAnimationControls();
@@ -1454,6 +1459,126 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * JSON 파일 선택 핸들러
+   * @param {Event} event - 파일 선택 이벤트
+   * @description JSON 파일을 읽어서 데이터를 불러옴
+   */
+  handleJsonFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // 파일 크기 체크 (50MB 제한)
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > 50) {
+      MessageManager.error(`파일이 너무 큽니다 (${sizeInMB.toFixed(1)}MB). 최대 50MB까지 지원됩니다.`);
+      event.target.value = ''; // 파일 입력 초기화
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result);
+
+        // 버전 확인
+        const version = jsonData.version || '3.0.0';
+        const majorVersion = parseInt(version.split('.')[0]);
+
+        if (majorVersion < 3) {
+          MessageManager.warning(`구버전 JSON 파일입니다 (v${version}). 일부 기능이 제한될 수 있습니다.`);
+        }
+
+        // 데이터 불러오기
+        const importedData = DataProcessor.importData(jsonData);
+        this.applyImportedData(importedData);
+
+        MessageManager.success(`JSON 데이터를 불러왔습니다 (v${version})`);
+      } catch (error) {
+        console.error('Import error:', error);
+        MessageManager.error(`JSON 파싱 오류: ${error.message}`);
+      }
+
+      // 파일 입력 초기화 (동일 파일 재선택 가능하도록)
+      event.target.value = '';
+    };
+
+    reader.onerror = () => {
+      MessageManager.error('파일 읽기 오류가 발생했습니다.');
+      event.target.value = '';
+    };
+
+    reader.readAsText(file);
+  }
+
+  /**
+   * 불러온 JSON 데이터 적용
+   * @param {Object} data - 불러온 데이터 객체
+   * @description 차트 설정 및 테이블 데이터를 적용
+   */
+  applyImportedData(data) {
+    if (!data || !data.chart) {
+      MessageManager.warning('유효하지 않은 JSON 데이터입니다.');
+      return;
+    }
+
+    const config = data.chart.config;
+    if (!config) {
+      MessageManager.warning('차트 설정 정보가 없습니다.');
+      return;
+    }
+
+    // 차트 요소 설정 적용
+    if (config.chartElements) {
+      CONFIG.SHOW_HISTOGRAM = config.chartElements.showHistogram;
+      CONFIG.SHOW_POLYGON = config.chartElements.showPolygon;
+      CONFIG.SHOW_BAR_LABELS = config.chartElements.showBarLabels;
+      CONFIG.SHOW_DASHED_LINES = config.chartElements.showDashedLines;
+
+      // 체크박스 UI 동기화
+      const histogramCheck = document.getElementById('showHistogram');
+      const polygonCheck = document.getElementById('showPolygon');
+      const barLabelsCheck = document.getElementById('showBarLabels');
+      const dashedLinesCheck = document.getElementById('showDashedLines');
+
+      if (histogramCheck) histogramCheck.checked = CONFIG.SHOW_HISTOGRAM;
+      if (polygonCheck) polygonCheck.checked = CONFIG.SHOW_POLYGON;
+      if (barLabelsCheck) barLabelsCheck.checked = CONFIG.SHOW_BAR_LABELS;
+      if (dashedLinesCheck) dashedLinesCheck.checked = CONFIG.SHOW_DASHED_LINES;
+    }
+
+    // 격자선 설정 적용
+    if (config.gridSettings) {
+      CONFIG.GRID_SHOW_HORIZONTAL = config.gridSettings.showHorizontal;
+      CONFIG.GRID_SHOW_VERTICAL = config.gridSettings.showVertical;
+    }
+
+    // 축 라벨 설정 적용
+    if (config.axisLabelSettings) {
+      CONFIG.AXIS_SHOW_Y_LABELS = config.axisLabelSettings.showYLabels;
+      CONFIG.AXIS_SHOW_X_LABELS = config.axisLabelSettings.showXLabels;
+    }
+
+    // 색상 프리셋 적용
+    if (config.colorPreset && CONFIG.POLYGON_COLOR_PRESETS[config.colorPreset]) {
+      CONFIG.POLYGON_COLOR_PRESET = config.colorPreset;
+    }
+
+    // 테이블 데이터가 있으면 차트 재생성
+    if (config.tableData && config.tableData.classes) {
+      // 축 라벨 적용
+      if (config.axisLabels) {
+        const xAxisInput = document.getElementById('xAxisLabel');
+        const yAxisInput = document.getElementById('yAxisLabel');
+        if (xAxisInput) xAxisInput.value = config.axisLabels.xLabel || '';
+        if (yAxisInput) yAxisInput.value = config.axisLabels.yLabel || '';
+      }
+
+      // 현재 설정으로 차트 업데이트
+      this.updateChart();
+    }
+  }
+
+  /**
    * 커스텀 테이블 타입 처리 (카테고리 행렬, 이원 분류표, 줄기-잎 그림)
    * @param {Object} inputValues - 데이터셋 입력값
    * @param {boolean} reset - 리셋 모드 여부
@@ -1699,10 +1824,10 @@ class FrequencyDistributionApp {
       document.getElementById('resultSection').classList.add('active');
       document.querySelector('.layout-grid').classList.add('two-column');
 
-      // 11. JSON 내보내기 버튼 표시
-      const exportJsonBtn = document.getElementById('exportJsonBtn');
-      if (exportJsonBtn) {
-        exportJsonBtn.style.display = 'block';
+      // 11. JSON 내보내기/불러오기 버튼 표시
+      const jsonButtons = document.querySelector('.json-buttons');
+      if (jsonButtons) {
+        jsonButtons.style.display = 'flex';
       }
 
       // 12. 하이라이트 테스트 버튼 표시

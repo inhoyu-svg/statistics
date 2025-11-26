@@ -447,12 +447,18 @@ button:active {
   background: var(--color-border);
 }
 
-/* ========== Export Button ========== */
-.export-btn {
+/* ========== JSON Buttons ========== */
+.json-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
   margin-top: var(--spacing-lg);
+}
+
+.export-btn {
+  flex: 1;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   font-size: 14px;
-  padding: 10px var(--spacing-lg);
+  padding: 10px var(--spacing-md);
 }
 
 .export-btn:hover {

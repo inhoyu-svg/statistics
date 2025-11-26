@@ -300,6 +300,40 @@ const CONFIG = {
   // 레이어 패널
   LAYER_DEPTH_OFFSET: 20,                   // 레이어 깊이당 들여쓰기 (px)
 
+  // JSON 직렬화 기본값 (경량화용)
+  JSON_DEFAULTS: {
+    layer: {
+      visible: true,
+      order: 0,
+      p_id: null
+    },
+    animation: {
+      startTime: 0,
+      duration: 1000,
+      effect: 'auto',
+      easing: 'linear'
+    },
+    chartElements: {
+      showHistogram: true,
+      showPolygon: true,
+      showBarLabels: false,
+      showDashedLines: false
+    },
+    gridSettings: {
+      showHorizontal: true,
+      showVertical: true
+    },
+    axisLabelSettings: {
+      showYLabels: true,
+      showXLabels: true
+    },
+    colorPreset: 'default',
+    timeline: {
+      currentTime: 0,
+      duration: 0
+    }
+  },
+
   // 색상 캐시 (성능 최적화)
   _colorCache: null,
 
