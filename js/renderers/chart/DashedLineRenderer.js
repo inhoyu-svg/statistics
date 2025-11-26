@@ -44,8 +44,8 @@ class DashedLineRenderer {
 
     this.ctx.save();
     this.ctx.strokeStyle = CONFIG.getColor('--chart-dashed-line-color');
-    this.ctx.lineWidth = 1.5;
-    this.ctx.setLineDash([5, 5]); // 파선 패턴 (5px 선, 5px 공백)
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_DASHED;
+    this.ctx.setLineDash(CONFIG.CHART_DASHED_PATTERN);
 
     this.ctx.beginPath();
     this.ctx.moveTo(pointX, pointY);

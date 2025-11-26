@@ -52,7 +52,7 @@ class HistogramRenderer {
           CONFIG.getColor('--chart-bar-stroke-end')
         );
         this.ctx.strokeStyle = strokeGradient;
-        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
         this.ctx.strokeRect(x, y, barWidth, h);
       }
 
@@ -99,7 +99,7 @@ class HistogramRenderer {
         CONFIG.getColor('--chart-bar-stroke-end')
       );
       this.ctx.strokeStyle = strokeGradient;
-      this.ctx.lineWidth = 2;
+      this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
       this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
     }
 

@@ -310,7 +310,7 @@ class TableRenderer {
    */
   drawNoDataMessage() {
     this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
-    this.canvas.height = 100;
+    this.canvas.height = CONFIG.TABLE_EMPTY_CANVAS_HEIGHT;
     this.clear();
 
     this.ctx.fillStyle = CONFIG.getColor('--color-text-light');
@@ -318,7 +318,7 @@ class TableRenderer {
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.fillText(
-      '데이터가 없습니다',
+      CONFIG.TABLE_NO_DATA_MESSAGE,
       this.canvas.width / 2,
       this.canvas.height / 2
     );

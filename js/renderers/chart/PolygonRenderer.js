@@ -62,7 +62,7 @@ class PolygonRenderer {
         );
 
         this.ctx.strokeStyle = lineGradient;
-        this.ctx.lineWidth = 3;
+        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
         this.ctx.lineTo(x2, y2);
@@ -122,7 +122,7 @@ class PolygonRenderer {
     );
 
     this.ctx.strokeStyle = lineGradient;
-    this.ctx.lineWidth = 3;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
     this.ctx.beginPath();
     this.ctx.moveTo(x1, y1);
     this.ctx.lineTo(x2, y2);

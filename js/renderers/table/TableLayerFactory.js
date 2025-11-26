@@ -274,10 +274,16 @@ class TableLayerFactory {
     // 표시할 셀만 필터링
     const cells = orderedCells.filter((_, i) => orderedVisibleColumns[i]);
 
+    // 필터링된 원본 인덱스 배열 (계급 컬럼 판별용)
+    const filteredOriginalIndices = columnOrder.filter((_, i) => orderedVisibleColumns[i]);
+
     let x = padding;
 
     cells.forEach((cellText, i) => {
       const label = filteredLabels[i];
+      const originalIndex = filteredOriginalIndices[i]; // 원본 컬럼 인덱스
+      const isClassColumn = originalIndex === 0; // 계급 컬럼 여부
+
       const cellLayer = new Layer({
         id: `${tableId}-table-row-${rowIndex}-col${i}`,
         name: String(cellText),
@@ -298,8 +304,8 @@ class TableLayerFactory {
           highlighted: false,
           highlightProgress: 0,
           // 상첨자 정보 (첫 행의 계급 컬럼인 경우)
-          classData: rowIndex === 0 && label === '계급' ? classData : null,
-          showSuperscript: rowIndex === 0 && label === '계급' ? showSuperscript : false,
+          classData: rowIndex === 0 && isClassColumn ? classData : null,
+          showSuperscript: rowIndex === 0 && isClassColumn ? showSuperscript : false,
           // 짝수 행 배경색 표시 여부
           isEvenRow: rowIndex % 2 === 1
         }

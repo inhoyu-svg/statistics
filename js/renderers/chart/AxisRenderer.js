@@ -115,7 +115,7 @@ class AxisRenderer {
       this.ctx.rotate(Math.PI / 2); // 90도 회전
       this.ctx.font = CONFIG.CHART_FONT_LARGE;
       this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
-      this.ctx.fillText('≈', 0, 0);
+      this.ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
       this.ctx.restore();
 
       // 데이터 구간 라벨
@@ -172,7 +172,7 @@ class AxisRenderer {
    * @param {number} gridDivisions - 그리드 분할 수
    */
   drawGrid(toX, toY, maxY, classCount, ellipsisInfo, gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
     this.ctx.globalAlpha = 1.0; // 투명도 제거
 
     // 가로 격자선 (Y축) - Y=0 제외
@@ -250,10 +250,10 @@ class AxisRenderer {
     this.ctx.fillStyle = barGradient;
     this.ctx.fillRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
     this.ctx.strokeStyle = CONFIG.getColor('--color-border');
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
     this.ctx.strokeRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.fillText('히스토그램', legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y1 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET);
+    this.ctx.fillText(CONFIG.LEGEND_LABEL_HISTOGRAM, legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y1 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET);
 
     // 다각형 범례 (동적 텍스트)
     const y2 = y1 + CONFIG.CHART_LEGEND_ITEM_SPACING;
@@ -271,7 +271,7 @@ class AxisRenderer {
       gradientEnd
     );
     this.ctx.strokeStyle = lineGradient;
-    this.ctx.lineWidth = 3;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
     this.ctx.beginPath();
     this.ctx.moveTo(legendX, y2);
     this.ctx.lineTo(legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2);

@@ -21,8 +21,8 @@ class TableCellRenderer {
     const { x, y, width, height, rowCount, columnWidths } = layer.data;
 
     // 하단 선만 (두께 2, 밝은 회색)
-    this.ctx.strokeStyle = '#888888';
-    this.ctx.lineWidth = 2;
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
     this.ctx.beginPath();
     this.ctx.moveTo(x, y + height);
     this.ctx.lineTo(x + width, y + height);
@@ -34,11 +34,11 @@ class TableCellRenderer {
 
       // 첫 번째 선(헤더 아래) 또는 마지막 선(합계 위)은 두께 2, 밝은 회색
       if (i === 1 || i === rowCount) {
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = '#888888';
+        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+        this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
       } else {
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = '#555555';
+        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+        this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_DARK;
       }
 
       this.ctx.beginPath();
@@ -48,9 +48,9 @@ class TableCellRenderer {
     }
 
     // 수직선 (점선, 헤더 영역 제외, 밝은 회색)
-    this.ctx.lineWidth = 1;
-    this.ctx.strokeStyle = '#888888';
-    this.ctx.setLineDash([5, 3]); // 5px 선, 3px 간격
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+    this.ctx.setLineDash(CONFIG.TABLE_GRID_DASH_PATTERN);
     let lineX = x;
     for (let i = 0; i < columnWidths.length - 1; i++) {
       lineX += columnWidths[i];
@@ -70,7 +70,7 @@ class TableCellRenderer {
     const { x, y, width, height, cellText, alignment } = layer.data;
 
     // 헤더 텍스트
-    this.ctx.fillStyle = '#8DCF66';
+    this.ctx.fillStyle = CONFIG.TABLE_HEADER_TEXT_COLOR;
     this.ctx.font = CONFIG.TABLE_FONT_HEADER;
     this.ctx.textBaseline = 'middle';
     this.ctx.textAlign = alignment;
@@ -111,7 +111,7 @@ class TableCellRenderer {
     const cellY = y + height / 2;
 
     // 상첨자가 필요한 경우 (첫 행의 계급 컬럼)
-    if (classData && showSuperscript && colLabel === '계급') {
+    if (classData && showSuperscript) {
       this._drawClassWithSuperscript(cellText, cellX, cellY, classData, showSuperscript);
       // 폰트 복원
       this.ctx.font = CONFIG.TABLE_FONT_DATA;
@@ -128,7 +128,7 @@ class TableCellRenderer {
     const { x, y, width, height, cellText, alignment } = layer.data;
 
     // 합계 텍스트
-    this.ctx.fillStyle = 'white';
+    this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.font = CONFIG.TABLE_FONT_SUMMARY;
     this.ctx.textBaseline = 'middle';
     this.ctx.textAlign = alignment;
@@ -147,12 +147,11 @@ class TableCellRenderer {
    * @returns {number} 텍스트 렌더링 X 좌표
    */
   _getCellXPosition(cellStartX, cellWidth, alignment) {
-    const padding = 8; // 셀 내부 패딩
     switch (alignment) {
       case 'left':
-        return cellStartX + padding;
+        return cellStartX + CONFIG.TABLE_CELL_PADDING;
       case 'right':
-        return cellStartX + cellWidth - padding;
+        return cellStartX + cellWidth - CONFIG.TABLE_CELL_PADDING;
       case 'center':
       default:
         return cellStartX + cellWidth / 2;
@@ -172,15 +171,15 @@ class TableCellRenderer {
     const max = classData.max;
 
     // 폰트 크기 설정
-    const normalFont = CONFIG.TABLE_FONT_DATA; // 기본: '14px sans-serif'
-    const superscriptFont = '11px sans-serif'; // 상첨자용 작은 폰트
+    const normalFont = CONFIG.TABLE_FONT_DATA;
+    const superscriptFont = CONFIG.TABLE_FONT_SUPERSCRIPT;
 
     // 텍스트 구성 요소
     const minText = String(min);
     const maxText = String(max);
-    const superMin = '이상';
-    const superMax = '미만';
-    const separator = ' ~ ';
+    const superMin = CONFIG.TABLE_SUPERSCRIPT_MIN_TEXT;
+    const superMax = CONFIG.TABLE_SUPERSCRIPT_MAX_TEXT;
+    const separator = CONFIG.TABLE_CLASS_SEPARATOR;
 
     // 각 구성 요소의 너비 측정
     this.ctx.font = normalFont;

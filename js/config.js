@@ -73,6 +73,32 @@ const CONFIG = {
   TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
   TABLE_SUPERSCRIPT_Y_OFFSET: 4, // 상첨자 위치 오프셋 (위로 이동)
 
+  // 테이블 격자선 및 셀 설정
+  TABLE_GRID_COLOR_LIGHT: '#888888',      // 밝은 격자선 (헤더/합계 구분선)
+  TABLE_GRID_COLOR_DARK: '#555555',       // 어두운 격자선 (데이터 행 구분선)
+  TABLE_HEADER_TEXT_COLOR: '#8DCF66',     // 헤더 텍스트 색상
+  TABLE_CELL_PADDING: 8,                  // 셀 내부 패딩
+  TABLE_GRID_DASH_PATTERN: [5, 3],        // 수직 점선 패턴 [선, 간격]
+  TABLE_EMPTY_CANVAS_HEIGHT: 100,         // 빈 테이블 캔버스 높이
+  TABLE_FONT_SUPERSCRIPT: '11px sans-serif', // 상첨자 폰트
+
+  // 테이블 문자열 상수
+  TABLE_SUPERSCRIPT_MIN_TEXT: '이상',      // 상첨자 최솟값 텍스트
+  TABLE_SUPERSCRIPT_MAX_TEXT: '미만',      // 상첨자 최댓값 텍스트
+  TABLE_CLASS_SEPARATOR: ' ~ ',           // 계급 구분자
+  TABLE_NO_DATA_MESSAGE: '데이터가 없습니다', // 데이터 없음 메시지
+
+  // 차트 선 너비
+  CHART_LINE_WIDTH_THIN: 1,               // 얇은 선 (격자선)
+  CHART_LINE_WIDTH_NORMAL: 2,             // 보통 선 (막대 테두리)
+  CHART_LINE_WIDTH_THICK: 3,              // 두꺼운 선 (다각형)
+  CHART_LINE_WIDTH_DASHED: 1.5,           // 파선 너비
+  CHART_DASHED_PATTERN: [5, 5],           // 파선 패턴 [선, 간격]
+
+  // 축/범례 문자열 상수
+  AXIS_ELLIPSIS_SYMBOL: '≈',              // 이중물결 기호
+  LEGEND_LABEL_HISTOGRAM: '히스토그램',    // 범례 히스토그램 라벨
+
   // 기본 라벨 (고급 설정)
   DEFAULT_LABELS: {
     xAxis: '계급',
