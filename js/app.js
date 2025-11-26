@@ -1791,9 +1791,18 @@ class FrequencyDistributionApp {
         return;
       }
 
-      // 2. 리셋 모드인 경우 추가 테이블 제거
+      // 2. 리셋 모드인 경우 추가 테이블 및 차트 초기화
       if (reset) {
         this.clearExtraTables();
+        // 차트 캔버스 완전 초기화 (커스텀 테이블 타입 전환 시 이전 차트 제거)
+        this.chartRenderer.canvas.width = CONFIG.CANVAS_WIDTH;
+        this.chartRenderer.canvas.height = CONFIG.CANVAS_HEIGHT;
+        this.chartRenderer.clear();
+        this.chartRenderer.layerManager.root.children = [];
+        this.chartRenderer.timeline.animations = new Map();
+        this.chartRenderer.timeline.timeline = [];
+        this.chartRenderer.timeline.currentTime = 0;
+        this.chartRenderer.timeline.duration = 0;
       }
 
       // 3. 각 데이터셋 처리
