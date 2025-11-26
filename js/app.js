@@ -1563,18 +1563,38 @@ class FrequencyDistributionApp {
       CONFIG.POLYGON_COLOR_PRESET = config.colorPreset;
     }
 
-    // 테이블 데이터가 있으면 차트 재생성
+    // 테이블 데이터가 있으면 차트/테이블 재생성
     if (config.tableData && config.tableData.classes) {
-      // 축 라벨 적용
-      if (config.axisLabels) {
-        const xAxisInput = document.getElementById('xAxisLabel');
-        const yAxisInput = document.getElementById('yAxisLabel');
-        if (xAxisInput) xAxisInput.value = config.axisLabels.xLabel || '';
-        if (yAxisInput) yAxisInput.value = config.axisLabels.yLabel || '';
+      const { classes, total, config: tableConfig } = config.tableData;
+
+      // ellipsisInfo 복원
+      const ellipsisInfo = config.ellipsisInfo || null;
+
+      // 축 라벨 복원
+      const axisLabels = config.axisLabels || { xLabel: '', yLabel: '' };
+
+      // 데이터 타입 복원
+      const dataType = config.dataType || 'relativeFrequency';
+
+      // 차트 렌더링
+      this.chartRenderer.draw(classes, total, tableConfig, axisLabels, ellipsisInfo, dataType);
+
+      // 테이블 렌더링
+      if (this.tableRenderers.length > 0) {
+        this.tableRenderers[0].draw(classes, total, tableConfig);
       }
 
-      // 현재 설정으로 차트 업데이트
-      this.updateChart();
+      // UI 표시 (결과 섹션)
+      document.getElementById('resultSection').classList.add('active');
+      document.querySelector('.layout-grid').classList.add('two-column');
+      const jsonButtons = document.querySelector('.json-buttons');
+      if (jsonButtons) jsonButtons.style.display = 'flex';
+
+      // 축 라벨 입력 필드 동기화
+      const xAxisInput = document.getElementById('xAxisLabel');
+      const yAxisInput = document.getElementById('yAxisLabel');
+      if (xAxisInput) xAxisInput.value = axisLabels.xLabel || '';
+      if (yAxisInput) yAxisInput.value = axisLabels.yLabel || '';
     }
   }
 
