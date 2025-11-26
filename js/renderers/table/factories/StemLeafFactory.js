@@ -120,9 +120,9 @@ class StemLeafFactory {
 
     const y = padding;
     const headers = [
-      { text: `잎(${leftLabel})`, align: 'right' },
+      { text: `잎(${leftLabel})`, align: 'center' },
       { text: '줄기', align: 'center' },
-      { text: `잎(${rightLabel})`, align: 'left' }
+      { text: `잎(${rightLabel})`, align: 'center' }
     ];
 
     let x = padding;

@@ -173,12 +173,7 @@ class TableCellRenderer {
     this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
     this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
 
-    // 상단, 하단 선
-    this.ctx.beginPath();
-    this.ctx.moveTo(x, y);
-    this.ctx.lineTo(x + width, y);
-    this.ctx.stroke();
-
+    // 하단 선만 (상단 선 제거)
     this.ctx.beginPath();
     this.ctx.moveTo(x, y + height);
     this.ctx.lineTo(x + width, y + height);
@@ -191,16 +186,18 @@ class TableCellRenderer {
     this.ctx.lineTo(x + width, headerY);
     this.ctx.stroke();
 
-    // 줄기 열 좌우 세로선 (전체 높이)
+    // 줄기 열 좌우 세로선 (점선, 헤더 아래부터)
+    this.ctx.setLineDash(CONFIG.TABLE_GRID_DASH_PATTERN);
     this.ctx.beginPath();
-    this.ctx.moveTo(stemColumnStart, y);
+    this.ctx.moveTo(stemColumnStart, headerY);
     this.ctx.lineTo(stemColumnStart, y + height);
     this.ctx.stroke();
 
     this.ctx.beginPath();
-    this.ctx.moveTo(stemColumnEnd, y);
+    this.ctx.moveTo(stemColumnEnd, headerY);
     this.ctx.lineTo(stemColumnEnd, y + height);
     this.ctx.stroke();
+    this.ctx.setLineDash([]);
 
     // 수평 구분선 (점선)
     this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
