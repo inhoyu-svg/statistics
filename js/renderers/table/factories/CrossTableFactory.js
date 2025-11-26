@@ -228,7 +228,7 @@ class CrossTableFactory {
         highlighted: false,
         highlightProgress: 0,
         isMergedCell: true,
-        headerTextColor: '#FFFFFF'
+        headerTextColor: '#8DCF66'
       }
     });
     mergedHeaderGroup.addChild(mergedCell);
@@ -275,7 +275,7 @@ class CrossTableFactory {
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0,
-          headerTextColor: '#FFFFFF'
+          headerTextColor: '#8DCF66'
         }
       });
 
@@ -336,7 +336,8 @@ class CrossTableFactory {
           highlighted: false,
           highlightProgress: 0,
           isEvenRow: rowIndex % 2 === 1,
-          isLabelColumn
+          isLabelColumn,
+          textColor: isLabelColumn ? '#FFFFFF' : null
         }
       });
 

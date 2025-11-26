@@ -148,10 +148,10 @@ class TableCellRenderer {
    * @param {Layer} layer - 행 헤더 셀 레이어
    */
   renderRowHeaderCell(layer) {
-    const { x, y, width, height, cellText, alignment } = layer.data;
+    const { x, y, width, height, cellText, alignment, textColor } = layer.data;
 
-    // 행 헤더 텍스트 (헤더와 동일한 스타일)
-    this.ctx.fillStyle = CONFIG.TABLE_HEADER_TEXT_COLOR;
+    // 행 헤더 텍스트 (커스텀 색상이 있으면 사용, 없으면 기본값)
+    this.ctx.fillStyle = textColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
     this.ctx.font = CONFIG.TABLE_FONT_DATA;
     this.ctx.textBaseline = 'middle';
     this.ctx.textAlign = alignment;
@@ -260,10 +260,11 @@ class TableCellRenderer {
     for (let i = 1; i <= rowCount; i++) {
       const lineY = y + totalHeaderHeight + (i - 1) * CONFIG.TABLE_ROW_HEIGHT;
 
-      // 마지막 선(합계 위)은 합계 행이 있는 경우에만 두께 2
+      // 첫 번째 선(컬럼 헤더 아래) 또는 마지막 선(합계 위)은 두께 2, 밝은 회색
+      const isHeaderLine = i === 1;
       const isSummaryLine = hasSummaryRow && i === rowCount;
 
-      if (isSummaryLine) {
+      if (isHeaderLine || isSummaryLine) {
         this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
         this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
       } else {
