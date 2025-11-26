@@ -454,10 +454,48 @@ class TableCellRenderer {
     } else {
       // 한글 등은 기본 폰트 사용
       this.ctx.fillStyle = color;
-      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
       this.ctx.textBaseline = 'middle';
-      this.ctx.textAlign = alignment;
-      this.ctx.fillText(str, x, y);
+
+      // 괄호 부분 분리 (예: "전체 학생 수 (명)" → "전체 학생 수 " + "(명)")
+      const match = str.match(/^(.*?)(\s*\([^)]*\))$/);
+      if (match) {
+        const mainText = match[1];
+        const parenText = match[2];
+
+        // 메인 텍스트 너비 측정
+        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+        const mainWidth = this.ctx.measureText(mainText).width;
+
+        // 괄호 텍스트 너비 측정 (작은 폰트)
+        const smallFont = bold ? 'bold 14px sans-serif' : '14px sans-serif';
+        this.ctx.font = smallFont;
+        const parenWidth = this.ctx.measureText(parenText).width;
+
+        // 전체 너비로 시작 X 좌표 계산
+        const totalWidth = mainWidth + parenWidth;
+        let startX;
+        if (alignment === 'center') {
+          startX = x - totalWidth / 2;
+        } else if (alignment === 'right') {
+          startX = x - totalWidth;
+        } else {
+          startX = x;
+        }
+
+        // 메인 텍스트 렌더링
+        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText(mainText, startX, y);
+
+        // 괄호 텍스트 렌더링 (작은 폰트)
+        this.ctx.font = smallFont;
+        this.ctx.fillText(parenText, startX + mainWidth, y);
+      } else {
+        // 괄호 없으면 기존대로 렌더링
+        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+        this.ctx.textAlign = alignment;
+        this.ctx.fillText(str, x, y);
+      }
     }
   }
 
