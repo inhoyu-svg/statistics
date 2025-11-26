@@ -366,9 +366,11 @@ class TableCellRenderer {
   _drawClassWithSuperscript(cellText, cellX, cellY, classData, showSuperscript) {
     const min = classData.min;
     const max = classData.max;
+    const color = CONFIG.getColor('--color-text');
 
-    // 폰트 크기 설정
-    const normalFont = CONFIG.TABLE_FONT_DATA;
+    // 폰트 설정 (KaTeX 폰트 사용)
+    const fontSize = 18;
+    const katexFont = `${fontSize}px KaTeX_Main, Times New Roman, serif`;
     const superscriptFont = CONFIG.TABLE_FONT_SUPERSCRIPT;
 
     // 텍스트 구성 요소
@@ -378,13 +380,13 @@ class TableCellRenderer {
     const superMax = CONFIG.TABLE_SUPERSCRIPT_MAX_TEXT;
     const separator = CONFIG.TABLE_CLASS_SEPARATOR;
 
-    // 각 구성 요소의 너비 측정
-    this.ctx.font = normalFont;
+    // 각 구성 요소의 너비 측정 (KaTeX 폰트 기준)
+    this.ctx.font = katexFont;
     const minWidth = this.ctx.measureText(minText).width;
     const maxWidth = this.ctx.measureText(maxText).width;
     const sepWidth = this.ctx.measureText(separator).width;
 
-    // 상첨자 너비 측정 (표시 여부와 관계없이)
+    // 상첨자 너비 측정
     this.ctx.font = superscriptFont;
     const superMinWidth = showSuperscript ? this.ctx.measureText(superMin).width : 0;
     const superMaxWidth = showSuperscript ? this.ctx.measureText(superMax).width : 0;
@@ -399,8 +401,12 @@ class TableCellRenderer {
     const normalY = cellY;
     const superscriptY = cellY - CONFIG.TABLE_SUPERSCRIPT_Y_OFFSET;
 
-    // 1. min 숫자 그리기
-    this.ctx.font = normalFont;
+    // 색상 설정
+    this.ctx.fillStyle = color;
+    this.ctx.textBaseline = 'middle';
+
+    // 1. min 숫자 그리기 (KaTeX 폰트)
+    this.ctx.font = katexFont;
     this.ctx.textAlign = 'left';
     this.ctx.fillText(minText, x, normalY);
     x += minWidth;
@@ -412,12 +418,12 @@ class TableCellRenderer {
       x += superMinWidth;
     }
 
-    // 3. " ~ " 구분자 그리기
-    this.ctx.font = normalFont;
+    // 3. " ~ " 구분자 그리기 (KaTeX 폰트)
+    this.ctx.font = katexFont;
     this.ctx.fillText(separator, x, normalY);
     x += sepWidth;
 
-    // 4. max 숫자 그리기
+    // 4. max 숫자 그리기 (KaTeX 폰트)
     this.ctx.fillText(maxText, x, normalY);
     x += maxWidth;
 

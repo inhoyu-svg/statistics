@@ -483,7 +483,7 @@ class FrequencyDistributionApp {
    * 상첨자 토글 이벤트 리스너 등록
    */
   initSuperscriptToggle() {
-    const checkbox = document.getElementById('showSuperscript');
+    const checkbox = document.querySelector('.dataset-show-superscript');
     checkbox?.addEventListener('change', () => {
       // 데이터가 있을 때만 재렌더링
       if (DataStore.hasData()) {
@@ -1896,7 +1896,7 @@ class FrequencyDistributionApp {
     const originalVisibleColumns = checkboxes.map(cb => cb.checked);
 
     // 상첨자 표시 옵션
-    const showSuperscript = document.getElementById('showSuperscript')?.checked ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
+    const showSuperscript = document.querySelector('.dataset-show-superscript')?.checked ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
 
     return {
       labels: customLabels.table,
