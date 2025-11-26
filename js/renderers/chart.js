@@ -181,7 +181,6 @@ class ChartRenderer {
       this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
       this.polygonRenderer.draw(values, coords, ellipsisInfo);
       this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
-      this.axisRenderer.drawLegend(dataType);
     }
   }
 
@@ -572,8 +571,6 @@ class ChartRenderer {
         this.renderLayer(layer);
       }
     });
-
-    this.axisRenderer.drawLegend(this.currentDataType);
 
     // 테이블 하이라이트 업데이트
     this.updateTableHighlight(allAnimations);
