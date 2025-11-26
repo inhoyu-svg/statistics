@@ -1,0 +1,1563 @@
+/* ===== 성능 최적화 ===== */
+.text-animate-in {
+    will-change: opacity, transform;
+}
+
+.solve-frame {
+    will-change: transform;
+}
+
+/* ===== 테스트용 포커스 표시 ===== */
+.focus-test-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100vw - 140px);
+    /* 양쪽 70px 여백 */
+    height: calc(100vh - 140px);
+    /* 위아래 70px 여백 */
+    border: clamp(2px, 0.3vw, 4px) solid red;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 10000;
+    background: transparent;
+}
+
+.focus-test-overlay::after {
+    content: 'FOCUS TEST - 70px MARGIN';
+    position: absolute;
+    top: -35px;
+    left: 0;
+    background: red;
+    color: #EBEBEB;
+    padding: clamp(3px, 0.5vw, 5px) clamp(6px, 1vw, 10px);
+    font-family: 'SCDream';
+    font-weight: 700;
+    font-size: clamp(0.7rem, 1.2vw + 0.4rem, 1rem);
+    white-space: nowrap;
+}
+
+.focus-test-border {
+    border: clamp(1.5px, 0.25vw, 2.5px) solid rgba(255, 0, 0, 0.3);
+    position: relative;
+}
+
+/* 키워드 복습 영역 여백 */
+.review-keywords-section {
+    align-self: flex-end;
+    margin-bottom: 0;
+    margin-top: clamp(40px, 5vh, 75px);
+    /* vh 단위로 통일하여 세로 비율 일관성 확보 */
+}
+
+/* 정답 프레임 전용 Review Section 스타일 오버라이드 */
+[data-frame-type="answer"] .problem-answer-scene .review-keywords-section {
+    position: relative;
+    margin-top: clamp(80px, 10vh, 150px);
+    /* vh 단위로 통일 (기존 값의 2배) */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* 수평 가운데 정렬 추가 */
+}
+
+/* 정답 프레임 review-area - 가운데 정렬, TAG가 border 상단을 지나가도록 padding 조정 */
+[data-frame-type="answer"] .review-keywords-section .review-area {
+    flex: none;
+    position: relative;
+    display: block;
+    padding: clamp(70px, 8vh, 150px) clamp(50px, 7vw, 90px) clamp(30px, 5vh, 70px) clamp(50px, 7vw, 90px);
+    margin: clamp(15px, 2vh, 25px) auto 0 auto;
+    /* 상단 padding 약간 감소 */
+    width: fit-content;
+    /* 내용에 맞는 너비 */
+    max-width: 1000px;
+}
+
+/* review-area의 KEY TAG - TAG 중심이 border 상단 라인과 정확히 일치하도록 */
+[data-frame-type="answer"] .problem-answer-scene .review-keywords-section .review-area .scene-tag,
+[data-frame-type="answer"] .problem-answer-scene .review-keywords-section .review-area [id^="reviewSceneTag"],
+[data-frame-type="answer"] .review-keywords-section .review-area .scene-tag[id^="reviewSceneTag"] {
+    position: absolute;
+    top: calc(-1 * clamp(19.5px, 2vh, 29.5px));
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    /* TAG 높이의 절반을 정확히 계산하여 border 중심에 배치 */
+    margin: 0 auto;
+    width: fit-content;
+    z-index: 100;
+    /* TAG 세로 크기는 vh, 가로는 vw 기반 */
+    padding: clamp(4.4px, 0.5vh, 6.6px) clamp(9px, 2.25vw, 20.6px);
+    font-size: clamp(25.3px, 2.5vh, 38.5px);
+    border-radius: clamp(38.5px, 4vh, 66px);
+}
+
+/* 정답 프레임 review-keyword-item - 모든 기존 규칙 오버라이드 */
+[data-frame-type="answer"] .problem-answer-scene .review-keywords-section .review-keyword-item,
+[data-frame-type="answer"] .review-keywords-section .review-area .review-keyword-item,
+[data-frame-type="answer"] .review-keyword-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: clamp(24px, 3vh, 40px);
+}
+
+/* 정답 프레임 keyword-number는 아래 이후에 배치하여 오버라이드 */
+
+[data-frame-type="answer"] .review-keyword-item .keyword-text {
+    white-space: nowrap;
+    font-size: clamp(1.2rem, 2vh + 0.8rem, 2rem);
+    /* vh 단위로 통일 */
+    line-height: 1.3;
+    font-family: 'SCDream', sans-serif;
+    font-weight: 500;
+}
+
+/* application-label 숨김 */
+.application-label {
+    display: none;
+}
+
+/* ===== 새로운 Combined 섹션 스타일 ===== */
+.comprehension-combined-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 1.5vw, 30px);
+    position: relative;
+}
+
+.application-combined-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 1.5vw, 30px);
+}
+
+/* 독해 키워드 스타일 보완 */
+.comprehension-explanation-box {
+    width: 100%;
+    padding: clamp(12px, 2vw, 38px);
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    text-align: center;
+}
+
+/* 적용 키워드 스타일 보완 */
+.application-flow-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(8px, 1.2vw, 22px);
+}
+
+/* ===== 키워드 깜빡이는 강조 효과 ===== */
+.blink-highlight .keyword-text {
+    animation: blinkHighlight 1.2s ease-in-out;
+}
+
+@keyframes blinkHighlight {
+    0% {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        transform: scale(1);
+    }
+
+    25% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+        transform: scale(1.03);
+    }
+
+    50% {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        transform: scale(1);
+    }
+
+    75% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+        transform: scale(1.03);
+    }
+
+    100% {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        transform: scale(1);
+    }
+}
+
+/* ===== key 요약씬 반응형 스타일 ===== */
+/* 화면 크기에 따라 key 요약씬의 크기를 자동 조정하되 요소들간의 비율 유지 */
+.keyword-list-scene {
+    /* 기본 스케일링 적용 - 상하 중앙 정렬 유지 */
+    transform: translate(-50%, -50%) scale(clamp(0.6, 1.5vw + 0.4, 1.0));
+    transform-origin: center;
+}
+
+.keyword-list-scene .keyword-text,
+.keyword-list-scene .step-text {
+    /* 폰트 크기를 뷰포트에 반응하도록 조정 */
+    font-size: clamp(28px, 3.5vw, 50px);
+    line-height: 1.3;
+}
+
+.keyword-list-scene .scene-tag {
+    /* 태그 크기도 반응형으로 조정 */
+    margin-bottom: clamp(30px, 4vh, 50px);
+}
+
+.keyword-list-scene .keyword-item,
+.keyword-list-scene .review-keyword-item {
+    /* 아이템 간격도 반응형으로 조정 */
+    margin-bottom: clamp(30px, 4vh, 50px);
+}
+
+.keyword-list-scene .keyword-number {
+    /* 키워드 번호 크기 조정 */
+    font-size: clamp(21px, 2.65vw, 30px);
+    width: clamp(32px, 3.5vw, 43px);
+    height: clamp(32px, 3.5vw, 43px);
+    margin-right: clamp(10px, 1.5vw, 20px);
+    vertical-align: middle;
+}
+
+/* 정답 프레임 전용 keyword-number 오버라이드 - 위 규칙보다 나중에 선언하여 확실히 적용 */
+[data-frame-type="answer"] .keyword-number {
+    font-size: clamp(1.15rem, 1.55vh + 0.7rem, 1.65rem);
+    width: clamp(23px, 3.0vw, 35px);
+    height: clamp(23px, 3.0vw, 35px);
+    margin-right: 0;
+}
+
+/* 매우 작은 화면에서 추가 최적화 */
+@media (max-width: 480px) {
+    .keyword-list-scene {
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+}
+
+/* 매우 큰 화면에서 최대 크기 제한 */
+@media (min-width: 1600px) {
+    .keyword-list-scene {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* ===== STEP 요약씬 반응형 스타일 ===== */
+/* 화면 크기에 따라 step 요약씬의 크기를 자동 조정하되 요소들간의 비율 유지 */
+.step-list-scene {
+    /* 상하 중앙 정렬 유지하면서 스케일 적용 - 살짝 키움 */
+    transform: translate(-50%, -50%) scale(clamp(0.4, 0.9vw + 0.25, 0.75));
+    transform-origin: center;
+    /* top/left는 기본값 유지 (50%) */
+}
+
+.step-list-scene .step-text {
+    /* 폰트 크기를 뷰포트에 반응하도록 조정 - 살짝 키움 */
+    font-size: clamp(22px, 3vw, 42px);
+    line-height: 1.3;
+}
+
+.step-list-scene .scene-tag,
+.step-list-scene .scene-tag.step-tag {
+    /* 태그 크기도 반응형으로 조정 */
+    font-size: clamp(18px, 2vw, 26px);
+    padding: clamp(3px, 0.4vw, 5px) clamp(13px, 2.1vw, 27px);
+    margin-bottom: clamp(35px, 4vw, 60px);
+    /* 태그와 첫 텍스트 간격 늘림 */
+    border: clamp(2px, 0.3vw, 4px) solid #FFD34F;
+}
+
+.step-list-scene .scene-tag.step-tag {
+    border: none;
+    position: relative;
+    z-index: 0;
+}
+
+/* step-tag 텍스트를 앞으로 */
+.step-list-scene .scene-tag.step-tag::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+}
+
+/* step-list-scene의 step-tag SVG border 스타일 */
+.step-list-scene .scene-tag.step-tag .border-svg {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.step-list-scene .scene-tag.step-tag .border-svg svg {
+    width: 100%;
+    height: 100%;
+}
+
+.step-list-scene .scene-tag.step-tag .border-svg path {
+    stroke: #FFD34F;
+    stroke-width: 2;
+    fill: none !important;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+}
+
+.step-list-scene .scene-tag.step-tag.border-animate .border-svg path {
+    animation: drawStepTagBorder 0.8s ease-out forwards;
+}
+
+@keyframes drawStepTagBorder {
+    from {
+        stroke-dasharray: 0 var(--path-length, 1000);
+    }
+
+    to {
+        stroke-dasharray: var(--path-length, 1000) 0;
+    }
+}
+
+/* step-item 슬라이드 + fade in 애니메이션 */
+@keyframes stepItemSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-70px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.step-list-scene .step-item {
+    /* 아이템 간격도 반응형으로 조정 - 간격 늘림 */
+    margin-bottom: clamp(35px, 4vw, 55px);
+    /* 텍스트간 간격 늘림 */
+    opacity: 0;
+}
+
+.step-list-scene .step-item.reveal-animate {
+    animation: stepItemSlideIn 1s ease-out forwards;
+}
+
+.step-list-scene .step-item .step-number {
+    /* 스텝 번호 크기 조정 */
+    font-size: clamp(18px, 2.2vw, 26px);
+    width: clamp(32px, 3.2vw, 42px);
+    height: clamp(32px, 3.2vw, 42px);
+    margin-right: clamp(10px, 1.5vw, 20px);
+    vertical-align: middle;
+}
+
+.step-list-scene .step-text {
+    vertical-align: middle;
+}
+
+/* 매우 작은 화면에서 추가 최적화 */
+@media (max-width: 480px) {
+    .step-list-scene {
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+}
+
+/* 매우 큰 화면에서 최대 크기 제한 */
+@media (min-width: 1600px) {
+    .step-list-scene {
+        transform: translate(-50%, -50%) scale(0.65);
+    }
+}
+
+/* 정답 프레임(IS_ANSWER_FRAME)에서 문항씬과 key 요약씬이 절대 겹치지 않도록 조정 */
+/* 중복 스타일 제거 - 위에서 이미 정의함 */
+
+.problem-answer-scene .problem-block {
+    /* 문항 오버레이와 완전히 동일한 크기와 스타일 */
+    /* 정답 프레임에서는 투명하게 - 레이아웃만 유지 */
+    padding: 0;
+    border: none;
+    background: transparent;
+    backdrop-filter: none;
+    /* 문항 오버레이와 동일한 고정 너비 설정 */
+    width: clamp(400px, 60vw, 800px);
+    max-width: 90vw;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+    /* 정답 프레임에서도 박스 유지 - mask 애니메이션 성능 문제 해결 */
+    display: block;
+    text-align: center;
+    /* problem-answer-scene 내에서 가운데 정렬 */
+    align-self: center;
+}
+
+/* 정답 프레임 정답 박스 크기 조정 - z-index 추가하여 KEY 태그와 겹치지 않도록 */
+.problem-answer-scene .answer-display {
+    /* 정답 박스는 내용에 맞게 크기 조정 */
+    width: auto;
+    max-width: clamp(250px, 40vw, 500px);
+    margin: clamp(7px, 1vh, 13px) auto;
+    /* vh 단위로 통일 */
+    display: inline-block;
+    position: relative;
+    z-index: 50;
+    /* KEY 태그(z-index: 100)보다 낮게 설정하여 겹치지 않도록 */
+}
+
+
+.problem-answer-scene .keyword-list-scene {
+    /* 키워드 복습 영역 스타일 - flexbox에서 자동 배치됨 */
+    width: fit-content;
+    height: auto;
+    margin: 0 auto;
+    opacity: 0.9;
+    /* 최대 높이 제한하여 문항과 겹치지 않게 */
+    max-height: 20vh;
+    overflow: visible;
+}
+
+/* ===== 프로그레시브 가시성 클래스 ===== */
+.progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+    transform: translateZ(0);
+}
+
+/* 인출키워드 좌우 레이아웃 전용 가시성 강화 */
+.extraction-middle-section .progressive-visible,
+.extraction-left.progressive-visible,
+.extraction-right.progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: flex;
+    transform: translateZ(0);
+}
+
+/* 인출키워드 내부 요소들 강제 표시 */
+.progressive-visible .content-text,
+.progressive-visible .keyword-hint,
+.progressive-visible .keyword-strategy,
+.progressive-visible .keyword-hint-title,
+.progressive-visible .keyword-strategy-title {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+}
+
+/* 인출키워드 중단 섹션 강제 표시 */
+.extraction-middle-section.progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: flex;
+}
+
+/* 인출키워드 좌우 영역 개별 강제 표시 */
+.extraction-left.progressive-visible,
+.extraction-right.progressive-visible,
+[id^="focusKeywordContent"][id$="_1"].progressive-visible,
+[id^="focusKeywordContent"][id$="_2"].progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 모든 키워드 제목 요소들 강제 표시 */
+[id^="focusKeywordTitle"].progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+}
+
+/* 모든 키워드 combined 요소들 강제 표시 */
+[id^="focusKeywordContent"][id$="_combined"].progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* 모든 키워드 개별 콘텐츠 요소들 강제 표시 */
+[id^="focusKeywordContent"][id$="_3"].progressive-visible,
+[id^="focusKeywordContent"][id$="_4"].progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scene Tag 요소들 강제 표시 */
+[id^="keywordDetailTag"].progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+}
+
+/* 독해키워드 SVG border 컨테이너 */
+.comprehension-combined-section .border-svg {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 독해키워드 SVG 스타일 */
+.comprehension-combined-section .border-svg svg {
+    width: 100%;
+    height: 100%;
+}
+
+.comprehension-combined-section .border-svg path {
+    stroke: #1D3A5C;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* 독해키워드 테두리 애니메이션 */
+.comprehension-combined-section.border-animate .border-svg path {
+    animation: drawBorder 1.5s cubic-bezier(0.9, 0, 0.6, 1) forwards;
+}
+
+/* 모든 키워드 관련 요소들 최고 우선순위 강제 표시 */
+[id*="focusKeyword"].progressive-visible,
+[id*="keywordDetail"].progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+}
+
+/* 플렉스 표시가 필요한 키워드 요소들 - 동적 프레임 번호 지원 */
+[id^="focusKeywordContent"][id*="_combined"].progressive-visible,
+[id^="focusKeywordContent"]:not([id*="_combined"]).progressive-visible {
+    visibility: visible;
+    opacity: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== 동적 스타일 확장 영역 ===== */
+/* 이 영역에 LLM이 생성한 추가 스타일들이 삽입됩니다 */
+
+/* 키워드 상세씬 태그와 타이틀 간격 16px - 최우선 적용 */
+.keyword-detail-scene .scene-tag,
+[id^="keywordDetailTag"] {
+    margin-bottom: clamp(12px, 2vw, 20px);
+}
+
+/* KEY 요약 씬 번호와 텍스트 상하 정렬 */
+.keyword-number {
+    vertical-align: middle;
+}
+
+.keyword-text {
+    vertical-align: middle;
+    overflow: visible;
+}
+
+/* ===== Progressive Reveal with Opacity for Non-Target Elements ===== */
+/* Target element를 제외한 나머지 reveal elements에 적용되는 스타일 */
+.reveal-dimmed {
+    opacity: 0.3 !important;
+    transition: opacity 1000ms cubic-bezier(0.5, 0, 0.4, 1) !important;
+}
+
+/* Target element에 적용되는 스타일 */
+.reveal-focus {
+    opacity: 1 !important;
+    transition: opacity 1000ms cubic-bezier(0.5, 0, 0.4, 1) !important;
+}
+
+/* 키워드 타이틀이 reveal-focus일 때 태그도 함께 opacity 1 - JS에서 클래스 추가 */
+[id^="keywordDetailTag"].tag-focus-with-title {
+    opacity: 1 !important;
+}
+
+/* KEY 요약씬 태그 스타일 - 동적 프레임 번호 지원 */
+div[id^="keywordSceneTag"],
+.problem-answer-scene div[id^="reviewSceneTag"],
+.scene-tag[id*="keyword"]:not([id*="keywordDetailTag"]) {
+    padding: clamp(4.4px, 0.55vw, 6.6px) clamp(12.1px, 3.3vw, 27.5px);
+    border-radius: clamp(38.5px, 5.5vw, 66px);
+    margin: 0;
+    line-height: 1;
+    box-sizing: border-box;
+    background: #A2FF72;
+    color: #000000;
+    font-size: clamp(25.3px, 2.42vw, 38.5px);
+    font-weight: 700;
+    display: inline-block;
+    transform-origin: center;
+}
+
+/* KEY 상세씬 태그만 위아래 패딩 증가 */
+.keyword-detail-scene .scene-tag[id*="keywordDetailTag"] {
+    padding: clamp(6px, 1vw, 10px) clamp(18px, 2.5vw, 32px);
+    font-size: clamp(18px, 2.2vw, 30px);
+}
+
+/* 애니메이션 트리거 클래스 - 동적 프레임 번호 지원 */
+/* scene-tag 애니메이션은 이제 JavaScript의 inline 스타일로 처리됨 */
+
+/* KEY 상세씬 태그 스타일 - 동적 프레임 번호 지원 (각 키워드는 독립 프레임) */
+div[id^="keywordDetailTag"] {
+    padding: clamp(2px, 0.5vw, 4px) clamp(18px, 2.5vw, 28px);
+    border-radius: clamp(35px, 5vw, 60px);
+    margin: 0;
+    line-height: 1;
+    box-sizing: border-box;
+    background: #A2FF72;
+    color: #000000;
+    font-size: clamp(16px, 2vw, 27px);
+    display: inline-block;
+    transform-origin: center;
+}
+
+/* KEY 상세씬 태그 애니메이션 트리거 클래스 - 동적 프레임 번호 지원 */
+div[id^="keywordDetailTag"].tag-animate {
+    animation: tagScaleAnimation 1000ms ease-out forwards;
+}
+
+/* STEP 상세씬만 수정 (요약씬은 그대로) */
+.step-detail-scene .scene-tag.step-tag {
+    padding: clamp(1px, 0.3vw, 3px) clamp(6px, 1vw, 10px);
+    background: transparent;
+    color: #FFD34F;
+    border: clamp(1.2px, 0.2vw, 2px) solid #FFD34F;
+    border-radius: 0;
+    font-size: clamp(0.575rem, 1.2vw + 0.4rem, 0.875rem);
+    font-weight: 700;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: clamp(7px, 1.2vw, 13px);
+    margin-bottom: 0;
+    animation: tagScaleAnimation 1000ms ease-out forwards;
+    transform-origin: center;
+    transition: opacity 1000ms cubic-bezier(0.5, 0, 0.4, 1);
+}
+
+/* STEP 상세씬 태그와 타이틀 나란히 배치하고 가운데 정렬 */
+.step-detail-scene {
+    text-align: center;
+    transform: none;
+    position: static;
+    top: auto;
+    left: auto;
+    animation: none;
+    transition: none;
+}
+
+.step-detail-scene .step-title {
+    display: inline-block;
+    vertical-align: middle;
+    flex: none;
+    text-align: left;
+}
+
+/* STEP 요약씬 텍스트 정렬 */
+.step-list-scene .step-text {
+    vertical-align: middle;
+}
+
+/* KEY 요약 씬 여백 조정 - 더 강력한 셀렉터 */
+div.keyword-list-scene div.scene-tag,
+div.keyword-list-scene .scene-tag[id^="keywordSceneTag"],
+div.keyword-list-scene .scene-tag[id^="reviewSceneTag"] {
+    margin-bottom: clamp(30px, 4vw, 50px);
+}
+
+div.keyword-list-scene div.keyword-item,
+div.keyword-list-scene div.review-keyword-item {
+    margin-bottom: clamp(25px, 3.5vw, 45px);
+}
+
+div.keyword-list-scene span.keyword-number {
+    margin-right: clamp(10px, 1.5vw, 20px);
+}
+
+/* 모든 태그 등장시 스케일 애니메이션 효과 */
+.scene-tag {
+    /* 초기 상태를 숨김으로 설정하여 JS 로드 전 깜빡임 방지 */
+    animation: tagScaleAnimation 1000ms ease-out forwards;
+    transform-origin: center;
+    opacity: 0;
+    visibility: hidden;
+    will-change: transform, opacity;
+}
+
+/* 타이틀의 opacity transition 명시 - step-detail-scene의 transition: none보다 우선 */
+.step-title,
+.scene-title,
+.keyword-title,
+.step-detail-scene .step-title {
+    transition: opacity 1000ms cubic-bezier(0.5, 0, 0.4, 1);
+}
+
+@keyframes tagScaleAnimation {
+    0% {
+        transform: scale(0);
+    }
+
+    70% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 첫 프레임 scene-tag 애니메이션 - 우측 상단에서 날아와 왼쪽 상단이 접혀 펼쳐지는 스티커 효과 */
+@keyframes sceneTagFirstFrameEntry {
+    0% {
+        opacity: 0;
+        transform: scale(1.3);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 25%, black 25%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 25%, black 25%);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    12% {
+        opacity: 0.3;
+        transform: scale(1.2);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 18%, black 18%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 18%, black 18%);
+        box-shadow: 0 4px 11px rgba(0, 0, 0, 0.14);
+    }
+
+    24% {
+        opacity: 0.65;
+        transform: scale(1.1);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 9%, black 9%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 9%, black 9%);
+        box-shadow: 0 4px 10.5px rgba(0, 0, 0, 0.12);
+    }
+
+    37% {
+        opacity: 1;
+        transform: scale(1.0);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.0);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        box-shadow: 0 2px 8px rgba(93, 196, 112, 0.3);
+    }
+}
+
+/* 첫 프레임 scene-tag 스타일 */
+/* 새로운 태그 등장 애니메이션 */
+@keyframes tagAppearAnimation {
+    0% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* step-content-item math 페이드인 + 슬라이드다운 애니메이션 */
+@keyframes contentFadeSlideDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-100px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* keyword-item 극도로 부드러운 페더 애니메이션 - 매우 세밀한 단계 */
+@keyframes keywordReveal {
+    0% {
+        mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+    }
+
+    2% {
+        mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+    }
+
+    4% {
+        mask: linear-gradient(90deg, black 0%, black 2%, transparent 6%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 2%, transparent 6%, transparent 100%);
+    }
+
+    6% {
+        mask: linear-gradient(90deg, black 0%, black 3%, transparent 8%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 3%, transparent 8%, transparent 100%);
+    }
+
+    8% {
+        mask: linear-gradient(90deg, black 0%, black 4%, transparent 10%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 4%, transparent 10%, transparent 100%);
+    }
+
+    10% {
+        mask: linear-gradient(90deg, black 0%, black 5%, transparent 12%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 5%, transparent 12%, transparent 100%);
+    }
+
+    12% {
+        mask: linear-gradient(90deg, black 0%, black 6%, transparent 14%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 6%, transparent 14%, transparent 100%);
+    }
+
+    14% {
+        mask: linear-gradient(90deg, black 0%, black 7%, transparent 16%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 7%, transparent 16%, transparent 100%);
+    }
+
+    16% {
+        mask: linear-gradient(90deg, black 0%, black 8%, transparent 18%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 8%, transparent 18%, transparent 100%);
+    }
+
+    18% {
+        mask: linear-gradient(90deg, black 0%, black 9%, transparent 20%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 9%, transparent 20%, transparent 100%);
+    }
+
+    20% {
+        mask: linear-gradient(90deg, black 0%, black 10%, transparent 22%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 10%, transparent 22%, transparent 100%);
+    }
+
+    22% {
+        mask: linear-gradient(90deg, black 0%, black 11%, transparent 24%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 11%, transparent 24%, transparent 100%);
+    }
+
+    24% {
+        mask: linear-gradient(90deg, black 0%, black 12%, transparent 26%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 12%, transparent 26%, transparent 100%);
+    }
+
+    26% {
+        mask: linear-gradient(90deg, black 0%, black 13%, transparent 28%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 13%, transparent 28%, transparent 100%);
+    }
+
+    28% {
+        mask: linear-gradient(90deg, black 0%, black 14%, transparent 30%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 14%, transparent 30%, transparent 100%);
+    }
+
+    30% {
+        mask: linear-gradient(90deg, black 0%, black 15%, transparent 32%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 15%, transparent 32%, transparent 100%);
+    }
+
+    32% {
+        mask: linear-gradient(90deg, black 0%, black 16%, transparent 34%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 16%, transparent 34%, transparent 100%);
+    }
+
+    34% {
+        mask: linear-gradient(90deg, black 0%, black 17%, transparent 36%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 17%, transparent 36%, transparent 100%);
+    }
+
+    36% {
+        mask: linear-gradient(90deg, black 0%, black 18%, transparent 38%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 18%, transparent 38%, transparent 100%);
+    }
+
+    38% {
+        mask: linear-gradient(90deg, black 0%, black 19%, transparent 40%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 19%, transparent 40%, transparent 100%);
+    }
+
+    40% {
+        mask: linear-gradient(90deg, black 0%, black 20%, transparent 42%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 20%, transparent 42%, transparent 100%);
+    }
+
+    42% {
+        mask: linear-gradient(90deg, black 0%, black 21%, transparent 44%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 21%, transparent 44%, transparent 100%);
+    }
+
+    44% {
+        mask: linear-gradient(90deg, black 0%, black 22%, transparent 46%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 22%, transparent 46%, transparent 100%);
+    }
+
+    46% {
+        mask: linear-gradient(90deg, black 0%, black 23%, transparent 48%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 23%, transparent 48%, transparent 100%);
+    }
+
+    48% {
+        mask: linear-gradient(90deg, black 0%, black 24%, transparent 50%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 24%, transparent 50%, transparent 100%);
+    }
+
+    50% {
+        mask: linear-gradient(90deg, black 0%, black 25%, transparent 52%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 25%, transparent 52%, transparent 100%);
+    }
+
+    52% {
+        mask: linear-gradient(90deg, black 0%, black 26%, transparent 54%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 26%, transparent 54%, transparent 100%);
+    }
+
+    54% {
+        mask: linear-gradient(90deg, black 0%, black 27%, transparent 56%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 27%, transparent 56%, transparent 100%);
+    }
+
+    56% {
+        mask: linear-gradient(90deg, black 0%, black 28%, transparent 58%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 28%, transparent 58%, transparent 100%);
+    }
+
+    58% {
+        mask: linear-gradient(90deg, black 0%, black 29%, transparent 60%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 29%, transparent 60%, transparent 100%);
+    }
+
+    60% {
+        mask: linear-gradient(90deg, black 0%, black 40%, transparent 70%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 40%, transparent 70%, transparent 100%);
+    }
+
+    62% {
+        mask: linear-gradient(90deg, black 0%, black 42%, transparent 72%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 42%, transparent 72%, transparent 100%);
+    }
+
+    64% {
+        mask: linear-gradient(90deg, black 0%, black 44%, transparent 74%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 44%, transparent 74%, transparent 100%);
+    }
+
+    66% {
+        mask: linear-gradient(90deg, black 0%, black 46%, transparent 76%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 46%, transparent 76%, transparent 100%);
+    }
+
+    68% {
+        mask: linear-gradient(90deg, black 0%, black 48%, transparent 78%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 48%, transparent 78%, transparent 100%);
+    }
+
+    70% {
+        mask: linear-gradient(90deg, black 0%, black 50%, transparent 80%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 50%, transparent 80%, transparent 100%);
+    }
+
+    72% {
+        mask: linear-gradient(90deg, black 0%, black 52%, transparent 81%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 52%, transparent 81%, transparent 100%);
+    }
+
+    74% {
+        mask: linear-gradient(90deg, black 0%, black 54%, transparent 82%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 54%, transparent 82%, transparent 100%);
+    }
+
+    76% {
+        mask: linear-gradient(90deg, black 0%, black 56%, transparent 83%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 56%, transparent 83%, transparent 100%);
+    }
+
+    78% {
+        mask: linear-gradient(90deg, black 0%, black 58%, transparent 84%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 58%, transparent 84%, transparent 100%);
+    }
+
+    80% {
+        mask: linear-gradient(90deg, black 0%, black 60%, transparent 85%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 60%, transparent 85%, transparent 100%);
+    }
+
+    82% {
+        mask: linear-gradient(90deg, black 0%, black 62%, transparent 87%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 62%, transparent 87%, transparent 100%);
+    }
+
+    84% {
+        mask: linear-gradient(90deg, black 0%, black 64%, transparent 89%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 64%, transparent 89%, transparent 100%);
+    }
+
+    86% {
+        mask: linear-gradient(90deg, black 0%, black 66%, transparent 91%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 66%, transparent 91%, transparent 100%);
+    }
+
+    88% {
+        mask: linear-gradient(90deg, black 0%, black 68%, transparent 93%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 68%, transparent 93%, transparent 100%);
+    }
+
+    90% {
+        mask: linear-gradient(90deg, black 0%, black 70%, black 75%, transparent 95%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 70%, black 75%, transparent 95%, transparent 100%);
+    }
+
+    91% {
+        mask: linear-gradient(90deg, black 0%, black 72%, black 77%, transparent 96%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 72%, black 77%, transparent 96%, transparent 100%);
+    }
+
+    92% {
+        mask: linear-gradient(90deg, black 0%, black 74%, black 79%, transparent 96%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 74%, black 79%, transparent 96%, transparent 100%);
+    }
+
+    93% {
+        mask: linear-gradient(90deg, black 0%, black 76%, black 81%, transparent 97%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 76%, black 81%, transparent 97%, transparent 100%);
+    }
+
+    94% {
+        mask: linear-gradient(90deg, black 0%, black 78%, black 83%, transparent 97%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 78%, black 83%, transparent 97%, transparent 100%);
+    }
+
+    95% {
+        mask: linear-gradient(90deg, black 0%, black 80%, black 85%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 80%, black 85%, transparent 98%, transparent 100%);
+    }
+
+    96% {
+        mask: linear-gradient(90deg, black 0%, black 82%, black 87%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 82%, black 87%, transparent 98%, transparent 100%);
+    }
+
+    97% {
+        mask: linear-gradient(90deg, black 0%, black 84%, black 89%, transparent 99%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 84%, black 89%, transparent 99%, transparent 100%);
+    }
+
+    98% {
+        mask: linear-gradient(90deg, black 0%, black 86%, black 91%, transparent 99%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 86%, black 91%, transparent 99%, transparent 100%);
+    }
+
+    99% {
+        mask: linear-gradient(90deg, black 0%, black 88%, black 94%, transparent 99.5%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 88%, black 94%, transparent 99.5%, transparent 100%);
+    }
+
+    100% {
+        mask: linear-gradient(90deg, black 0%, black 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 100%);
+    }
+}
+
+/* wobble-hor-bottom animation */
+@-webkit-keyframes wobble-hor-bottom {
+
+    0%,
+    100% {
+        -webkit-transform: translateX(0%);
+        transform: translateX(0%);
+        -webkit-transform-origin: 50% 50%;
+        transform-origin: 50% 50%;
+    }
+
+    15% {
+        -webkit-transform: translateX(-30px) rotate(-6deg);
+        transform: translateX(-30px) rotate(-6deg);
+    }
+
+    30% {
+        -webkit-transform: translateX(15px) rotate(6deg);
+        transform: translateX(15px) rotate(6deg);
+    }
+
+    45% {
+        -webkit-transform: translateX(-15px) rotate(-3.6deg);
+        transform: translateX(-15px) rotate(-3.6deg);
+    }
+
+    60% {
+        -webkit-transform: translateX(9px) rotate(2.4deg);
+        transform: translateX(9px) rotate(2.4deg);
+    }
+
+    75% {
+        -webkit-transform: translateX(-6px) rotate(-1.2deg);
+        transform: translateX(-6px) rotate(-1.2deg);
+    }
+}
+
+@keyframes wobble-hor-bottom {
+
+    0%,
+    100% {
+        -webkit-transform: translateX(0%);
+        transform: translateX(0%);
+        -webkit-transform-origin: 50% 50%;
+        transform-origin: 50% 50%;
+    }
+
+    15% {
+        -webkit-transform: translateX(-30px) rotate(-6deg);
+        transform: translateX(-30px) rotate(-6deg);
+    }
+
+    30% {
+        -webkit-transform: translateX(15px) rotate(6deg);
+        transform: translateX(15px) rotate(6deg);
+    }
+
+    45% {
+        -webkit-transform: translateX(-15px) rotate(-3.6deg);
+        transform: translateX(-15px) rotate(-3.6deg);
+    }
+
+    60% {
+        -webkit-transform: translateX(9px) rotate(2.4deg);
+        transform: translateX(9px) rotate(2.4deg);
+    }
+
+    75% {
+        -webkit-transform: translateX(-6px) rotate(-1.2deg);
+        transform: translateX(-6px) rotate(-1.2deg);
+    }
+}
+
+/* openUpRightReturn animation (2x speed) */
+@-webkit-keyframes openUpRightReturn {
+    0% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(-110deg);
+        transform: rotate(-110deg);
+        -webkit-animation-timing-function: ease-in-out;
+        animation-timing-function: ease-in-out;
+    }
+
+    100% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+}
+
+@keyframes openUpRightReturn {
+    0% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(-110deg);
+        transform: rotate(-110deg);
+        -webkit-animation-timing-function: ease-in-out;
+        animation-timing-function: ease-in-out;
+    }
+
+    100% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+}
+
+/* bounceIn animation - animate.css style */
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Glow 깜빡거림 애니메이션 */
+/* Highlight별 glow pulse 애니메이션 */
+@keyframes glowPulseGreen {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(93, 196, 112, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(93, 196, 112, 1)) drop-shadow(0 0 14px rgba(93, 196, 112, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(93, 196, 112, 0.7)) drop-shadow(0 0 11px rgba(93, 196, 112, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(93, 196, 112, 0));
+    }
+}
+
+@keyframes glowPulseYellow {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(246, 201, 68, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(246, 201, 68, 1)) drop-shadow(0 0 14px rgba(246, 201, 68, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(246, 201, 68, 0.7)) drop-shadow(0 0 11px rgba(246, 201, 68, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(246, 201, 68, 0));
+    }
+}
+
+@keyframes glowPulseRed {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(214, 60, 71, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(214, 60, 71, 1)) drop-shadow(0 0 14px rgba(214, 60, 71, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(214, 60, 71, 0.7)) drop-shadow(0 0 11px rgba(214, 60, 71, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(214, 60, 71, 0));
+    }
+}
+
+@keyframes glowPulsePurple {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(158, 158, 227, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(158, 158, 227, 1)) drop-shadow(0 0 14px rgba(158, 158, 227, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(158, 158, 227, 0.7)) drop-shadow(0 0 11px rgba(158, 158, 227, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(158, 158, 227, 0));
+    }
+}
+
+@keyframes glowPulseMint {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(94, 196, 171, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(94, 196, 171, 1)) drop-shadow(0 0 14px rgba(94, 196, 171, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(94, 196, 171, 0.7)) drop-shadow(0 0 11px rgba(94, 196, 171, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(94, 196, 171, 0));
+    }
+}
+
+/* Underline draw 애니메이션 (glow 있는 밑줄) */
+@keyframes underlineDrawGreen {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawYellow {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawRed {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawPurple {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawMint {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+/* 글로우 효과 + 선이 흘러가는 밑줄 애니메이션 (색상별) */
+@keyframes underlineDrawGreenGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #A2FF72, 0 0 20px #A2FF72, 0 0 32px #A2FF72;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #A2FF72, 0 0 20px #A2FF72, 0 0 32px #A2FF72;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #A2FF72, 0 0 20px #A2FF72, 0 0 32px #A2FF72;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawYellowGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #FFD34F, 0 0 20px #FFD34F, 0 0 32px #FFD34F;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #FFD34F, 0 0 20px #FFD34F, 0 0 32px #FFD34F;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #FFD34F, 0 0 20px #FFD34F, 0 0 32px #FFD34F;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawRedGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #FF4F87, 0 0 20px #FF4F87, 0 0 32px #FF4F87;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #FF4F87, 0 0 20px #FF4F87, 0 0 32px #FF4F87;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #FF4F87, 0 0 20px #FF4F87, 0 0 32px #FF4F87;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawBlueGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #43A4F6, 0 0 20px #43A4F6, 0 0 32px #43A4F6;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #43A4F6, 0 0 20px #43A4F6, 0 0 32px #43A4F6;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #43A4F6, 0 0 20px #43A4F6, 0 0 32px #43A4F6;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawPurpleGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #DB6FE7, 0 0 20px #DB6FE7, 0 0 32px #DB6FE7;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #DB6FE7, 0 0 20px #DB6FE7, 0 0 32px #DB6FE7;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #DB6FE7, 0 0 20px #DB6FE7, 0 0 32px #DB6FE7;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawOrangeGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #F69B63, 0 0 20px #F69B63, 0 0 32px #F69B63;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #F69B63, 0 0 20px #F69B63, 0 0 32px #F69B63;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #F69B63, 0 0 20px #F69B63, 0 0 32px #F69B63;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+/* Highlight 색상별 ::after 스타일 - glow-pulse 클래스 추가될 때만 표시 */
+.highlight-green.glow-pulse::after {
+    animation: underlineDrawGreenGlow 1.7s ease-out forwards;
+}
+
+.highlight-yellow.glow-pulse::after {
+    animation: underlineDrawYellowGlow 1.7s ease-out forwards;
+}
+
+.highlight-blue.glow-pulse::after {
+    animation: underlineDrawBlueGlow 1.7s ease-out forwards;
+}
+
+.highlight-red.glow-pulse::after {
+    animation: underlineDrawRedGlow 1.7s ease-out forwards;
+}
+
+.highlight-purple.glow-pulse::after {
+    animation: underlineDrawPurpleGlow 1.7s ease-out forwards;
+}
+
+.highlight-orange.glow-pulse::after {
+    animation: underlineDrawOrangeGlow 1.7s ease-out forwards;
+}
+
+/* SVG 효과 컨테이너 */
+.glow-effect-svg {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    overflow: visible;
+}
+
+/* SVG path 초기 상태 (애니메이션은 JavaScript로 처리) */
+.glow-effect-svg path {
+    fill: none;
+    /* stroke-width는 JS에서 설정 */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

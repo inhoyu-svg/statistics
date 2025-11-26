@@ -1,0 +1,86 @@
+/* ===== 문제 블록 스타일 ===== */
+.problem-block {
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #7B7B7B;
+    border-radius: clamp(15px, 2vw, 25px);
+    padding: clamp(20px, 3vw, 60px);
+    background: rgba(12, 12, 26, 0.7);
+    transition: all var(--animation-duration) var(--animation-easing);
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+.problem-block.with-answer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(15px, 2.5vw, 45px);
+    padding: clamp(10px, 1.5vw, 30px);
+    align-self: flex-start;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out forwards;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.problem-content {
+    text-align: left;
+    font-size: clamp(1.5rem, 3vw + 1rem, 2.5rem);
+    font-family: 'NanumMyeongjoOTF', 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+}
+
+.problem-content .math {
+    font-size: clamp(1.0rem, 2.5vw + 1rem, 1.5rem);
+    line-height: 1.4;
+}
+
+.problem-overlay.minimized .math {
+    font-size: clamp(0.5rem, 2.5vw + 1rem, 0.7rem);
+    line-height: 1.4;
+}
+
+.problem-condition {
+    font-size: clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
+    color: #ccc;
+    margin-top: clamp(10px, 1.5vw, 30px);
+}
+
+.problem-options {
+    margin-top: clamp(15px, 2.5vw, 45px);
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: clamp(8px, 1.2vw, 20px);
+    font-size: clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
+}
+
+.option-number {
+    background: #A2FF72;
+    color: black;
+    padding: clamp(4px, 0.6vw, 12px) clamp(6px, 1vw, 18px);
+    border-radius: 50%;
+    margin-right: clamp(8px, 1.2vw, 20px);
+    font-weight: 500;
+    min-width: clamp(30px, 3vw, 50px);
+    text-align: center;
+    display: inline-block;
+}
+
+.option-text {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* problem-overlay-content 내부의 option-number 스타일 수정 */
+.problem-overlay-content .option-number {
+    background: transparent;
+    color: #EBEBEB;
+}
+
+/* answer 프레임의 option-number 배경색 제거 */
+[data-frame-type="answer"] .option-number {
+    background: transparent;
+}

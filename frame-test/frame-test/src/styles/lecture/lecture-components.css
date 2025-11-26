@@ -1,0 +1,266 @@
+/* ===== 진행 표시기 ===== */
+.progress-indicator {
+    position: fixed;
+    top: clamp(15px, 1.25vw + 5px, 20px);
+    right: clamp(15px, 1.25vw + 5px, 20px);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: clamp(11px, 0.9375vw + 3.75px, 15px);
+    border-radius: clamp(7px, 0.625vw + 2.5px, 10px);
+    font-family: 'SCDream';
+    font-weight: 400;
+    font-size: clamp(0.875rem, 1vw + 0.375rem, 1.125rem);
+    z-index: 1000;
+    min-width: clamp(150px, 12.5vw + 50px, 200px);
+}
+
+.progress-bar {
+    background: rgba(255, 255, 255, 0.3);
+    height: clamp(3px, 0.25vw + 1px, 4px);
+    border-radius: clamp(1.5px, 0.125vw + 0.5px, 2px);
+    margin-top: clamp(7px, 0.625vw + 2.5px, 10px);
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: #A2FF72;
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.cut-info {
+    margin-bottom: clamp(4px, 0.3125vw + 1.25px, 5px);
+    font-family: 'SCDream';
+    font-weight: 700;
+}
+
+/* ===== 포커스 오버레이 ===== */
+/* focusOverlay는 시스템 UI 요소이므로 일반 focus 요소와 별도로 관리 */
+#focusOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 0.8s ease-out;
+    opacity: 0;
+    visibility: visible;
+    /* 항상 visible, opacity로만 제어 */
+}
+
+#focusOverlay.active {
+    opacity: 1;
+}
+
+/* 하위 호환성을 위한 클래스 선택자 */
+.focus-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 0.8s ease-out;
+    opacity: 0;
+    visibility: visible;
+}
+
+.focus-overlay.active {
+    opacity: 1;
+}
+
+/* ===== 요약 오버레이 ===== */
+.summary-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+}
+
+.summary-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* 요약 오버레이 내부 컨텐츠 박스 */
+.summary-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100vw - 80px);
+    height: 740px;
+    background: #383843;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    display: none;
+    opacity: 0;
+    transition: opacity 0.8s ease-out;
+}
+
+.summary-content.active {
+    display: block;
+    opacity: 1;
+}
+
+/* 요약 오버레이 내부의 main-container */
+.summary-overlay .main-container {
+    position: relative;
+    z-index: 1;
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding: calc(clamp(20px, 2vh, 40px) * 0.8) calc(clamp(10px, 1vw, 20px) * 0.8);
+    transform: scale(0.8);
+    transform-origin: center center;
+}
+
+/* 요약 오버레이 내부의 header */
+.summary-overlay .header {
+    text-align: center;
+    margin-bottom: calc(clamp(10px, 1vh, 15px) * 0.8);
+    padding: calc(clamp(10px, 1vh, 15px) * 0.8) 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 요약 오버레이 내부의 focus-area-title */
+.summary-overlay .focus-area-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: auto;
+}
+
+/* 요약 오버레이 내부의 chapter-badge */
+.summary-overlay .chapter-badge {
+    margin-bottom: calc(clamp(15px, 2vh, 30px) * 0.8);
+    display: block;
+}
+
+/* 요약 오버레이 내부의 main-title */
+.summary-overlay .main-title {
+    display: block;
+    width: auto;
+}
+
+/* 요약 오버레이 내부의 main-title */
+.summary-overlay .main-title {
+    color: #DB6FE7;
+}
+
+.summary-overlay .main-title .MathJax,
+.summary-overlay .main-title .MathJax *,
+.summary-overlay .main-title .math,
+.summary-overlay .main-title .math * {
+    color: #DB6FE7;
+}
+
+/* Outro Frame의 main-title 보라색 */
+.chalk-frame[data-frame-type="outro"] .main-title {
+    color: #DB6FE7;
+}
+
+.chalk-frame[data-frame-type="outro"] .main-title .MathJax,
+.chalk-frame[data-frame-type="outro"] .main-title .MathJax *,
+.chalk-frame[data-frame-type="outro"] .main-title .math,
+.chalk-frame[data-frame-type="outro"] .main-title .math * {
+    color: #DB6FE7;
+}
+
+/* 요약 오버레이 내부의 content-area */
+.summary-overlay .content-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    justify-items: center;
+    align-items: start;
+    width: 100%;
+}
+
+/* 요약 오버레이 내부의 explanation-text */
+.summary-overlay .math-scene>*:last-of-type .explanation-text,
+.summary-overlay .math-scene>div:last-of-type .explanation-text {
+    padding-bottom: 0;
+}
+
+/* 첫 번째 씬은 2개 컬럼 차지 (상단 중앙) */
+.summary-overlay .content-area>.math-scene:nth-child(1) {
+    grid-column: 1 / 3;
+}
+
+/* 두 번째, 세 번째 씬은 각각 한 컬럼씩 (하단 좌우) */
+.summary-overlay .content-area>.math-scene:nth-child(2) {
+    grid-column: 1 / 2;
+    grid-row: 2;
+}
+
+.summary-overlay .content-area>.math-scene:nth-child(3) {
+    grid-column: 2 / 3;
+    grid-row: 2;
+}
+
+/* 요약 오버레이 애니메이션 */
+@keyframes summaryFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -45%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes summaryFadeOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    to {
+        opacity: 0;
+        transform: translate(-50%, -45%);
+    }
+}
+
+.summary-content.entering {
+    animation: summaryFadeIn 0.8s ease-out forwards;
+}
+
+.summary-content.exiting {
+    animation: summaryFadeOut 0.8s ease-in forwards;
+}
+
+/* ===== 예제 스타일 ===== */
+.example-1,
+.example-2,
+.example-3,
+.example-4 {
+    transition: all 1s ease-in-out;
+    margin: clamp(11px, 0.9375vw + 3.75px, 15px) 0;
+    padding: clamp(7px, 0.625vw + 2.5px, 10px);
+    border-radius: clamp(6px, 0.5vw + 2px, 8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== 팁 영역 기본 트랜지션 ===== */
+/* .chalk-frame .focus-area-tip {
+    transition: transform 0.8s ease-out;
+    transform-origin: center center;
+} */

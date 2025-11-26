@@ -1,0 +1,187 @@
+/* ===== 폰트 정의 ===== */
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream1.otf') format('opentype');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream2.otf') format('opentype');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream3.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream4.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream5.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream6.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream7.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream8.otf') format('opentype');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('/assets/fonts/SCDream/SCDream9.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+/* NanumMyeongjo 폰트 비활성화 (파일 손상)
+@font-face {
+    font-family: 'NanumMyeongjoOTF';
+    src: url('/assets/fonts/NanumMyeongjo.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+*/
+
+@font-face {
+    font-family: 'FreesentationVF';
+    src: url('/assets/fonts/FreesentationVF/FreesentationVF.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hakgyoansim Geurimilgi TTF R';
+    src: url('/assets/fonts/Hakgyoansim%20Geurimilgi%20TTF%20R.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* ===== 애니메이션 공통 규칙 ===== */
+:root {
+    --animation-duration: 1000ms;
+    --animation-easing: cubic-bezier(0.5, 0, 0.4, 1);
+    --step-detail-math-padding: clamp(6px, 0.75vw, 10px);
+}
+
+/* ===== 기본 스타일 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    color: #EBEBEB;
+}
+
+html {
+    height: 100%;
+    /* body의 % 높이가 작동하도록 기반 설정 */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #0C0C1A 0%, #0C0C1A 50%, #0C0C1A 100%);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 500;
+    overflow: hidden;
+    height: 100vh;
+    color: #EBEBEB;
+    /* 고해상도 렌더링 최적화 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeQuality;
+    /* GPU 가속 활용 */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
+}
+
+/* 고해상도 디스플레이 최적화 */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+    body {
+        -webkit-font-smoothing: subpixel-antialiased;
+    }
+
+    .math,
+    .MathJax,
+    .MathJax_Display {
+        /* MathJax 고해상도 렌더링 */
+        transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+    }
+
+    /* 고해상도에서 폰트 크기 보정 */
+    .keyword-title .math,
+    .step-title .math,
+    .scene-title {
+        font-size: clamp(1rem, 1.5vw + 0.5rem, 1.5rem);
+    }
+
+    /* extraction, comprehension, application 영역 제외한 일반 content-text의 math */
+    .content-text:not(.extraction-left .content-text):not(.extraction-right .content-text):not(.extraction-bottom .content-text):not(.comprehension-explanation-box .content-text):not(.flow-step .content-text) .math,
+    .equation-section .math {
+        font-size: clamp(1.1rem, 1.8vw + 0.6rem, 1.4rem);
+    }
+}
+
+/* 일반적인 텍스트 렌더링 최적화 */
+.math,
+.MathJax,
+.MathJax_Display {
+    /* 모든 수식에 대한 기본 최적화 */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: auto;
+}
+
+/* 스케일링 시 텍스트 선명도 유지 */
+.dynamic-content-area {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.dynamic-content-area.zoomed {
+    text-rendering: geometricPrecision;
+}
+
+/* ===== 콘텐츠 씬 기본 정렬 ===== */
+.content-scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}

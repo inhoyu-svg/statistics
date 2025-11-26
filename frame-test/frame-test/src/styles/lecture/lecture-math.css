@@ -1,0 +1,90 @@
+/* ===== 수식 영역 ===== */
+.equation-block {
+    margin: clamp(11px, 0.9375vw + 3.75px, 15px) 0;
+    text-align: center;
+}
+
+.equation-block .math {
+    color: #ffffff;
+    font-size: clamp(26px, 2.1875vw + 8.75px, 35px);
+}
+
+.equation-aligned {
+    display: table;
+    margin: 0 auto;
+    padding: clamp(15px, 1.25vw + 5px, 20px) clamp(52px, 4.375vw + 17.5px, 70px);
+}
+
+.equation-aligned .equation-row {
+    display: table-row;
+    padding: clamp(15px, 1.25vw + 5px, 20px) clamp(52px, 4.375vw + 17.5px, 70px);
+}
+
+.equation-aligned .equation-left,
+.equation-aligned .equation-equals,
+.equation-aligned .equation-right {
+    display: table-cell;
+    vertical-align: middle;
+    padding: clamp(2px, 0.1875vw + 0.75px, 3px) 0;
+}
+
+.equation-aligned .equation-left {
+    text-align: right;
+    padding-right: clamp(4px, 0.3125vw + 1.25px, 5px);
+}
+
+.equation-aligned .equation-equals {
+    text-align: center;
+    width: clamp(15px, 1.25vw + 5px, 20px);
+    padding: 0 clamp(4px, 0.3125vw + 1.25px, 5px);
+}
+
+.equation-aligned .equation-right {
+    text-align: left;
+    padding-left: clamp(4px, 0.3125vw + 1.25px, 5px);
+}
+
+.equation-aligned .math {
+    color: #ffffff;
+    font-size: clamp(26px, 2.1875vw + 8.75px, 35px);
+}
+
+/* ===== MathJax 스타일링 ===== */
+.MathJax,
+.MathJax_Display,
+.MathJax * {
+    color: #ffffff;
+}
+
+.MathJax .mfrac {
+    font-size: 2.0em;
+    vertical-align: -0.05em;
+}
+
+.MathJax .mfrac>span {
+    font-size: 1.8em;
+}
+
+.MathJax .mfrac .mrow {
+    font-size: 1.6em;
+}
+
+.MathJax .mfrac * {
+    font-size: 1.5em;
+}
+
+.MathJax_Display {
+    font-size: 130%;
+}
+
+.MathJax {
+    font-size: 115%;
+}
+
+.equation-aligned .MathJax .mfrac {
+    font-size: 2.2em;
+}
+
+.equation-aligned .MathJax .mfrac * {
+    font-size: 1.7em;
+}

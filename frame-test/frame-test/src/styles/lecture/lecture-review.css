@@ -1,0 +1,123 @@
+/* ===== Review 영역 스타일 (Scene 스타일 재사용) ===== */
+/* Review는 기본 math-scene 스타일을 사용하며 보라색 테마 적용 */
+
+/* Review Scene 기본 스타일 */
+.math-scene.review-scene {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 80px;
+    position: relative;
+    padding: 100px 80px 80px 80px;
+    width: auto;
+    white-space: normal;
+    transition: opacity 0.8s ease-out,
+        transform 0.8s ease-out,
+        filter 0.8s ease-out;
+}
+
+/* Review 아이템 개별 스타일 */
+.math-scene.review-scene>[id^="focusReview"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    flex: 0 0 auto;
+    min-width: 300px;
+    padding: 0 50px;
+    border: none;
+}
+
+/* Review Scene이 pending-border-reveal 상태가 아니고 border-animate도 아닐 때만 border 색상 표시 */
+.math-scene.review-scene:not(.pending-border-reveal):not(.border-animate) {
+    border-color: #43A4F6;
+}
+
+.math-scene.review-scene .scene-tag {
+    background: #43A4F6;
+    border-color: #43A4F6;
+    border-radius: 10px;
+    position: absolute;
+    top: clamp(-23px, -1.25vw - 13px, -28px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: clamp(12px, 0.9375vw + 3.75px, 15px) clamp(18px, 1.5vw + 6px, 24px);
+}
+
+.math-scene.review-scene .scene-title {
+    color: #43A4F6;
+}
+
+/* Review Scene Dim 처리 (활성화되지 않은 Review) */
+.math-scene.review-scene.review-dim {
+    opacity: 0.4;
+    filter: brightness(0.6);
+}
+
+/* Review Scene 활성화 상태 */
+.math-scene.review-scene.review-active {
+    opacity: 1;
+    filter: brightness(1);
+}
+
+/* Review Scene tag 스타일 */
+.scene-tag.review-tag {
+    display: none;
+}
+
+/* Review Title Wrapper - 가운데 정렬 */
+.math-scene.review-scene .review-title-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* Review Title 스타일 - #43A4F6 색상, Hakgyoansim Geurimilgi 폰트 적용 */
+.math-scene.review-scene .review-title {
+    color: #43A4F6;
+    font-family: 'Hakgyoansim Geurimilgi TTF R', 'SCDream', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 45px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Review Content Wrapper - 가운데 정렬 */
+.math-scene.review-scene .review-content-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* Review Content 스타일 - #EBEBEB 색상, Hakgyoansim Geurimilgi 폰트 적용 */
+.math-scene.review-scene .review-content {
+    color: #EBEBEB;
+    font-family: 'Hakgyoansim Geurimilgi TTF R', 'SCDream', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 40px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* Review Visualization Container - 가운데 정렬 */
+.math-scene.review-scene .visualization-container {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+    height: 300px;
+    min-height: 300px;
+}
+
+/* Review Scene의 visualization-container는 reveal 상태가 아니면 숨김 */
+.math-scene.review-scene .visualization-container:not(.reveal-focus):not(.reveal-dimmed) {
+    visibility: hidden;
+    opacity: 0;
+}
+
+.math-scene.review-scene .visualization-container canvas {
+    max-width: 300px;
+    max-height: 300px;
+}

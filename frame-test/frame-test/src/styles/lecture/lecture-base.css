@@ -1,0 +1,97 @@
+/* ===== 폰트 정의 ===== */
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream1.otf') format('opentype');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream2.otf') format('opentype');
+    font-weight: 200;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream3.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream4.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream5.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream6.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream7.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream8.otf') format('opentype');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SCDream';
+    src: url('./../../../public/assets/fonts/SCDream/SCDream9.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'GangwonEduSaeeum';
+    src: url('/assets/fonts/GangwonEduSaeeum.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* ===== CSS 변수 - 전체 스케일 조정 ===== */
+:root {
+    --scale-factor: 0.50;
+    --animation-duration: 1000ms;
+    --animation-easing: cubic-bezier(0.5, 0, 0.4, 1);
+    --step-detail-math-padding: clamp(6px, 0.75vw, 10px);
+}
+
+/* ===== 기본 스타일 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    color: #EBEBEB;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #0C0C1A 0%, #0C0C1A 50%, #0C0C1A 100%);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    color: #EBEBEB;
+    font-size: calc(16px * var(--scale-factor));
+}

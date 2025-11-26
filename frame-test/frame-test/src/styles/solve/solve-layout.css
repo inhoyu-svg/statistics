@@ -1,0 +1,217 @@
+/* ===== 뷰포트 및 프레임 컨테이너 ===== */
+.viewport {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.frame-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 개별 해설 프레임 */
+.solve-frame {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: transform var(--animation-duration) var(--animation-easing);
+    transform-origin: 50% 50%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    /* 고해상도 스케일링 최적화 */
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform;
+    /* 고해상도 디스플레이 대응 */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* step 상세 프레임은 스크롤 가능하도록 설정 - 긴 해설 내용 대응 */
+.solve-frame[data-frame-type="step-detail"] {
+    height: auto;
+    min-height: 100vh;
+    max-height: 800vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* 첫 번째 프레임은 기본으로 표시 */
+.solve-frame:first-child {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 현재 활성 프레임 */
+.solve-frame.active {
+    z-index: 10;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 비활성 프레임 숨김 */
+.solve-frame.hidden {
+    display: none;
+    /* visibility: hidden; */
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Frame 전환 애니메이션 */
+.solve-frame {
+    transition: opacity var(--animation-duration) var(--animation-easing);
+}
+
+/* 문제 오버레이 드래그 기능 */
+.problem-overlay {
+    user-select: none;
+    transition: width var(--animation-duration) var(--animation-easing),
+        height var(--animation-duration) var(--animation-easing),
+        opacity 0.3s ease-in-out,
+        visibility 0.3s ease-in-out;
+    will-change: transform;
+    /* 성능 최적화 */
+}
+
+/* 숨겨진 problem overlay */
+.problem-overlay[style*="display: none"] {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.problem-overlay:hover {
+    cursor: grab;
+}
+
+.problem-overlay:active {
+    cursor: grabbing;
+}
+
+/* 프레임 전환 효과 */
+.solve-frame.frame-fade-in {
+    opacity: 0;
+    animation: fadeIn var(--animation-duration) var(--animation-easing) forwards;
+}
+
+.solve-frame.frame-fade-out {
+    opacity: 1;
+    animation: fadeOut var(--animation-duration) var(--animation-easing) forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/* ===== 배경 장식 (프레임 밖, 특정 프레임에서만 표시) ===== */
+/* 인트로 프레임(타입 인트로, 키워드 인트로, 스텝 인트로)과 마무리 마지막 프레임에서만 표시 */
+/* 키워드 디테일, 스텝 디테일 프레임에서는 숨김 */
+.background-decoration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 1;
+    transition: opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+    contain: strict;
+    isolation: isolate;
+}
+
+.background-decoration.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+
+.bg-circle {
+    position: absolute;
+    opacity: 1;
+    overflow: visible;
+    transform: translateZ(0);
+    contain: layout style;
+}
+
+/* SVG 방식 스타일 (모든 스타일을 CSS에서 관리) */
+svg.bg-circle circle {
+    stroke: #3a3a4a;
+    stroke-width: 0.15;
+}
+
+svg.bg-circle .rotating-dot {
+    r: 0.8;
+    fill: #3a3a4a;
+}
+
+/* 배경 동그라미 fade-in 애니메이션 */
+@keyframes bgCircleFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.bg-circle-fade-in-animation {
+    animation: bgCircleFadeIn 1s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+}
+
+.bg-circle-1 {
+    --circle-size: clamp(462px, 61.59vw, 924px);
+    width: var(--circle-size);
+    height: var(--circle-size);
+    top: -100px;
+    left: 100px;
+}
+
+.bg-circle-2 {
+    --circle-size: clamp(462px, 61.59vw, 924px);
+    width: var(--circle-size);
+    height: var(--circle-size);
+    bottom: -415px;
+    right: 110px;
+}
+
+/* 배경이 solve-frame 밖에 있으므로 항상 표시됨 (JavaScript로 제어) */
+/* SVG는 animateTransform으로 자체 회전 동작 */
+
+/* ===== 메인 컨테이너 ===== */
+.main-container {
+    position: relative;
+    z-index: 1;
+    max-width: clamp(800px, 90vw, 1600px);
+    margin: 0 auto;
+    padding: 0 clamp(20px, 3vw, 60px);
+    min-height: 100vh;
+}
+
+.dynamic-content-area {
+    width: 100%;
+    height: 100%;
+}

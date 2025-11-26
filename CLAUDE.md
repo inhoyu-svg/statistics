@@ -374,6 +374,7 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 3. **의존성 추가**: npm 패키지 설치 (순수 JS 유지)
 4. **Canvas API 대체**: Chart.js 등 라이브러리 도입
 5. **CSS 프레임워크**: Bootstrap, Tailwind 등 추가
+6. **외부 프로젝트 파일 수정**: `frame-test/` 폴더 내 파일 수정 금지 (특히 `math-visualization.js`)
 
 ### 항상 할 것 ✅
 1. **한글 커뮤니케이션**: 사용자와 한글로 대화

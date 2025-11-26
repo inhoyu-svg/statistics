@@ -1,0 +1,33 @@
+/* ============================================
+   Lecture Template - Main CSS Import File
+   ============================================ */
+
+/* Base styles - Fonts, CSS variables, and reset */
+@import url('./lecture/lecture-base.css');
+
+/* Layout - Viewport, containers, headers, and grid layouts */
+@import url('./lecture/lecture-layout.css');
+
+/* Scenes - Math scene styles, tags, and themes */
+@import url('./lecture/lecture-scenes.css');
+
+/* Math - Equation blocks and MathJax styling */
+@import url('./lecture/lecture-math.css');
+
+/* Animations - All keyframe animations and transitions */
+@import url('./lecture/lecture-animations.css');
+
+/* Components - Progress indicators, overlays, and examples */
+@import url('./lecture/lecture-components.css');
+
+/* Themes - Color schemes and text styles */
+@import url('./lecture/lecture-themes.css');
+
+/* Review - Review scene specific styles */
+@import url('./lecture/lecture-review.css');
+
+/* Responsive - Media queries and responsive layouts */
+@import url('./lecture/lecture-responsive.css');
+
+/* Utilities - Helper classes, focus controls, and utilities */
+@import url('./lecture/lecture-utilities.css');

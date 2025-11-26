@@ -1,0 +1,1128 @@
+/* ===== 애니메이션 스타일 ===== */
+.text-animate-in {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity var(--animation-duration) var(--animation-easing), transform var(--animation-duration) var(--animation-easing);
+}
+
+.text-animate-in.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 스텝 프레임, 정답 프레임 전용 - 위치 이동 애니메이션만 제거 */
+[data-frame-type="step"] .text-animate-in,
+[data-frame-type="answer"] .text-animate-in {
+    transform: translateY(0);
+}
+
+[data-frame-type="step"] .text-animate-in.show,
+[data-frame-type="answer"] .text-animate-in.show {
+    transform: translateY(0);
+}
+
+/* 정답 프레임 정답 박스 - CSS는 건드리지 않고 JS로만 처리 */
+
+/* ===== 포커스 오버레이 ===== */
+.focus-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 100;
+    transition: all var(--animation-duration) var(--animation-easing);
+    opacity: 0;
+}
+
+.focus-overlay.active {
+    opacity: 1;
+}
+
+/* ===== 진행 표시기 ===== */
+.progress-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #EBEBEB;
+    padding: clamp(8px, 1.2vw, 22px);
+    border-radius: 10px;
+    font-size: clamp(0.875rem, 1vw + 0.375rem, 1.125rem);
+    z-index: 1000;
+    min-width: clamp(150px, 15vw, 250px);
+}
+
+.progress-bar {
+    background: rgba(255, 255, 255, 0.3);
+    height: clamp(3px, 0.4vw, 6px);
+    border-radius: 2px;
+    margin-top: clamp(7px, 1.2vw, 13px);
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: #A2FF72;
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.cut-info {
+    margin-bottom: clamp(4px, 0.6vw, 7px);
+    font-weight: 500;
+}
+
+/* ===== 프레임 전환 효과 ===== */
+/* .frame-transition-slide-left {
+    animation: slideInLeft var(--animation-duration) var(--animation-easing);
+}
+
+.frame-transition-slide-right {
+    animation: slideInRight var(--animation-duration) var(--animation-easing);
+}
+
+.frame-transition-slide-left.exiting {
+    animation: slideOutLeft var(--animation-duration) var(--animation-easing);
+}
+
+.frame-transition-slide-right.exiting {
+    animation: slideOutRight var(--animation-duration) var(--animation-easing);
+}
+
+.frame-transition-fade {
+    animation: fadeIn var(--animation-duration) var(--animation-easing);
+}
+
+.frame-transition-fade.exiting {
+    animation: fadeOut var(--animation-duration) var(--animation-easing);
+} */
+
+/* 애니메이션 정의 */
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutLeft {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/* ===== 배경 원 회전 애니메이션 ===== */
+@keyframes rotateAroundCircle {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 역방향 회전 애니메이션 (bg-circle-1용) */
+@keyframes rotateAroundCircleReverse {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+
+/* ===== 키워드 깜빡이는 강조 효과 ===== */
+.blink-highlight .keyword-text {
+    animation: blinkHighlight 1.2s ease-in-out;
+}
+
+@keyframes blinkHighlight {
+    0% {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        transform: scale(1);
+    }
+
+    25% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+        transform: scale(1.03);
+    }
+
+    50% {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        transform: scale(1);
+    }
+
+    75% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+        transform: scale(1.03);
+    }
+
+    100% {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        transform: scale(1);
+    }
+}
+
+@keyframes drawStepTagBorder {
+    from {
+        stroke-dasharray: 0 var(--path-length, 1000);
+    }
+
+    to {
+        stroke-dasharray: var(--path-length, 1000) 0;
+    }
+}
+
+/* step-item 슬라이드 + fade in 애니메이션 */
+@keyframes stepItemSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-70px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.step-list-scene .step-item {
+    /* 아이템 간격도 반응형으로 조정 - 간격 늘림 */
+    margin-bottom: clamp(35px, 4vw, 55px);
+    /* 텍스트간 간격 늘림 */
+    opacity: 0;
+}
+
+.step-list-scene .step-item.reveal-animate {
+    animation: stepItemSlideIn 1s ease-out forwards;
+}
+
+.step-list-scene .step-item .step-number {
+    /* 스텝 번호 크기 조정 */
+    font-size: clamp(18px, 2.2vw, 26px);
+    width: clamp(32px, 3.2vw, 42px);
+    height: clamp(32px, 3.2vw, 42px);
+    margin-right: clamp(10px, 1.5vw, 20px);
+    vertical-align: middle;
+}
+
+.step-list-scene .step-text {
+    vertical-align: middle;
+}
+
+/* 매우 작은 화면에서 추가 최적화 */
+@media (max-width: 480px) {
+    .step-list-scene {
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+}
+
+/* 매우 큰 화면에서 최대 크기 제한 */
+@media (min-width: 1600px) {
+    .step-list-scene {
+        transform: translate(-50%, -50%) scale(0.65);
+    }
+}
+
+@keyframes tagScaleAnimation {
+    0% {
+        transform: scale(0);
+    }
+
+    70% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 첫 프레임 scene-tag 애니메이션 - 우측 상단에서 날아와 왼쪽 상단이 접혀 펼쳐지는 스티커 효과 */
+@keyframes sceneTagFirstFrameEntry {
+    0% {
+        opacity: 0;
+        transform: scale(1.3);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 25%, black 25%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 25%, black 25%);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    12% {
+        opacity: 0.3;
+        transform: scale(1.2);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 18%, black 18%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 18%, black 18%);
+        box-shadow: 0 4px 11px rgba(0, 0, 0, 0.14);
+    }
+
+    24% {
+        opacity: 0.65;
+        transform: scale(1.1);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 9%, black 9%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 9%, black 9%);
+        box-shadow: 0 4px 10.5px rgba(0, 0, 0, 0.12);
+    }
+
+    37% {
+        opacity: 1;
+        transform: scale(1.0);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.0);
+        -webkit-mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        mask: linear-gradient(to bottom right, transparent 0%, transparent 0%, black 0%);
+        box-shadow: 0 2px 8px rgba(93, 196, 112, 0.3);
+    }
+}
+
+/* 첫 프레임 scene-tag 스타일 */
+/* 새로운 태그 등장 애니메이션 */
+@keyframes tagAppearAnimation {
+    0% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* step-content-item math 페이드인 + 슬라이드다운 애니메이션 */
+@keyframes contentFadeSlideDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-100px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* keyword-item 극도로 부드러운 페더 애니메이션 - 매우 세밀한 단계 */
+@keyframes keywordReveal {
+    0% {
+        mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+    }
+
+    2% {
+        mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+    }
+
+    4% {
+        mask: linear-gradient(90deg, black 0%, black 2%, transparent 6%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 2%, transparent 6%, transparent 100%);
+    }
+
+    6% {
+        mask: linear-gradient(90deg, black 0%, black 3%, transparent 8%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 3%, transparent 8%, transparent 100%);
+    }
+
+    8% {
+        mask: linear-gradient(90deg, black 0%, black 4%, transparent 10%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 4%, transparent 10%, transparent 100%);
+    }
+
+    10% {
+        mask: linear-gradient(90deg, black 0%, black 5%, transparent 12%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 5%, transparent 12%, transparent 100%);
+    }
+
+    12% {
+        mask: linear-gradient(90deg, black 0%, black 6%, transparent 14%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 6%, transparent 14%, transparent 100%);
+    }
+
+    14% {
+        mask: linear-gradient(90deg, black 0%, black 7%, transparent 16%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 7%, transparent 16%, transparent 100%);
+    }
+
+    16% {
+        mask: linear-gradient(90deg, black 0%, black 8%, transparent 18%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 8%, transparent 18%, transparent 100%);
+    }
+
+    18% {
+        mask: linear-gradient(90deg, black 0%, black 9%, transparent 20%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 9%, transparent 20%, transparent 100%);
+    }
+
+    20% {
+        mask: linear-gradient(90deg, black 0%, black 10%, transparent 22%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 10%, transparent 22%, transparent 100%);
+    }
+
+    22% {
+        mask: linear-gradient(90deg, black 0%, black 11%, transparent 24%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 11%, transparent 24%, transparent 100%);
+    }
+
+    24% {
+        mask: linear-gradient(90deg, black 0%, black 12%, transparent 26%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 12%, transparent 26%, transparent 100%);
+    }
+
+    26% {
+        mask: linear-gradient(90deg, black 0%, black 13%, transparent 28%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 13%, transparent 28%, transparent 100%);
+    }
+
+    28% {
+        mask: linear-gradient(90deg, black 0%, black 14%, transparent 30%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 14%, transparent 30%, transparent 100%);
+    }
+
+    30% {
+        mask: linear-gradient(90deg, black 0%, black 15%, transparent 32%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 15%, transparent 32%, transparent 100%);
+    }
+
+    32% {
+        mask: linear-gradient(90deg, black 0%, black 16%, transparent 34%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 16%, transparent 34%, transparent 100%);
+    }
+
+    34% {
+        mask: linear-gradient(90deg, black 0%, black 17%, transparent 36%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 17%, transparent 36%, transparent 100%);
+    }
+
+    36% {
+        mask: linear-gradient(90deg, black 0%, black 18%, transparent 38%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 18%, transparent 38%, transparent 100%);
+    }
+
+    38% {
+        mask: linear-gradient(90deg, black 0%, black 19%, transparent 40%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 19%, transparent 40%, transparent 100%);
+    }
+
+    40% {
+        mask: linear-gradient(90deg, black 0%, black 20%, transparent 42%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 20%, transparent 42%, transparent 100%);
+    }
+
+    42% {
+        mask: linear-gradient(90deg, black 0%, black 21%, transparent 44%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 21%, transparent 44%, transparent 100%);
+    }
+
+    44% {
+        mask: linear-gradient(90deg, black 0%, black 22%, transparent 46%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 22%, transparent 46%, transparent 100%);
+    }
+
+    46% {
+        mask: linear-gradient(90deg, black 0%, black 23%, transparent 48%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 23%, transparent 48%, transparent 100%);
+    }
+
+    48% {
+        mask: linear-gradient(90deg, black 0%, black 24%, transparent 50%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 24%, transparent 50%, transparent 100%);
+    }
+
+    50% {
+        mask: linear-gradient(90deg, black 0%, black 25%, transparent 52%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 25%, transparent 52%, transparent 100%);
+    }
+
+    52% {
+        mask: linear-gradient(90deg, black 0%, black 26%, transparent 54%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 26%, transparent 54%, transparent 100%);
+    }
+
+    54% {
+        mask: linear-gradient(90deg, black 0%, black 27%, transparent 56%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 27%, transparent 56%, transparent 100%);
+    }
+
+    56% {
+        mask: linear-gradient(90deg, black 0%, black 28%, transparent 58%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 28%, transparent 58%, transparent 100%);
+    }
+
+    58% {
+        mask: linear-gradient(90deg, black 0%, black 29%, transparent 60%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 29%, transparent 60%, transparent 100%);
+    }
+
+    60% {
+        mask: linear-gradient(90deg, black 0%, black 40%, transparent 70%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 40%, transparent 70%, transparent 100%);
+    }
+
+    62% {
+        mask: linear-gradient(90deg, black 0%, black 42%, transparent 72%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 42%, transparent 72%, transparent 100%);
+    }
+
+    64% {
+        mask: linear-gradient(90deg, black 0%, black 44%, transparent 74%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 44%, transparent 74%, transparent 100%);
+    }
+
+    66% {
+        mask: linear-gradient(90deg, black 0%, black 46%, transparent 76%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 46%, transparent 76%, transparent 100%);
+    }
+
+    68% {
+        mask: linear-gradient(90deg, black 0%, black 48%, transparent 78%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 48%, transparent 78%, transparent 100%);
+    }
+
+    70% {
+        mask: linear-gradient(90deg, black 0%, black 50%, transparent 80%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 50%, transparent 80%, transparent 100%);
+    }
+
+    72% {
+        mask: linear-gradient(90deg, black 0%, black 52%, transparent 81%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 52%, transparent 81%, transparent 100%);
+    }
+
+    74% {
+        mask: linear-gradient(90deg, black 0%, black 54%, transparent 82%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 54%, transparent 82%, transparent 100%);
+    }
+
+    76% {
+        mask: linear-gradient(90deg, black 0%, black 56%, transparent 83%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 56%, transparent 83%, transparent 100%);
+    }
+
+    78% {
+        mask: linear-gradient(90deg, black 0%, black 58%, transparent 84%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 58%, transparent 84%, transparent 100%);
+    }
+
+    80% {
+        mask: linear-gradient(90deg, black 0%, black 60%, transparent 85%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 60%, transparent 85%, transparent 100%);
+    }
+
+    82% {
+        mask: linear-gradient(90deg, black 0%, black 62%, transparent 87%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 62%, transparent 87%, transparent 100%);
+    }
+
+    84% {
+        mask: linear-gradient(90deg, black 0%, black 64%, transparent 89%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 64%, transparent 89%, transparent 100%);
+    }
+
+    86% {
+        mask: linear-gradient(90deg, black 0%, black 66%, transparent 91%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 66%, transparent 91%, transparent 100%);
+    }
+
+    88% {
+        mask: linear-gradient(90deg, black 0%, black 68%, transparent 93%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 68%, transparent 93%, transparent 100%);
+    }
+
+    90% {
+        mask: linear-gradient(90deg, black 0%, black 70%, black 75%, transparent 95%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 70%, black 75%, transparent 95%, transparent 100%);
+    }
+
+    91% {
+        mask: linear-gradient(90deg, black 0%, black 72%, black 77%, transparent 96%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 72%, black 77%, transparent 96%, transparent 100%);
+    }
+
+    92% {
+        mask: linear-gradient(90deg, black 0%, black 74%, black 79%, transparent 96%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 74%, black 79%, transparent 96%, transparent 100%);
+    }
+
+    93% {
+        mask: linear-gradient(90deg, black 0%, black 76%, black 81%, transparent 97%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 76%, black 81%, transparent 97%, transparent 100%);
+    }
+
+    94% {
+        mask: linear-gradient(90deg, black 0%, black 78%, black 83%, transparent 97%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 78%, black 83%, transparent 97%, transparent 100%);
+    }
+
+    95% {
+        mask: linear-gradient(90deg, black 0%, black 80%, black 85%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 80%, black 85%, transparent 98%, transparent 100%);
+    }
+
+    96% {
+        mask: linear-gradient(90deg, black 0%, black 82%, black 87%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 82%, black 87%, transparent 98%, transparent 100%);
+    }
+
+    97% {
+        mask: linear-gradient(90deg, black 0%, black 84%, black 89%, transparent 99%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 84%, black 89%, transparent 99%, transparent 100%);
+    }
+
+    98% {
+        mask: linear-gradient(90deg, black 0%, black 86%, black 91%, transparent 99%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 86%, black 91%, transparent 99%, transparent 100%);
+    }
+
+    99% {
+        mask: linear-gradient(90deg, black 0%, black 88%, black 94%, transparent 99.5%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 88%, black 94%, transparent 99.5%, transparent 100%);
+    }
+
+    100% {
+        mask: linear-gradient(90deg, black 0%, black 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 100%);
+    }
+}
+
+/* wobble-hor-bottom animation */
+@-webkit-keyframes wobble-hor-bottom {
+
+    0%,
+    100% {
+        -webkit-transform: translateX(0%);
+        transform: translateX(0%);
+        -webkit-transform-origin: 50% 50%;
+        transform-origin: 50% 50%;
+    }
+
+    15% {
+        -webkit-transform: translateX(-30px) rotate(-6deg);
+        transform: translateX(-30px) rotate(-6deg);
+    }
+
+    30% {
+        -webkit-transform: translateX(15px) rotate(6deg);
+        transform: translateX(15px) rotate(6deg);
+    }
+
+    45% {
+        -webkit-transform: translateX(-15px) rotate(-3.6deg);
+        transform: translateX(-15px) rotate(-3.6deg);
+    }
+
+    60% {
+        -webkit-transform: translateX(9px) rotate(2.4deg);
+        transform: translateX(9px) rotate(2.4deg);
+    }
+
+    75% {
+        -webkit-transform: translateX(-6px) rotate(-1.2deg);
+        transform: translateX(-6px) rotate(-1.2deg);
+    }
+}
+
+@keyframes wobble-hor-bottom {
+
+    0%,
+    100% {
+        -webkit-transform: translateX(0%);
+        transform: translateX(0%);
+        -webkit-transform-origin: 50% 50%;
+        transform-origin: 50% 50%;
+    }
+
+    15% {
+        -webkit-transform: translateX(-30px) rotate(-6deg);
+        transform: translateX(-30px) rotate(-6deg);
+    }
+
+    30% {
+        -webkit-transform: translateX(15px) rotate(6deg);
+        transform: translateX(15px) rotate(6deg);
+    }
+
+    45% {
+        -webkit-transform: translateX(-15px) rotate(-3.6deg);
+        transform: translateX(-15px) rotate(-3.6deg);
+    }
+
+    60% {
+        -webkit-transform: translateX(9px) rotate(2.4deg);
+        transform: translateX(9px) rotate(2.4deg);
+    }
+
+    75% {
+        -webkit-transform: translateX(-6px) rotate(-1.2deg);
+        transform: translateX(-6px) rotate(-1.2deg);
+    }
+}
+
+/* openUpRightReturn animation (2x speed) */
+@-webkit-keyframes openUpRightReturn {
+    0% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(-110deg);
+        transform: rotate(-110deg);
+        -webkit-animation-timing-function: ease-in-out;
+        animation-timing-function: ease-in-out;
+    }
+
+    100% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+}
+
+@keyframes openUpRightReturn {
+    0% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(-110deg);
+        transform: rotate(-110deg);
+        -webkit-animation-timing-function: ease-in-out;
+        animation-timing-function: ease-in-out;
+    }
+
+    100% {
+        -webkit-transform-origin: top right;
+        transform-origin: top right;
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+        -webkit-animation-timing-function: ease-out;
+        animation-timing-function: ease-out;
+    }
+}
+
+/* bounceIn animation - animate.css style */
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Glow 깜빡거림 애니메이션 */
+/* Highlight별 glow pulse 애니메이션 */
+@keyframes glowPulseGreen {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(93, 196, 112, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(93, 196, 112, 1)) drop-shadow(0 0 14px rgba(93, 196, 112, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(93, 196, 112, 0.7)) drop-shadow(0 0 11px rgba(93, 196, 112, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(93, 196, 112, 0));
+    }
+}
+
+@keyframes glowPulseYellow {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(246, 201, 68, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(246, 201, 68, 1)) drop-shadow(0 0 14px rgba(246, 201, 68, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(246, 201, 68, 0.7)) drop-shadow(0 0 11px rgba(246, 201, 68, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(246, 201, 68, 0));
+    }
+}
+
+@keyframes glowPulseRed {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(214, 60, 71, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(214, 60, 71, 1)) drop-shadow(0 0 14px rgba(214, 60, 71, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(214, 60, 71, 0.7)) drop-shadow(0 0 11px rgba(214, 60, 71, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(214, 60, 71, 0));
+    }
+}
+
+@keyframes glowPulsePurple {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(158, 158, 227, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(158, 158, 227, 1)) drop-shadow(0 0 14px rgba(158, 158, 227, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(158, 158, 227, 0.7)) drop-shadow(0 0 11px rgba(158, 158, 227, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(158, 158, 227, 0));
+    }
+}
+
+@keyframes glowPulseMint {
+    0% {
+        filter: drop-shadow(0 0 0 rgba(94, 196, 171, 0));
+    }
+
+    10% {
+        filter: drop-shadow(0 0 8px rgba(94, 196, 171, 1)) drop-shadow(0 0 14px rgba(94, 196, 171, 0.8));
+    }
+
+    30% {
+        filter: drop-shadow(0 0 6px rgba(94, 196, 171, 0.7)) drop-shadow(0 0 11px rgba(94, 196, 171, 0.4));
+    }
+
+    100% {
+        filter: drop-shadow(0 0 0 rgba(94, 196, 171, 0));
+    }
+}
+
+/* Underline draw 애니메이션 (glow 있는 밑줄) */
+@keyframes underlineDrawGreen {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawYellow {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawRed {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawPurple {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes underlineDrawMint {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+/* 글로우 효과 + 선이 흘러가는 밑줄 애니메이션 (색상별) */
+@keyframes underlineDrawGreenGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #A2FF72, 0 0 20px #A2FF72, 0 0 32px #A2FF72;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #A2FF72, 0 0 20px #A2FF72, 0 0 32px #A2FF72;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #A2FF72, 0 0 20px #A2FF72, 0 0 32px #A2FF72;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawYellowGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #FFD34F, 0 0 20px #FFD34F, 0 0 32px #FFD34F;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #FFD34F, 0 0 20px #FFD34F, 0 0 32px #FFD34F;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #FFD34F, 0 0 20px #FFD34F, 0 0 32px #FFD34F;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawRedGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #FF4F87, 0 0 20px #FF4F87, 0 0 32px #FF4F87;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #FF4F87, 0 0 20px #FF4F87, 0 0 32px #FF4F87;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #FF4F87, 0 0 20px #FF4F87, 0 0 32px #FF4F87;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawBlueGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #43A4F6, 0 0 20px #43A4F6, 0 0 32px #43A4F6;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #43A4F6, 0 0 20px #43A4F6, 0 0 32px #43A4F6;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #43A4F6, 0 0 20px #43A4F6, 0 0 32px #43A4F6;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawPurpleGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #DB6FE7, 0 0 20px #DB6FE7, 0 0 32px #DB6FE7;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #DB6FE7, 0 0 20px #DB6FE7, 0 0 32px #DB6FE7;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #DB6FE7, 0 0 20px #DB6FE7, 0 0 32px #DB6FE7;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+@keyframes underlineDrawOrangeGlow {
+    0% {
+        width: 0;
+        background-position: -100% 0;
+        opacity: 0;
+        box-shadow: 0 0 12px #F69B63, 0 0 20px #F69B63, 0 0 32px #F69B63;
+    }
+
+    5% {
+        opacity: 1;
+        box-shadow: 0 0 12px #F69B63, 0 0 20px #F69B63, 0 0 32px #F69B63;
+    }
+
+    40% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 1;
+        box-shadow: 0 0 12px #F69B63, 0 0 20px #F69B63, 0 0 32px #F69B63;
+    }
+
+    100% {
+        width: 100%;
+        background-position: 100% 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+}
+
+/* Highlight 색상별 ::after 스타일 - glow-pulse 클래스 추가될 때만 표시 */
+.highlight-green.glow-pulse::after {
+    animation: underlineDrawGreenGlow 1.7s ease-out forwards;
+}
+
+.highlight-yellow.glow-pulse::after {
+    animation: underlineDrawYellowGlow 1.7s ease-out forwards;
+}
+
+.highlight-blue.glow-pulse::after {
+    animation: underlineDrawBlueGlow 1.7s ease-out forwards;
+}
+
+.highlight-red.glow-pulse::after {
+    animation: underlineDrawRedGlow 1.7s ease-out forwards;
+}
+
+.highlight-purple.glow-pulse::after {
+    animation: underlineDrawPurpleGlow 1.7s ease-out forwards;
+}
+
+.highlight-orange.glow-pulse::after {
+    animation: underlineDrawOrangeGlow 1.7s ease-out forwards;
+}
+
+/* SVG 효과 컨테이너 */
+.glow-effect-svg {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    overflow: visible;
+}
+
+/* SVG path 초기 상태 (애니메이션은 JavaScript로 처리) */
+.glow-effect-svg path {
+    fill: none;
+    /* stroke-width는 JS에서 설정 */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

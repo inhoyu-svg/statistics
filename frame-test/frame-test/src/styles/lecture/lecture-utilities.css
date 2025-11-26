@@ -1,0 +1,570 @@
+/* ===== 테스트용 포커스 표시 ===== */
+.focus-test-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100vw - clamp(105px, 8.75vw + 35px, 140px));
+    height: calc(100vh - clamp(105px, 8.75vw + 35px, 140px));
+    border: 3px solid red;
+    box-shadow: 0 0 clamp(7px, 0.625vw + 2.5px, 10px) rgba(255, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 10000;
+    background: transparent;
+}
+
+.focus-test-overlay::after {
+    content: 'FOCUS TEST - 70px MARGIN';
+    position: absolute;
+    top: clamp(-26px, -2.1875vw - 8.75px, -35px);
+    left: 0;
+    background: red;
+    color: white;
+    padding: clamp(3px, 0.25vw + 1px, 4px) clamp(6px, 0.5vw + 2px, 8px);
+    font-family: 'SCDream';
+    font-weight: 700;
+    font-size: clamp(10px, 0.875vw + 3.5px, 14px);
+    white-space: nowrap;
+}
+
+.focus-test-border {
+    border: 2px solid rgba(255, 0, 0, 0.3);
+    position: relative;
+}
+
+/* ===== focus 요소 초기 숨김 ===== */
+/* 시스템 UI 요소(focusOverlay)는 제외하고 콘텐츠 focus 요소만 선택 */
+[id*="focus"]:not(#focusOverlay),
+[id*="reviewTag"],
+[id^="visualizationContainer"],
+[class*="focus-area-"] {
+    opacity: 1;
+    visibility: hidden;
+    transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+}
+
+/* reveal 클래스로 요소 표시 */
+[id*="focus"].reveal:not(#focusOverlay),
+[id*="SceneTag"].reveal,
+[id*="sceneTag"].reveal,
+[id*="reviewTag"].reveal,
+[id^="visualizationContainer"].reveal,
+[class*="focus-area-"].reveal {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* ===== scene-tag scale 애니메이션 ===== */
+@keyframes sceneTagScale {
+    0% {
+        transform: translateX(-50%) scale(0);
+    }
+
+    70% {
+        transform: translateX(-50%) scale(1.1);
+    }
+
+    100% {
+        transform: translateX(-50%) scale(1);
+    }
+}
+
+.scene-tag.tag-animate {
+    animation: sceneTagScale 800ms ease-out forwards;
+}
+
+/* ===== Title mask reveal 애니메이션 ===== */
+.scene-title.reveal,
+.main-title.reveal,
+.today-definition-text.reveal {
+    opacity: 0;
+    mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+    -webkit-mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+}
+
+.scene-title.reveal.reveal-animate,
+.main-title.reveal.reveal-animate,
+.today-definition-text.reveal.reveal-animate {
+    animation: keywordReveal 1s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+}
+
+@keyframes keywordReveal {
+    0% {
+        mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+    }
+
+    2% {
+        mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 1%, transparent 4%, transparent 100%);
+    }
+
+    4% {
+        mask: linear-gradient(90deg, black 0%, black 2%, transparent 6%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 2%, transparent 6%, transparent 100%);
+    }
+
+    6% {
+        mask: linear-gradient(90deg, black 0%, black 3%, transparent 8%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 3%, transparent 8%, transparent 100%);
+    }
+
+    8% {
+        mask: linear-gradient(90deg, black 0%, black 4%, transparent 10%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 4%, transparent 10%, transparent 100%);
+    }
+
+    10% {
+        mask: linear-gradient(90deg, black 0%, black 5%, transparent 12%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 5%, transparent 12%, transparent 100%);
+    }
+
+    12% {
+        mask: linear-gradient(90deg, black 0%, black 6%, transparent 14%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 6%, transparent 14%, transparent 100%);
+    }
+
+    14% {
+        mask: linear-gradient(90deg, black 0%, black 7%, transparent 16%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 7%, transparent 16%, transparent 100%);
+    }
+
+    16% {
+        mask: linear-gradient(90deg, black 0%, black 8%, transparent 18%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 8%, transparent 18%, transparent 100%);
+    }
+
+    18% {
+        mask: linear-gradient(90deg, black 0%, black 9%, transparent 20%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 9%, transparent 20%, transparent 100%);
+    }
+
+    20% {
+        mask: linear-gradient(90deg, black 0%, black 10%, transparent 22%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 10%, transparent 22%, transparent 100%);
+    }
+
+    22% {
+        mask: linear-gradient(90deg, black 0%, black 11%, transparent 24%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 11%, transparent 24%, transparent 100%);
+    }
+
+    24% {
+        mask: linear-gradient(90deg, black 0%, black 12%, transparent 26%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 12%, transparent 26%, transparent 100%);
+    }
+
+    26% {
+        mask: linear-gradient(90deg, black 0%, black 13%, transparent 28%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 13%, transparent 28%, transparent 100%);
+    }
+
+    28% {
+        mask: linear-gradient(90deg, black 0%, black 14%, transparent 30%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 14%, transparent 30%, transparent 100%);
+    }
+
+    30% {
+        mask: linear-gradient(90deg, black 0%, black 15%, transparent 32%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 15%, transparent 32%, transparent 100%);
+    }
+
+    32% {
+        mask: linear-gradient(90deg, black 0%, black 16%, transparent 34%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 16%, transparent 34%, transparent 100%);
+    }
+
+    34% {
+        mask: linear-gradient(90deg, black 0%, black 17%, transparent 36%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 17%, transparent 36%, transparent 100%);
+    }
+
+    36% {
+        mask: linear-gradient(90deg, black 0%, black 18%, transparent 38%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 18%, transparent 38%, transparent 100%);
+    }
+
+    38% {
+        mask: linear-gradient(90deg, black 0%, black 19%, transparent 40%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 19%, transparent 40%, transparent 100%);
+    }
+
+    40% {
+        mask: linear-gradient(90deg, black 0%, black 20%, transparent 42%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 20%, transparent 42%, transparent 100%);
+    }
+
+    42% {
+        mask: linear-gradient(90deg, black 0%, black 21%, transparent 44%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 21%, transparent 44%, transparent 100%);
+    }
+
+    44% {
+        mask: linear-gradient(90deg, black 0%, black 22%, transparent 46%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 22%, transparent 46%, transparent 100%);
+    }
+
+    46% {
+        mask: linear-gradient(90deg, black 0%, black 23%, transparent 48%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 23%, transparent 48%, transparent 100%);
+    }
+
+    48% {
+        mask: linear-gradient(90deg, black 0%, black 24%, transparent 50%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 24%, transparent 50%, transparent 100%);
+    }
+
+    50% {
+        mask: linear-gradient(90deg, black 0%, black 25%, transparent 52%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 25%, transparent 52%, transparent 100%);
+    }
+
+    52% {
+        mask: linear-gradient(90deg, black 0%, black 26%, transparent 54%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 26%, transparent 54%, transparent 100%);
+    }
+
+    54% {
+        mask: linear-gradient(90deg, black 0%, black 27%, transparent 56%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 27%, transparent 56%, transparent 100%);
+    }
+
+    56% {
+        mask: linear-gradient(90deg, black 0%, black 28%, transparent 58%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 28%, transparent 58%, transparent 100%);
+    }
+
+    58% {
+        mask: linear-gradient(90deg, black 0%, black 29%, transparent 60%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 29%, transparent 60%, transparent 100%);
+    }
+
+    60% {
+        mask: linear-gradient(90deg, black 0%, black 30%, transparent 62%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 30%, transparent 62%, transparent 100%);
+    }
+
+    62% {
+        mask: linear-gradient(90deg, black 0%, black 32%, transparent 64%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 32%, transparent 64%, transparent 100%);
+    }
+
+    64% {
+        mask: linear-gradient(90deg, black 0%, black 34%, transparent 66%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 34%, transparent 66%, transparent 100%);
+    }
+
+    66% {
+        mask: linear-gradient(90deg, black 0%, black 36%, transparent 68%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 36%, transparent 68%, transparent 100%);
+    }
+
+    68% {
+        mask: linear-gradient(90deg, black 0%, black 38%, transparent 70%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 38%, transparent 70%, transparent 100%);
+    }
+
+    70% {
+        mask: linear-gradient(90deg, black 0%, black 40%, transparent 72%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 40%, transparent 72%, transparent 100%);
+    }
+
+    72% {
+        mask: linear-gradient(90deg, black 0%, black 42%, transparent 74%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 42%, transparent 74%, transparent 100%);
+    }
+
+    74% {
+        mask: linear-gradient(90deg, black 0%, black 44%, transparent 76%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 44%, transparent 76%, transparent 100%);
+    }
+
+    76% {
+        mask: linear-gradient(90deg, black 0%, black 46%, transparent 78%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 46%, transparent 78%, transparent 100%);
+    }
+
+    78% {
+        mask: linear-gradient(90deg, black 0%, black 48%, transparent 80%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 48%, transparent 80%, transparent 100%);
+    }
+
+    80% {
+        mask: linear-gradient(90deg, black 0%, black 50%, black 55%, transparent 82%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 50%, black 55%, transparent 82%, transparent 100%);
+    }
+
+    82% {
+        mask: linear-gradient(90deg, black 0%, black 62%, transparent 87%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 62%, transparent 87%, transparent 100%);
+    }
+
+    84% {
+        mask: linear-gradient(90deg, black 0%, black 64%, transparent 89%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 64%, transparent 89%, transparent 100%);
+    }
+
+    86% {
+        mask: linear-gradient(90deg, black 0%, black 66%, transparent 91%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 66%, transparent 91%, transparent 100%);
+    }
+
+    88% {
+        mask: linear-gradient(90deg, black 0%, black 68%, transparent 93%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 68%, transparent 93%, transparent 100%);
+    }
+
+    90% {
+        mask: linear-gradient(90deg, black 0%, black 70%, black 75%, transparent 95%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 70%, black 75%, transparent 95%, transparent 100%);
+    }
+
+    91% {
+        mask: linear-gradient(90deg, black 0%, black 72%, black 77%, transparent 96%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 72%, black 77%, transparent 96%, transparent 100%);
+    }
+
+    92% {
+        mask: linear-gradient(90deg, black 0%, black 74%, black 79%, transparent 97%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 74%, black 79%, transparent 97%, transparent 100%);
+    }
+
+    93% {
+        mask: linear-gradient(90deg, black 0%, black 76%, black 81%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 76%, black 81%, transparent 98%, transparent 100%);
+    }
+
+    94% {
+        mask: linear-gradient(90deg, black 0%, black 78%, black 83%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 78%, black 83%, transparent 98%, transparent 100%);
+    }
+
+    95% {
+        mask: linear-gradient(90deg, black 0%, black 80%, black 85%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 80%, black 85%, transparent 98%, transparent 100%);
+    }
+
+    96% {
+        mask: linear-gradient(90deg, black 0%, black 82%, black 87%, transparent 98%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 82%, black 87%, transparent 98%, transparent 100%);
+    }
+
+    97% {
+        mask: linear-gradient(90deg, black 0%, black 84%, black 89%, transparent 99%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 84%, black 89%, transparent 99%, transparent 100%);
+    }
+
+    98% {
+        mask: linear-gradient(90deg, black 0%, black 86%, black 91%, transparent 99%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 86%, black 91%, transparent 99%, transparent 100%);
+    }
+
+    99% {
+        mask: linear-gradient(90deg, black 0%, black 88%, black 94%, transparent 99.5%, transparent 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 88%, black 94%, transparent 99.5%, transparent 100%);
+    }
+
+    100% {
+        mask: linear-gradient(90deg, black 0%, black 100%);
+        -webkit-mask: linear-gradient(90deg, black 0%, black 100%);
+        opacity: 1;
+    }
+}
+
+/* ===== 슬라이드 애니메이션 (solve-template에서 복제) ===== */
+
+/* 1번: 왼쪽에서 슬라이드 */
+@keyframes stepItemSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-70px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 2번: 아래에서 위로 슬라이드 - 극적인 효과 */
+@keyframes charRevealSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(32px) scale(0.3);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(8px) scale(0.9);
+    }
+
+    75% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.05);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 2번: 아래에서 위로 슬라이드 - 부드러운 효과 */
+@keyframes reviewKeywordSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== 글자별 순차 애니메이션 (물결 효과) ===== */
+/* keyword-item의 각 글자에 적용되는 스타일 */
+.keyword-item.reveal-animate .keyword-text .char-span,
+.char-span.reveal-animate {
+    display: inline-block;
+    opacity: 0;
+    animation: charRevealSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    transform-origin: 50% 100%;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transform: translateZ(0);
+}
+
+/* ===== explanation-text 랜덤 애니메이션 클래스 ===== */
+.explanation-text.anim-slide-left {
+    opacity: 0;
+    animation: stepItemSlideIn 1s ease-out forwards;
+}
+
+.explanation-text.anim-slide-up-smooth {
+    opacity: 0;
+    animation: reviewKeywordSlideUp 0.8s ease-out forwards;
+}
+
+.explanation-text.anim-scale-up {
+    opacity: 0;
+    animation: explanationScaleUp 0.8s ease-out forwards;
+}
+
+/* Scale-up 애니메이션: 아래에서 scale 0으로 시작해서 1로 커지기 */
+@keyframes explanationScaleUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(10px) scale(0.8);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== Progressive Reveal with Opacity for Non-Target Elements ===== */
+/* Target element를 제외한 나머지 reveal elements에 적용되는 스타일 */
+.chalk-frame .reveal-dimmed,
+.summary-overlay .reveal-dimmed {
+    opacity: 0.3 !important;
+    transition: opacity 0.8s ease-out !important;
+}
+
+/* Target element에 적용되는 스타일 - reveal만 있고 reveal-dimmed가 없을 때 */
+.chalk-frame .reveal:not(.reveal-dimmed),
+.summary-overlay .reveal:not(.reveal-dimmed) {
+    opacity: 1 !important;
+    transition: opacity 0.8s ease-out !important;
+}
+
+/* Target element에 적용되는 스타일 */
+.chalk-frame .reveal-focus,
+.summary-overlay .reveal-focus {
+    opacity: 1 !important;
+    transition: opacity 0.8s ease-out !important;
+}
+
+/* ===== Visualization Container ===== */
+.math-scene [class*="viz"],
+.content-area [class*="viz"],
+div[class*="viz"] {
+    padding-top: 30px !important;
+    padding-bottom: 50px !important;
+}
+
+.visualization-container {
+    transform-origin: center center !important;
+}
+
+.visualization-container>* {
+    transform: none !important;
+}
+
+
+/* ===== Insert Video Frame ===== */
+.insert-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+    z-index: 9999;
+}
+
+.video-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.insert-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ===== 고해상도 디스플레이 최적화 ===== */
+@media (-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+    body {
+        -webkit-font-smoothing: subpixel-antialiased;
+    }
+
+    .math,
+    .MathJax,
+    .MathJax_Display {
+        transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+    }
+}
+
+/* ===== 스케일링 시 텍스트 선명도 유지 ===== */
+.dynamic-content-area {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.dynamic-content-area.zoomed {
+    text-rendering: geometricPrecision;
+}
+
+/* ===== 동적 스타일 확장 영역 ===== */
+/* 이 영역에 LLM이 생성한 추가 스타일들이 삽입됩니다 */

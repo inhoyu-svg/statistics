@@ -1,0 +1,177 @@
+/* ===== 수식 스타일 ===== */
+.equation-section {
+    margin: clamp(15px, 2.5vw, 25px) 0;
+    text-align: center;
+}
+
+.equation-aligned {
+    display: table;
+    margin: 0 auto;
+}
+
+.equation-aligned .equation-row {
+    display: table-row;
+}
+
+.equation-aligned .equation-left,
+.equation-aligned .equation-equals,
+.equation-aligned .equation-right {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.equation-aligned .equation-left {
+    text-align: right;
+}
+
+.equation-aligned .equation-equals {
+    text-align: center;
+    width: clamp(30px, 3vw, 50px);
+}
+
+.equation-aligned .equation-right {
+    text-align: left;
+}
+
+/* 같은 스텝 내에서만 equation-equals 기준 정렬 */
+/* ⭐ 최우선: equation-equals 기준 정렬 - 모든 Step에서 등호가 같은 위치 */
+.step-detail-scene .equation-section {
+    display: block;
+    width: 100%;
+    text-align: center;
+    line-height: 1;
+    margin: 0;
+}
+
+/* 모든 equation을 같은 구조로 정렬 */
+.step-detail-scene .equation-aligned {
+    display: inline-grid;
+    grid-template-columns: minmax(200px, 1fr) 50px minmax(200px, 1fr);
+    align-items: center;
+    gap: 0;
+    width: auto;
+    max-width: 90%;
+    line-height: 1;
+}
+
+.step-detail-scene .equation-row {
+    display: contents;
+}
+
+/* equation-left/equals/right: 상하 패딩 통일 */
+.step-detail-scene .equation-aligned .equation-left,
+.step-detail-scene .equation-aligned .equation-equals,
+.step-detail-scene .equation-aligned .equation-right {
+    padding-top: var(--step-detail-math-padding);
+    padding-bottom: var(--step-detail-math-padding);
+}
+
+/* equation-left: 우측 정렬로 등호와 만남 */
+.step-detail-scene .equation-aligned .equation-left {
+    text-align: right;
+    padding-right: clamp(1px, 0.3vw, 3px);
+    white-space: nowrap;
+    justify-self: end;
+}
+
+/* ⭐ equals: 모든 step에서 동일한 위치 고정 */
+.step-detail-scene .equation-aligned .equation-equals {
+    text-align: center;
+    padding-left: clamp(1px, 0.3vw, 3px);
+    padding-right: clamp(1px, 0.3vw, 3px);
+    white-space: nowrap;
+    width: 50px;
+    justify-self: center;
+}
+
+/* equation-right: 좌측 정렬로 등호에서 시작 */
+.step-detail-scene .equation-aligned .equation-right {
+    text-align: left;
+    padding-left: clamp(1px, 0.3vw, 3px);
+    white-space: nowrap;
+    justify-self: start;
+}
+
+/* 같은 Step 내에서 모든 equation들의 equals가 수직선상에 정렬 */
+.step-detail-scene .step-content-item {
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* 모든 step-detail-scene에서 equation 정렬 일관성 유지 */
+.content-scene.step-detail-scene {
+    width: 100%;
+}
+
+/* equation이 없는 content-text는 중앙 정렬 */
+.step-detail-scene .content-text {
+    text-align: center;
+}
+
+/* stepDetailScene 내 content-text의 .math 패딩만 절반으로 축소 */
+.step-detail-scene .content-text .math {
+    padding: var(--step-detail-math-padding) 0;
+}
+
+/* stepDetailScene 내 equation-row의 .math 상하 패딩 제거 */
+.step-detail-scene .equation-row .math {
+    padding: 0;
+    line-height: 1.2;
+}
+
+/* stepDetailScene 내 마지막 step-content-item의 하단 여백을 증가 */
+.step-detail-scene .step-content-item:last-of-type {
+    margin-bottom: 40px;
+}
+
+/* stepDetailScene 내 MathJax 분수 정렬 조정 */
+.step-detail-scene .MathJax .mfrac {
+    vertical-align: 0;
+}
+
+/* ===== 수식 요소 스타일링 ===== */
+.math {
+    padding: clamp(8px, 1.5vw, 16px) 0;
+    font-size: clamp(1.2rem, 2.5vw + 0.8rem, 2rem);
+}
+
+.math:has(br) {
+    line-height: 60px;
+}
+
+.math br+* {
+    margin-top: clamp(18px, 2.8vw, 50px);
+}
+
+/* ===== MathJax 스타일링 ===== */
+.MathJax,
+.MathJax_Display,
+.MathJax * {
+    color: #ffffff;
+}
+
+.MathJax .mfrac {
+    font-size: clamp(1.8rem, 3.5vw + 1.2rem, 2.8rem);
+    vertical-align: -0.05em;
+}
+
+.MathJax .mfrac>span {
+    font-size: clamp(1.6rem, 3.2vw + 1.1rem, 2.5rem);
+}
+
+.MathJax .mfrac .mrow {
+    font-size: clamp(1.4rem, 2.8vw + 1rem, 2.2rem);
+}
+
+.MathJax .mfrac * {
+    font-size: clamp(1.3rem, 2.6vw + 0.9rem, 2.1rem);
+}
+
+.MathJax_Display {
+    font-size: 130%;
+}
+
+.MathJax {
+    font-size: 115%;
+}
+

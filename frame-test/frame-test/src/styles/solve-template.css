@@ -1,0 +1,36 @@
+/* =====================================================
+   Solve Template CSS - Modular Structure
+   ===================================================== */
+
+/* Base styles: fonts, variables, and basic styles */
+@import url('./solve/solve-base.css');
+
+/* Layout: viewport, frames, containers, background decorations */
+@import url('./solve/solve-layout.css');
+
+/* Problem block styles */
+@import url('./solve/solve-problem.css');
+
+/* Keyword intro and detail frames, all keyword-related layouts */
+@import url('./solve/solve-keyword.css');
+
+/* Answer frame styles */
+@import url('./solve/solve-answer.css');
+
+/* Highlight colors and color-related styles */
+@import url('./solve/solve-colors.css');
+
+/* Math equations, MathJax, equation sections */
+@import url('./solve/solve-math.css');
+
+/* Keyframes, transitions, frame transitions */
+@import url('./solve/solve-animations.css');
+
+/* Overlays, progress indicators, focus effects */
+@import url('./solve/solve-components.css');
+
+/* Media queries and responsive styles */
+@import url('./solve/solve-responsive.css');
+
+/* Performance optimizations, dynamic styles, progressive visibility */
+@import url('./solve/solve-utilities.css');

@@ -1,0 +1,169 @@
+/* ===== 색상 강조 ===== */
+.content-text .math span[class*="highlight"],
+.flow-content .math span[class*="highlight"] {
+    font-weight: 500;
+}
+
+/* 화살표 특수문자 크기 조정 */
+.arrow-symbol {
+    font-size: 0.66em;
+    vertical-align: middle;
+    margin-left: 0.3em;
+    margin-right: 0.3em;
+}
+
+.highlight-green {
+    color: #A2FF72;
+    position: relative;
+    display: inline-block;
+}
+
+.highlight-green::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #A2FF72;
+    background-size: 200% 100%;
+    border-radius: 2px;
+    opacity: 0;
+}
+
+.highlight-yellow {
+    color: #FFD34F;
+    position: relative;
+    display: inline-block;
+}
+
+.highlight-yellow::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #FFD34F;
+    background-size: 200% 100%;
+    border-radius: 2px;
+    opacity: 0;
+}
+
+.highlight-red {
+    color: #FF4F87;
+    position: relative;
+    display: inline-block;
+}
+
+.highlight-red::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #FF4F87;
+    background-size: 200% 100%;
+    border-radius: 2px;
+    opacity: 0;
+}
+
+.highlight-purple {
+    color: #DB6FE7;
+    position: relative;
+    display: inline-block;
+}
+
+.highlight-purple::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #DB6FE7;
+    background-size: 200% 100%;
+    border-radius: 2px;
+    opacity: 0;
+}
+
+.highlight-orange {
+    color: #F69B63;
+    position: relative;
+    display: inline-block;
+}
+
+.highlight-orange::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #F69B63;
+    background-size: 200% 100%;
+    border-radius: 2px;
+    opacity: 0;
+}
+
+.highlight-blue {
+    color: #43A4F6;
+    position: relative;
+    display: inline-block;
+}
+
+.highlight-blue::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #43A4F6;
+    background-size: 200% 100%;
+    border-radius: 2px;
+    opacity: 0;
+}
+
+.highlight-green .MathJax,
+.highlight-green .MathJax *,
+.highlight-green .math,
+.highlight-green .math * {
+    color: #A2FF72;
+}
+
+.highlight-yellow .MathJax,
+.highlight-yellow .MathJax *,
+.highlight-yellow .math,
+.highlight-yellow .math * {
+    color: #FFD34F;
+}
+
+.highlight-blue .MathJax,
+.highlight-blue .MathJax *,
+.highlight-blue .math,
+.highlight-blue .math * {
+    color: #43A4F6;
+}
+
+.highlight-red .MathJax,
+.highlight-red .MathJax *,
+.highlight-red .math,
+.highlight-red .math * {
+    color: #FF4F87;
+}
+
+.highlight-purple .MathJax,
+.highlight-purple .MathJax *,
+.highlight-purple .math,
+.highlight-purple .math * {
+    color: #DB6FE7;
+}
+
+.highlight-orange .MathJax,
+.highlight-orange .MathJax *,
+.highlight-orange .math,
+.highlight-orange .math * {
+    color: #F69B63;
+}

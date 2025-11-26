@@ -1,0 +1,1586 @@
+/* ===== 키워드 소개 프레임 (IS_INTRO_FRAME): 문제 + 키워드 스타일 ===== */
+.problem-keyword-scene {
+    display: flex;
+    gap: clamp(25px, 4vw, 75px);
+    align-items: flex-start;
+    height: calc(100vh - 80px);
+}
+
+.problem-keyword-scene.vertical-layout {
+    flex-direction: column;
+    align-items: center;
+}
+
+.keyword-area,
+.review-area {
+    text-align: center;
+    padding: clamp(20px, 3vw, 40px) clamp(40px, 6vw, 80px);
+    /* 3/4로 축소: 40→30, 90→68 */
+    border: clamp(2px, 0.3vw, 4px) solid transparent;
+    border-radius: 15px;
+    position: relative;
+    margin: 0 auto;
+    max-width: 1000px;
+}
+
+.scene-tag {
+    background: #A2FF72;
+    color: #000000;
+    padding: clamp(4px, 0.8vw, 8px) clamp(24px, 3vw, 44px);
+    border-radius: clamp(24px, 3vw, 44px);
+    font-size: clamp(18px, 2.2vw, 30px);
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: clamp(25px, 4vw, 75px);
+    position: relative;
+    overflow: visible;
+}
+
+.scene-tag.step-tag {
+    background: transparent;
+    color: #FFD34F;
+    border: clamp(2px, 0.3vw, 4px) solid #FFD34F;
+    font-family: 'SCDream', sans-serif;
+    font-size: clamp(0.875rem, 2vw + 0.6rem, 1.475rem);
+    font-weight: 700;
+    border-radius: 0;
+    padding: clamp(1px, 0.3vw, 3px) clamp(3px, 0.5vw, 7px);
+}
+
+.scene-tag.step-tag[data-step-only="true"] {
+    border: clamp(3px, 0.4vw, 5px) solid #FFD34F;
+    font-family: 'SCDream', sans-serif;
+    font-size: clamp(1.2rem, 2.5vw + 0.8rem, 2rem);
+    font-weight: 700;
+    padding: clamp(1px, 0.3vw, 3px) clamp(20px, 2.5vw, 36px);
+}
+
+/* 키워드 태그 스타일 - KEY + 숫자가 있는 경우 (기본) */
+.scene-tag:not(.step-tag) {
+    background: #A2FF72;
+    color: #000000;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #A2FF72;
+    font-family: 'SCDream', sans-serif;
+    font-size: clamp(0.8rem, 1.5vw + 0.4rem, 1.2rem);
+    font-weight: 700;
+    border-radius: clamp(24px, 3vw, 44px);
+    padding: clamp(3px, 0.6vw, 7px) clamp(15px, 2vw, 25px);
+}
+
+/* 키워드 태그 스타일 - KEY만 있는 경우 */
+.scene-tag:not(.step-tag)[data-key-only="true"] {
+    border: clamp(3px, 0.4vw, 5px) solid #A2FF72;
+    font-size: clamp(1.2rem, 2.5vw + 0.8rem, 2rem);
+    padding: clamp(2px, 0.4vw, 4px) clamp(22px, 3vw, 38px);
+}
+
+.keyword-item,
+.review-keyword-item {
+    margin-bottom: clamp(19px, 3vw, 56px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: visible;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* keyword-list-scene 내부의 keyword-item만 왼쪽 정렬 */
+.keyword-list-scene .keyword-item,
+.keyword-list-scene .review-keyword-item {
+    width: auto;
+    min-width: max-content;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+/* keyword-item 글자별 stagger 애니메이션 - 글자(span)만 애니메이션 */
+.keyword-item.reveal-animate .keyword-text .char-span {
+    display: inline-block;
+    opacity: 0;
+    animation: charRevealSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    transform-origin: 50% 100%;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transform: translateZ(0);
+}
+
+/* review-keyword-item 전용 애니메이션 - 전체 아이템에 부드러운 slide up + fade-in */
+.review-keyword-item.reveal-animate {
+    opacity: 0;
+    animation: reviewKeywordSlideUp 0.8s ease-out forwards;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+
+
+/* 기타 애니메이션 트리거 클래스 */
+.step-item.reveal-animate,
+.keyword-title.reveal-animate,
+.step-title.reveal-animate {
+    animation: keywordReveal 0.8s ease-out forwards;
+}
+
+/* charRevealSlideUp 애니메이션 - 아래에서 위로 극적으로 올라오기 (30%에서 시작, 100%에서 정상 크기) */
+@keyframes charRevealSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(32px) scale(0.3);
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    85% {
+        transform: translateY(0px) scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* reviewKeywordSlideUp 애니메이션 - review-keyword-item 전용: 부드러운 slide up + fade-in */
+@keyframes reviewKeywordSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* .math reveal 애니메이션 - 다른 속성 간섭 방지 */
+.math.reveal-animate {
+    animation: keywordReveal 1s cubic-bezier(0.5, 0, 0.4, 1) forwards !important;
+}
+
+/* step-content-item 내 .math 애니메이션 */
+.step-content-item .math.reveal-animate {
+    animation: contentFadeSlideDown 0.8s cubic-bezier(0.5, 0, 0.4, 1) forwards !important;
+}
+
+/* .math 마스크 초기 상태 - reveal-animate 클래스 추가 전에만 적용 */
+.extraction-right .math {
+    mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+    -webkit-mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+}
+
+.step-item {
+    margin-bottom: clamp(25px, 4vw, 75px);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    /* 초기에는 숨김 */
+    opacity: 0;
+    mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+    -webkit-mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+    overflow: visible;
+}
+
+.keyword-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(24px, 2.8vw, 36px);
+    margin-right: clamp(4px, 0.6vw, 10px);
+    color: #000000;
+    background-color: #A2FF72;
+    font-weight: 700;
+    font-family: 'SCDream', sans-serif;
+    width: clamp(32px, 3.5vw, 50px);
+    height: clamp(32px, 3.5vw, 50px);
+    border-radius: 50%;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(18px, 2.2vw, 28px);
+    margin-right: clamp(10px, 1.5vw, 20px);
+    color: #FFD34F;
+    font-weight: 600;
+    font-family: 'SCDream', sans-serif;
+    width: clamp(32px, 3.5vw, 50px);
+    height: clamp(32px, 3.5vw, 50px);
+    border: clamp(2px, 0.3vw, 4px) solid #FFD34F;
+    border-radius: 50%;
+}
+
+.keyword-text,
+.step-text {
+    font-size: clamp(1.8rem, 3.5vw + 1.2rem, 2.8rem);
+    line-height: 1.3;
+    font-family: 'SCDream', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* 키워드 색상 구분 클래스 */
+.keyword-highlight {
+    color: #A2FF72;
+    font-weight: 500;
+}
+
+.keyword-normal {
+    color: #EBEBEB;
+    font-weight: 500;
+}
+
+/* ===== 키워드 상세/단계 프레임: 상하 분할 레이아웃 ===== */
+.keyword-list-scene {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: fit-content;
+    height: auto;
+    z-index: 999;
+}
+
+.step-list-scene {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%, -50%);
+    width: fit-content;
+    height: auto;
+    z-index: 999;
+    overflow: visible;
+}
+
+.step-list-scene .step-item {
+    width: auto;
+    min-width: max-content;
+    justify-content: flex-start;
+    overflow: visible;
+}
+
+.step-detail-scene {
+    display: flex;
+    flex-direction: column;
+    max-width: 100vw;
+    position: fixed;
+    top: 0vh;
+    left: 50vw;
+    transform: translateX(-50%, -50%) scale(0.8);
+    margin: 0 auto;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 clamp(5px, 0.4vw, 20px);
+    margin-bottom: 0;
+    transform-origin: center center;
+    overflow: visible;
+}
+
+/* ===== 타입별 상세씬 분리: 독해/인출/적용 ===== */
+/* 기존 공통값을 유지하면서, 키워드 상세씬은 타입별로 명시적으로 분리합니다 */
+.keyword-detail-scene.keyword-parent-layout-comprehension {
+    display: flex;
+    flex-direction: column;
+    max-width: 80vw;
+    position: fixed;
+    top: 25vh;
+    left: 50vw;
+    transform: translateX(-50%) scale(1);
+    margin: 0 auto;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 clamp(5px, 0.4vw, 20px);
+    transform-origin: center center;
+    overflow: visible;
+}
+
+.keyword-detail-scene.keyword-parent-layout-extraction {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    max-width: 100vw;
+    position: fixed;
+    top: 15vh;
+    left: 50vw;
+    transform: translateX(-50%) scale(1);
+    margin: 0 auto;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 clamp(5px, 0.4vw, 20px);
+    transform-origin: center center;
+}
+
+.keyword-detail-scene.keyword-parent-layout-application {
+    display: flex;
+    flex-direction: column;
+    max-width: 100vw;
+    position: fixed;
+    top: 2vh;
+    left: 50vw;
+    transform: translateX(-50%) scale(1);
+    margin: 0 auto;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 clamp(5px, 0.4vw, 20px);
+    transform-origin: center center;
+    overflow: visible;
+}
+
+.step-detail-scene .step-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 1.5vw, 30px);
+    margin-bottom: clamp(10px, 1.5vw, 30px);
+    width: 100%;
+}
+
+.step-detail-scene .step-title {
+    display: flex;
+    align-items: center;
+}
+
+.problem-step-scene {
+    display: flex;
+    gap: clamp(25px, 4vw, 75px);
+    align-items: flex-start;
+    height: calc(100vh - 80px);
+}
+
+.problem-header {
+    height: 33.333vh;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #EBEBEB;
+    border-radius: 15px;
+    padding: clamp(10px, 1.5vw, 30px);
+    margin-bottom: clamp(10px, 1.5vw, 30px);
+    background: rgba(255, 255, 255, 0.08);
+    transition: all var(--animation-duration) var(--animation-easing);
+    cursor: pointer;
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.problem-header.collapsed {
+    height: clamp(80px, 10vh, 150px);
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: clamp(200px, 25vw, 400px);
+    z-index: 20;
+    border-radius: 10px;
+    opacity: 0.8;
+}
+
+.problem-header:hover {
+    opacity: 1;
+}
+
+.problem-content-small {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.problem-content-small .math {
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.5rem);
+    line-height: 1.3;
+}
+
+.keyword-title,
+.step-title {
+    text-align: center;
+    font-size: clamp(1.75rem, 4vw + 1rem, 3.125rem);
+    color: #A2FF72;
+    font-weight: 500;
+    /* 초기에는 mask로 숨김 처리 */
+    opacity: 1;
+    mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+    -webkit-mask: linear-gradient(90deg, transparent 0%, transparent 100%);
+    overflow: visible !important;
+}
+
+.keyword-title {
+    margin: 0;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.keyword-title .math,
+.step-title .math {
+    font-size: clamp(1rem, 1.5vw + 0.4rem, 2.6rem);
+    overflow: visible !important;
+}
+
+.keyword-title .math {
+    font-size: clamp(1.75rem, 4vw + 1rem, 3.125rem);
+}
+
+.keyword-content-item,
+.step-content-item {
+    padding: clamp(1px, 0.3vw, 3px) 0;
+    max-width: 80vw;
+    margin: 0 auto 30px auto;
+    transition: opacity var(--animation-duration) var(--animation-easing), transform var(--animation-duration) var(--animation-easing);
+}
+
+/* 시각화 컨테이너 스타일 */
+.visualization-container {
+    width: 100%;
+    max-width: 600px;
+    height: 400px;
+    margin: 30px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity var(--animation-duration) var(--animation-easing);
+    /* Progressive visibility 제어 */
+    visibility: hidden;
+    opacity: 0;
+}
+
+.visualization-container.reveal-focus,
+.visualization-container.reveal-dimmed {
+    visibility: visible;
+}
+
+.visualization-container.reveal-focus {
+    opacity: 1;
+}
+
+.visualization-container.reveal-dimmed {
+    opacity: 0.3;
+}
+
+/* function-plot x=0, y=0 축선 스타일 */
+.visualization-container .x.origin,
+.visualization-container .y.origin {
+    stroke: rgba(255, 255, 255, 0.9);
+    stroke-width: 2;
+    opacity: 1;
+}
+
+/* function-plot 좌표축 눈금선과 텍스트 */
+.visualization-container .axis line {
+    stroke: rgba(255, 255, 255, 0.2);
+}
+
+.visualization-container .axis text {
+    fill: rgba(255, 255, 255, 0.8);
+}
+
+/* function-plot 좌표축 테두리는 숨김 */
+.visualization-container .axis path.domain {
+    opacity: 0;
+}
+
+.content-text {
+    font-size: clamp(1rem, 2vw + 0.5rem, 1.5625rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+    line-height: 1.4;
+    margin-bottom: clamp(8px, 1.2vw, 20px);
+    text-align: center;
+    border: none;
+    outline: none;
+}
+
+.step-content-item .content-text {
+    font-size: clamp(2rem, 3.8vw + 1.3rem, 3.2rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+    margin-bottom: 0;
+}
+
+.step-content-item .math {
+    padding: clamp(8px, 1.5vw, 16px) 0;
+}
+
+.step-content-item .equation-section {
+    margin: 0;
+}
+
+.step-content-item .equation-left,
+.step-content-item .equation-right {
+    padding: clamp(6px, 1vw, 10px) 0;
+}
+
+.step-content-item .equation-equals {
+    padding: clamp(6px, 1vw, 10px) 0;
+}
+
+.content-arrow {
+    text-align: center;
+    font-size: clamp(1.5rem, 3vw + 1rem, 2.5rem);
+    color: #A2FF72;
+    margin: clamp(15px, 2.5vw, 25px) 0;
+    /* 초기에는 숨김 - 연관 요소 등장 시 함께 등장 */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1), visibility 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+/* content 화살표 표시 클래스 */
+.content-arrow.arrow-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.concept-box {
+    background: rgba(93, 196, 112, 0.2);
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #A2FF72;
+    border-radius: 15px;
+    padding: clamp(12px, 2vw, 38px);
+    margin: clamp(15px, 2.5vw, 25px) 0;
+    text-align: center;
+}
+
+.concept-box .math {
+    font-size: clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
+    color: #A2FF72;
+    font-weight: 500;
+}
+
+/* ===== 수식 스타일 ===== */
+.equation-section {
+    margin: clamp(15px, 2.5vw, 25px) 0;
+    text-align: center;
+}
+
+.equation-aligned {
+    display: table;
+    margin: 0 auto;
+}
+
+.equation-aligned .equation-row {
+    display: table-row;
+}
+
+.equation-aligned .equation-left,
+.equation-aligned .equation-equals,
+.equation-aligned .equation-right {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.equation-aligned .equation-left {
+    text-align: right;
+}
+
+.equation-aligned .equation-equals {
+    text-align: center;
+    width: clamp(30px, 3vw, 50px);
+}
+
+.equation-aligned .equation-right {
+    text-align: left;
+}
+
+/* 같은 스텝 내에서만 equation-equals 기준 정렬 */
+/* ⭐ 최우선: equation-equals 기준 정렬 - 모든 Step에서 등호가 같은 위치 */
+.step-detail-scene .equation-section {
+    display: block;
+    width: 100%;
+    text-align: center;
+    line-height: 1;
+    margin: 0;
+}
+
+/* 모든 equation을 같은 구조로 정렬 */
+.step-detail-scene .equation-aligned {
+    display: inline-grid;
+    grid-template-columns: minmax(200px, 1fr) 50px minmax(200px, 1fr);
+    align-items: center;
+    gap: 0;
+    width: auto;
+    max-width: 90%;
+    line-height: 1;
+}
+
+.step-detail-scene .equation-row {
+    display: contents;
+}
+
+/* equation-left/equals/right: 상하 패딩 통일 */
+.step-detail-scene .equation-aligned .equation-left,
+.step-detail-scene .equation-aligned .equation-equals,
+.step-detail-scene .equation-aligned .equation-right {
+    padding-top: var(--step-detail-math-padding);
+    padding-bottom: var(--step-detail-math-padding);
+}
+
+/* equation-left: 우측 정렬로 등호와 만남 */
+.step-detail-scene .equation-aligned .equation-left {
+    text-align: right;
+    padding-right: clamp(1px, 0.3vw, 3px);
+    white-space: nowrap;
+    justify-self: end;
+}
+
+/* ⭐ equals: 모든 step에서 동일한 위치 고정 */
+.step-detail-scene .equation-aligned .equation-equals {
+    text-align: center;
+    padding-left: clamp(1px, 0.3vw, 3px);
+    padding-right: clamp(1px, 0.3vw, 3px);
+    white-space: nowrap;
+    width: 50px;
+    justify-self: center;
+}
+
+/* equation-right: 좌측 정렬로 등호에서 시작 */
+.step-detail-scene .equation-aligned .equation-right {
+    text-align: left;
+    padding-left: clamp(1px, 0.3vw, 3px);
+    white-space: nowrap;
+    justify-self: start;
+}
+
+/* 같은 Step 내에서 모든 equation들의 equals가 수직선상에 정렬 */
+.step-detail-scene .step-content-item {
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* 모든 step-detail-scene에서 equation 정렬 일관성 유지 */
+.content-scene.step-detail-scene {
+    width: 100%;
+}
+
+/* equation이 없는 content-text는 중앙 정렬 */
+.step-detail-scene .content-text {
+    text-align: center;
+}
+
+/* stepDetailScene 내 content-text의 .math 패딩만 절반으로 축소 */
+.step-detail-scene .content-text .math {
+    padding: var(--step-detail-math-padding) 0;
+}
+
+/* stepDetailScene 내 equation-row의 .math 상하 패딩 제거 */
+.step-detail-scene .equation-row .math {
+    padding: 0;
+    line-height: 1.2;
+}
+
+/* stepDetailScene 내 마지막 step-content-item의 하단 여백을 증가 */
+.step-detail-scene .step-content-item:last-of-type {
+    margin-bottom: 40px;
+}
+
+/* stepDetailScene 내 MathJax 분수 정렬 조정 */
+.step-detail-scene .MathJax .mfrac {
+    vertical-align: 0;
+}
+/* ===== 키워드별 레이아웃 ===== */
+
+/* 독해키워드: 상단/하단 구성 */
+.keyword-parent-layout-comprehension {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    padding: clamp(10px, 1.5vw, 30px);
+    gap: clamp(10px, 1.5vw, 30px);
+    max-width: calc(clamp(800px, 90vw, 1600px) - 140px);
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.keyword-parent-layout-comprehension .keyword-top {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #EBEBEB;
+    border-radius: 20px;
+    padding: clamp(15px, 2.5vw, 45px);
+    background: rgba(255, 255, 255, 0.08);
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.keyword-parent-layout-comprehension .keyword-bottom {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #A2FF72;
+    border-radius: 20px;
+    padding: clamp(15px, 2.5vw, 45px);
+    background: rgba(93, 196, 112, 0.1);
+    text-align: center;
+}
+
+.keyword-parent-layout-comprehension .keyword-bottom .keyword-description {
+    font-size: clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
+    line-height: 1.4;
+    margin-bottom: clamp(10px, 1.5vw, 30px);
+    color: #EBEBEB;
+}
+
+.keyword-parent-layout-comprehension .keyword-bottom .keyword-logic {
+    font-size: clamp(1.5rem, 2.5vw + 0.75rem, 2rem);
+    font-weight: 500;
+    color: #A2FF72;
+}
+
+/* 인출키워드: 상-중(2컬럼)-하 구성 */
+.keyword-parent-layout-extraction {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    padding: clamp(10px, 1.5vw, 30px);
+    gap: clamp(10px, 1.5vw, 30px);
+    align-items: center;
+    justify-content: flex-start;
+    max-width: calc(clamp(800px, 90vw, 1600px) - 140px);
+    margin: 0 auto;
+}
+
+/* 인출키워드 중단 영역 가시성 보장 */
+.keyword-parent-layout-extraction .keyword-middle {
+    visibility: visible;
+    opacity: 1;
+    display: flex;
+}
+
+.keyword-parent-layout-extraction .keyword-top {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #EBEBEB;
+    border-radius: 20px;
+    padding: clamp(15px, 2.5vw, 45px);
+    background: rgba(255, 255, 255, 0.08);
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.keyword-parent-layout-extraction .keyword-middle {
+    flex: 1;
+    display: flex;
+    gap: clamp(10px, 1.5vw, 30px);
+}
+
+.keyword-parent-layout-extraction .keyword-middle-left,
+.keyword-parent-layout-extraction .keyword-middle-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #1D3A5C;
+    border-radius: 20px;
+    padding: clamp(15px, 2.5vw, 45px);
+    background: rgba(29, 58, 92, 0.1);
+    text-align: center;
+    visibility: visible;
+    opacity: 1;
+}
+
+.keyword-parent-layout-extraction .keyword-middle-left .keyword-hint,
+.keyword-parent-layout-extraction .keyword-middle-right .keyword-strategy {
+    font-size: clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
+    line-height: 1.4;
+    color: #EBEBEB;
+}
+
+.keyword-parent-layout-extraction .keyword-middle-left .keyword-hint-title,
+.keyword-parent-layout-extraction .keyword-middle-right .keyword-strategy-title {
+    font-size: clamp(1.5rem, 2.5vw + 0.75rem, 2rem);
+    font-weight: 500;
+    color: #1D3A5C;
+    margin-bottom: clamp(10px, 1.5vw, 30px);
+}
+
+.keyword-parent-layout-extraction .keyword-bottom {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #A2FF72;
+    border-radius: 20px;
+    padding: clamp(15px, 2.5vw, 45px);
+    background: rgba(93, 196, 112, 0.1);
+    text-align: center;
+}
+
+.keyword-parent-layout-extraction .keyword-bottom .keyword-connection {
+    font-size: clamp(1.25rem, 2vw + 0.5rem, 1.75rem);
+    line-height: 1.4;
+    color: #EBEBEB;
+}
+
+/* 적용키워드: 상단/하단(3컬럼) 구성 */
+.keyword-parent-layout-application {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    padding: clamp(10px, 1.5vw, 30px);
+    gap: clamp(10px, 1.5vw, 30px);
+    max-width: calc(clamp(800px, 90vw, 1600px) - 140px);
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.keyword-parent-layout-application .keyword-top {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #EBEBEB;
+    border-radius: 20px;
+    padding: clamp(15px, 2.5vw, 45px);
+    background: rgba(255, 255, 255, 0.08);
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.keyword-parent-layout-application .keyword-bottom {
+    flex: 1;
+    display: flex;
+    gap: clamp(10px, 1.5vw, 30px);
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 20px;
+    padding: clamp(15px, 2.5vw, 45px);
+    background: transparent;
+    text-align: center;
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column-1 {
+    background: transparent;
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column-2 {
+    background: transparent;
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column-3 {
+    background: transparent;
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column .keyword-column-title {
+    font-size: clamp(1.25rem, 2vw + 0.5rem, 1.5rem);
+    font-weight: 500;
+    margin-bottom: clamp(8px, 1.2vw, 20px);
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column-1 .keyword-column-title {
+    color: #43A4F6;
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column-2 .keyword-column-title {
+    color: #FF4F87;
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column-3 .keyword-column-title {
+    color: #DB6FE7;
+}
+
+.keyword-parent-layout-application .keyword-bottom .keyword-column .keyword-column-content {
+    font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+    line-height: 1.4;
+    color: #EBEBEB;
+}
+
+/* ===== 반응형 디자인 ===== */
+@media (max-width: 768px) {
+    .main-container {
+        padding: clamp(10px, 1.5vw, 30px);
+    }
+
+    .problem-keyword-scene,
+    .problem-step-scene {
+        flex-direction: column;
+        gap: clamp(15px, 2.5vw, 45px);
+    }
+
+    .progress-indicator {
+        top: 10px;
+        right: 10px;
+        min-width: clamp(100px, 12vw, 200px);
+    }
+
+    .problem-header.collapsed {
+        width: clamp(180px, 20vw, 300px);
+        height: clamp(70px, 8vh, 120px);
+    }
+
+    /* 키워드 레이아웃 모바일 대응 */
+    .keyword-parent-layout-comprehension,
+    .keyword-parent-layout-extraction,
+    .keyword-parent-layout-application {
+        padding: clamp(8px, 1.2vw, 22px);
+        gap: clamp(8px, 1.2vw, 22px);
+    }
+
+    .keyword-parent-layout-comprehension .keyword-top,
+    .keyword-parent-layout-comprehension .keyword-bottom,
+    .keyword-parent-layout-extraction .keyword-top,
+    .keyword-parent-layout-extraction .keyword-middle-left,
+    .keyword-parent-layout-extraction .keyword-middle-right,
+    .keyword-parent-layout-extraction .keyword-bottom,
+    .keyword-parent-layout-application .keyword-top,
+    .keyword-parent-layout-application .keyword-bottom .keyword-column {
+        padding: clamp(10px, 1.5vw, 30px);
+    }
+
+    /* 인출키워드 중단 세로 배치 */
+    .keyword-parent-layout-extraction .keyword-middle {
+        flex-direction: column;
+        gap: clamp(8px, 1.2vw, 22px);
+    }
+
+    /* 적용키워드 하단 세로 배치 */
+    .keyword-parent-layout-application .keyword-bottom {
+        flex-direction: column;
+        gap: clamp(8px, 1.2vw, 22px);
+    }
+
+    /* 폰트 크기 조정 */
+    .keyword-parent-layout-comprehension .keyword-bottom .keyword-description,
+    .keyword-parent-layout-extraction .keyword-middle-left .keyword-hint,
+    .keyword-parent-layout-extraction .keyword-middle-right .keyword-strategy,
+    .keyword-parent-layout-extraction .keyword-bottom .keyword-connection {
+        font-size: clamp(1rem, 2vw + 0.3rem, 1.4rem);
+    }
+
+    .keyword-parent-layout-comprehension .keyword-bottom .keyword-logic,
+    .keyword-parent-layout-extraction .keyword-middle-left .keyword-hint-title,
+    .keyword-parent-layout-extraction .keyword-middle-right .keyword-strategy-title {
+        font-size: clamp(1.25rem, 2.5vw + 0.5rem, 1.75rem);
+        font-weight: 500;
+    }
+
+    .keyword-parent-layout-application .keyword-bottom .keyword-column .keyword-column-title {
+        font-size: clamp(1rem, 2vw + 0.3rem, 1.25rem);
+        font-weight: 500;
+    }
+
+    .keyword-parent-layout-application .keyword-bottom .keyword-column .keyword-column-content {
+        font-size: clamp(0.875rem, 1.5vw + 0.25rem, 1.125rem);
+    }
+}
+
+/* ===== 문제 오버레이 스타일 ===== */
+.problem-overlay-content {
+    margin-top: clamp(20px, 3vw, 60px);
+    border: clamp(0.75px, 0.12vw, 1.25px) solid #7B7B7B;
+    border-radius: 25px;
+    color: #EBEBEB;
+    padding: clamp(20px, 3vw, 60px) clamp(20px, 3vw, 60px);
+    background: rgba(12, 12, 26, 0.8);
+    font-size: clamp(0.1rem, 0.2vw + 0.05rem, 0.15rem);
+    transition: padding 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-radius 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+/* 최소화 상태 스타일 */
+.problem-overlay.minimized .problem-overlay-content {
+    padding: clamp(10px, 1.5vw, 30px) clamp(10px, 1.5vw, 30px);
+    border-radius: 20px;
+    font-size: clamp(0.3rem, 0.8vw + 0.2rem, 0.6rem);
+}
+
+.problem-overlay.minimized .problem-overlay-content .math {
+    font-size: clamp(0.5rem, 1.5vw + 0.3rem, 0.7rem);
+}
+
+.problem-overlay.minimized .problem-overlay-content * {
+    font-size: inherit;
+}
+
+/* ===== 키워드 타입별 레이아웃 ===== */
+
+/* 독해키워드 레이아웃 - 단순한 큰 박스 구조 */
+.keyword-comprehension-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0;
+    width: 100%;
+    margin: 0 auto;
+    gap: clamp(10px, 1.5vw, 30px);
+}
+
+/* 독해 키워드: 키워드 타이틀과 내용 레이아웃 사이 여백 */
+
+/* 독해, 적용, 인출 키워드 전용 스타일 - title과 박스 사이 여백 조정 */
+
+.keyword-parent-layout-comprehension .comprehension-explanation-box,
+.keyword-parent-layout-application .application-flow-section,
+.keyword-parent-layout-extraction .keyword-extraction-layout {
+    margin: 0;
+}
+
+/* 적용 키워드 레이아웃도 독해 키워드와 동일하게 조정 */
+
+/* 적용 키워드 및 인출 키워드의 기존 CSS 덮어쓰기 */
+
+.comprehension-explanation-box {
+    background: transparent;
+    border: none;
+    border-radius: 25px;
+    padding: 3rem 2.5rem;
+    margin: 0 auto;
+    max-width: 80%;
+    text-align: center;
+    position: relative;
+}
+
+/* SVG border overlay container */
+.comprehension-explanation-box .border-svg {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.comprehension-explanation-box .border-svg svg {
+    width: 100%;
+    height: 100%;
+    preserveAspectRatio: none;
+}
+
+.comprehension-explanation-box .border-svg path {
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.comprehension-explanation-box.border-animate .border-svg path {
+    animation: drawBorder 1.5s cubic-bezier(0.9, 0, 0.6, 1) forwards;
+}
+
+@keyframes drawBorder {
+    from {
+        stroke-dasharray: 0 var(--path-length, 1000);
+    }
+
+    to {
+        stroke-dasharray: var(--path-length, 1000) 0;
+    }
+}
+
+/* review-area SVG border 스타일 */
+.review-area .border-svg {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.review-area .border-svg svg {
+    width: 100%;
+    height: 100%;
+    preserveAspectRatio: none;
+}
+
+.review-area .border-svg path {
+    stroke: #A2FF72;
+    stroke-width: 2.4px;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 0 10000;
+}
+
+.review-area.border-animate .border-svg path {
+    animation: drawBorder 1s cubic-bezier(0.9, 0, 0.6, 1) forwards;
+}
+
+/* 프레임 전환 시 fade out 효과 */
+.solve-frame.fade-out {
+    opacity: 0;
+    transition: opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+.solve-frame.fade-out * {
+    pointer-events: none;
+}
+
+/* 프레임 내 모든 요소들의 fade out */
+.solve-frame.fade-out .dynamic-content-area,
+.solve-frame.fade-out .problem-overlay,
+.solve-frame.fade-out .progress-indicator {
+    opacity: 0;
+    transition: opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+/* 키워드 타입 전환 시 fade out 효과 */
+.keyword-fade-out {
+    opacity: 0.3;
+    transition: opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+    pointer-events: none;
+}
+
+
+/* 키워드 박스별 fade out */
+.comprehension-explanation-box.keyword-fade-out,
+.extraction-bottom.keyword-fade-out,
+.flow-step.keyword-fade-out {
+    opacity: 0.3;
+    transition: opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+/* comprehension 영역 내 math 요소 전용 스타일 */
+.comprehension-explanation-box .content-text .math {
+    font-size: clamp(1.5rem, 3vw + 0.8rem, 2rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+}
+
+/* 줌아웃 시 키워드 zoomout Scene을 갖는 Scene 전체를 중앙 정렬 (디버깅용) */
+.keyword-zoomout-scene {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* 독해키워드 전체 보기 (zoom-out) */
+.keyword-comprehension-overview {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.comprehension-explanation-overview {
+    background: transparent;
+    border: none;
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 1.5rem auto;
+    max-width: 85%;
+    text-align: center;
+}
+
+.keyword-title-overview {
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.75rem, 4vw + 1rem, 3.125rem);
+    margin-top: clamp(12px, 2vw, 38px);
+}
+
+.keyword-title-overview .math {
+    font-size: clamp(1.75rem, 4vw + 1rem, 3.125rem);
+}
+
+
+.comprehension-explanation-overview .content-text-overview {
+    font-size: clamp(1rem, 2vw + 0.5rem, 1.5625rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    color: #EBEBEB;
+}
+
+
+.extraction-middle-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(2rem, 4vw, 4rem);
+    margin: 0 auto clamp(23px, 3.33vw, 40px) auto;
+    width: 85%;
+    max-width: clamp(600px, 85vw, 1200px);
+}
+
+.extraction-left,
+.extraction-right {
+    flex: 1;
+    background: transparent;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid transparent;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.extraction-left {
+    text-align: center;
+    max-width: 48%;
+    /* 45% -> 48% 증가 */
+    min-width: clamp(250px, 30vw, 500px);
+    /* 크기 전체적으로 증가 */
+}
+
+.extraction-right {
+    text-align: center;
+    max-width: 48%;
+    /* 45% -> 48% 증가 */
+    min-width: clamp(250px, 30vw, 500px);
+    /* 크기 전체적으로 증가 */
+}
+
+/* extraction 영역 내 math 요소 전용 스타일 */
+.extraction-left .content-text .math,
+.extraction-right .content-text .math,
+.extraction-bottom .content-text .math {
+    font-size: clamp(1.5rem, 3vw + 0.8rem, 2rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+}
+
+/* 인출 키워드 화살표 - 통합된 스타일 */
+.extraction-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+    padding: clamp(8px, 1.2vw, 22px);
+    /* 초기에는 숨김 - CUT3에서 등장 */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-40px);
+    transition:
+        opacity 1s cubic-bezier(0.9, 0, 0.6, 1),
+        visibility 1s cubic-bezier(0.9, 0, 0.6, 1),
+        transform 1s cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+.extraction-arrow svg {
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.extraction-arrow svg:hover {
+    opacity: 1;
+}
+
+/* 인출 키워드 화살표 표시 클래스 */
+.extraction-arrow.arrow-visible {
+    opacity: 0.9;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.extraction-bottom {
+    background: transparent;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid transparent;
+    border-radius: 25px;
+    padding: 1.5rem;
+    text-align: center;
+    margin: 0 auto;
+    width: 90%;
+    max-width: clamp(500px, 75vw, 1000px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* SVG border overlay container */
+.extraction-bottom .border-svg {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.extraction-bottom .border-svg svg {
+    width: 100%;
+    height: 100%;
+    preserveAspectRatio: none;
+}
+
+.extraction-bottom .border-svg path {
+    stroke: #1D3A5C;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.extraction-bottom.border-animate .border-svg path {
+    animation: drawBorder 1.5s cubic-bezier(0.9, 0, 0.6, 1) forwards;
+}
+
+.extraction-bottom .content-text {
+    font-size: clamp(1rem, 2vw + 0.5rem, 1.5625rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+}
+
+
+.extraction-overview-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: clamp(10px, 1.5vw, 30px);
+    margin: 0 1.5rem;
+}
+
+.extraction-left-overview,
+.extraction-right-overview {
+    flex: 1;
+    background: transparent;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid transparent;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    min-width: clamp(180px, 20vw, 350px);
+}
+
+.extraction-left-overview .content-text-overview,
+.extraction-right-overview .content-text-overview {
+    font-size: clamp(1rem, 2vw + 0.5rem, 1.5625rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+    line-height: 1.4;
+    margin-bottom: clamp(8px, 1.2vw, 20px);
+    text-align: center;
+}
+
+.extraction-arrow-overview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    /* 초기에는 숨김 - 부모 요소 등장 시 함께 등장 */
+    opacity: 0.6;
+    visibility: hidden;
+    transform: translateX(-40px);
+    transition:
+        opacity 1s cubic-bezier(0.9, 0, 0.6, 1),
+        visibility 1s cubic-bezier(0.9, 0, 0.6, 1),
+        transform 1s cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+/* overview 화살표 표시 클래스 */
+.extraction-arrow-overview.arrow-visible {
+    opacity: 0.9;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.extraction-arrow-overview svg {
+    opacity: 0.7;
+    width: clamp(35px, 4vw, 60px);
+    height: clamp(18px, 2vw, 30px);
+}
+
+.extraction-bottom-overview {
+    background: transparent;
+    border: clamp(1.5px, 0.25vw, 2.5px) solid #1D3A5C;
+    border-radius: 20px;
+    padding: 1rem;
+    text-align: center;
+    margin: 0 1.5rem;
+}
+
+.extraction-bottom-overview .content-text-overview {
+    font-size: clamp(1rem, 2vw + 0.5rem, 1.5625rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+    line-height: 1.4;
+    margin-bottom: clamp(8px, 1.2vw, 20px);
+    text-align: center;
+}
+
+.extraction-bottom-overview .content-text-overview *:not(.MathJax):not(.MathJax *) {
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+}
+
+
+.section-title {
+    font-weight: 500;
+    font-size: clamp(0.9rem, 1.8vw + 0.5rem, 1.4rem);
+    margin-bottom: 1rem;
+    color: #A2FF72;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: clamp(0.75px, 0.12vw, 1.25px) solid rgba(76, 175, 80, 0.3);
+}
+
+.extraction-bottom .section-title {
+    color: #1D3A5C;
+    border-bottom-color: rgba(29, 58, 92, 0.3);
+}
+
+/* 적용키워드 레이아웃 - 세로 플로우 구조 */
+.keyword-application-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0.5rem;
+    max-width: 80vw;
+    margin: 0 auto;
+    gap: clamp(0.4rem, 0.8vw, 0.7rem);
+}
+
+.application-flow-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(0.4rem, 0.8vw, 0.7rem);
+    width: 100%;
+    margin: 0 auto;
+}
+
+.flow-step {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+}
+
+.flow-step.final-result {
+    background: transparent;
+    border: none;
+    font-weight: 500;
+}
+
+.flow-label {
+    font-size: clamp(0.7rem, 1.5vw + 0.4rem, 1.2rem);
+    color: #A2FF72;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+}
+
+.flow-content {
+    font-size: clamp(1rem, 2vw + 0.5rem, 1.5625rem);
+    line-height: 1.6;
+    color: #EBEBEB;
+}
+
+/* application (flow) 영역 내 math 요소 전용 스타일 */
+.flow-content .math,
+.flow-step .math {
+    font-size: clamp(1.5rem, 3vw + 0.8rem, 2rem);
+    font-family: 'SCDream', 'Malgun Gothic', sans-serif;
+    font-weight: 300;
+}
+
+.flow-arrow {
+    font-size: clamp(1.5rem, 3vw + 1rem, 2.5rem);
+    color: #A2FF72;
+    font-weight: 500;
+    margin: 0.5rem 0;
+    /* 초기에는 숨김 - CUT3/CUT4에서 차례로 등장 */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-40px);
+    transition:
+        opacity 1s cubic-bezier(0.9, 0, 0.6, 1),
+        visibility 1s cubic-bezier(0.9, 0, 0.6, 1),
+        transform 1s cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+/* 적용 키워드 레이아웃 내 flow-arrow 초기 숨김 */
+.keyword-application-layout .flow-arrow {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-40px);
+    transition:
+        opacity 1s cubic-bezier(0.9, 0, 0.6, 1),
+        visibility 1s cubic-bezier(0.9, 0, 0.6, 1),
+        transform 1s cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+/* 적용 키워드 화살표 표시 클래스 - 더 높은 우선순위 */
+.keyword-application-layout .flow-arrow.arrow-visible {
+    opacity: 0.9;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 일반 적용 키워드 화살표 표시 클래스 */
+.flow-arrow.arrow-visible {
+    opacity: 0.9;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* keyword-detail-scene 간격 조정 */
+.keyword-detail-scene .scene-tag {
+    margin-bottom: clamp(12px, 2vw, 20px);
+    padding: clamp(6px, 1vw, 10px) clamp(18px, 2.5vw, 32px);
+    font-size: clamp(18px, 2.2vw, 30px);
+}
+
+.keyword-detail-scene .keyword-number {
+    font-size: clamp(20px, 2.4vw, 28px);
+    width: clamp(28px, 3vw, 38px);
+    height: clamp(28px, 3vw, 38px);
+}
+
+.keyword-detail-scene .keyword-title {
+    margin-top: 0px;
+    margin-bottom: clamp(23px, 3.33vw, 40px);
+}
+

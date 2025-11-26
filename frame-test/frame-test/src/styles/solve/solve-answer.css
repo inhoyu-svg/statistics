@@ -1,0 +1,107 @@
+/* ===== 정답 프레임 (IS_ANSWER_FRAME): 정답 스타일 ===== */
+.problem-answer-scene {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* 위쪽 정렬로 변경 - 정답 길이와 무관하게 일정한 간격 유지 */
+    gap: clamp(40px, 6vh, 80px);
+    /* vh 단위로 통일하여 세로 비율 일관성 확보 */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    height: 80vh;
+    padding: clamp(10px, 2vh, 20px);
+    /* vh 단위로 통일 */
+    align-items: center;
+    contain: layout style paint;
+    isolation: isolate;
+}
+
+.answer-value,
+.answer-option {
+    font-size: clamp(26px, 4.5vw, 41px);
+    font-weight: 500;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    /* 세로 배치로 변경 */
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 1.2vw, 15px);
+    /* 라벨과 값 사이 간격 - 두 배로 늘림 */
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.answer-label {
+    border: 2px solid #A2FF72;
+    border-radius: clamp(40px, 6vw, 75px);
+    padding: clamp(4px, 0.6vw, 8px) clamp(16px, 2.2vw, 28px);
+    margin-top: clamp(7px, 1.2vw, 13px);
+    margin-bottom: clamp(7px, 1.2vw, 13px);
+    font-size: clamp(14px, 2.5vw, 24px);
+    /* 30px 기준 clamp */
+    font-weight: 450;
+    flex-shrink: 0;
+    color: #EBEBEB;
+    position: relative;
+    /* ::after를 위한 position */
+}
+
+.answer-label::after {
+    content: '';
+    position: absolute;
+    top: 1.5px;
+    /* 라벨 바로 위 상단에 위치 */
+    left: calc(90% + 4.5px);
+    /* 가로 중앙 정렬 */
+    transform: translateX(-50%);
+    /* 정확한 중앙 */
+    width: 10px;
+    height: 10px;
+    background: #A2FF72;
+    border-radius: 50%;
+    box-shadow: 0 0 40px 10px rgba(93, 196, 112, 0.7);
+}
+
+/* 정답 텍스트를 흰색으로 강제 설정 (highlight-red 클래스보다 우선순위 높임) */
+.answer-display .answer-value,
+.answer-display .answer-value .math {
+    color: #EBEBEB;
+}
+
+/* answer-display 내 모든 텍스트를 흰색으로 */
+.answer-display .answer-value span,
+.answer-display .answer-option span {
+    color: #EBEBEB;
+    white-space: nowrap;
+}
+
+.answer-display .answer-value .math.highlight-red,
+.answer-display .answer-option.highlight-red {
+    color: #FF4F87;
+}
+
+/* answer-display 내 answer-option 폰트 크기 조정 */
+.answer-display .answer-option {
+    font-size: clamp(20px, 3vw, 40px);
+}
+
+/* answer-display 내 math 요소의 패딩 조정 */
+.answer-display .math {
+    padding: clamp(3px, 0.5vw, 5px);
+    font-size: clamp(20px, 3vw, 40px);
+    /* 실제 정답 텍스트 크기 */
+}
+
+/* focusAnswer ID의 텍스트 사이즈 일반화 (프레임 번호 무관) */
+[id^="focusAnswer"] {
+    font-size: clamp(20px, 3vw, 40px);
+}
+
+[id^="focusAnswer"] .math {
+    font-size: clamp(20px, 3vw, 40px);
+}
+

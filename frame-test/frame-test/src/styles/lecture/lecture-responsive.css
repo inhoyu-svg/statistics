@@ -1,0 +1,77 @@
+/* ===== 반응형 디자인 ===== */
+@media (max-width: 768px) {
+    .content-area {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .math-scene {
+        width: auto;
+    }
+
+    .progress-indicator {
+        top: clamp(7px, 0.625vw + 2.5px, 10px);
+        right: clamp(7px, 0.625vw + 2.5px, 10px);
+        min-width: clamp(112px, 9.375vw + 37.5px, 150px);
+    }
+
+    /* 요약 오버레이 반응형 */
+    .summary-content {
+        width: calc(100vw - 40px);
+        height: calc(100vh - 40px);
+        border-radius: calc(clamp(5px, 1vh, 10px) * 0.8);
+    }
+}
+
+/* Intro 프레임 Review/Today 레이아웃 - 같은 위치에 겹치게 */
+.chalk-frame[data-frame-index="0"] .content-area.scene-layout-1x1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    width: 1180px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    justify-items: center;
+}
+
+.chalk-frame[data-frame-index="0"] .content-area.scene-layout-1x2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 1180px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.chalk-frame[data-frame-index="0"] .content-area.scene-layout-1x3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Today content-area */
+.chalk-frame[data-frame-index="0"] .content-area:not(.scene-layout-1x1):not(.scene-layout-1x2):not(.scene-layout-1x3) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Review content-area 가운데 정렬 */
+.chalk-frame[data-frame-index="0"] .content-area:has(.math-scene.review-scene) {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

@@ -1,0 +1,936 @@
+/* ===== Font Definitions ===== */
+@font-face {
+    font-family: 'Inter';
+    src: local('Inter'), url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    font-weight: 400 900;
+    font-style: normal;
+}
+
+/* ===== CSS Variables - Overall Scale Adjustment ===== */
+:root {
+    --scale-factor: 0.65;
+
+    /* Algebra 1 Colors */
+    --algebra-main: #2EF2A8;
+    --algebra-aux: #224E40;
+
+    /* Geometry Colors */
+    --geometry-main: #F2D042;
+    --geometry-aux: #544B27;
+
+    /* Common Colors */
+    --bg-black: #0C0D0D;
+    --text-white: #FFFFFF;
+    --text-yellow: #E4E27F;
+    --text-green: #2EF2A8;
+    --text-red: #F75D56;
+    --dark-gray: #313131;
+}
+
+/* ===== Base Styles ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    color: var(--text-white);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-black);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    color: var(--text-white);
+    font-size: calc(16px * var(--scale-factor));
+}
+
+/* ===== Viewport and Frame Container ===== */
+.viewport {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.frame-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.frame-container .chalk-frame {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 1;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.chalk-frame.active {
+    z-index: 10;
+}
+
+.chalk-frame.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ===== Background Decoration ===== */
+.background-decoration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 1;
+    transition: opacity 1000ms cubic-bezier(0.9, 0, 0.6, 1);
+}
+
+.background-decoration.hidden {
+    opacity: 0;
+}
+
+.bg-circle {
+    position: absolute;
+    opacity: 1;
+    overflow: visible;
+}
+
+svg.bg-circle circle {
+    stroke: #3a3a4a;
+    stroke-width: 0.15;
+}
+
+svg.bg-circle .rotating-dot {
+    r: 0.8;
+    fill: #3a3a4a;
+}
+
+.bg-circle-1 {
+    --circle-size: clamp(462px, 61.59vw, 924px);
+    width: var(--circle-size);
+    height: var(--circle-size);
+    top: -100px;
+    left: 100px;
+}
+
+.bg-circle-2 {
+    --circle-size: clamp(462px, 61.59vw, 924px);
+    width: var(--circle-size);
+    height: var(--circle-size);
+    bottom: -100px;
+    right: 100px;
+}
+
+/* ===== Main Container ===== */
+.main-container {
+    max-width: calc(1400px * var(--scale-factor));
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(40px * var(--scale-factor));
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== Header Styles ===== */
+/* Intro Frame .header: column layout, centered */
+.chalk-frame[data-frame-type="intro"] .header {
+    width: 100%;
+    margin-bottom: calc(40px * var(--scale-factor));
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* General Frame Title - NO default opacity/visibility */
+.focus-area-title {
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+/* ===== Intro Frame Specific Styles ===== */
+.chalk-frame[data-frame-type="intro"] .focus-area-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(30px * var(--scale-factor));
+    width: 100%;
+    max-width: calc(1200px * var(--scale-factor));
+    margin: 0 auto;
+    padding: calc(80px * var(--scale-factor)) calc(100px * var(--scale-factor));
+    border: calc(3px * var(--scale-factor)) solid var(--algebra-main);
+    border-radius: calc(12px * var(--scale-factor));
+    min-height: calc(400px * var(--scale-factor));
+    text-align: center;
+    /* opacity/visibility controlled by general progressive elements rules (lines 717-798) */
+}
+
+.chalk-frame[data-frame-type="intro"] .chapter-badge {
+    background: var(--algebra-main);
+    color: #000;
+    padding: calc(12px * var(--scale-factor)) calc(28px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    font-size: calc(28px * var(--scale-factor));
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.chalk-frame[data-frame-type="intro"] .main-title {
+    font-size: calc(72px * var(--scale-factor));
+    font-weight: 800;
+    color: var(--text-white);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+/* ===== Concept Frame Specific Styles ===== */
+.chalk-frame[data-frame-type="concept"] .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 100;
+    background: var(--bg-black);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: calc(20px * var(--scale-factor)) 0;
+    border-bottom: calc(1px * var(--scale-factor)) solid rgba(255, 255, 255, 0.1);
+    margin-bottom: calc(40px * var(--scale-factor));
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.chalk-frame[data-frame-type="concept"] .header.reveal {
+    opacity: 1;
+    visibility: visible;
+}
+
+.chalk-frame[data-frame-type="concept"] .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: calc(12px * var(--scale-factor));
+    padding-left: calc(40px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="concept"] .subject-badge {
+    background: var(--dark-gray);
+    color: var(--text-white);
+    padding: calc(8px * var(--scale-factor)) calc(20px * var(--scale-factor));
+    border-radius: calc(6px * var(--scale-factor));
+    font-size: calc(18px * var(--scale-factor));
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.chalk-frame[data-frame-type="concept"] .current-concept {
+    background: var(--dark-gray);
+    color: var(--text-white);
+    padding: calc(10px * var(--scale-factor)) calc(24px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    font-size: calc(20px * var(--scale-factor));
+    font-weight: 600;
+}
+
+.chalk-frame[data-frame-type="concept"] .header-right {
+    text-align: right;
+    padding-right: calc(40px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="concept"] .full-concept-title {
+    font-size: calc(22px * var(--scale-factor));
+    font-weight: 600;
+    color: var(--text-white);
+    opacity: 0.9;
+}
+
+.chalk-frame[data-frame-type="concept"] .chapter-badge {
+    background: transparent;
+    color: var(--text-green);
+    padding: 0;
+    font-size: calc(28px * var(--scale-factor));
+    font-weight: 700;
+}
+
+.chalk-frame[data-frame-type="concept"] .main-title {
+    font-size: calc(36px * var(--scale-factor));
+    font-weight: 700;
+    color: var(--text-white);
+    margin-top: calc(8px * var(--scale-factor));
+}
+
+/* ===== Content Area ===== */
+.content-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(40px * var(--scale-factor));
+    position: relative;
+}
+
+/* ===== Scene Styles ===== */
+.math-scene {
+    background: rgba(255, 255, 255, 0.02);
+    border: calc(2px * var(--scale-factor)) solid transparent;
+    border-radius: calc(16px * var(--scale-factor));
+    padding: calc(40px * var(--scale-factor));
+    position: relative;
+    width: 100%;
+    max-width: calc(1200px * var(--scale-factor));
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(30px * var(--scale-factor));
+    text-align: center;
+}
+
+/* Scene becomes visible when it has revealed elements */
+.math-scene.scene-visible {
+    display: flex;
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.1);
+    animation: sceneAppear 0.5s ease;
+}
+
+@keyframes sceneAppear {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Scene Tag */
+.scene-tag {
+    position: absolute;
+    top: calc(-16px * var(--scale-factor));
+    left: calc(40px * var(--scale-factor));
+    background: var(--algebra-main);
+    color: #000;
+    padding: calc(8px * var(--scale-factor)) calc(20px * var(--scale-factor));
+    border-radius: calc(6px * var(--scale-factor));
+    font-size: calc(20px * var(--scale-factor));
+    font-weight: 700;
+}
+
+/* Scene Title */
+.scene-title {
+    font-size: calc(36px * var(--scale-factor));
+    font-weight: 700;
+    color: var(--text-green);
+    margin-bottom: calc(24px * var(--scale-factor));
+}
+
+/* Scene Subtitle */
+.scene-subtitle {
+    font-size: calc(28px * var(--scale-factor));
+    font-weight: 500;
+    color: var(--text-white);
+    margin-bottom: calc(20px * var(--scale-factor));
+    opacity: 0.9;
+}
+
+/* ===== Text Styles ===== */
+.explanation-text {
+    font-size: calc(28px * var(--scale-factor));
+    line-height: 1.6;
+    color: var(--text-white);
+}
+
+.definition-text {
+    font-size: calc(30px * var(--scale-factor));
+    line-height: 1.6;
+    font-weight: 600;
+    color: var(--text-green);
+}
+
+.warning-text {
+    font-size: calc(28px * var(--scale-factor));
+    line-height: 1.6;
+    color: var(--text-red);
+}
+
+/* ===== Highlight Colors ===== */
+.highlight-green {
+    color: var(--text-green);
+    font-weight: 600;
+}
+
+.highlight-yellow {
+    color: var(--text-yellow);
+    font-weight: 600;
+}
+
+.highlight-red {
+    color: var(--text-red);
+    font-weight: 600;
+}
+
+.highlight-purple {
+    color: #9E9EE3;
+    font-weight: 600;
+}
+
+.highlight-mint {
+    color: #5EC4AB;
+    font-weight: 600;
+}
+
+/* ===== Equation Styles ===== */
+.equation-aligned {
+    display: flex;
+    flex-direction: column;
+    gap: calc(16px * var(--scale-factor));
+    margin: calc(20px * var(--scale-factor)) 0;
+}
+
+.equation-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: calc(20px * var(--scale-factor));
+    align-items: center;
+}
+
+.equation-left {
+    text-align: right;
+}
+
+.equation-equals {
+    text-align: center;
+    min-width: calc(40px * var(--scale-factor));
+}
+
+.equation-right {
+    text-align: left;
+}
+
+.math {
+    font-size: calc(32px * var(--scale-factor));
+    color: var(--text-yellow);
+}
+
+/* ===== Example Box ===== */
+.example-box {
+    background: rgba(230, 196, 68, 0.1);
+    border-left: calc(4px * var(--scale-factor)) solid var(--text-yellow);
+    padding: calc(24px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    margin: calc(20px * var(--scale-factor)) 0;
+}
+
+.example-label {
+    font-size: calc(24px * var(--scale-factor));
+    font-weight: 700;
+    color: var(--text-yellow);
+    margin-bottom: calc(12px * var(--scale-factor));
+}
+
+.example-content {
+    font-size: calc(28px * var(--scale-factor));
+    line-height: 1.6;
+    color: var(--text-white);
+}
+
+/* ===== Problem Frame Styles ===== */
+.chalk-frame[data-frame-type="problem"] .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 100;
+    background: var(--bg-black);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: calc(20px * var(--scale-factor)) 0;
+    border-bottom: calc(1px * var(--scale-factor)) solid rgba(255, 255, 255, 0.1);
+    margin-bottom: calc(40px * var(--scale-factor));
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.chalk-frame[data-frame-type="problem"] .header.reveal {
+    opacity: 1;
+    visibility: visible;
+}
+
+.chalk-frame[data-frame-type="problem"] .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: calc(12px * var(--scale-factor));
+    padding-left: calc(40px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="problem"] .subject-badge {
+    background: transparent;
+    color: var(--text-white);
+    padding: 0;
+    font-size: calc(18px * var(--scale-factor));
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.chalk-frame[data-frame-type="problem"] .lecture-title {
+    background: var(--dark-gray);
+    color: var(--text-white);
+    padding: calc(10px * var(--scale-factor)) calc(24px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    font-size: calc(20px * var(--scale-factor));
+    font-weight: 600;
+}
+
+.chalk-frame[data-frame-type="problem"] .header-right {
+    text-align: right;
+    padding-right: calc(40px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="problem"] .practice-label {
+    font-size: calc(22px * var(--scale-factor));
+    font-weight: 600;
+    color: var(--text-white);
+    opacity: 0.9;
+}
+
+.chalk-frame[data-frame-type="problem"] .problem-container {
+    display: flex;
+    align-items: flex-start;
+    gap: calc(30px * var(--scale-factor));
+    padding: calc(0px * var(--scale-factor)) calc(40px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="problem"] .problem-badge {
+    background: var(--algebra-main);
+    color: #000;
+    padding: calc(12px * var(--scale-factor)) calc(28px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    font-size: calc(28px * var(--scale-factor));
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.chalk-frame[data-frame-type="problem"] .problem-question {
+    font-size: calc(32px * var(--scale-factor));
+    font-weight: 500;
+    color: var(--text-white);
+    line-height: 1.5;
+    flex: 1;
+}
+
+/* Question Content */
+.question-content {
+    font-size: calc(32px * var(--scale-factor));
+    line-height: 1.6;
+    color: var(--text-white);
+    padding: calc(30px * var(--scale-factor));
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: calc(12px * var(--scale-factor));
+}
+
+/* Step Styles */
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: calc(16px * var(--scale-factor));
+    margin-bottom: calc(20px * var(--scale-factor));
+}
+
+.step-label {
+    background: var(--text-yellow);
+    color: #000;
+    padding: calc(8px * var(--scale-factor)) calc(20px * var(--scale-factor));
+    border-radius: calc(6px * var(--scale-factor));
+    font-size: calc(24px * var(--scale-factor));
+    font-weight: 700;
+}
+
+.step-title {
+    font-size: calc(28px * var(--scale-factor));
+    font-weight: 600;
+    color: var(--text-white);
+}
+
+.step-content {
+    font-size: calc(26px * var(--scale-factor));
+    line-height: 1.6;
+    color: var(--text-white);
+    margin-top: calc(16px * var(--scale-factor));
+}
+
+/* ===== Summary/Outro Frame Styles ===== */
+.chalk-frame[data-frame-type="outro"] .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 100;
+    background: var(--bg-black);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: calc(20px * var(--scale-factor)) 0;
+    border-bottom: calc(1px * var(--scale-factor)) solid rgba(255, 255, 255, 0.1);
+    margin-bottom: calc(40px * var(--scale-factor));
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.chalk-frame[data-frame-type="outro"] .header.reveal {
+    opacity: 1;
+    visibility: visible;
+}
+
+.chalk-frame[data-frame-type="outro"] .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: calc(12px * var(--scale-factor));
+    padding-left: calc(40px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="outro"] .lecture-title {
+    background: var(--dark-gray);
+    color: var(--text-white);
+    padding: calc(10px * var(--scale-factor)) calc(24px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    font-size: calc(20px * var(--scale-factor));
+    font-weight: 600;
+}
+
+.chalk-frame[data-frame-type="outro"] .header-right {
+    text-align: right;
+    padding-right: calc(40px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="outro"] .summary-label {
+    font-size: calc(22px * var(--scale-factor));
+    font-weight: 600;
+    color: var(--text-white);
+    opacity: 0.9;
+}
+
+.chalk-frame[data-frame-type="outro"] .summary-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(40px * var(--scale-factor));
+    padding: calc(40px * var(--scale-factor));
+    border: calc(3px * var(--scale-factor)) solid var(--algebra-main);
+    border-radius: calc(12px * var(--scale-factor));
+    min-height: calc(500px * var(--scale-factor));
+    position: relative;
+}
+
+.chalk-frame[data-frame-type="outro"] .lesson-summary-badge {
+    position: absolute;
+    top: calc(-20px * var(--scale-factor));
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--algebra-main);
+    color: #000;
+    padding: calc(12px * var(--scale-factor)) calc(32px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    font-size: calc(28px * var(--scale-factor));
+    font-weight: 700;
+}
+
+.chalk-frame[data-frame-type="outro"] .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: calc(2px * var(--scale-factor));
+    width: 100%;
+    height: 100%;
+}
+
+.chalk-frame[data-frame-type="outro"] .summary-grid.single {
+    grid-template-columns: 1fr;
+}
+
+.chalk-frame[data-frame-type="outro"] .summary-grid.double {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.chalk-frame[data-frame-type="outro"] .summary-section {
+    padding: calc(40px * var(--scale-factor));
+    border-right: calc(2px * var(--scale-factor)) solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: calc(20px * var(--scale-factor));
+}
+
+.chalk-frame[data-frame-type="outro"] .summary-section:last-child {
+    border-right: none;
+}
+
+.summary-title {
+    font-size: calc(28px * var(--scale-factor));
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: calc(16px * var(--scale-factor));
+    text-align: center;
+}
+
+.summary-content {
+    font-size: calc(24px * var(--scale-factor));
+    line-height: 1.6;
+    color: var(--text-white);
+    text-align: center;
+}
+
+.key-point-box {
+    background: rgba(46, 242, 168, 0.1);
+    border-left: calc(4px * var(--scale-factor)) solid var(--text-green);
+    padding: calc(24px * var(--scale-factor));
+    border-radius: calc(8px * var(--scale-factor));
+    margin: calc(20px * var(--scale-factor)) 0;
+}
+
+.key-point-icon {
+    font-size: calc(24px * var(--scale-factor));
+    font-weight: 700;
+    color: var(--text-green);
+    margin-bottom: calc(12px * var(--scale-factor));
+}
+
+.key-point-content {
+    font-size: calc(28px * var(--scale-factor));
+    line-height: 1.6;
+    color: var(--text-white);
+}
+
+/* ===== Focus Overlay ===== */
+.focus-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.focus-overlay.active {
+    opacity: 1;
+}
+
+/* ===== Progress Indicator ===== */
+.progress-indicator {
+    position: fixed;
+    bottom: calc(30px * var(--scale-factor));
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: calc(20px * var(--scale-factor)) calc(40px * var(--scale-factor));
+    border-radius: calc(30px * var(--scale-factor));
+    z-index: 100;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.cut-info {
+    font-size: calc(18px * var(--scale-factor));
+    color: var(--text-white);
+    margin-bottom: calc(10px * var(--scale-factor));
+}
+
+.progress-bar {
+    width: calc(300px * var(--scale-factor));
+    height: calc(6px * var(--scale-factor));
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: calc(3px * var(--scale-factor));
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--algebra-main);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* ===== Animation Styles ===== */
+
+/* Progressive Element Reveal - ID-based selection like lecture-template */
+/* System UI elements (focusOverlay) excluded, only content focus elements selected */
+[id*="focus"]:not(#focusOverlay),
+[id*="SceneTag"],
+[id*="sceneTag"],
+[id*="Scene"][id*="Title"],
+[id*="Step"],
+[id*="Summary"] {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+/* Reveal class shows elements */
+[id*="focus"].reveal:not(#focusOverlay),
+[id*="SceneTag"].reveal,
+[id*="sceneTag"].reveal,
+[id*="Scene"][id*="Title"].reveal,
+[id*="Step"].reveal,
+[id*="Summary"].reveal {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Reveal Focus State (target element or overview mode) */
+.chalk-frame [id*="focus"].reveal-focus:not(#focusOverlay),
+.chalk-frame [id*="SceneTag"].reveal-focus,
+.chalk-frame [id*="sceneTag"].reveal-focus,
+.chalk-frame [id*="Scene"][id*="Title"].reveal-focus,
+.chalk-frame [id*="Step"].reveal-focus,
+.chalk-frame [id*="Summary"].reveal-focus {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Reveal Dimmed State (non-target elements) */
+.chalk-frame [id*="focus"].reveal-dimmed:not(#focusOverlay),
+.chalk-frame [id*="SceneTag"].reveal-dimmed,
+.chalk-frame [id*="sceneTag"].reveal-dimmed,
+.chalk-frame [id*="Scene"][id*="Title"].reveal-dimmed,
+.chalk-frame [id*="Step"].reveal-dimmed,
+.chalk-frame [id*="Summary"].reveal-dimmed {
+    opacity: 0.4 !important;
+    visibility: visible !important;
+}
+
+/* Intro Frame Border Drawing Animation */
+.chalk-frame[data-frame-type="intro"] .focus-area-title.border-draw {
+    animation: borderDraw 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes borderDraw {
+    0% {
+        border-color: transparent;
+        border-width: 0;
+    }
+
+    100% {
+        border-color: var(--algebra-main);
+        border-width: calc(3px * var(--scale-factor));
+    }
+}
+
+/* Scene Tag Animation */
+.scene-tag.tag-animate {
+    animation: tagFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes tagFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Title Reveal Animation with Mask */
+.scene-title.reveal-animate,
+.main-title.reveal-animate {
+    animation: titleReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes titleReveal {
+    0% {
+        opacity: 0;
+        clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    }
+
+    100% {
+        opacity: 1;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+}
+
+/* Main Container - No transform (center aligned) */
+
+/* Frame Fade Transition */
+.chalk-frame {
+    transition: opacity 500ms ease, visibility 500ms ease;
+}
+
+/* Math Highlight Colors */
+.highlight-green {
+    color: var(--text-green);
+}
+
+.highlight-yellow {
+    color: var(--text-yellow);
+}
+
+.highlight-red {
+    color: var(--text-red);
+}
+
+.highlight-purple {
+    color: #9E9EE3;
+}
+
+.highlight-mint {
+    color: #5EC4AB;
+}
+
+/* ===== Animation Classes ===== */
+.text-animate-in {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.text-animate-in.reveal {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ===== Visualization Container ===== */
+.visualization-container {
+    width: 100%;
+    min-height: calc(400px * var(--scale-factor));
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: calc(12px * var(--scale-factor));
+    margin: calc(20px * var(--scale-factor)) 0;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 1200px) {
+    :root {
+        --scale-factor: 0.5;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --scale-factor: 0.4;
+    }
+}

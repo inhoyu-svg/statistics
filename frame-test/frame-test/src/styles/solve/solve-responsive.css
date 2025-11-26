@@ -1,0 +1,318 @@
+/* ===== 반응형 디자인 ===== */
+@media (max-width: 768px) {
+    .main-container {
+        padding: clamp(10px, 1.5vw, 30px);
+    }
+
+    .problem-keyword-scene,
+    .problem-step-scene {
+        flex-direction: column;
+        gap: clamp(15px, 2.5vw, 45px);
+    }
+
+    .progress-indicator {
+        top: 10px;
+        right: 10px;
+        min-width: clamp(100px, 12vw, 200px);
+    }
+
+    .problem-header.collapsed {
+        width: clamp(180px, 20vw, 300px);
+        height: clamp(70px, 8vh, 120px);
+    }
+
+    /* 키워드 레이아웃 모바일 대응 */
+    .keyword-parent-layout-comprehension,
+    .keyword-parent-layout-extraction,
+    .keyword-parent-layout-application {
+        padding: clamp(8px, 1.2vw, 22px);
+        gap: clamp(8px, 1.2vw, 22px);
+    }
+
+    .keyword-parent-layout-comprehension .keyword-top,
+    .keyword-parent-layout-comprehension .keyword-bottom,
+    .keyword-parent-layout-extraction .keyword-top,
+    .keyword-parent-layout-extraction .keyword-middle-left,
+    .keyword-parent-layout-extraction .keyword-middle-right,
+    .keyword-parent-layout-extraction .keyword-bottom,
+    .keyword-parent-layout-application .keyword-top,
+    .keyword-parent-layout-application .keyword-bottom .keyword-column {
+        padding: clamp(10px, 1.5vw, 30px);
+    }
+
+    /* 인출키워드 중단 세로 배치 */
+    .keyword-parent-layout-extraction .keyword-middle {
+        flex-direction: column;
+        gap: clamp(8px, 1.2vw, 22px);
+    }
+
+    /* 적용키워드 하단 세로 배치 */
+    .keyword-parent-layout-application .keyword-bottom {
+        flex-direction: column;
+        gap: clamp(8px, 1.2vw, 22px);
+    }
+
+    /* 폰트 크기 조정 */
+    .keyword-parent-layout-comprehension .keyword-bottom .keyword-description,
+    .keyword-parent-layout-extraction .keyword-middle-left .keyword-hint,
+    .keyword-parent-layout-extraction .keyword-middle-right .keyword-strategy,
+    .keyword-parent-layout-extraction .keyword-bottom .keyword-connection {
+        font-size: clamp(1rem, 2vw + 0.3rem, 1.4rem);
+    }
+
+    .keyword-parent-layout-comprehension .keyword-bottom .keyword-logic,
+    .keyword-parent-layout-extraction .keyword-middle-left .keyword-hint-title,
+    .keyword-parent-layout-extraction .keyword-middle-right .keyword-strategy-title {
+        font-size: clamp(1.25rem, 2.5vw + 0.5rem, 1.75rem);
+        font-weight: 500;
+    }
+
+    .keyword-parent-layout-application .keyword-bottom .keyword-column .keyword-column-title {
+        font-size: clamp(1rem, 2vw + 0.3rem, 1.25rem);
+        font-weight: 500;
+    }
+
+    .keyword-parent-layout-application .keyword-bottom .keyword-column .keyword-column-content {
+        font-size: clamp(0.875rem, 1.5vw + 0.25rem, 1.125rem);
+    }
+}
+
+
+/* ===== key 요약씬 반응형 스타일 ===== */
+/* 화면 크기에 따라 key 요약씬의 크기를 자동 조정하되 요소들간의 비율 유지 */
+.keyword-list-scene {
+    /* 기본 스케일링 적용 - 상하 중앙 정렬 유지 */
+    transform: translate(-50%, -50%) scale(clamp(0.6, 1.5vw + 0.4, 1.0));
+    transform-origin: center;
+}
+
+.keyword-list-scene .keyword-text,
+.keyword-list-scene .step-text {
+    /* 폰트 크기를 뷰포트에 반응하도록 조정 */
+    font-size: clamp(28px, 3.5vw, 50px);
+    line-height: 1.3;
+}
+
+.keyword-list-scene .scene-tag {
+    /* 태그 크기도 반응형으로 조정 */
+    margin-bottom: clamp(30px, 4vh, 50px);
+}
+
+.keyword-list-scene .keyword-item,
+.keyword-list-scene .review-keyword-item {
+    /* 아이템 간격도 반응형으로 조정 */
+    margin-bottom: clamp(30px, 4vh, 50px);
+}
+
+.keyword-list-scene .keyword-number {
+    /* 키워드 번호 크기 조정 */
+    font-size: clamp(21px, 2.65vw, 30px);
+    width: clamp(32px, 3.5vw, 43px);
+    height: clamp(32px, 3.5vw, 43px);
+    margin-right: clamp(10px, 1.5vw, 20px);
+    vertical-align: middle;
+}
+
+/* 정답 프레임 전용 keyword-number 오버라이드 - 위 규칙보다 나중에 선언하여 확실히 적용 */
+[data-frame-type="answer"] .keyword-number {
+    font-size: clamp(1.15rem, 1.55vh + 0.7rem, 1.65rem);
+    width: clamp(23px, 3.0vw, 35px);
+    height: clamp(23px, 3.0vw, 35px);
+    margin-right: 0;
+}
+
+/* 매우 작은 화면에서 추가 최적화 */
+@media (max-width: 480px) {
+    .keyword-list-scene {
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+}
+
+/* 매우 큰 화면에서 최대 크기 제한 */
+@media (min-width: 1600px) {
+    .keyword-list-scene {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* ===== STEP 요약씬 반응형 스타일 ===== */
+/* 화면 크기에 따라 step 요약씬의 크기를 자동 조정하되 요소들간의 비율 유지 */
+.step-list-scene {
+    /* 상하 중앙 정렬 유지하면서 스케일 적용 - 살짝 키움 */
+    transform: translate(-50%, -50%) scale(clamp(0.4, 0.9vw + 0.25, 0.75));
+    transform-origin: center;
+    /* top/left는 기본값 유지 (50%) */
+}
+
+.step-list-scene .step-text {
+    /* 폰트 크기를 뷰포트에 반응하도록 조정 - 살짝 키움 */
+    font-size: clamp(22px, 3vw, 42px);
+    line-height: 1.3;
+}
+
+.step-list-scene .scene-tag,
+.step-list-scene .scene-tag.step-tag {
+    /* 태그 크기도 반응형으로 조정 */
+    font-size: clamp(18px, 2vw, 26px);
+    padding: clamp(3px, 0.4vw, 5px) clamp(13px, 2.1vw, 27px);
+    margin-bottom: clamp(35px, 4vw, 60px);
+    /* 태그와 첫 텍스트 간격 늘림 */
+    border: clamp(2px, 0.3vw, 4px) solid #FFD34F;
+}
+
+.step-list-scene .scene-tag.step-tag {
+    border: none;
+    position: relative;
+    z-index: 0;
+}
+
+/* step-tag 텍스트를 앞으로 */
+.step-list-scene .scene-tag.step-tag::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+}
+
+/* step-list-scene의 step-tag SVG border 스타일 */
+.step-list-scene .scene-tag.step-tag .border-svg {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.step-list-scene .scene-tag.step-tag .border-svg svg {
+    width: 100%;
+    height: 100%;
+    preserveAspectRatio: none;
+}
+
+.step-list-scene .scene-tag.step-tag .border-svg path {
+    stroke: #FFD34F;
+    stroke-width: 2;
+    fill: none !important;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+}
+
+.step-list-scene .scene-tag.step-tag.border-animate .border-svg path {
+    animation: drawStepTagBorder 0.8s ease-out forwards;
+}
+
+@keyframes drawStepTagBorder {
+    from {
+        stroke-dasharray: 0 var(--path-length, 1000);
+    }
+
+    to {
+        stroke-dasharray: var(--path-length, 1000) 0;
+    }
+}
+
+/* step-item 슬라이드 + fade in 애니메이션 */
+@keyframes stepItemSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-70px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.step-list-scene .step-item {
+    /* 아이템 간격도 반응형으로 조정 - 간격 늘림 */
+    margin-bottom: clamp(35px, 4vw, 55px);
+    /* 텍스트간 간격 늘림 */
+    opacity: 0;
+}
+
+.step-list-scene .step-item.reveal-animate {
+    animation: stepItemSlideIn 1s ease-out forwards;
+}
+
+.step-list-scene .step-item .step-number {
+    /* 스텝 번호 크기 조정 */
+    font-size: clamp(18px, 2.2vw, 26px);
+    width: clamp(32px, 3.2vw, 42px);
+    height: clamp(32px, 3.2vw, 42px);
+    margin-right: clamp(10px, 1.5vw, 20px);
+    vertical-align: middle;
+}
+
+.step-list-scene .step-text {
+    vertical-align: middle;
+}
+
+/* 매우 작은 화면에서 추가 최적화 */
+@media (max-width: 480px) {
+    .step-list-scene {
+        transform: translate(-50%, -50%) scale(0.3);
+    }
+}
+
+/* 매우 큰 화면에서 최대 크기 제한 */
+@media (min-width: 1600px) {
+    .step-list-scene {
+        transform: translate(-50%, -50%) scale(0.65);
+    }
+}
+
+/* 정답 프레임(IS_ANSWER_FRAME)에서 문항씬과 key 요약씬이 절대 겹치지 않도록 조정 */
+/* 중복 스타일 제거 - 위에서 이미 정의함 */
+
+.problem-answer-scene .problem-block {
+    /* 문항 오버레이와 완전히 동일한 크기와 스타일 */
+    /* 정답 프레임에서는 투명하게 - 레이아웃만 유지 */
+    padding: 0;
+    border: none;
+    background: transparent;
+    backdrop-filter: none;
+    /* 문항 오버레이와 동일한 고정 너비 설정 */
+    width: clamp(400px, 60vw, 800px);
+    max-width: 90vw;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+    /* 정답 프레임에서도 박스 유지 - mask 애니메이션 성능 문제 해결 */
+    display: block;
+    text-align: center;
+    /* problem-answer-scene 내에서 가운데 정렬 */
+    align-self: center;
+}
+
+/* 정답 프레임 정답 박스 크기 조정 - z-index 추가하여 KEY 태그와 겹치지 않도록 */
+.problem-answer-scene .answer-display {
+    /* 정답 박스는 내용에 맞게 크기 조정 */
+    width: auto;
+    max-width: clamp(250px, 40vw, 500px);
+    margin: clamp(7px, 1vh, 13px) auto;
+    /* vh 단위로 통일 */
+    display: inline-block;
+    position: relative;
+    z-index: 50;
+    /* KEY 태그(z-index: 100)보다 낮게 설정하여 겹치지 않도록 */
+}
+
+
+.problem-answer-scene .keyword-list-scene {
+    /* 키워드 복습 영역 스타일 - flexbox에서 자동 배치됨 */
+    width: fit-content;
+    height: auto;
+    margin: 0 auto;
+    opacity: 0.9;
+    /* 최대 높이 제한하여 문항과 겹치지 않게 */
+    max-height: 20vh;
+    overflow: visible;
+}
+
