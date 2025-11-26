@@ -6,6 +6,7 @@
 import CONFIG from '../../config.js';
 import Utils from '../../utils/utils.js';
 import CoordinateSystem from './CoordinateSystem.js';
+import * as KatexUtils from '../../utils/katex.js';
 
 class AxisRenderer {
   /**
@@ -60,27 +61,26 @@ class AxisRenderer {
   drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
     if (!CONFIG.AXIS_SHOW_Y_LABELS) return;
 
-    this.ctx.textAlign = 'right';
+    const color = CONFIG.getColor('--color-text');
+
     for (let i = 0; i <= gridDivisions; i++) {
       const value = maxY * i / gridDivisions;
 
       // 데이터 타입에 따라 포맷팅
       let formattedValue;
       if (dataType === 'frequency') {
-        // 도수 모드: 정수
         formattedValue = Math.round(value).toString();
       } else {
-        // 상대도수 모드: 백분율 (% 기호는 Y축 제목에 표시)
         const percentage = value * 100;
         const formatted = Utils.formatNumber(percentage);
-        // .00 제거 (예: 20.00 → 20)
         formattedValue = formatted.replace(/\.00$/, '');
       }
 
-      this.ctx.fillText(
-        formattedValue,
+      // KaTeX 폰트로 렌더링
+      KatexUtils.render(this.ctx, formattedValue,
         this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
-        toY(value) + CONFIG.CHART_LABEL_OFFSET
+        toY(value) + CONFIG.CHART_LABEL_OFFSET,
+        { fontSize: 18, color: color, align: 'right', baseline: 'middle' }
       );
     }
   }
@@ -96,15 +96,13 @@ class AxisRenderer {
   drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo) {
     if (!CONFIG.AXIS_SHOW_X_LABELS) return;
 
-    this.ctx.textAlign = 'center';
-    this.ctx.font = CONFIG.CHART_FONT_SMALL;
+    const color = CONFIG.getColor('--color-text');
     const labelY = this.canvas.height - this.padding + CONFIG.CHART_X_LABEL_Y_OFFSET;
 
     if (ellipsisInfo && ellipsisInfo.show) {
       const firstDataIdx = ellipsisInfo.firstDataIndex;
 
-      // 0 표시
-      this.ctx.fillText('0', toX(0), labelY);
+      // X축 0은 Y축 0과 중복되므로 렌더링하지 않음
 
       // 중략 기호 (이중 물결, X축 위에 세로로)
       const ellipsisX = toX(0) + (toX(1) - toX(0)) * CONFIG.ELLIPSIS_POSITION_RATIO;
@@ -112,34 +110,38 @@ class AxisRenderer {
 
       this.ctx.save();
       this.ctx.translate(ellipsisX, ellipsisY);
-      this.ctx.rotate(Math.PI / 2); // 90도 회전
+      this.ctx.rotate(Math.PI / 2);
       this.ctx.font = CONFIG.CHART_FONT_LARGE;
       this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
       this.ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
       this.ctx.restore();
 
-      // 데이터 구간 라벨
+      // 데이터 구간 라벨 (KaTeX 폰트)
       for (let i = firstDataIdx; i < classes.length; i++) {
-        this.ctx.fillText(classes[i].min, toX(i), labelY);
+        KatexUtils.render(this.ctx, String(classes[i].min), toX(i), labelY,
+          { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
+        );
       }
 
-      // 마지막 값
-      this.ctx.fillText(
-        classes[classes.length - 1].max,
-        toX(classes.length - 1) + xScale,
-        labelY
+      // 마지막 값 (KaTeX 폰트)
+      KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
+        toX(classes.length - 1) + xScale, labelY,
+        { fontSize: 14, color: color, align: 'center', baseline: 'middle' }
       );
     } else {
-      // 중략 없이 전체 표시
+      // 중략 없이 전체 표시 (KaTeX 폰트)
+      // 첫 번째 라벨(0)은 Y축과 중복되므로 건너뛰기
       classes.forEach((c, i) => {
-        this.ctx.fillText(c.min, toX(i), labelY);
+        if (i === 0 && c.min === 0) return; // 0은 Y축에서 이미 표시됨
+        KatexUtils.render(this.ctx, String(c.min), toX(i), labelY,
+          { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
+        );
       });
 
       if (classes.length > 0) {
-        this.ctx.fillText(
-          classes[classes.length - 1].max,
-          toX(classes.length),
-          labelY
+        KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
+          toX(classes.length), labelY,
+          { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
         );
       }
     }

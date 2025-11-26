@@ -4,6 +4,7 @@
  */
 
 import CONFIG from '../../config.js';
+import * as KatexUtils from '../../utils/katex.js';
 
 class TableCellRenderer {
   /**
@@ -105,22 +106,16 @@ class TableCellRenderer {
       colLabel
     } = layer.data;
 
-    // 텍스트 그리기
-    this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.font = CONFIG.TABLE_FONT_DATA;
-    this.ctx.textBaseline = 'middle';
-    this.ctx.textAlign = alignment;
-
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
     // 상첨자가 필요한 경우 (첫 행의 계급 컬럼)
     if (classData && showSuperscript) {
       this._drawClassWithSuperscript(cellText, cellX, cellY, classData, showSuperscript);
-      // 폰트 복원
       this.ctx.font = CONFIG.TABLE_FONT_DATA;
     } else {
-      this.ctx.fillText(cellText, cellX, cellY);
+      // 숫자/알파벳이면 KaTeX 폰트, 아니면 기본 폰트
+      this._renderCellText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'));
     }
   }
 
@@ -131,16 +126,11 @@ class TableCellRenderer {
   renderSummaryCell(layer) {
     const { x, y, width, height, cellText, alignment } = layer.data;
 
-    // 합계 텍스트
-    this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.font = CONFIG.TABLE_FONT_SUMMARY;
-    this.ctx.textBaseline = 'middle';
-    this.ctx.textAlign = alignment;
-
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
-    this.ctx.fillText(cellText, cellX, cellY);
+    // 숫자/알파벳이면 KaTeX 폰트, 아니면 기본 폰트
+    this._renderCellText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'), true);
   }
 
   /**
@@ -316,16 +306,11 @@ class TableCellRenderer {
   renderStemCell(layer) {
     const { x, y, width, height, cellText, alignment } = layer.data;
 
-    // 줄기 텍스트 (일반, 흰색)
-    this.ctx.fillStyle = '#FFFFFF';
-    this.ctx.font = CONFIG.TABLE_FONT_DATA;
-    this.ctx.textBaseline = 'middle';
-    this.ctx.textAlign = alignment;
-
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
-    this.ctx.fillText(cellText, cellX, cellY);
+    // 줄기는 숫자이므로 KaTeX 폰트 사용
+    this._renderCellText(cellText, cellX, cellY, alignment, '#FFFFFF');
   }
 
   /**
@@ -335,27 +320,20 @@ class TableCellRenderer {
   renderStemLeafDataCell(layer) {
     const { x, y, width, height, cellText, alignment } = layer.data;
 
-    // 잎 텍스트 (등폭 폰트 스타일)
-    this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.font = CONFIG.TABLE_FONT_DATA;
-    this.ctx.textBaseline = 'middle';
-    this.ctx.textAlign = alignment;
-
     // 줄기-잎 전용 패딩 적용 (세로선과의 간격 확보)
     const stemLeafPadding = CONFIG.TABLE_STEM_LEAF_PADDING;
     let cellX;
     if (alignment === 'left') {
-      // 오른쪽 잎: 왼쪽 정렬, 세로선에서 패딩만큼 떨어짐
       cellX = x + stemLeafPadding;
     } else if (alignment === 'right') {
-      // 왼쪽 잎: 오른쪽 정렬, 세로선에서 패딩만큼 떨어짐
       cellX = x + width - stemLeafPadding;
     } else {
       cellX = x + width / 2;
     }
     const cellY = y + height / 2;
 
-    this.ctx.fillText(cellText, cellX, cellY);
+    // 잎은 숫자이므로 KaTeX 폰트 사용
+    this._renderCellText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'));
   }
 
   /**
@@ -448,6 +426,47 @@ class TableCellRenderer {
       this.ctx.font = superscriptFont;
       this.ctx.fillText(superMax, x, superscriptY);
     }
+  }
+
+  /**
+   * 셀 텍스트 렌더링 (숫자/알파벳은 KaTeX 폰트, 그 외는 기본 폰트)
+   * @param {string} text - 렌더링할 텍스트
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {string} alignment - 정렬 방식
+   * @param {string} color - 텍스트 색상
+   * @param {boolean} bold - 볼드 여부 (합계 행용)
+   */
+  _renderCellText(text, x, y, alignment, color, bold = false) {
+    const str = String(text).trim();
+    const fontSize = 18;
+
+    // 숫자 또는 알파벳만 포함된 경우 KaTeX 폰트 사용
+    if (this._isNumericOrAlpha(str)) {
+      KatexUtils.render(this.ctx, str, x, y, {
+        fontSize: fontSize,
+        color: color,
+        align: alignment,
+        baseline: 'middle'
+      });
+    } else {
+      // 한글 등은 기본 폰트 사용
+      this.ctx.fillStyle = color;
+      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+      this.ctx.textBaseline = 'middle';
+      this.ctx.textAlign = alignment;
+      this.ctx.fillText(str, x, y);
+    }
+  }
+
+  /**
+   * 숫자 또는 알파벳만 포함된 문자열인지 확인
+   * @param {string} text - 확인할 텍스트
+   * @returns {boolean}
+   */
+  _isNumericOrAlpha(text) {
+    // 숫자, 소수점, 음수, 알파벳, 공백, ~만 포함
+    return /^[-\d.\sA-Za-z~%]+$/.test(text);
   }
 }
 

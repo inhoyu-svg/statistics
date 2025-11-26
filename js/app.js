@@ -19,6 +19,7 @@ import DataStore from './core/dataStore.js';
 import TableStore from './core/tableStore.js';
 import ChartStore from './core/chartStore.js';
 import DatasetStore from './core/datasetStore.js';
+import * as KatexUtils from './utils/katex.js';
 
 // ========== 애플리케이션 컨트롤러 ==========
 class FrequencyDistributionApp {
@@ -2250,6 +2251,46 @@ if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
   };
   console.log('📊 개발 모드: window.__DEV__로 Store 접근 가능');
 }
+
+// ========== KaTeX 폰트 테스트 함수 (콘솔에서 testKatex() 호출) ==========
+window.testKatex = async function() {
+  const canvas = document.getElementById('chart');
+  if (!canvas) {
+    console.error('차트 Canvas를 찾을 수 없습니다');
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // KaTeX 폰트 로드 대기
+  const fontsReady = await KatexUtils.waitForFonts();
+  console.log('폰트 로드 상태:', fontsReady ? '성공' : '실패 (폴백 폰트 사용)');
+
+  console.log('KaTeX 폰트 테스트 시작...');
+
+  // 테스트 텍스트들 (더 큰 폰트, 더 넓은 간격)
+  const testCases = [
+    { text: '145', x: 80, y: 30, desc: '숫자' },
+    { text: '23.5', x: 180, y: 30, desc: '소수' },
+    { text: 'x', x: 280, y: 30, desc: '변수' },
+    { text: 'A', x: 350, y: 30, desc: '알파벳' },
+    { text: 'x^2', x: 440, y: 30, desc: '위첨자' },
+    { text: 'A_1', x: 530, y: 30, desc: '아래첨자' },
+    { text: '1/2', x: 620, y: 30, desc: '분수' }
+  ];
+
+  for (const tc of testCases) {
+    const result = KatexUtils.render(ctx, tc.text, tc.x, tc.y, {
+      fontSize: 24,
+      color: '#8DCF66',
+      align: 'center',
+      baseline: 'middle'
+    });
+    console.log(`✓ ${tc.desc}: "${tc.text}"`, result);
+  }
+
+  console.log('KaTeX 폰트 테스트 완료! 차트 상단을 확인하세요.');
+};
 
 // ========== 앱 초기화 ==========
 // DOM이 로드된 후 초기화

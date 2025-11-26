@@ -6,6 +6,7 @@
 import CONFIG from '../../config.js';
 import Utils from '../../utils/utils.js';
 import CoordinateSystem from './CoordinateSystem.js';
+import * as KatexUtils from '../../utils/katex.js';
 
 class HistogramRenderer {
   /**
@@ -123,21 +124,18 @@ class HistogramRenderer {
     if (progress < 0.5) return;
 
     // 0.5~1.0을 0~1로 정규화하여 fade 효과
-    const fadeProgress = (progress - 0.5) * 2; // 0.5일 때 0, 1.0일 때 1
+    const fadeProgress = (progress - 0.5) * 2;
 
     const labelValue = this._formatLabelValue(relativeFreq, frequency, dataType);
     const y = toY(relativeFreq);
 
-    // fade 효과 적용
+    // fade 효과 적용 + KaTeX 폰트 사용
     this.ctx.save();
     this.ctx.globalAlpha = fadeProgress;
-    this.ctx.fillStyle = CONFIG.getColor('--color-text');
-    this.ctx.font = CONFIG.CHART_FONT_REGULAR;
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(
-      labelValue,
+    KatexUtils.render(this.ctx, labelValue,
       CoordinateSystem.getBarCenterX(index, toX, xScale),
-      y - CONFIG.CHART_LABEL_OFFSET - 5
+      y - CONFIG.CHART_LABEL_OFFSET - 5,
+      { fontSize: 12, color: CONFIG.getColor('--color-text'), align: 'center', baseline: 'middle' }
     );
     this.ctx.restore();
   }
