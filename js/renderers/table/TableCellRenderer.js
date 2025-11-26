@@ -104,6 +104,13 @@ class TableCellRenderer {
       colLabel
     } = layer.data;
 
+    // 하이라이트 배경 렌더링
+    if (highlighted && highlightProgress > 0) {
+      const alpha = highlightProgress * 0.3; // 최대 30% 투명도
+      this.ctx.fillStyle = `rgba(255, 235, 59, ${alpha})`; // 노란색 하이라이트
+      this.ctx.fillRect(x, y, width, height);
+    }
+
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
