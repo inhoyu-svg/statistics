@@ -113,6 +113,8 @@ class AxisRenderer {
       this.ctx.rotate(Math.PI / 2);
       this.ctx.font = CONFIG.CHART_FONT_LARGE;
       this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
+      this.ctx.textBaseline = 'bottom';
+      this.ctx.textAlign = 'center';
       this.ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
       this.ctx.restore();
 
