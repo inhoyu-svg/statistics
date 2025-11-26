@@ -487,9 +487,9 @@ class TableCellRenderer {
         this.ctx.textAlign = 'left';
         this.ctx.fillText(mainText, startX, y);
 
-        // 괄호 텍스트 렌더링 (작은 폰트)
+        // 괄호 텍스트 렌더링 (작은 폰트, 약간 아래로)
         this.ctx.font = smallFont;
-        this.ctx.fillText(parenText, startX + mainWidth, y);
+        this.ctx.fillText(parenText, startX + mainWidth, y + 2);
       } else {
         // 괄호 없으면 기존대로 렌더링
         this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
