@@ -25,21 +25,24 @@ export async function waitForFonts(timeout = 3000) {
   try {
     // document.fonts API 사용
     if (document.fonts) {
+      // KaTeX 폰트를 명시적으로 로드 요청
+      const fontPromises = [
+        document.fonts.load('18px KaTeX_Main'),
+        document.fonts.load('italic 18px KaTeX_Math')
+      ];
+
       await Promise.race([
-        document.fonts.ready,
+        Promise.all(fontPromises),
         new Promise((_, reject) => setTimeout(() => reject('timeout'), timeout))
       ]);
 
-      // KaTeX_Main 폰트 확인
+      // 폰트 로드 완료 확인
       fontsLoaded = document.fonts.check('18px KaTeX_Main');
-      if (!fontsLoaded) {
-        // 폰트가 아직 없으면 약간 더 대기
-        await new Promise(resolve => setTimeout(resolve, 500));
-        fontsLoaded = document.fonts.check('18px KaTeX_Main');
-      }
     }
   } catch (e) {
     console.warn('폰트 로드 대기 중 오류:', e);
+    // 타임아웃이어도 계속 진행 (폴백 폰트 사용)
+    fontsLoaded = true;
   }
 
   return fontsLoaded;

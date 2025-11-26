@@ -1510,8 +1510,11 @@ class FrequencyDistributionApp {
    * @description 입력 데이터를 파싱하고 검증한 후, 도수분포표와 히스토그램 생성
    * @throws {Error} 데이터 처리 중 오류 발생 시
    */
-  generate(reset = true) {
+  async generate(reset = true) {
     try {
+      // KaTeX 폰트 로드 대기
+      await KatexUtils.waitForFonts();
+
       MessageManager.hide();
 
       // 1. 모든 데이터셋의 입력값 가져오기
