@@ -219,6 +219,102 @@ class TableCellRenderer {
   }
 
   /**
+   * 이원분류표 격자선 렌더링 (2행 헤더 구조)
+   * @param {Layer} layer - 격자선 레이어
+   */
+  renderCrossTableGrid(layer) {
+    const {
+      x, y, width, height, rowCount, columnWidths, hasSummaryRow,
+      mergedHeaderHeight, columnHeaderHeight,
+      mergedHeaderLineColor, mergedHeaderLineWidth
+    } = layer.data;
+
+    const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
+
+    // 하단 선 (두께 2, 밝은 회색)
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y + height);
+    this.ctx.lineTo(x + width, y + height);
+    this.ctx.stroke();
+
+    // 병합 헤더 아래 구분선 (#8DCF66, 데이터 열 영역만)
+    const dataColumnStartX = x + columnWidths[0];
+    this.ctx.strokeStyle = mergedHeaderLineColor;
+    this.ctx.lineWidth = mergedHeaderLineWidth;
+    this.ctx.beginPath();
+    this.ctx.moveTo(dataColumnStartX, y + mergedHeaderHeight);
+    this.ctx.lineTo(x + width, y + mergedHeaderHeight);
+    this.ctx.stroke();
+
+    // 컬럼 헤더 아래 선 (두께 2, 밝은 회색)
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y + totalHeaderHeight);
+    this.ctx.lineTo(x + width, y + totalHeaderHeight);
+    this.ctx.stroke();
+
+    // 데이터 행 구분선
+    for (let i = 1; i <= rowCount; i++) {
+      const lineY = y + totalHeaderHeight + (i - 1) * CONFIG.TABLE_ROW_HEIGHT;
+
+      // 마지막 선(합계 위)은 합계 행이 있는 경우에만 두께 2
+      const isSummaryLine = hasSummaryRow && i === rowCount;
+
+      if (isSummaryLine) {
+        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+        this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+      } else {
+        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+        this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_DARK;
+      }
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, lineY);
+      this.ctx.lineTo(x + width, lineY);
+      this.ctx.stroke();
+    }
+
+    // 수직선 (점선, 컬럼 헤더 이후부터)
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+    this.ctx.setLineDash(CONFIG.TABLE_GRID_DASH_PATTERN);
+    let lineX = x;
+    for (let i = 0; i < columnWidths.length - 1; i++) {
+      lineX += columnWidths[i];
+      this.ctx.beginPath();
+      this.ctx.moveTo(lineX, y + totalHeaderHeight);
+      this.ctx.lineTo(lineX, y + height);
+      this.ctx.stroke();
+    }
+    this.ctx.setLineDash([]); // 실선으로 복원
+  }
+
+  /**
+   * 병합 헤더 셀 렌더링 (상대도수)
+   * @param {Layer} layer - 병합 헤더 셀 레이어
+   */
+  renderMergedHeaderCell(layer) {
+    const { x, y, width, height, cellText, alignment, headerTextColor, isMergedCell } = layer.data;
+
+    // 빈 셀이면 렌더링 안 함
+    if (!cellText) return;
+
+    // 병합 헤더 텍스트
+    this.ctx.fillStyle = headerTextColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
+    this.ctx.font = CONFIG.TABLE_FONT_HEADER;
+    this.ctx.textBaseline = 'middle';
+    this.ctx.textAlign = alignment;
+
+    const cellX = this._getCellXPosition(x, width, alignment);
+    const cellY = y + height / 2;
+
+    this.ctx.fillText(cellText, cellX, cellY);
+  }
+
+  /**
    * 줄기-잎 줄기 셀 렌더링
    * @param {Layer} layer - 줄기 셀 레이어
    */

@@ -143,6 +143,9 @@ class TableRenderer {
       case 'grid':
         this.cellRenderer.renderGrid(layer);
         break;
+      case 'cross-table-grid':
+        this.cellRenderer.renderCrossTableGrid(layer);
+        break;
       case 'stem-leaf-grid':
         this.cellRenderer.renderStemLeafGrid(layer);
         break;
@@ -165,6 +168,9 @@ class TableRenderer {
     switch (rowType) {
       case 'header':
         this.cellRenderer.renderHeaderCell(layer);
+        break;
+      case 'merged-header':
+        this.cellRenderer.renderMergedHeaderCell(layer);
         break;
       case 'summary':
         this.cellRenderer.renderSummaryCell(layer);
@@ -203,8 +209,9 @@ class TableRenderer {
     // 행 수 계산 (타입별)
     const rowCount = this._calculateRowCount(type, data);
 
-    // Canvas 크기 계산
-    const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
+    // Canvas 크기 계산 (이원분류표는 병합 헤더 추가)
+    const mergedHeaderHeight = type === CONFIG.TABLE_TYPES.CROSS_TABLE ? 35 : 0;
+    const canvasHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
     this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
     this.canvas.height = canvasHeight;

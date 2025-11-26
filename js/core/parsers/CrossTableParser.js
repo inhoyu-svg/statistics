@@ -11,8 +11,8 @@ class CrossTableParser {
    * @param {string} input - 여러 줄의 "행이름: 값들" 형식 문자열
    * @returns {{ success: boolean, data: Object|null, error: string|null }}
    * @example
-   * parse("헤더: 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2")
-   * // { success: true, data: { columnHeaders: ['남학생','여학생'], rows: [...], showTotal: true } }
+   * parse("헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2")
+   * // { success: true, data: { rowLabelColumn: '혈액형', columnHeaders: ['남학생','여학생'], rows: [...], showTotal: true } }
    */
   static parse(input) {
     if (!input || typeof input !== 'string') {
@@ -43,10 +43,11 @@ class CrossTableParser {
     }
 
     const result = {
-      columnHeaders: [],   // 열 헤더 (남학생, 여학생)
-      rowHeaders: [],      // 행 헤더 (A, B, AB, O)
-      rows: [],            // 데이터 행
-      showTotal: true      // 합계 행 표시 여부
+      rowLabelColumn: '',    // 행 라벨 컬럼명 (혈액형)
+      columnHeaders: [],     // 열 헤더 (남학생, 여학생)
+      rowHeaders: [],        // 행 헤더 (A, B, AB, O)
+      rows: [],              // 데이터 행
+      showTotal: true        // 합계 행 표시 여부
     };
 
     for (let i = 0; i < lines.length; i++) {
@@ -72,16 +73,19 @@ class CrossTableParser {
         };
       }
 
-      // 첫 번째 줄: 열 헤더
+      // 첫 번째 줄: 헤더 (첫 값 = 행 라벨 컬럼명, 나머지 = 열 헤더)
       if (i === 0 && label.toLowerCase() === '헤더') {
-        result.columnHeaders = valuesStr.split(',').map(v => v.trim()).filter(v => v);
-        if (result.columnHeaders.length === 0) {
+        const allHeaders = valuesStr.split(',').map(v => v.trim()).filter(v => v);
+        if (allHeaders.length < 2) {
           return {
             success: false,
             data: null,
-            error: '열 헤더가 비어있습니다.'
+            error: '헤더는 최소 2개 이상 필요합니다. (행 라벨명, 열 헤더들)'
           };
         }
+        // 첫 번째 값은 행 라벨 컬럼명, 나머지는 열 헤더
+        result.rowLabelColumn = allHeaders[0];
+        result.columnHeaders = allHeaders.slice(1);
       } else {
         // 데이터 행
         const values = valuesStr.split(',').map(v => {
@@ -123,7 +127,12 @@ class CrossTableParser {
       );
     }
 
-    // 합계 계산 (숫자인 경우만)
+    // 행 라벨 컬럼명이 없으면 기본값
+    if (!result.rowLabelColumn) {
+      result.rowLabelColumn = '구분';
+    }
+
+    // 합계 계산 - 상대도수이므로 1로 고정 (실제 합계가 1에 가까운 경우)
     const totals = [];
     for (let col = 0; col < result.columnHeaders.length; col++) {
       let sum = 0;
@@ -136,7 +145,12 @@ class CrossTableParser {
           break;
         }
       }
-      totals.push(allNumbers ? sum : '-');
+      // 상대도수 합계는 1로 표시 (0.95 ~ 1.05 범위면 1로 반올림)
+      if (allNumbers && sum >= 0.95 && sum <= 1.05) {
+        totals.push(1);
+      } else {
+        totals.push(allNumbers ? Math.round(sum * 100) / 100 : '-');
+      }
     }
     result.totals = totals;
 
