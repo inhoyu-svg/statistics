@@ -1,12 +1,14 @@
 /**
  * 테이블 렌더링 레이어
- * Canvas 기반 도수분포표 그리기 (레이어 시스템)
+ * Canvas 기반 테이블 그리기 (레이어 시스템)
+ * 도수분포표, 카테고리 행렬, 이원 분류표, 줄기-잎 그림 지원
  */
 
 import CONFIG from '../config.js';
 import { LayerManager, LayerTimeline } from '../animation/index.js';
 import TableLayerFactory from './table/TableLayerFactory.js';
 import TableCellRenderer from './table/TableCellRenderer.js';
+import { TableFactoryRouter } from './table/factories/index.js';
 
 /**
  * @class TableRenderer
@@ -141,18 +143,107 @@ class TableRenderer {
       case 'grid':
         this.cellRenderer.renderGrid(layer);
         break;
+      case 'stem-leaf-grid':
+        this.cellRenderer.renderStemLeafGrid(layer);
+        break;
       case 'cell':
-        if (layer.data.rowType === 'header') {
-          this.cellRenderer.renderHeaderCell(layer);
-        } else if (layer.data.rowType === 'summary') {
-          this.cellRenderer.renderSummaryCell(layer);
-        } else {
-          this.cellRenderer.renderDataCell(layer);
-        }
+        this._renderCellByRowType(layer);
         break;
       case 'group':
         layer.children.forEach(child => this.renderLayer(child));
         break;
+    }
+  }
+
+  /**
+   * rowType에 따른 셀 렌더링
+   * @param {Layer} layer - 셀 레이어
+   */
+  _renderCellByRowType(layer) {
+    const { rowType } = layer.data;
+
+    switch (rowType) {
+      case 'header':
+        this.cellRenderer.renderHeaderCell(layer);
+        break;
+      case 'summary':
+        this.cellRenderer.renderSummaryCell(layer);
+        break;
+      case 'row-header':
+        this.cellRenderer.renderRowHeaderCell(layer);
+        break;
+      case 'stem-leaf-stem':
+        this.cellRenderer.renderStemCell(layer);
+        break;
+      case 'stem-leaf-data':
+        this.cellRenderer.renderStemLeafDataCell(layer);
+        break;
+      case 'data':
+      default:
+        this.cellRenderer.renderDataCell(layer);
+        break;
+    }
+  }
+
+  /**
+   * 커스텀 테이블 타입 그리기 (카테고리 행렬, 이원 분류표, 줄기-잎 그림)
+   * @param {string} type - 테이블 타입 (CONFIG.TABLE_TYPES 값)
+   * @param {Object} data - 파싱된 데이터 객체
+   * @param {Object} config - 테이블 설정 객체
+   */
+  drawCustomTable(type, data, config = null) {
+    if (!data) {
+      this.drawNoDataMessage();
+      return;
+    }
+
+    // 설정 저장
+    this.currentConfig = config;
+
+    // 행 수 계산 (타입별)
+    const rowCount = this._calculateRowCount(type, data);
+
+    // Canvas 크기 계산
+    const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
+
+    this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
+    this.canvas.height = canvasHeight;
+    this.clear();
+
+    // 레이어 생성 (TableFactoryRouter 사용)
+    this.layerManager.clearAll();
+    TableFactoryRouter.createTableLayers(type, this.layerManager, data, config, this.tableId);
+
+    // 애니메이션 모드 분기
+    if (this.animationMode) {
+      this.setupAnimations();
+      this.playAnimation();
+    } else {
+      this.renderFrame();
+    }
+  }
+
+  /**
+   * 타입별 행 수 계산
+   * @param {string} type - 테이블 타입
+   * @param {Object} data - 파싱된 데이터
+   * @returns {number} 행 수 (헤더 제외)
+   */
+  _calculateRowCount(type, data) {
+    switch (type) {
+      case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
+        return data.rows ? data.rows.length : 0;
+
+      case CONFIG.TABLE_TYPES.CROSS_TABLE:
+        // 데이터 행 + 합계 행 (옵션)
+        const crossRows = data.rows ? data.rows.length : 0;
+        return crossRows + (data.showTotal !== false ? 1 : 0);
+
+      case CONFIG.TABLE_TYPES.STEM_LEAF:
+        return data.stems ? data.stems.length : 0;
+
+      default:
+        return 0;
     }
   }
 

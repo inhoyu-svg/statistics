@@ -4,10 +4,54 @@
 
 import CONFIG from '../config.js';
 import Utils from './utils.js';
+import { ParserFactory } from '../core/parsers/index.js';
 
 class Validator {
   /**
-   * 데이터 배열 검증
+   * 테이블 타입에 따른 데이터 검증
+   * @param {string} type - 테이블 타입
+   * @param {string} input - 원본 입력 문자열
+   * @returns {{ valid: boolean, data: any, message: string|null }}
+   */
+  static validateByType(type, input) {
+    // 타입 유효성 검사
+    if (!Object.values(CONFIG.TABLE_TYPES).includes(type)) {
+      return {
+        valid: false,
+        data: null,
+        message: `알 수 없는 테이블 타입: ${type}`
+      };
+    }
+
+    // 입력 검사
+    if (!input || typeof input !== 'string' || !input.trim()) {
+      return {
+        valid: false,
+        data: null,
+        message: '데이터를 입력해주세요.'
+      };
+    }
+
+    // 파서를 통한 파싱 및 검증
+    const parseResult = ParserFactory.parse(type, input);
+
+    if (!parseResult.success) {
+      return {
+        valid: false,
+        data: null,
+        message: parseResult.error
+      };
+    }
+
+    return {
+      valid: true,
+      data: parseResult.data,
+      message: null
+    };
+  }
+
+  /**
+   * 도수분포표 전용 데이터 배열 검증 (기존 호환)
    */
   static validateData(data) {
     if (Utils.isEmpty(data)) {

@@ -1,0 +1,159 @@
+/**
+ * 이원 분류표 파서
+ * 행(카테고리) × 열(그룹) 형식의 교차 분류 데이터를 파싱
+ */
+
+import CONFIG from '../../config.js';
+
+class CrossTableParser {
+  /**
+   * 입력 문자열을 이원 분류표 데이터로 파싱
+   * @param {string} input - 여러 줄의 "행이름: 값들" 형식 문자열
+   * @returns {{ success: boolean, data: Object|null, error: string|null }}
+   * @example
+   * parse("헤더: 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2")
+   * // { success: true, data: { columnHeaders: ['남학생','여학생'], rows: [...], showTotal: true } }
+   */
+  static parse(input) {
+    if (!input || typeof input !== 'string') {
+      return {
+        success: false,
+        data: null,
+        error: '데이터가 비어있습니다.'
+      };
+    }
+
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return {
+        success: false,
+        data: null,
+        error: '데이터가 비어있습니다.'
+      };
+    }
+
+    const lines = trimmed.split('\n').map(line => line.trim()).filter(line => line);
+
+    if (lines.length < 2) {
+      return {
+        success: false,
+        data: null,
+        error: '최소 헤더 1줄과 데이터 1줄이 필요합니다.'
+      };
+    }
+
+    const result = {
+      columnHeaders: [],   // 열 헤더 (남학생, 여학생)
+      rowHeaders: [],      // 행 헤더 (A, B, AB, O)
+      rows: [],            // 데이터 행
+      showTotal: true      // 합계 행 표시 여부
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const colonIndex = line.indexOf(':');
+
+      if (colonIndex === -1) {
+        return {
+          success: false,
+          data: null,
+          error: `${i + 1}번째 줄: "라벨: 값" 형식이 아닙니다.`
+        };
+      }
+
+      const label = line.substring(0, colonIndex).trim();
+      const valuesStr = line.substring(colonIndex + 1).trim();
+
+      if (!label) {
+        return {
+          success: false,
+          data: null,
+          error: `${i + 1}번째 줄: 라벨이 비어있습니다.`
+        };
+      }
+
+      // 첫 번째 줄: 열 헤더
+      if (i === 0 && label.toLowerCase() === '헤더') {
+        result.columnHeaders = valuesStr.split(',').map(v => v.trim()).filter(v => v);
+        if (result.columnHeaders.length === 0) {
+          return {
+            success: false,
+            data: null,
+            error: '열 헤더가 비어있습니다.'
+          };
+        }
+      } else {
+        // 데이터 행
+        const values = valuesStr.split(',').map(v => {
+          const trimmedVal = v.trim();
+          const num = Number(trimmedVal);
+          return isNaN(num) ? trimmedVal : num;
+        });
+
+        // 열 헤더가 있으면 개수 확인
+        if (result.columnHeaders.length > 0 && values.length !== result.columnHeaders.length) {
+          return {
+            success: false,
+            data: null,
+            error: `${i + 1}번째 줄: 값 개수(${values.length})가 열 개수(${result.columnHeaders.length})와 일치하지 않습니다.`
+          };
+        }
+
+        result.rowHeaders.push(label);
+        result.rows.push({
+          label: label,
+          values: values
+        });
+      }
+    }
+
+    if (result.rows.length === 0) {
+      return {
+        success: false,
+        data: null,
+        error: '데이터 행이 없습니다.'
+      };
+    }
+
+    // 열 헤더가 없으면 자동 생성
+    if (result.columnHeaders.length === 0) {
+      const columnCount = result.rows[0].values.length;
+      result.columnHeaders = Array.from({ length: columnCount }, (_, i) =>
+        `열${i + 1}`
+      );
+    }
+
+    // 합계 계산 (숫자인 경우만)
+    const totals = [];
+    for (let col = 0; col < result.columnHeaders.length; col++) {
+      let sum = 0;
+      let allNumbers = true;
+      for (const row of result.rows) {
+        if (typeof row.values[col] === 'number') {
+          sum += row.values[col];
+        } else {
+          allNumbers = false;
+          break;
+        }
+      }
+      totals.push(allNumbers ? sum : '-');
+    }
+    result.totals = totals;
+
+    return {
+      success: true,
+      data: result,
+      error: null
+    };
+  }
+
+  /**
+   * 파서 타입 반환
+   * @returns {string}
+   */
+  static getType() {
+    return CONFIG.TABLE_TYPES.CROSS_TABLE;
+  }
+}
+
+export default CrossTableParser;

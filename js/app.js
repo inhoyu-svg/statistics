@@ -11,6 +11,7 @@ import Utils from './utils/utils.js';
 import Validator from './utils/validator.js';
 import MessageManager from './utils/message.js';
 import DataProcessor from './core/processor.js';
+import { ParserFactory } from './core/parsers/index.js';
 import UIRenderer from './renderers/ui.js';
 import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
@@ -104,12 +105,54 @@ class FrequencyDistributionApp {
       this.removeDatasetSection(datasetId);
     });
 
+    // 테이블 타입 변경 이벤트 리스너
+    const tableTypeSelect = section.querySelector('.dataset-table-type');
+    tableTypeSelect?.addEventListener('change', (e) => {
+      this.onTableTypeChange(details, e.target.value);
+    });
+
     // 아코디언 컨테이너에 추가
     const accordion = document.getElementById('datasetsAccordion');
     accordion?.appendChild(section);
 
     // DatasetStore에 데이터셋 추가
     DatasetStore.addDataset({ id: datasetId });
+  }
+
+  /**
+   * 테이블 타입 변경 시 UI 업데이트
+   * @param {HTMLElement} section - 데이터셋 섹션 요소
+   * @param {string} tableType - 선택된 테이블 타입
+   */
+  onTableTypeChange(section, tableType) {
+    // 타입 정보 가져오기
+    const typeInfo = CONFIG.TABLE_TYPE_INFO[tableType];
+    if (!typeInfo) return;
+
+    // 힌트 텍스트 업데이트
+    const hintElement = section.querySelector('.dataset-type-hint');
+    if (hintElement) {
+      hintElement.innerHTML = `💡 ${typeInfo.hint}`;
+    }
+
+    // 데이터 입력 필드 placeholder 업데이트
+    const dataInput = section.querySelector('.dataset-data-input');
+    if (dataInput) {
+      dataInput.placeholder = typeInfo.placeholder;
+      // 기존 데이터 유지 (사용자가 원하면 직접 지울 수 있음)
+    }
+
+    // 도수분포표 전용 옵션 표시/숨김
+    const frequencyOnlyOptions = section.querySelectorAll('.frequency-only-options');
+    const isFrequency = tableType === CONFIG.TABLE_TYPES.FREQUENCY;
+
+    frequencyOnlyOptions.forEach(option => {
+      if (isFrequency) {
+        option.classList.remove('hidden');
+      } else {
+        option.classList.add('hidden');
+      }
+    });
   }
 
   /**
@@ -176,6 +219,10 @@ class FrequencyDistributionApp {
     if (!section) return null;
 
     try {
+      // 테이블 타입
+      const tableTypeSelect = section.querySelector('.dataset-table-type');
+      const tableType = tableTypeSelect?.value || CONFIG.TABLE_TYPES.FREQUENCY;
+
       // 데이터 입력
       const dataInput = section.querySelector('.dataset-data-input');
       const rawData = dataInput?.value.trim();
@@ -207,6 +254,7 @@ class FrequencyDistributionApp {
 
       return {
         datasetId,
+        tableType,
         rawData,
         classCount,
         classWidth,
@@ -1400,6 +1448,56 @@ class FrequencyDistributionApp {
   }
 
   /**
+   * 커스텀 테이블 타입 처리 (카테고리 행렬, 이원 분류표, 줄기-잎 그림)
+   * @param {Object} inputValues - 데이터셋 입력값
+   * @param {boolean} reset - 리셋 모드 여부
+   * @param {number} processedCount - 현재까지 처리된 데이터셋 수
+   * @returns {Object} 처리 결과 { success: boolean, error?: string }
+   */
+  processCustomTableType(inputValues, reset, processedCount) {
+    const { tableType, rawData, datasetId } = inputValues;
+
+    try {
+      // 1. 파서를 사용하여 데이터 파싱
+      const parseResult = ParserFactory.parse(tableType, rawData);
+
+      if (!parseResult.success) {
+        MessageManager.warning(`데이터셋 ${datasetId}: ${parseResult.error}`);
+        return { success: false, error: parseResult.error };
+      }
+
+      // 2. 검증
+      const validation = Validator.validateByType(tableType, rawData);
+      if (!validation.valid) {
+        MessageManager.warning(`데이터셋 ${datasetId}: ${validation.message}`);
+        return { success: false, error: validation.message };
+      }
+
+      // 3. 테이블 렌더러 선택/생성
+      let currentTableRenderer;
+      if (reset && processedCount === 0) {
+        currentTableRenderer = this.tableRenderers[0];
+      } else {
+        currentTableRenderer = this.createNewTable();
+      }
+
+      // 4. 테이블 렌더링 (drawCustomTable 사용)
+      currentTableRenderer.drawCustomTable(tableType, parseResult.data, null);
+
+      // 5. 성공 메시지
+      const typeInfo = CONFIG.TABLE_TYPE_INFO[tableType];
+      MessageManager.success(`${typeInfo?.name || '테이블'}이(가) 생성되었습니다.`);
+
+      return { success: true };
+
+    } catch (error) {
+      console.error(`커스텀 테이블 처리 오류 (데이터셋 ${datasetId}):`, error);
+      MessageManager.warning(`데이터셋 ${datasetId}: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * 도수분포표 생성 메인 로직
    * @param {boolean} reset - true: 기존 테이블 초기화 후 새로 생성, false: 기존 테이블 유지하며 추가
    * @description 입력 데이터를 파싱하고 검증한 후, 도수분포표와 히스토그램 생성
@@ -1428,9 +1526,20 @@ class FrequencyDistributionApp {
 
       for (let i = 0; i < allDatasetInputs.length; i++) {
         const inputValues = allDatasetInputs[i];
+        const tableType = inputValues.tableType || CONFIG.TABLE_TYPES.FREQUENCY;
 
         try {
-          // 3.1. 데이터 파싱
+          // 커스텀 테이블 타입 처리 (도수분포표가 아닌 경우)
+          if (tableType !== CONFIG.TABLE_TYPES.FREQUENCY) {
+            const customResult = this.processCustomTableType(inputValues, reset, processedCount);
+            if (customResult.success) {
+              processedCount++;
+              // 커스텀 타입은 차트 없이 테이블만 렌더링
+            }
+            continue;
+          }
+
+          // 3.1. 데이터 파싱 (도수분포표)
           const data = DataProcessor.parseInput(inputValues.rawData);
 
           // 3.2. 데이터 검증
@@ -1508,62 +1617,68 @@ class FrequencyDistributionApp {
         return;
       }
 
-      // 4. 첫 번째 데이터셋으로 UI 업데이트 (통계 카드)
-      const firstDataset = processedDatasets[0];
-      UIRenderer.renderStatsCards(firstDataset.stats);
+      // 도수분포표가 있는 경우에만 차트 및 통계 카드 렌더링
+      if (processedDatasets.length > 0) {
+        // 4. 첫 번째 데이터셋으로 UI 업데이트 (통계 카드)
+        const firstDataset = processedDatasets[0];
+        UIRenderer.renderStatsCards(firstDataset.stats);
 
-      // 5. 모든 데이터셋에 대해 차트 렌더링 (겹쳐 그리기)
-      const customLabels = this.getCustomLabels();
-      const tableConfig = this.getDefaultTableConfig();
-      const dataType = ChartStore.getDataType(); // 전역 차트 데이터 유형
+        // 5. 모든 데이터셋에 대해 차트 렌더링 (겹쳐 그리기)
+        const customLabels = this.getCustomLabels();
+        const tableConfig = this.getDefaultTableConfig();
+        const dataType = ChartStore.getDataType(); // 전역 차트 데이터 유형
 
-      // 5.1. 통합 좌표 시스템을 위한 최대 Y값 계산
-      let unifiedMaxY = 0;
-      for (const dataset of processedDatasets) {
-        const freq = dataset.classes.map(c => c.frequency);
-        const total = freq.reduce((a, b) => a + b, 0);
+        // 5.1. 통합 좌표 시스템을 위한 최대 Y값 계산
+        let unifiedMaxY = 0;
+        for (const dataset of processedDatasets) {
+          const freq = dataset.classes.map(c => c.frequency);
+          const total = freq.reduce((a, b) => a + b, 0);
 
-        if (total > 0) {
-          if (dataType === 'frequency') {
-            const maxFreq = Math.max(...freq);
-            unifiedMaxY = Math.max(unifiedMaxY, maxFreq);
-          } else { // 'relativeFrequency'
-            const relativeFreqs = freq.map(f => f / total);
-            const maxRelative = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
-            unifiedMaxY = Math.max(unifiedMaxY, maxRelative);
+          if (total > 0) {
+            if (dataType === 'frequency') {
+              const maxFreq = Math.max(...freq);
+              unifiedMaxY = Math.max(unifiedMaxY, maxFreq);
+            } else { // 'relativeFrequency'
+              const relativeFreqs = freq.map(f => f / total);
+              const maxRelative = Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+              unifiedMaxY = Math.max(unifiedMaxY, maxRelative);
+            }
           }
         }
+
+        for (let i = 0; i < processedDatasets.length; i++) {
+          const dataset = processedDatasets[i];
+
+          // 각 데이터셋의 설정을 CONFIG에 반영
+          CONFIG.SHOW_HISTOGRAM = dataset.settings.showHistogram;
+          CONFIG.SHOW_POLYGON = dataset.settings.showPolygon;
+          CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
+          CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
+          CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
+          CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
+
+          // 첫 번째 데이터셋만 캔버스 초기화, 나머지는 겹쳐 그리기
+          const clearCanvas = (i === 0);
+
+          this.chartRenderer.draw(
+            dataset.classes,
+            customLabels.axis,
+            dataset.ellipsisInfo,
+            dataType, // 전역 설정 사용
+            tableConfig,
+            dataset.settings.calloutTemplate,
+            clearCanvas,
+            unifiedMaxY // 통합 최대 Y값
+          );
+        }
+
+        // 6. Store에 첫 번째 데이터셋 저장 (기존 호환성 유지)
+        DataStore.setData(firstDataset.data, firstDataset.stats, firstDataset.classes);
+        ChartStore.setConfig(customLabels.axis, firstDataset.ellipsisInfo);
+
+        // 10. 계급 범위 편집기 표시 (첫 번째 데이터셋)
+        this.showClassRangeEditor(firstDataset.classes);
       }
-
-      for (let i = 0; i < processedDatasets.length; i++) {
-        const dataset = processedDatasets[i];
-
-        // 각 데이터셋의 설정을 CONFIG에 반영
-        CONFIG.SHOW_HISTOGRAM = dataset.settings.showHistogram;
-        CONFIG.SHOW_POLYGON = dataset.settings.showPolygon;
-        CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
-        CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
-        CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
-        CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
-
-        // 첫 번째 데이터셋만 캔버스 초기화, 나머지는 겹쳐 그리기
-        const clearCanvas = (i === 0);
-
-        this.chartRenderer.draw(
-          dataset.classes,
-          customLabels.axis,
-          dataset.ellipsisInfo,
-          dataType, // 전역 설정 사용
-          tableConfig,
-          dataset.settings.calloutTemplate,
-          clearCanvas,
-          unifiedMaxY // 통합 최대 Y값
-        );
-      }
-
-      // 6. Store에 첫 번째 데이터셋 저장 (기존 호환성 유지)
-      DataStore.setData(firstDataset.data, firstDataset.stats, firstDataset.classes);
-      ChartStore.setConfig(customLabels.axis, firstDataset.ellipsisInfo);
 
       // 7. 레이어 패널 렌더링
       this.renderLayerPanel();
@@ -1574,9 +1689,6 @@ class FrequencyDistributionApp {
       // 9. 결과 섹션 표시 및 2열 레이아웃 전환
       document.getElementById('resultSection').classList.add('active');
       document.querySelector('.layout-grid').classList.add('two-column');
-
-      // 10. 계급 범위 편집기 표시 (첫 번째 데이터셋)
-      this.showClassRangeEditor(firstDataset.classes);
 
       // 11. JSON 내보내기 버튼 표시
       const exportJsonBtn = document.getElementById('exportJsonBtn');

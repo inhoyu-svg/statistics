@@ -265,7 +265,18 @@
         <button class="dataset-remove-btn" type="button" title="삭제">✕</button>
       </summary>
       <div class="dataset-content">
-        <div class="info" role="note">
+        <!-- 테이블 타입 선택 -->
+        <div class="input-group table-type-group">
+          <label>테이블 타입:</label>
+          <select class="dataset-table-type">
+            <option value="frequency">도수분포표</option>
+            <option value="category-matrix">카테고리 행렬</option>
+            <option value="cross-table">이원 분류표</option>
+            <option value="stem-leaf">줄기-잎 그림</option>
+          </select>
+        </div>
+
+        <div class="info dataset-type-hint" role="note">
           💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56
         </div>
 
@@ -277,7 +288,8 @@
             rows="3">2, 5, 8, 5, 2, 3, 7, 9, 4, 6, 5, 8, 3, 2, 7</textarea>
         </div>
 
-        <div class="row">
+        <!-- 도수분포표 전용 옵션 -->
+        <div class="row frequency-only-options">
           <div class="input-group">
             <label>계급 개수:</label>
             <input
@@ -298,15 +310,15 @@
           </div>
         </div>
 
-        <!-- 차트 요소 표시 옵션 -->
-        <div class="table-options">
+        <!-- 차트 요소 표시 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
           <label>
             <input type="checkbox" class="dataset-show-histogram" checked>
             <span>히스토그램 표시</span>
           </label>
         </div>
 
-        <div class="table-options">
+        <div class="table-options frequency-only-options">
           <label>
             <input type="checkbox" class="dataset-show-polygon" checked>
             <span>도수 다각형 표시</span>
@@ -332,16 +344,16 @@
           </div>
         </div>
 
-        <!-- 표 옵션 -->
-        <div class="table-options">
+        <!-- 표 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
           <label>
             <input type="checkbox" class="dataset-show-superscript" checked>
             <span>첫 계급에 상첨자 표시 (이상/미만)</span>
           </label>
         </div>
 
-        <!-- 말풍선 옵션 -->
-        <div class="table-options">
+        <!-- 말풍선 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
           <label>
             <input type="checkbox" class="dataset-show-callout">
             <span>말풍선 표시</span>
@@ -352,16 +364,16 @@
           </div>
         </div>
 
-        <!-- 막대 라벨 옵션 -->
-        <div class="table-options">
+        <!-- 막대 라벨 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
           <label>
             <input type="checkbox" class="dataset-show-bar-labels">
             <span>막대 위 값 표시</span>
           </label>
         </div>
 
-        <!-- 파선 옵션 -->
-        <div class="table-options">
+        <!-- 파선 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
           <label>
             <input type="checkbox" class="dataset-show-dashed-lines">
             <span>수직 파선 표시</span>

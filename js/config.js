@@ -62,6 +62,45 @@ const CONFIG = {
   CANVAS_WIDTH: 700,
   CANVAS_HEIGHT: 450,
 
+  // 테이블 타입 설정
+  TABLE_TYPES: {
+    FREQUENCY: 'frequency',              // 도수분포표
+    CATEGORY_MATRIX: 'category-matrix',  // 카테고리 행렬
+    CROSS_TABLE: 'cross-table',          // 이원 분류표
+    STEM_LEAF: 'stem-leaf'               // 줄기-잎 그림
+  },
+
+  // 테이블 타입별 정보
+  TABLE_TYPE_INFO: {
+    'frequency': {
+      name: '도수분포표',
+      description: '숫자 데이터를 계급별로 분류',
+      placeholder: '145, 152, 148, 160, 155, 162, 170...',
+      hint: '숫자를 쉼표 또는 공백으로 구분하여 입력'
+    },
+    'category-matrix': {
+      name: '카테고리 행렬',
+      description: '카테고리별 데이터 비교',
+      placeholder: '헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90',
+      hint: '첫 줄에 "헤더: 값들", 이후 "라벨: 값들" 형식으로 입력'
+    },
+    'cross-table': {
+      name: '이원 분류표',
+      description: '두 변수의 교차 분류',
+      placeholder: '헤더: 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24',
+      hint: '첫 줄에 "헤더: 열 이름들", 이후 "행 이름: 값들" 형식으로 입력'
+    },
+    'stem-leaf': {
+      name: '줄기-잎 그림',
+      description: '두 그룹의 데이터 분포 비교',
+      placeholder: '왼쪽: 162, 175, 178, 184, 185, 188\n오른쪽: 160, 165, 170, 177, 180, 182',
+      hint: '"왼쪽: 숫자들"과 "오른쪽: 숫자들" 형식으로 입력'
+    }
+  },
+
+  // 기본 테이블 타입
+  DEFAULT_TABLE_TYPE: 'frequency',
+
   // 테이블 Canvas 설정
   TABLE_CANVAS_WIDTH: 700,
   TABLE_ROW_HEIGHT: 40,

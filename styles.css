@@ -2173,3 +2173,53 @@ canvas {
 .layer-json-btn:active {
   transform: scale(0.95);
 }
+
+/* ========== 테이블 타입 선택 ========== */
+.table-type-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.table-type-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.dataset-table-type {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.dataset-table-type:hover {
+  border-color: var(--color-primary);
+}
+
+.dataset-table-type:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.dataset-table-type option {
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  padding: 8px;
+}
+
+/* 타입별 힌트 텍스트 */
+.dataset-type-hint {
+  transition: var(--transition-fast);
+}
+
+/* 도수분포표 전용 옵션 숨김 */
+.frequency-only-options.hidden {
+  display: none !important;
+}

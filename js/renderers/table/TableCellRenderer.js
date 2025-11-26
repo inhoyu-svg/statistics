@@ -140,6 +140,119 @@ class TableCellRenderer {
   }
 
   /**
+   * 행 헤더 셀 렌더링 (카테고리 행렬, 이원 분류표용)
+   * @param {Layer} layer - 행 헤더 셀 레이어
+   */
+  renderRowHeaderCell(layer) {
+    const { x, y, width, height, cellText, alignment } = layer.data;
+
+    // 행 헤더 텍스트 (헤더와 동일한 스타일)
+    this.ctx.fillStyle = CONFIG.TABLE_HEADER_TEXT_COLOR;
+    this.ctx.font = CONFIG.TABLE_FONT_DATA;
+    this.ctx.textBaseline = 'middle';
+    this.ctx.textAlign = alignment;
+
+    const cellX = this._getCellXPosition(x, width, alignment);
+    const cellY = y + height / 2;
+
+    this.ctx.fillText(cellText, cellX, cellY);
+  }
+
+  /**
+   * 줄기-잎 격자선 렌더링
+   * @param {Layer} layer - 줄기-잎 격자선 레이어
+   */
+  renderStemLeafGrid(layer) {
+    const { x, y, width, height, rowCount, stemColumnStart, stemColumnEnd } = layer.data;
+
+    // 외곽선
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+
+    // 상단, 하단 선
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y);
+    this.ctx.lineTo(x + width, y);
+    this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, y + height);
+    this.ctx.lineTo(x + width, y + height);
+    this.ctx.stroke();
+
+    // 헤더 아래 선
+    const headerY = y + CONFIG.TABLE_HEADER_HEIGHT;
+    this.ctx.beginPath();
+    this.ctx.moveTo(x, headerY);
+    this.ctx.lineTo(x + width, headerY);
+    this.ctx.stroke();
+
+    // 줄기 열 좌우 세로선 (전체 높이)
+    this.ctx.beginPath();
+    this.ctx.moveTo(stemColumnStart, y);
+    this.ctx.lineTo(stemColumnStart, y + height);
+    this.ctx.stroke();
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(stemColumnEnd, y);
+    this.ctx.lineTo(stemColumnEnd, y + height);
+    this.ctx.stroke();
+
+    // 수평 구분선 (점선)
+    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+    this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_DARK;
+    this.ctx.setLineDash(CONFIG.TABLE_GRID_DASH_PATTERN);
+
+    for (let i = 1; i < rowCount; i++) {
+      const lineY = y + CONFIG.TABLE_HEADER_HEIGHT + (i * CONFIG.TABLE_ROW_HEIGHT);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, lineY);
+      this.ctx.lineTo(x + width, lineY);
+      this.ctx.stroke();
+    }
+
+    this.ctx.setLineDash([]);
+  }
+
+  /**
+   * 줄기-잎 줄기 셀 렌더링
+   * @param {Layer} layer - 줄기 셀 레이어
+   */
+  renderStemCell(layer) {
+    const { x, y, width, height, cellText, alignment } = layer.data;
+
+    // 줄기 텍스트 (볼드)
+    this.ctx.fillStyle = CONFIG.TABLE_HEADER_TEXT_COLOR;
+    this.ctx.font = CONFIG.TABLE_FONT_SUMMARY;
+    this.ctx.textBaseline = 'middle';
+    this.ctx.textAlign = alignment;
+
+    const cellX = this._getCellXPosition(x, width, alignment);
+    const cellY = y + height / 2;
+
+    this.ctx.fillText(cellText, cellX, cellY);
+  }
+
+  /**
+   * 줄기-잎 잎 데이터 셀 렌더링
+   * @param {Layer} layer - 잎 데이터 셀 레이어
+   */
+  renderStemLeafDataCell(layer) {
+    const { x, y, width, height, cellText, alignment } = layer.data;
+
+    // 잎 텍스트 (등폭 폰트 스타일)
+    this.ctx.fillStyle = CONFIG.getColor('--color-text');
+    this.ctx.font = CONFIG.TABLE_FONT_DATA;
+    this.ctx.textBaseline = 'middle';
+    this.ctx.textAlign = alignment;
+
+    const cellX = this._getCellXPosition(x, width, alignment);
+    const cellY = y + height / 2;
+
+    this.ctx.fillText(cellText, cellX, cellY);
+  }
+
+  /**
    * 정렬에 따른 셀 X 좌표 계산
    * @param {number} cellStartX - 셀 시작 X 좌표
    * @param {number} cellWidth - 셀 너비
