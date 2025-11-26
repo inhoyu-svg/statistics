@@ -335,13 +335,32 @@ class TableRenderer {
   }
 
   /**
+   * 현재 테이블의 레이어 ID 접두사 반환
+   * @returns {string} 레이어 ID 접두사 (예: 'frequency-table-1', 'stem-leaf-table-1')
+   */
+  _getLayerIdPrefix() {
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return this.tableId;
+
+    const tableLayer = rootLayer.children[0];
+    const tableType = tableLayer?.data?.tableType;
+
+    // tableType이 있으면 접두사로 사용
+    if (tableType) {
+      return `${tableType}-${this.tableId}`;
+    }
+    return this.tableId;
+  }
+
+  /**
    * 개별 셀 하이라이트
    * @param {number} rowIndex - 행 인덱스
    * @param {number|null} colIndex - 열 인덱스 (null이면 행 전체)
    * @param {number} progress - 하이라이트 진행도 (0~1)
    */
   highlightCell(rowIndex, colIndex = null, progress = 1.0) {
-    const rowLayer = this.layerManager.findLayer(`${this.tableId}-table-row-${rowIndex}`);
+    const prefix = this._getLayerIdPrefix();
+    const rowLayer = this.layerManager.findLayer(`${prefix}-table-row-${rowIndex}`);
     if (!rowLayer) return;
 
     if (colIndex === null) {
@@ -369,13 +388,15 @@ class TableRenderer {
     const rootLayer = this.layerManager.root;
     if (!rootLayer || rootLayer.children.length === 0) return;
 
-    // 도수분포표 레이어 찾기
+    // 테이블 레이어 찾기
     const tableLayer = rootLayer.children[0];
     if (!tableLayer) return;
 
+    const prefix = this._getLayerIdPrefix();
+
     // 모든 데이터 셀의 하이라이트 제거
     tableLayer.children.forEach(child => {
-      if (child.type === 'group' && child.id.startsWith(`${this.tableId}-table-row-`)) {
+      if (child.type === 'group' && child.id.startsWith(`${prefix}-table-row-`)) {
         child.children.forEach(cellLayer => {
           if (cellLayer.type === 'cell' && cellLayer.data.rowType === 'data') {
             cellLayer.data.highlighted = false;
