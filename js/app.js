@@ -300,7 +300,10 @@ class FrequencyDistributionApp {
   /**
    * 이벤트 리스너 초기화
    */
-  init() {
+  async init() {
+    // KaTeX 폰트 로드 대기
+    await KatexUtils.waitForFonts();
+
     // 첫 번째 데이터셋 섹션 생성
     this.createDatasetSection(1);
 
