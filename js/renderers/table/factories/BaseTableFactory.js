@@ -40,7 +40,8 @@ class BaseTableFactory {
       columnWidths,
       tableId,
       headerHeight = CONFIG.TABLE_HEADER_HEIGHT,
-      rowHeight = CONFIG.TABLE_ROW_HEIGHT
+      rowHeight = CONFIG.TABLE_ROW_HEIGHT,
+      hasSummaryRow = false
     } = options;
 
     const totalWidth = canvasWidth - padding * 2;
@@ -60,7 +61,8 @@ class BaseTableFactory {
         rowCount,
         columnWidths,
         headerHeight,
-        rowHeight
+        rowHeight,
+        hasSummaryRow
       }
     });
   }

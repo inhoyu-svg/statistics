@@ -41,13 +41,14 @@ class CategoryMatrixFactory {
       tableType: CONFIG.TABLE_TYPES.CATEGORY_MATRIX
     });
 
-    // 격자선 레이어
+    // 격자선 레이어 (카테고리 행렬은 합계 행 없음)
     const gridLayer = BaseTableFactory.createGridLayer({
       canvasWidth,
       padding,
       rowCount,
       columnWidths,
-      tableId
+      tableId,
+      hasSummaryRow: false
     });
     rootLayer.addChild(gridLayer);
 
@@ -121,7 +122,8 @@ class CategoryMatrixFactory {
           height: CONFIG.TABLE_HEADER_HEIGHT,
           alignment: 'center',
           highlighted: false,
-          highlightProgress: 0
+          highlightProgress: 0,
+          headerTextColor: '#FFFFFF'
         }
       });
 

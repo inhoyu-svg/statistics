@@ -42,13 +42,14 @@ class CrossTableFactory {
       tableType: CONFIG.TABLE_TYPES.CROSS_TABLE
     });
 
-    // 격자선 레이어
+    // 격자선 레이어 (이원 분류표는 합계 행 있음)
     const gridLayer = BaseTableFactory.createGridLayer({
       canvasWidth,
       padding,
       rowCount,
       columnWidths,
-      tableId
+      tableId,
+      hasSummaryRow: showTotal
     });
     rootLayer.addChild(gridLayer);
 

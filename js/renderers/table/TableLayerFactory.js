@@ -67,14 +67,15 @@ class TableLayerFactory {
       }
     });
 
-    // 격자선 레이어 생성
+    // 격자선 레이어 생성 (도수분포표는 합계 행 있음)
     const gridLayer = this._createGridLayer(
       canvasWidth,
       canvasHeight,
       padding,
       rowCount,
       columnWidths,
-      tableId
+      tableId,
+      true // hasSummaryRow
     );
     rootLayer.addChild(gridLayer);
 
@@ -144,9 +145,10 @@ class TableLayerFactory {
    * @param {number} rowCount - 행 개수
    * @param {Array} columnWidths - 열 너비 배열
    * @param {string} tableId - 테이블 고유 ID
+   * @param {boolean} hasSummaryRow - 합계 행 여부
    * @returns {Layer} 격자선 레이어
    */
-  static _createGridLayer(canvasWidth, canvasHeight, padding, rowCount, columnWidths, tableId) {
+  static _createGridLayer(canvasWidth, canvasHeight, padding, rowCount, columnWidths, tableId, hasSummaryRow = true) {
     const totalWidth = canvasWidth - padding * 2;
     const totalHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
 
@@ -162,7 +164,8 @@ class TableLayerFactory {
         width: totalWidth,
         height: totalHeight,
         rowCount,
-        columnWidths
+        columnWidths,
+        hasSummaryRow
       }
     });
   }
