@@ -393,6 +393,13 @@ label {
   color: var(--color-text-light);
 }
 
+/* 불러온 데이터 표시 스타일 */
+.input-group textarea.imported-data {
+  color: var(--color-text-light);
+  font-style: italic;
+  background: var(--color-surface-secondary);
+}
+
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1420,6 +1420,20 @@ class FrequencyDistributionApp {
         this.tableRenderers
       );
 
+      // 원본 데이터 및 테이블 타입 추가 (데이터셋 폼 복원용)
+      if (DataStore.hasData()) {
+        jsonData.rawData = DataStore.getRawData();
+      }
+
+      // 현재 테이블 타입 저장 (첫 번째 데이터셋 기준)
+      const datasetSection = document.querySelector('.dataset-section');
+      if (datasetSection) {
+        const tableTypeSelect = datasetSection.querySelector('.dataset-table-type');
+        if (tableTypeSelect) {
+          jsonData.tableType = tableTypeSelect.value;
+        }
+      }
+
       // JSON 문자열 생성 (들여쓰기 포함)
       const jsonString = JSON.stringify(jsonData, null, 2);
 
@@ -1570,18 +1584,25 @@ class FrequencyDistributionApp {
       // ellipsisInfo 복원
       const ellipsisInfo = config.ellipsisInfo || null;
 
-      // 축 라벨 복원
-      const axisLabels = config.axisLabels || { xLabel: '', yLabel: '' };
+      // 축 라벨 복원 (xAxis/yAxis 형식)
+      const axisLabels = config.axisLabels || { xAxis: '', yAxis: '' };
 
       // 데이터 타입 복원
       const dataType = config.dataType || 'relativeFrequency';
 
-      // 차트 렌더링
-      this.chartRenderer.draw(classes, total, tableConfig, axisLabels, ellipsisInfo, dataType);
+      // tableConfig.labels가 빈 객체인 경우 기본값으로 대체
+      const mergedTableConfig = { ...tableConfig };
+      if (!tableConfig.labels || Object.keys(tableConfig.labels).length === 0) {
+        mergedTableConfig.labels = CONFIG.DEFAULT_LABELS.table;
+      }
 
-      // 테이블 렌더링
+      // 차트 렌더링 (원본 classes 전달 - ellipsisInfo 인덱스 및 좌표 계산에 필요)
+      // 매개변수 순서: classes, axisLabels, ellipsisInfo, dataType, tableConfig, calloutTemplate
+      this.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, mergedTableConfig, null);
+
+      // 테이블 렌더링 (내부에서 frequency=0 필터링됨)
       if (this.tableRenderers.length > 0) {
-        this.tableRenderers[0].draw(classes, total, tableConfig);
+        this.tableRenderers[0].draw(classes, total, mergedTableConfig);
       }
 
       // UI 표시 (결과 섹션)
@@ -1590,11 +1611,112 @@ class FrequencyDistributionApp {
       const jsonButtons = document.querySelector('.json-buttons');
       if (jsonButtons) jsonButtons.style.display = 'flex';
 
-      // 축 라벨 입력 필드 동기화
+      // 축 라벨 입력 필드 동기화 (xAxis/yAxis 형식 사용)
       const xAxisInput = document.getElementById('xAxisLabel');
       const yAxisInput = document.getElementById('yAxisLabel');
-      if (xAxisInput) xAxisInput.value = axisLabels.xLabel || '';
-      if (yAxisInput) yAxisInput.value = axisLabels.yLabel || '';
+      if (xAxisInput) xAxisInput.value = axisLabels.xAxis || '';
+      if (yAxisInput) yAxisInput.value = axisLabels.yAxis || '';
+
+      // DataStore에 데이터 저장 (rawData가 있는 경우)
+      if (data.rawData) {
+        const stats = DataProcessor.calculateBasicStats(data.rawData);
+        DataStore.setData(data.rawData, stats, classes);
+      }
+
+      // 데이터셋 입력 폼 동기화 (rawData, tableType은 data에, chartElements는 config에 있음)
+      const formConfig = {
+        ...config,
+        rawData: data.rawData,
+        tableType: data.tableType
+      };
+      this.syncDatasetFormFromImport(classes, formConfig);
+    }
+  }
+
+  /**
+   * JSON 불러오기 시 데이터셋 입력 폼 동기화
+   * @param {Array} classes - 계급 데이터 배열
+   * @param {Object} config - 불러온 설정 객체 (rawData, tableType, chartElements 등)
+   */
+  syncDatasetFormFromImport(classes, config) {
+    const datasetSection = document.querySelector('.dataset-section');
+    if (!datasetSection) return;
+
+    // 테이블 타입 동기화
+    const tableTypeSelect = datasetSection.querySelector('.dataset-table-type');
+    if (tableTypeSelect && config.tableType) {
+      tableTypeSelect.value = config.tableType;
+      // change 이벤트 발생시켜 UI 업데이트 (계급 설정 표시/숨김 등)
+      tableTypeSelect.dispatchEvent(new Event('change'));
+    }
+
+    // 실제 데이터가 있는 계급만 카운트
+    const visibleClasses = classes.filter(c => c.frequency > 0);
+    const classCount = visibleClasses.length;
+    const classWidth = classes.length > 0 ? classes[0].end - classes[0].start : 5;
+
+    // 계급 개수 동기화
+    const classCountInput = datasetSection.querySelector('.dataset-class-count');
+    if (classCountInput) classCountInput.value = classCount;
+
+    // 계급 간격 동기화
+    const classWidthInput = datasetSection.querySelector('.dataset-class-width');
+    if (classWidthInput) classWidthInput.value = classWidth;
+
+    // 데이터 입력 필드 - 원본 데이터 또는 안내 메시지 표시
+    const dataInput = datasetSection.querySelector('.dataset-data-input');
+    if (dataInput) {
+      if (config.rawData && Array.isArray(config.rawData)) {
+        // 원본 데이터가 있으면 표시
+        dataInput.value = config.rawData.join(', ');
+        dataInput.classList.remove('imported-data');
+      } else {
+        // 원본 데이터가 없으면 안내 메시지
+        dataInput.value = '(불러온 데이터 - 원본 없음)';
+        dataInput.classList.add('imported-data');
+
+        // 포커스 시 클래스 제거 및 텍스트 초기화 (일회성 이벤트)
+        const clearImportedState = () => {
+          dataInput.value = '';
+          dataInput.classList.remove('imported-data');
+          dataInput.removeEventListener('focus', clearImportedState);
+        };
+        dataInput.addEventListener('focus', clearImportedState);
+      }
+    }
+
+    // chartElements 설정 동기화
+    const chartElements = config.chartElements || {};
+
+    const showHistogram = datasetSection.querySelector('.dataset-show-histogram');
+    if (showHistogram) {
+      showHistogram.checked = chartElements.showHistogram !== false; // 기본값 true
+    }
+
+    const showPolygon = datasetSection.querySelector('.dataset-show-polygon');
+    if (showPolygon) {
+      showPolygon.checked = chartElements.showPolygon !== false; // 기본값 true
+    }
+
+    const showBarLabels = datasetSection.querySelector('.dataset-show-bar-labels');
+    if (showBarLabels) {
+      showBarLabels.checked = chartElements.showBarLabels === true; // 기본값 false
+    }
+
+    const showDashedLines = datasetSection.querySelector('.dataset-show-dashed-lines');
+    if (showDashedLines) {
+      showDashedLines.checked = chartElements.showDashedLines === true; // 기본값 false
+    }
+
+    // 색상 프리셋 동기화
+    const colorPreset = config.colorPreset || 'default';
+    const colorRadio = datasetSection.querySelector(`.dataset-polygon-color[value="${colorPreset}"]`);
+    if (colorRadio) {
+      colorRadio.checked = true;
+      // 색상 버튼 시각적 상태 업데이트
+      const allColorBtns = datasetSection.querySelectorAll('.color-preset-btn');
+      allColorBtns.forEach(btn => btn.classList.remove('selected'));
+      colorRadio.closest('.color-preset-btn')?.classList.add('selected');
     }
   }
 

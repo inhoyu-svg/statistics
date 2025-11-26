@@ -696,7 +696,10 @@ class DataProcessor {
         timeline: chartTimeline,
         config: chartConfig
       },
-      tables
+      tables,
+      // 원본 데이터 및 테이블 타입 (데이터셋 폼 복원용)
+      rawData: jsonData.rawData || null,
+      tableType: jsonData.tableType || 'frequency'
     };
   }
 }
