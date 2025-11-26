@@ -74,16 +74,14 @@ class TableCellRenderer {
   renderHeaderCell(layer) {
     const { x, y, width, height, cellText, alignment, headerTextColor } = layer.data;
 
-    // 헤더 텍스트 (커스텀 색상이 있으면 사용, 없으면 기본값)
-    this.ctx.fillStyle = headerTextColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
-    this.ctx.font = CONFIG.TABLE_FONT_HEADER;
-    this.ctx.textBaseline = 'middle';
-    this.ctx.textAlign = alignment;
-
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
-    this.ctx.fillText(cellText, cellX, cellY);
+    // 커스텀 색상이 있으면 사용, 없으면 기본 헤더 색상 사용
+    const color = headerTextColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
+
+    // 숫자/알파벳이면 KaTeX 폰트 적용, 한글은 bold 폰트
+    this._renderCellText(cellText, cellX, cellY, alignment, color, true);
   }
 
   /**
