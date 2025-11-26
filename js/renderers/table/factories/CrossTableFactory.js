@@ -13,7 +13,7 @@ const CROSS_TABLE_CONFIG = {
   MERGED_HEADER_HEIGHT: 35,           // 병합 헤더 높이
   MERGED_HEADER_TEXT: '상대도수',      // 병합 헤더 텍스트
   MERGED_HEADER_LINE_COLOR: '#8DCF66', // 병합 헤더 아래 구분선 색상
-  MERGED_HEADER_LINE_WIDTH: 2          // 구분선 두께
+  MERGED_HEADER_LINE_WIDTH: 1          // 구분선 두께
 };
 
 class CrossTableFactory {
