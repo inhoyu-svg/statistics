@@ -595,6 +595,13 @@ class TableCellRenderer {
       return;
     }
 
+    // 상첨자 표기법(^)이 포함된 경우 특별 처리
+    if (str.includes('^')) {
+      const parts = this._parseSuperscript(str);
+      this._renderWithSuperscript(parts, x, y, alignment, color, bold);
+      return;
+    }
+
     // 숫자 또는 알파벳만 포함된 경우 KaTeX 폰트 사용
     if (this._isNumericOrAlpha(str)) {
       KatexUtils.render(this.ctx, str, x, y, {
@@ -659,6 +666,91 @@ class TableCellRenderer {
   _isNumericOrAlpha(text) {
     // 숫자, 소수점, 음수, 알파벳, 공백, ~만 포함
     return /^[-\d.\sA-Za-z~%]+$/.test(text);
+  }
+
+  /**
+   * 상첨자 표기법 파싱
+   * @param {string} text - 파싱할 텍스트 (예: "x^2", "3^{이상}")
+   * @returns {Array} 파싱 결과 [{text, super: boolean}, ...]
+   */
+  _parseSuperscript(text) {
+    const result = [];
+    // ^{...} 또는 ^x 패턴 매칭
+    const regex = /\^(\{[^}]+\}|[^\s{])/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      // 매치 이전 일반 텍스트
+      if (match.index > lastIndex) {
+        result.push({ text: text.slice(lastIndex, match.index), super: false });
+      }
+      // 상첨자 텍스트 (중괄호 제거)
+      let superText = match[1];
+      if (superText.startsWith('{') && superText.endsWith('}')) {
+        superText = superText.slice(1, -1);
+      }
+      result.push({ text: superText, super: true });
+      lastIndex = regex.lastIndex;
+    }
+
+    // 나머지 일반 텍스트
+    if (lastIndex < text.length) {
+      result.push({ text: text.slice(lastIndex), super: false });
+    }
+
+    return result;
+  }
+
+  /**
+   * 상첨자가 포함된 텍스트 렌더링
+   * @param {Array} parts - 파싱된 텍스트 파트 배열
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {string} alignment - 정렬 ('left', 'center', 'right')
+   * @param {string} color - 텍스트 색상
+   * @param {boolean} bold - 볼드 여부
+   */
+  _renderWithSuperscript(parts, x, y, alignment, color, bold = false) {
+    const normalFontSize = 24;
+    const superFontSize = 14;
+    const superYOffset = -8;
+
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    this.ctx.textBaseline = 'middle';
+
+    // 전체 너비 계산
+    let totalWidth = 0;
+    parts.forEach(part => {
+      const fontSize = part.super ? superFontSize : normalFontSize;
+      const fontWeight = bold && !part.super ? 'bold ' : '';
+      this.ctx.font = `${fontWeight}${fontSize}px KaTeX_Main, Times New Roman, serif`;
+      totalWidth += this.ctx.measureText(part.text).width;
+    });
+
+    // 정렬에 따른 시작 X 좌표
+    let currentX;
+    if (alignment === 'center') {
+      currentX = x - totalWidth / 2;
+    } else if (alignment === 'right') {
+      currentX = x - totalWidth;
+    } else {
+      currentX = x;
+    }
+
+    // 각 파트 렌더링
+    this.ctx.textAlign = 'left';
+    parts.forEach(part => {
+      const fontSize = part.super ? superFontSize : normalFontSize;
+      const yOffset = part.super ? superYOffset : 0;
+      const fontWeight = bold && !part.super ? 'bold ' : '';
+      this.ctx.font = `${fontWeight}${fontSize}px KaTeX_Main, Times New Roman, serif`;
+      this.ctx.fillText(part.text, currentX, y + yOffset);
+      currentX += this.ctx.measureText(part.text).width;
+    });
+
+    this.ctx.restore();
   }
 }
 
