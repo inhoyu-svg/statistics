@@ -9,6 +9,7 @@ import { LayerManager, LayerTimeline } from '../animation/index.js';
 import TableLayerFactory from './table/TableLayerFactory.js';
 import TableCellRenderer from './table/TableCellRenderer.js';
 import { TableFactoryRouter } from './table/factories/index.js';
+import tableStore from '../core/tableStore.js';
 
 /**
  * @class TableRenderer
@@ -49,6 +50,9 @@ class TableRenderer {
 
     // 타임라인 콜백
     this.timeline.onUpdate = () => this.renderFrame();
+
+    // 셀 클릭 이벤트 (변수 치환용)
+    this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
   }
 
   /**
@@ -455,6 +459,136 @@ class TableRenderer {
       this.canvas.width / 2,
       this.canvas.height / 2
     );
+  }
+
+  // =============================================
+  // 셀 변수 치환 관련 메서드
+  // =============================================
+
+  /**
+   * Canvas 클릭 이벤트 핸들러
+   * @param {MouseEvent} event - 마우스 이벤트
+   */
+  handleCanvasClick(event) {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // 클릭된 셀 찾기
+    const cellInfo = this.findCellAtPosition(x, y);
+    if (cellInfo) {
+      this.showVariableInput(cellInfo);
+    }
+  }
+
+  /**
+   * 좌표로 셀 찾기
+   * @param {number} x - Canvas X 좌표
+   * @param {number} y - Canvas Y 좌표
+   * @returns {Object|null} 셀 정보 { rowIndex, colIndex, layer }
+   */
+  findCellAtPosition(x, y) {
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return null;
+
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return null;
+
+    // 모든 행 레이어 순회
+    for (const child of tableLayer.children) {
+      if (child.type !== 'group') continue;
+
+      // 데이터 행 또는 합계 행인지 확인
+      const isDataRow = child.id.includes('-table-row-');
+      const isSummaryRow = child.id.includes('-table-summary');
+      if (!isDataRow && !isSummaryRow) continue;
+
+      // 행 내의 셀 순회
+      for (const cellLayer of child.children) {
+        if (cellLayer.type !== 'cell') continue;
+
+        const { x: cellX, y: cellY, width, height, rowType } = cellLayer.data;
+
+        // 헤더는 제외 (데이터, 합계만 클릭 가능)
+        if (rowType === 'header' || rowType === 'merged-header') continue;
+
+        // 좌표가 셀 범위 내인지 확인
+        if (x >= cellX && x <= cellX + width && y >= cellY && y <= cellY + height) {
+          return {
+            rowIndex: cellLayer.data.rowIndex,
+            colIndex: cellLayer.data.colIndex,
+            rowType: cellLayer.data.rowType,
+            layer: cellLayer
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 변수 입력 팝업 표시
+   * @param {Object} cellInfo - 셀 정보
+   */
+  showVariableInput(cellInfo) {
+    const { rowIndex, colIndex, layer } = cellInfo;
+
+    // 현재 변수 확인
+    const existingVar = tableStore.getCellVariable(this.tableId, rowIndex, colIndex);
+
+    if (existingVar) {
+      // 이미 변수가 있으면 해제 확인
+      if (confirm(`변수 "${existingVar}"를 해제하시겠습니까?`)) {
+        // 원본 값으로 복원
+        if (layer.data.originalValue !== undefined) {
+          layer.data.cellText = layer.data.originalValue;
+          delete layer.data.originalValue;
+          delete layer.data.isVariable;
+        }
+        tableStore.removeCellVariable(this.tableId, rowIndex, colIndex);
+        this.renderFrame();
+      }
+    } else {
+      // 새 변수 입력
+      const varName = prompt('변수명을 입력하세요 (예: A, x, y):');
+      if (varName && varName.trim()) {
+        // 원본 값 저장 후 변수로 대체
+        layer.data.originalValue = layer.data.cellText;
+        layer.data.cellText = varName.trim();
+        layer.data.isVariable = true;
+        tableStore.setCellVariable(this.tableId, rowIndex, colIndex, varName.trim());
+        this.renderFrame();
+      }
+    }
+  }
+
+  /**
+   * 모든 변수 초기화
+   */
+  clearAllVariables() {
+    tableStore.clearAllVariables(this.tableId);
+
+    // 레이어의 변수 정보도 초기화
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return;
+
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return;
+
+    for (const child of tableLayer.children) {
+      if (child.type !== 'group') continue;
+
+      for (const cellLayer of child.children) {
+        if (cellLayer.data.originalValue !== undefined) {
+          cellLayer.data.cellText = cellLayer.data.originalValue;
+          delete cellLayer.data.originalValue;
+          delete cellLayer.data.isVariable;
+        }
+      }
+    }
+
+    this.renderFrame();
   }
 }
 

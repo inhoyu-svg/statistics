@@ -15,6 +15,7 @@ class TableStore {
     this.columnOrder = [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER];       // 컬럼 순서
     this.labels = null;                                               // 테이블 라벨
     this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };     // 컬럼별 정렬
+    this.cellVariables = new Map();                                   // 셀 변수 치환 정보
   }
 
   /**
@@ -91,6 +92,76 @@ class TableStore {
     return { ...this.columnAlignment };
   }
 
+  // =============================================
+  // 셀 변수 치환 관련 메서드
+  // =============================================
+
+  /**
+   * 셀 변수 키 생성
+   * @param {string} tableId - 테이블 ID
+   * @param {number} rowIndex - 행 인덱스
+   * @param {number} colIndex - 열 인덱스
+   * @returns {string} 고유 키
+   */
+  _getCellKey(tableId, rowIndex, colIndex) {
+    return `${tableId}-${rowIndex}-${colIndex}`;
+  }
+
+  /**
+   * 셀에 변수 설정
+   * @param {string} tableId - 테이블 ID
+   * @param {number} rowIndex - 행 인덱스
+   * @param {number} colIndex - 열 인덱스
+   * @param {string} variableName - 변수명 (예: 'A', 'x')
+   */
+  setCellVariable(tableId, rowIndex, colIndex, variableName) {
+    const key = this._getCellKey(tableId, rowIndex, colIndex);
+    this.cellVariables.set(key, variableName);
+  }
+
+  /**
+   * 셀의 변수 조회
+   * @param {string} tableId - 테이블 ID
+   * @param {number} rowIndex - 행 인덱스
+   * @param {number} colIndex - 열 인덱스
+   * @returns {string|null} 변수명 또는 null
+   */
+  getCellVariable(tableId, rowIndex, colIndex) {
+    const key = this._getCellKey(tableId, rowIndex, colIndex);
+    return this.cellVariables.get(key) || null;
+  }
+
+  /**
+   * 셀의 변수 제거
+   * @param {string} tableId - 테이블 ID
+   * @param {number} rowIndex - 행 인덱스
+   * @param {number} colIndex - 열 인덱스
+   */
+  removeCellVariable(tableId, rowIndex, colIndex) {
+    const key = this._getCellKey(tableId, rowIndex, colIndex);
+    this.cellVariables.delete(key);
+  }
+
+  /**
+   * 특정 테이블의 모든 변수 제거
+   * @param {string} tableId - 테이블 ID
+   */
+  clearAllVariables(tableId) {
+    const prefix = `${tableId}-`;
+    for (const key of this.cellVariables.keys()) {
+      if (key.startsWith(prefix)) {
+        this.cellVariables.delete(key);
+      }
+    }
+  }
+
+  /**
+   * 모든 테이블의 변수 제거
+   */
+  clearAllTableVariables() {
+    this.cellVariables.clear();
+  }
+
   /**
    * 기본값으로 초기화
    */
@@ -99,6 +170,7 @@ class TableStore {
     this.columnOrder = [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER];
     this.labels = null;
     this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };
+    this.cellVariables.clear();
   }
 
   /**
