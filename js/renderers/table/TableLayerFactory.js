@@ -265,14 +265,17 @@ class TableLayerFactory {
 
     const y = padding + CONFIG.TABLE_HEADER_HEIGHT + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
 
+    // 상대도수 형식 (차트 Y축 설정과 동일)
+    const relFreqFormat = CONFIG.AXIS_Y_LABEL_FORMAT || 'percent';
+
     // 원본 셀 데이터
     const allCells = [
       `${classData.min} ~ ${classData.max}`,
       Utils.formatNumberClean(classData.midpoint),
       classData.frequency,
-      `${Utils.formatNumberClean(classData.relativeFreq)}%`,
+      Utils.formatRelativeFrequency(classData.relativeFreq, relFreqFormat),
       classData.cumulativeFreq,
-      `${Utils.formatNumberClean(classData.cumulativeRelFreq)}%`
+      Utils.formatRelativeFrequency(classData.cumulativeRelFreq, relFreqFormat)
     ];
 
     // columnOrder에 따라 재정렬
@@ -360,8 +363,12 @@ class TableLayerFactory {
 
     const y = padding + CONFIG.TABLE_HEADER_HEIGHT + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
 
+    // 상대도수 형식 (차트 Y축 설정과 동일)
+    const relFreqFormat = CONFIG.AXIS_Y_LABEL_FORMAT || 'percent';
+    const totalRelFreq = relFreqFormat === 'percent' ? '100%' : '1';
+
     // 원본 셀 데이터 (계급, 계급값은 "합계"로 병합, 나머지는 값)
-    const allCells = ['합계', '', total, '100%', total, '100%'];
+    const allCells = ['합계', '', total, totalRelFreq, total, totalRelFreq];
 
     // columnOrder에 따라 재정렬
     const orderedCells = columnOrder.map(i => allCells[i]);

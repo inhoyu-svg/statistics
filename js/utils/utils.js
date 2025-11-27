@@ -108,6 +108,53 @@ class Utils {
       String(date.getMinutes()).padStart(2, '0') +
       String(date.getSeconds()).padStart(2, '0');
   }
+
+  /**
+   * 상대도수 포맷팅 (설정에 따라 백분율 또는 소수)
+   * @param {number} percentValue - 백분율 값 (예: 15 = 15%)
+   * @param {string} format - 'percent' 또는 'decimal'
+   * @returns {string} 포맷된 문자열
+   */
+  static formatRelativeFrequency(percentValue, format = 'percent') {
+    if (format === 'percent') {
+      // 백분율 형식: 15%
+      return `${this.formatNumberClean(percentValue)}%`;
+    } else {
+      // 소수 형식: 0.15
+      const decimalValue = percentValue / 100;
+      return this.formatDecimalValue(decimalValue);
+    }
+  }
+
+  /**
+   * 소수 값 포맷팅 (끝자리 0 생략, 무한소수 처리)
+   * @param {number} value - 소수 값 (예: 0.15)
+   * @returns {string} 포맷된 문자열
+   */
+  static formatDecimalValue(value) {
+    // 정수인 경우 (1, 0 등)
+    if (Number.isInteger(value)) {
+      return String(value);
+    }
+
+    // 소수점 4자리까지 확인하여 무한소수 판별
+    const str4 = value.toFixed(4);
+    const decimal4 = str4.split('.')[1];
+
+    // 같은 숫자가 반복되는지 확인 (예: 3333, 6666)
+    const isRepeating = decimal4 && /^(\d)\1{3}$/.test(decimal4);
+
+    if (isRepeating) {
+      // 무한소수: 0.33..
+      const str2 = value.toFixed(2);
+      return `${str2}..`;
+    }
+
+    // 일반 소수: 끝자리 0 생략
+    const str = value.toFixed(CONFIG.DECIMAL_PLACES);
+    // 끝자리 0 제거 (0.30 → 0.3, 0.10 → 0.1, 0.00 → 0)
+    return str.replace(/\.?0+$/, '') || '0';
+  }
 }
 
 export default Utils;
