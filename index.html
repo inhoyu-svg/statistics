@@ -267,6 +267,25 @@
         </div>
       </div>
     </div>
+
+    <!-- 변수 편집 모달 -->
+    <div id="variableEditModal" class="modal" style="display: none;">
+      <div class="modal-overlay"></div>
+      <div class="modal-content variable-edit-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">도수분포표 편집</h3>
+          <button class="modal-close-btn" id="variableModalCloseBtn" aria-label="닫기">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-hint">셀을 클릭하여 변수로 변경할 수 있습니다. 빈 값으로 저장하면 원래 값으로 복원됩니다.</p>
+          <div id="variableEditTableContainer"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="variableCancelBtn" class="modal-btn secondary">취소</button>
+          <button id="variableSaveBtn" class="modal-btn primary">저장</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- 데이터셋 섹션 템플릿 -->
