@@ -381,10 +381,10 @@ class TableCellRenderer {
     const cellY = y + height / 2;
 
     // 전체 최대 잎 개수에 따라 폰트 크기 조정 (일관성 유지)
-    // 단일 모드: 9개 이상, 비교 모드: 7개 이상일 때 폰트 축소
+    // 단일 모드: 11개 이상, 비교 모드: 7개 이상일 때 폰트 축소
     const { maxLeafCount = 0, isSingleMode = false } = layer.data;
     const displayText = leaves ? leaves.join('      ') : '';
-    const threshold = isSingleMode ? 9 : 7;
+    const threshold = isSingleMode ? 11 : 7;
     const fontSize = maxLeafCount >= threshold ? 20 : 24;
 
     // 잎은 숫자이므로 KaTeX 폰트 사용
