@@ -42,6 +42,9 @@ class StemLeafFactory {
     const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
     const canvasHeight = BaseTableFactory.calculateCanvasHeight(rowCount, padding);
 
+    // 전체 잎 중 최대 개수 계산 (폰트 크기 일관성용)
+    const maxLeafCount = Math.max(...stems.map(s => s.leaves.length));
+
     // 열 너비 계산 (줄기 30% | 잎 70%)
     const columnWidths = this._calculateSingleModeColumnWidths(canvasWidth, padding);
 
@@ -67,7 +70,7 @@ class StemLeafFactory {
 
     // 데이터 행 레이어
     stems.forEach((stemData, rowIndex) => {
-      const rowLayer = this._createSingleModeRowLayer(stemData, rowIndex, columnWidths, padding, tableId);
+      const rowLayer = this._createSingleModeRowLayer(stemData, rowIndex, columnWidths, padding, tableId, maxLeafCount);
       rootLayer.addChild(rowLayer);
     });
 
@@ -165,8 +168,9 @@ class StemLeafFactory {
 
   /**
    * 단일 모드 데이터 행 레이어 생성
+   * @param {number} maxLeafCount - 전체 최대 잎 개수 (폰트 크기 일관성용)
    */
-  static _createSingleModeRowLayer(stemData, rowIndex, columnWidths, padding, tableId) {
+  static _createSingleModeRowLayer(stemData, rowIndex, columnWidths, padding, tableId, maxLeafCount) {
     const rowGroup = new Layer({
       id: `stem-leaf-${tableId}-table-row-${rowIndex}`,
       name: `줄기 ${stemData.stem}`,
@@ -228,7 +232,9 @@ class StemLeafFactory {
         highlighted: false,
         highlightProgress: 0,
         isEvenRow: rowIndex % 2 === 1,
-        leaves: stemData.leaves
+        leaves: stemData.leaves,
+        maxLeafCount,
+        isSingleMode: true
       }
     });
     rowGroup.addChild(leavesCell);
@@ -254,6 +260,12 @@ class StemLeafFactory {
     const padding = CONFIG.TABLE_PADDING;
     const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
     const canvasHeight = BaseTableFactory.calculateCanvasHeight(rowCount, padding);
+
+    // 전체 잎 중 최대 개수 계산 (왼쪽/오른쪽 모두 고려, 폰트 크기 일관성용)
+    const maxLeafCount = Math.max(
+      ...stems.map(s => s.leftLeaves.length),
+      ...stems.map(s => s.rightLeaves.length)
+    );
 
     // 열 너비 계산 (왼쪽 잎 | 줄기 | 오른쪽 잎)
     const columnWidths = this._calculateCompareModeColumnWidths(canvasWidth, padding);
@@ -285,7 +297,8 @@ class StemLeafFactory {
         rowIndex,
         columnWidths,
         padding,
-        tableId
+        tableId,
+        maxLeafCount
       );
       rootLayer.addChild(rowLayer);
     });
@@ -386,8 +399,9 @@ class StemLeafFactory {
 
   /**
    * 비교 모드 데이터 행 레이어 생성
+   * @param {number} maxLeafCount - 전체 최대 잎 개수 (폰트 크기 일관성용)
    */
-  static _createCompareModeRowLayer(stemData, rowIndex, columnWidths, padding, tableId) {
+  static _createCompareModeRowLayer(stemData, rowIndex, columnWidths, padding, tableId, maxLeafCount) {
     const rowGroup = new Layer({
       id: `stem-leaf-${tableId}-table-row-${rowIndex}`,
       name: `줄기 ${stemData.stem}`,
@@ -422,7 +436,9 @@ class StemLeafFactory {
         highlighted: false,
         highlightProgress: 0,
         isEvenRow: rowIndex % 2 === 1,
-        leaves: stemData.leftLeaves
+        leaves: stemData.leftLeaves,
+        maxLeafCount,
+        isSingleMode: false
       }
     });
     rowGroup.addChild(leftCell);
@@ -477,7 +493,9 @@ class StemLeafFactory {
         highlighted: false,
         highlightProgress: 0,
         isEvenRow: rowIndex % 2 === 1,
-        leaves: stemData.rightLeaves
+        leaves: stemData.rightLeaves,
+        maxLeafCount,
+        isSingleMode: false
       }
     });
     rowGroup.addChild(rightCell);

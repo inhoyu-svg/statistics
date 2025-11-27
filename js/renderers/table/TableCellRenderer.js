@@ -366,7 +366,7 @@ class TableCellRenderer {
    * @param {Layer} layer - 잎 데이터 셀 레이어
    */
   renderStemLeafDataCell(layer) {
-    const { x, y, width, height, cellText, alignment } = layer.data;
+    const { x, y, width, height, alignment, leaves } = layer.data;
 
     // 줄기-잎 전용 패딩 적용 (세로선과의 간격 확보)
     const stemLeafPadding = CONFIG.TABLE_STEM_LEAF_PADDING;
@@ -380,8 +380,35 @@ class TableCellRenderer {
     }
     const cellY = y + height / 2;
 
+    // 전체 최대 잎 개수에 따라 폰트 크기 조정 (일관성 유지)
+    // 단일 모드: 9개 이상, 비교 모드: 7개 이상일 때 폰트 축소
+    const { maxLeafCount = 0, isSingleMode = false } = layer.data;
+    const displayText = leaves ? leaves.join('      ') : '';
+    const threshold = isSingleMode ? 9 : 7;
+    const fontSize = maxLeafCount >= threshold ? 20 : 24;
+
     // 잎은 숫자이므로 KaTeX 폰트 사용
-    this._renderCellText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'));
+    this._renderStemLeafText(displayText, cellX, cellY, alignment, CONFIG.getColor('--color-text'), fontSize);
+  }
+
+  /**
+   * 줄기-잎 텍스트 렌더링 (동적 폰트 크기)
+   * @param {string} text - 렌더링할 텍스트
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {string} alignment - 정렬 방식
+   * @param {string} color - 텍스트 색상
+   * @param {number} fontSize - 폰트 크기
+   */
+  _renderStemLeafText(text, x, y, alignment, color, fontSize) {
+    const str = String(text).trim();
+
+    KatexUtils.render(this.ctx, str, x, y, {
+      fontSize: fontSize,
+      color: color,
+      align: alignment,
+      baseline: 'middle'
+    });
   }
 
   /**
