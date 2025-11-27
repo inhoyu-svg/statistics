@@ -23,6 +23,7 @@ class TableLayerFactory {
     const columnOrder = config?.columnOrder || CONFIG.TABLE_DEFAULT_COLUMN_ORDER;
     const columnAlignment = config?.columnAlignment || CONFIG.TABLE_DEFAULT_ALIGNMENT;
     const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
+    const showSummaryRow = config?.showSummaryRow ?? CONFIG.TABLE_SHOW_SUMMARY_ROW;
 
     // 원본 라벨 배열
     const allLabels = [
@@ -45,7 +46,7 @@ class TableLayerFactory {
     // Canvas 크기 계산
     const padding = CONFIG.TABLE_PADDING;
     const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
-    const rowCount = classes.length + 1; // +1 for summary row
+    const rowCount = classes.length + (showSummaryRow ? 1 : 0); // 합계 행 조건부
     const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
     // 열 너비 계산
@@ -71,7 +72,7 @@ class TableLayerFactory {
       }
     });
 
-    // 격자선 레이어 생성 (도수분포표는 합계 행 있음)
+    // 격자선 레이어 생성
     const gridLayer = this._createGridLayer(
       canvasWidth,
       canvasHeight,
@@ -79,7 +80,7 @@ class TableLayerFactory {
       rowCount,
       columnWidths,
       tableId,
-      true // hasSummaryRow
+      showSummaryRow // hasSummaryRow
     );
     rootLayer.addChild(gridLayer);
 
@@ -110,19 +111,21 @@ class TableLayerFactory {
       rootLayer.addChild(rowLayer);
     });
 
-    // 합계 행 레이어 생성
-    const summaryLayer = this._createSummaryRowLayer(
-      total,
-      classes.length,
-      columnWidths,
-      orderedVisibleColumns,
-      columnOrder,
-      columnAlignment,
-      padding,
-      filteredLabels,
-      tableId
-    );
-    rootLayer.addChild(summaryLayer);
+    // 합계 행 레이어 생성 (조건부)
+    if (showSummaryRow) {
+      const summaryLayer = this._createSummaryRowLayer(
+        total,
+        classes.length,
+        columnWidths,
+        orderedVisibleColumns,
+        columnOrder,
+        columnAlignment,
+        padding,
+        filteredLabels,
+        tableId
+      );
+      rootLayer.addChild(summaryLayer);
+    }
 
     // LayerManager에 추가 (root의 자식으로)
     layerManager.addLayer(rootLayer, 'root');

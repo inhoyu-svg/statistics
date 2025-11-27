@@ -2253,6 +2253,26 @@ canvas {
   border-left: 3px solid var(--color-primary);
 }
 
+.modal-option {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.modal-option label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.modal-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
 #variableEditTableContainer {
   overflow-x: auto;
 }

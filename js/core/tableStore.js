@@ -16,6 +16,7 @@ class TableStore {
     this.labels = null;                                               // 테이블 라벨
     this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };     // 컬럼별 정렬
     this.cellVariables = new Map();                                   // 셀 변수 치환 정보
+    this.summaryRowVisible = new Map();                               // 테이블별 합계 행 표시 여부
   }
 
   /**
@@ -162,6 +163,31 @@ class TableStore {
     this.cellVariables.clear();
   }
 
+  // =============================================
+  // 합계 행 표시 관련 메서드
+  // =============================================
+
+  /**
+   * 합계 행 표시 여부 설정
+   * @param {string} tableId - 테이블 ID
+   * @param {boolean} visible - 표시 여부
+   */
+  setSummaryRowVisible(tableId, visible) {
+    this.summaryRowVisible.set(tableId, visible);
+  }
+
+  /**
+   * 합계 행 표시 여부 조회
+   * @param {string} tableId - 테이블 ID
+   * @returns {boolean} 표시 여부 (기본값: CONFIG.TABLE_SHOW_SUMMARY_ROW)
+   */
+  getSummaryRowVisible(tableId) {
+    if (this.summaryRowVisible.has(tableId)) {
+      return this.summaryRowVisible.get(tableId);
+    }
+    return CONFIG.TABLE_SHOW_SUMMARY_ROW;
+  }
+
   /**
    * 기본값으로 초기화
    */
@@ -171,6 +197,7 @@ class TableStore {
     this.labels = null;
     this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };
     this.cellVariables.clear();
+    this.summaryRowVisible.clear();
   }
 
   /**

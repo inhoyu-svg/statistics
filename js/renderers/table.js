@@ -95,8 +95,11 @@ class TableRenderer {
     this.currentTotal = total;
     this.currentConfig = config;
 
+    // 합계 행 표시 여부 (tableStore에서 가져오기)
+    const showSummaryRow = tableStore.getSummaryRowVisible(this.tableId);
+
     // Canvas 크기 계산
-    const rowCount = visibleClasses.length + 1; // +1 for summary row
+    const rowCount = visibleClasses.length + (showSummaryRow ? 1 : 0); // 합계 행 조건부
     const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
     this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
@@ -105,11 +108,12 @@ class TableRenderer {
 
     // 레이어 생성
     this.layerManager.clearAll();
+    const layerConfig = { ...config, showSummaryRow };
     TableLayerFactory.createTableLayers(
       this.layerManager,
       visibleClasses,
       total,
-      config,
+      layerConfig,
       this.tableId
     );
 
@@ -212,6 +216,13 @@ class TableRenderer {
 
     // 설정 저장
     this.currentConfig = config;
+    this.currentTableType = type;
+    this.currentData = data;
+
+    // 이원분류표인 경우 합계 행 표시 여부 적용
+    if (type === CONFIG.TABLE_TYPES.CROSS_TABLE) {
+      data.showTotal = tableStore.getSummaryRowVisible(this.tableId);
+    }
 
     // 행 수 계산 (타입별)
     const rowCount = this._calculateRowCount(type, data);
@@ -487,6 +498,12 @@ class TableRenderer {
     // HTML 테이블 생성
     this.generateEditableTable();
 
+    // 합계 행 체크박스 상태 초기화
+    const summaryCheckbox = document.getElementById('showSummaryRowCheckbox');
+    if (summaryCheckbox) {
+      summaryCheckbox.checked = tableStore.getSummaryRowVisible(this.tableId);
+    }
+
     // 모달 표시
     modal.style.display = 'flex';
 
@@ -681,6 +698,15 @@ class TableRenderer {
     const tableLayer = rootLayer.children[0];
     if (!tableLayer) return;
 
+    // 합계 행 체크박스 상태 확인
+    const summaryCheckbox = document.getElementById('showSummaryRowCheckbox');
+    const newSummaryRowVisible = summaryCheckbox ? summaryCheckbox.checked : true;
+    const oldSummaryRowVisible = tableStore.getSummaryRowVisible(this.tableId);
+    const summaryRowChanged = newSummaryRowVisible !== oldSummaryRowVisible;
+
+    // 합계 행 상태 저장
+    tableStore.setSummaryRowVisible(this.tableId, newSummaryRowVisible);
+
     // 모든 데이터 셀 확인
     table.querySelectorAll('td').forEach(td => {
       const rowIndex = parseInt(td.dataset.row);
@@ -724,8 +750,21 @@ class TableRenderer {
       }
     });
 
-    // Canvas 다시 렌더링
-    this.renderFrame();
+    // 합계 행 상태가 변경되었으면 테이블 재생성
+    if (summaryRowChanged) {
+      if (this.currentTableType && this.currentData) {
+        // 커스텀 테이블 (이원분류표 등)
+        this.drawCustomTable(this.currentTableType, this.currentData, this.currentConfig);
+      } else if (this.currentClasses && this.currentTotal !== null) {
+        // 도수분포표
+        this.draw(this.currentClasses, this.currentTotal, this.currentConfig);
+      } else {
+        this.renderFrame();
+      }
+    } else {
+      // Canvas 다시 렌더링
+      this.renderFrame();
+    }
 
     // 모달 닫기
     this.closeEditModal();

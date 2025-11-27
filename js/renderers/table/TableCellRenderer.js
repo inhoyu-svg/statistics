@@ -431,6 +431,11 @@ class TableCellRenderer {
       const gap = fontSize * 1.5; // 토큰 간 간격
       let totalWidth = 0;
       tokens.forEach((token, i) => {
+        // 언더바는 빈칸으로 처리 (너비 0)
+        if (token === '_') {
+          if (i < tokens.length - 1) totalWidth += gap;
+          return;
+        }
         const isLowercase = /^[a-z]$/.test(token);
         this.ctx.font = isLowercase
           ? `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`
@@ -446,6 +451,11 @@ class TableCellRenderer {
 
       // 각 토큰 렌더링
       tokens.forEach((token, i) => {
+        // 언더바는 빈칸으로 처리 (렌더링 스킵, 간격만 유지)
+        if (token === '_') {
+          currentX += gap;
+          return;
+        }
         const isLowercase = /^[a-z]$/.test(token);
         this.ctx.font = isLowercase
           ? `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`
@@ -576,6 +586,11 @@ class TableCellRenderer {
   _renderCellText(text, x, y, alignment, color, bold = false) {
     const str = String(text).trim();
     const fontSize = 24;
+
+    // 언더바만 있는 경우 빈칸으로 처리 (렌더링 스킵)
+    if (str === '_') {
+      return;
+    }
 
     // 숫자 또는 알파벳만 포함된 경우 KaTeX 폰트 사용
     if (this._isNumericOrAlpha(str)) {

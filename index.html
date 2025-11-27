@@ -277,7 +277,13 @@
           <button class="modal-close-btn" id="variableModalCloseBtn" aria-label="닫기">✕</button>
         </div>
         <div class="modal-body">
-          <p class="modal-hint">셀을 클릭하여 변수로 변경할 수 있습니다. 빈 값으로 저장하면 원래 값으로 복원됩니다.</p>
+          <p class="modal-hint">셀을 클릭하여 변수로 변경할 수 있습니다. 빈칸은 <code>_</code> 입력. 빈 값으로 저장하면 원래 값으로 복원됩니다.</p>
+          <div class="modal-option">
+            <label>
+              <input type="checkbox" id="showSummaryRowCheckbox" checked>
+              합계 행 표시
+            </label>
+          </div>
           <div id="variableEditTableContainer"></div>
         </div>
         <div class="modal-footer">

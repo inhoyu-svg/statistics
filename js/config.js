@@ -114,6 +114,7 @@ const CONFIG = {
   TABLE_FONT_DATA: '18px sans-serif',
   TABLE_FONT_SUMMARY: 'bold 18px sans-serif',
   TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
+  TABLE_SHOW_SUMMARY_ROW: true, // 합계 행 표시 여부 (도수분포표, 이원분류표)
   TABLE_SUPERSCRIPT_Y_OFFSET: 4, // 상첨자 위치 오프셋 (위로 이동)
 
   // 테이블 격자선 및 셀 설정
