@@ -641,6 +641,13 @@ class FrequencyDistributionApp {
       this.redrawChart();
     });
 
+    // Y축 백분율 표시 토글
+    const yAxisPercentCheckbox = document.getElementById('yAxisPercent');
+    yAxisPercentCheckbox?.addEventListener('change', () => {
+      CONFIG.AXIS_Y_LABEL_FORMAT = yAxisPercentCheckbox.checked ? 'percent' : 'decimal';
+      this.redrawChart();
+    });
+
     // 파선 토글
     const dashedLinesCheckbox = document.getElementById('showDashedLines');
     dashedLinesCheckbox?.addEventListener('change', () => {

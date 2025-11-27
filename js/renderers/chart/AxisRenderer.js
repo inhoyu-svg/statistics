@@ -83,9 +83,14 @@ class AxisRenderer {
       if (dataType === 'frequency') {
         formattedValue = Math.round(value).toString();
       } else {
-        const percentage = value * 100;
-        const formatted = Utils.formatNumber(percentage);
-        formattedValue = formatted.replace(/\.00$/, '');
+        // 상대도수: decimal (0.03) 또는 percent (3%)
+        if (CONFIG.AXIS_Y_LABEL_FORMAT === 'percent') {
+          const percentage = value * 100;
+          const formatted = Utils.formatNumber(percentage);
+          formattedValue = formatted.replace(/\.00$/, '') + '%';
+        } else {
+          formattedValue = Utils.formatNumber(value);
+        }
       }
 
       // KaTeX 폰트로 렌더링
