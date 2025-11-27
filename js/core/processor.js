@@ -270,8 +270,8 @@ class DataProcessor {
   static shouldShowEllipsis(classes) {
     const firstDataIndex = classes.findIndex(classData => classData.frequency > 0);
 
-    // 첫 데이터가 threshold 이하 계급에 있으면 중략 불필요
-    if (firstDataIndex <= CONFIG.ELLIPSIS_THRESHOLD) {
+    // 첫 데이터가 threshold 미만 계급에 있으면 중략 불필요
+    if (firstDataIndex < CONFIG.ELLIPSIS_THRESHOLD) {
       return { show: false, firstDataIndex: -1 };
     }
 
