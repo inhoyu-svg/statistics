@@ -343,6 +343,9 @@ class FrequencyDistributionApp {
 
     // 하이라이트 테스트 버튼 초기화
     this.initHighlightTestButtons();
+
+    // 계급 범위 편집기 초기화
+    this.initClassRangeEditor();
   }
 
   /**
