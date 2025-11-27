@@ -81,7 +81,8 @@ class TableCellRenderer {
     const color = headerTextColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
 
     // 숫자/알파벳이면 KaTeX 폰트 적용, 한글은 bold 폰트
-    this._renderCellText(cellText, cellX, cellY, alignment, color, true);
+    // isHeader=true로 전달하여 상첨자 폰트 크기 조정
+    this._renderCellText(cellText, cellX, cellY, alignment, color, true, true);
   }
 
   /**
@@ -585,10 +586,11 @@ class TableCellRenderer {
    * @param {string} alignment - 정렬 방식
    * @param {string} color - 텍스트 색상
    * @param {boolean} bold - 볼드 여부 (합계 행용)
+   * @param {boolean} isHeader - 헤더 여부 (헤더는 더 작은 폰트)
    */
-  _renderCellText(text, x, y, alignment, color, bold = false) {
+  _renderCellText(text, x, y, alignment, color, bold = false, isHeader = false) {
     const str = String(text).trim();
-    const fontSize = 24;
+    const fontSize = isHeader ? 18 : 24;
 
     // 언더바만 있는 경우 빈칸으로 처리 (렌더링 스킵)
     if (str === '_') {
@@ -598,7 +600,7 @@ class TableCellRenderer {
     // 상첨자 표기법(^)이 포함된 경우 특별 처리
     if (str.includes('^')) {
       const parts = this._parseSuperscript(str);
-      this._renderWithSuperscript(parts, x, y, alignment, color, bold);
+      this._renderWithSuperscript(parts, x, y, alignment, color, bold, isHeader);
       return;
     }
 
@@ -754,11 +756,13 @@ class TableCellRenderer {
    * @param {string} alignment - 정렬 ('left', 'center', 'right')
    * @param {string} color - 텍스트 색상
    * @param {boolean} bold - 볼드 여부
+   * @param {boolean} isHeader - 헤더 여부 (헤더는 더 작은 폰트)
    */
-  _renderWithSuperscript(parts, x, y, alignment, color, bold = false) {
-    const normalFontSize = 24;
-    const superFontSize = 14;
-    const superYOffset = -8;
+  _renderWithSuperscript(parts, x, y, alignment, color, bold = false, isHeader = false) {
+    // 헤더인 경우 더 작은 폰트 사용
+    const normalFontSize = isHeader ? 18 : 24;
+    const superFontSize = isHeader ? 11 : 14;
+    const superYOffset = isHeader ? -6 : -8;
 
     this.ctx.save();
     this.ctx.fillStyle = color;

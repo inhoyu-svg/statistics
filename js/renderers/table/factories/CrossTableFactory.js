@@ -33,15 +33,15 @@ class CrossTableFactory {
     const rowCount = rows.length + (showTotal ? 1 : 0);
 
     const padding = CONFIG.TABLE_PADDING;
-    const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
+    const canvasWidth = config?.canvasWidth || CONFIG.TABLE_CANVAS_WIDTH;
 
     // Canvas 높이 계산 (병합 헤더 조건부 + 컬럼 헤더 + 데이터 행들)
     const mergedHeaderHeight = showMergedHeader ? CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
     const canvasHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
-    // 열 너비 계산
-    const columnWidths = this._calculateColumnWidths(canvasWidth, padding, columnCount);
+    // 열 너비 계산 (config에서 전달받거나 자동 계산)
+    const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
 
     // 테이블 타입
     const tableType = CONFIG.TABLE_TYPES.CROSS_TABLE;

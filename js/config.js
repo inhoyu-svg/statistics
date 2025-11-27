@@ -107,6 +107,8 @@ const CONFIG = {
 
   // 테이블 Canvas 설정
   TABLE_CANVAS_WIDTH: 700,
+  TABLE_MIN_WIDTH: 300,              // 동적 너비 최소값
+  TABLE_MAX_WIDTH: 700,              // 동적 너비 최대값 (TABLE_CANVAS_WIDTH와 동일)
   TABLE_ROW_HEIGHT: 40,
   TABLE_HEADER_HEIGHT: 45,
   TABLE_PADDING: 10,

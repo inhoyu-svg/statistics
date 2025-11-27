@@ -23,11 +23,11 @@ class CategoryMatrixFactory {
     const rowCount = rows.length; // 합계 행 없음
 
     const padding = CONFIG.TABLE_PADDING;
-    const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
+    const canvasWidth = config?.canvasWidth || CONFIG.TABLE_CANVAS_WIDTH;
     const canvasHeight = BaseTableFactory.calculateCanvasHeight(rowCount, padding);
 
-    // 열 너비 계산 (첫 번째 열은 더 넓게)
-    const columnWidths = this._calculateColumnWidths(canvasWidth, padding, columnCount);
+    // 열 너비 계산 (config에서 전달받거나 자동 계산)
+    const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
 
     // 루트 레이어 생성
     const rootLayer = BaseTableFactory.createRootLayer({

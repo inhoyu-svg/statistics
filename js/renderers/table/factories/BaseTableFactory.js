@@ -227,6 +227,78 @@ class BaseTableFactory {
   static calculateCanvasHeight(rowCount, padding, headerHeight = CONFIG.TABLE_HEADER_HEIGHT, rowHeight = CONFIG.TABLE_ROW_HEIGHT) {
     return headerHeight + (rowCount * rowHeight) + padding * 2;
   }
+
+  /**
+   * 텍스트 너비 측정
+   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+   * @param {string} text - 측정할 텍스트
+   * @param {string} font - 폰트 설정
+   * @returns {number} 텍스트 너비 (px)
+   */
+  static measureTextWidth(ctx, text, font) {
+    ctx.font = font;
+    return ctx.measureText(String(text)).width;
+  }
+
+  /**
+   * 테이블 동적 너비 계산
+   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+   * @param {Array<string>} headers - 헤더 텍스트 배열
+   * @param {Array<Array<string>>} rows - 2차원 행 데이터 배열
+   * @param {Object} options - 옵션
+   * @returns {Object} { columnWidths: Array, totalWidth: number }
+   */
+  static calculateDynamicWidths(ctx, headers, rows, options = {}) {
+    const {
+      headerFont = CONFIG.TABLE_FONT_HEADER,
+      dataFont = '24px KaTeX_Main, Times New Roman, serif',  // 실제 렌더링 폰트와 동일
+      cellPadding = 32,   // 좌우 합계 (넉넉하게)
+      headerExtraPadding = 16  // 헤더 추가 패딩
+    } = options;
+
+    const columnCount = headers.length;
+    const columnWidths = [];
+
+    // 각 컬럼별 최대 너비 계산
+    for (let col = 0; col < columnCount; col++) {
+      // 헤더 너비
+      const headerWidth = this.measureTextWidth(ctx, headers[col], headerFont) + cellPadding + headerExtraPadding;
+
+      // 데이터 셀 중 최대 너비
+      let maxDataWidth = 0;
+      for (const row of rows) {
+        if (row[col] !== undefined && row[col] !== null) {
+          const dataWidth = this.measureTextWidth(ctx, row[col], dataFont) + cellPadding;
+          maxDataWidth = Math.max(maxDataWidth, dataWidth);
+        }
+      }
+
+      // 헤더와 데이터 중 큰 값 선택
+      columnWidths.push(Math.max(headerWidth, maxDataWidth));
+    }
+
+    // 총 너비 계산
+    const contentWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+    const totalWidth = contentWidth + CONFIG.TABLE_PADDING * 2;
+
+    // 최소/최대 너비 제한 적용
+    const clampedWidth = Math.max(
+      CONFIG.TABLE_MIN_WIDTH,
+      Math.min(CONFIG.TABLE_MAX_WIDTH, totalWidth)
+    );
+
+    // 너비 제한으로 인한 조정이 필요한 경우 비율 조정
+    if (clampedWidth !== totalWidth) {
+      const targetContentWidth = clampedWidth - CONFIG.TABLE_PADDING * 2;
+      const ratio = targetContentWidth / contentWidth;
+      return {
+        columnWidths: columnWidths.map(w => w * ratio),
+        canvasWidth: clampedWidth
+      };
+    }
+
+    return { columnWidths, canvasWidth: totalWidth };
+  }
 }
 
 export default BaseTableFactory;

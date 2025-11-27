@@ -9,6 +9,7 @@ import { LayerManager, LayerTimeline } from '../animation/index.js';
 import TableLayerFactory from './table/TableLayerFactory.js';
 import TableCellRenderer from './table/TableCellRenderer.js';
 import { TableFactoryRouter } from './table/factories/index.js';
+import BaseTableFactory from './table/factories/BaseTableFactory.js';
 import tableStore from '../core/tableStore.js';
 
 /**
@@ -102,13 +103,21 @@ class TableRenderer {
     const rowCount = visibleClasses.length + (showSummaryRow ? 1 : 0); // 합계 행 조건부
     const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
-    this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
+    // 동적 너비 계산
+    const dynamicConfig = this._calculateFrequencyTableDynamicWidth(visibleClasses, total, config, showSummaryRow);
+
+    this.canvas.width = dynamicConfig.canvasWidth;
     this.canvas.height = canvasHeight;
     this.clear();
 
     // 레이어 생성
     this.layerManager.clearAll();
-    const layerConfig = { ...config, showSummaryRow };
+    const layerConfig = {
+      ...config,
+      showSummaryRow,
+      columnWidths: dynamicConfig.columnWidths,
+      canvasWidth: dynamicConfig.canvasWidth
+    };
     TableLayerFactory.createTableLayers(
       this.layerManager,
       visibleClasses,
@@ -233,13 +242,21 @@ class TableRenderer {
     const mergedHeaderHeight = showMergedHeader ? 35 : 0;
     const canvasHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
-    this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
+    // 동적 너비 계산 (줄기-잎 제외)
+    const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
+
+    this.canvas.width = dynamicConfig.canvasWidth;
     this.canvas.height = canvasHeight;
     this.clear();
 
     // 레이어 생성 (TableFactoryRouter 사용)
     this.layerManager.clearAll();
-    TableFactoryRouter.createTableLayers(type, this.layerManager, data, config, this.tableId);
+    const layerConfig = {
+      ...config,
+      columnWidths: dynamicConfig.columnWidths,
+      canvasWidth: dynamicConfig.canvasWidth
+    };
+    TableFactoryRouter.createTableLayers(type, this.layerManager, data, layerConfig, this.tableId);
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
@@ -272,6 +289,130 @@ class TableRenderer {
       default:
         return 0;
     }
+  }
+
+  /**
+   * 도수분포표 동적 너비 계산
+   * @param {Array} classes - 계급 데이터 배열
+   * @param {number} total - 전체 데이터 개수
+   * @param {Object} config - 테이블 설정
+   * @param {boolean} showSummaryRow - 합계 행 표시 여부
+   * @returns {Object} { columnWidths, canvasWidth }
+   */
+  _calculateFrequencyTableDynamicWidth(classes, total, config, showSummaryRow) {
+    const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
+    const visibleColumns = config?.visibleColumns || CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS;
+    const columnOrder = config?.columnOrder || CONFIG.TABLE_DEFAULT_COLUMN_ORDER;
+    const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
+
+    // 헤더 텍스트 배열 생성
+    const allLabels = [
+      tableLabels.class, tableLabels.midpoint, tableLabels.frequency,
+      tableLabels.relativeFrequency, tableLabels.cumulativeFrequency,
+      tableLabels.cumulativeRelativeFrequency
+    ];
+
+    // 정렬 및 필터링된 헤더
+    const orderedLabels = columnOrder.map(i => allLabels[i]);
+    const orderedVisible = columnOrder.map(i => visibleColumns[i]);
+    const headers = orderedLabels.filter((_, i) => orderedVisible[i]);
+
+    // 데이터 행 생성 (텍스트만)
+    const rows = classes.map((c, rowIndex) => {
+      // 숫자 안전하게 포맷
+      const relFreq = typeof c.relativeFreq === 'number' ? c.relativeFreq.toFixed(2) : String(c.relativeFreq);
+      const cumRelFreq = typeof c.cumulativeRelFreq === 'number' ? c.cumulativeRelFreq.toFixed(2) : String(c.cumulativeRelFreq);
+
+      // 첫 번째 행이고 상첨자 표시 시 "이상/미만" 포함
+      let classText = `${c.min} ~ ${c.max}`;
+      if (rowIndex === 0 && showSuperscript) {
+        classText = `${c.min}이상 ~ ${c.max}미만`;
+      }
+
+      const allCells = [
+        classText,
+        String(c.midpoint),
+        String(c.frequency),
+        `${relFreq}%`,
+        String(c.cumulativeFreq),
+        `${cumRelFreq}%`
+      ];
+      const orderedCells = columnOrder.map(i => allCells[i]);
+      return orderedCells.filter((_, i) => orderedVisible[i]);
+    });
+
+    // 합계 행 추가
+    if (showSummaryRow) {
+      const summaryRow = columnOrder.map(i => {
+        switch (i) {
+          case 0: return '합계';
+          case 1: return '';
+          case 2: return String(total);
+          case 3: return '100%';
+          case 4: return String(total);
+          case 5: return '100%';
+          default: return '';
+        }
+      }).filter((_, idx) => orderedVisible[idx]);
+      rows.push(summaryRow);
+    }
+
+    // BaseTableFactory의 동적 너비 계산 사용
+    return BaseTableFactory.calculateDynamicWidths(this.ctx, headers, rows);
+  }
+
+  /**
+   * 커스텀 테이블 동적 너비 계산 (줄기-잎 제외)
+   * @param {string} type - 테이블 타입
+   * @param {Object} data - 파싱된 데이터
+   * @param {Object} config - 테이블 설정
+   * @returns {Object} { columnWidths, canvasWidth }
+   */
+  _calculateCustomTableDynamicWidth(type, data, config) {
+    // 줄기-잎은 기존 고정 너비 사용
+    if (type === CONFIG.TABLE_TYPES.STEM_LEAF) {
+      return {
+        columnWidths: null,
+        canvasWidth: CONFIG.TABLE_CANVAS_WIDTH
+      };
+    }
+
+    let headers = [];
+    let rows = [];
+
+    switch (type) {
+      case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
+        // 카테고리 행렬 (data.headers 사용)
+        headers = ['', ...(data.headers || [])];
+        rows = (data.rows || []).map(row => [row.label, ...row.values.map(String)]);
+        break;
+
+      case CONFIG.TABLE_TYPES.CROSS_TABLE:
+        // 이원분류표
+        headers = [data.rowLabelColumn || '', ...(data.columnHeaders || [])];
+        rows = (data.rows || []).map(row => {
+          const values = row.values.map(v =>
+            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v)
+          );
+          return [row.label, ...values];
+        });
+        // 합계 행
+        if (data.showTotal !== false && data.totals) {
+          const totals = data.totals.map(v =>
+            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v)
+          );
+          rows.push(['합계', ...totals]);
+        }
+        break;
+
+      default:
+        return {
+          columnWidths: null,
+          canvasWidth: CONFIG.TABLE_CANVAS_WIDTH
+        };
+    }
+
+    return BaseTableFactory.calculateDynamicWidths(this.ctx, headers, rows);
   }
 
   /**

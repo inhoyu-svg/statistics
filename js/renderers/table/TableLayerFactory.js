@@ -45,12 +45,12 @@ class TableLayerFactory {
 
     // Canvas 크기 계산
     const padding = CONFIG.TABLE_PADDING;
-    const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
+    const canvasWidth = config?.canvasWidth || CONFIG.TABLE_CANVAS_WIDTH;
     const rowCount = classes.length + (showSummaryRow ? 1 : 0); // 합계 행 조건부
     const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
-    // 열 너비 계산
-    const columnWidths = this._calculateColumnWidths(canvasWidth, padding, columnCount);
+    // 열 너비 계산 (config에서 전달받거나 자동 계산)
+    const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
 
     // 테이블 타입
     const tableType = CONFIG.TABLE_TYPES.FREQUENCY;
