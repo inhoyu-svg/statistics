@@ -366,7 +366,16 @@ class TableCellRenderer {
    * @param {Layer} layer - 잎 데이터 셀 레이어
    */
   renderStemLeafDataCell(layer) {
-    const { x, y, width, height, alignment, leaves } = layer.data;
+    const { x, y, width, height, alignment, leaves, cellText, isVariable } = layer.data;
+
+    // 🔍 디버깅 로그
+    console.log('[DEBUG] renderStemLeafDataCell:', {
+      cellText,
+      isVariable,
+      leaves,
+      'cellText.trim()': cellText ? cellText.trim() : null,
+      'typeof cellText': typeof cellText
+    });
 
     // 줄기-잎 전용 패딩 적용 (세로선과의 간격 확보)
     const stemLeafPadding = CONFIG.TABLE_STEM_LEAF_PADDING;
@@ -383,12 +392,18 @@ class TableCellRenderer {
     // 전체 최대 잎 개수에 따라 폰트 크기 조정 (일관성 유지)
     // 단일 모드: 11개 이상, 비교 모드: 7개 이상일 때 폰트 축소
     const { maxLeafCount = 0, isSingleMode = false } = layer.data;
-    const displayText = leaves ? leaves.join('      ') : '';
     const threshold = isSingleMode ? 11 : 7;
     const fontSize = maxLeafCount >= threshold ? 20 : 24;
 
-    // 잎은 숫자이므로 KaTeX 폰트 사용
-    this._renderStemLeafText(displayText, cellX, cellY, alignment, CONFIG.getColor('--color-text'), fontSize);
+    // 변수인 경우와 일반 잎 데이터 분기
+    if (isVariable) {
+      // 변수인 경우: 동적 폰트 크기 + 이탤릭 강제
+      this._renderStemLeafText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'), fontSize, true);
+    } else {
+      // 잎 데이터인 경우: 기존 렌더링
+      const displayText = leaves ? leaves.join('      ') : '';
+      this._renderStemLeafText(displayText, cellX, cellY, alignment, CONFIG.getColor('--color-text'), fontSize, false);
+    }
   }
 
   /**
@@ -399,16 +414,56 @@ class TableCellRenderer {
    * @param {string} alignment - 정렬 방식
    * @param {string} color - 텍스트 색상
    * @param {number} fontSize - 폰트 크기
+   * @param {boolean} isVariable - 변수 여부 (소문자: KaTeX_Math, 대문자: KaTeX_Main)
    */
-  _renderStemLeafText(text, x, y, alignment, color, fontSize) {
+  _renderStemLeafText(text, x, y, alignment, color, fontSize, isVariable = false) {
     const str = String(text).trim();
 
-    KatexUtils.render(this.ctx, str, x, y, {
-      fontSize: fontSize,
-      color: color,
-      align: alignment,
-      baseline: 'middle'
-    });
+    if (isVariable) {
+      // 변수가 포함된 경우: 토큰별로 분리하여 렌더링
+      const tokens = str.split(/\s+/);
+
+      this.ctx.save();
+      this.ctx.fillStyle = color;
+      this.ctx.textBaseline = 'middle';
+
+      // 전체 너비 계산 (원본: 6개 공백 사용)
+      const gap = fontSize * 1.5; // 토큰 간 간격
+      let totalWidth = 0;
+      tokens.forEach((token, i) => {
+        const isLowercase = /^[a-z]$/.test(token);
+        this.ctx.font = isLowercase
+          ? `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`
+          : `${fontSize}px KaTeX_Main, Times New Roman, serif`;
+        totalWidth += this.ctx.measureText(token).width;
+        if (i < tokens.length - 1) totalWidth += gap;
+      });
+
+      // 정렬에 따른 시작 X 좌표
+      let currentX = x;
+      if (alignment === 'center') currentX = x - totalWidth / 2;
+      else if (alignment === 'right') currentX = x - totalWidth;
+
+      // 각 토큰 렌더링
+      tokens.forEach((token, i) => {
+        const isLowercase = /^[a-z]$/.test(token);
+        this.ctx.font = isLowercase
+          ? `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`
+          : `${fontSize}px KaTeX_Main, Times New Roman, serif`;
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText(token, currentX, y);
+        currentX += this.ctx.measureText(token).width + gap;
+      });
+
+      this.ctx.restore();
+    } else {
+      KatexUtils.render(this.ctx, str, x, y, {
+        fontSize,
+        color,
+        align: alignment,
+        baseline: 'middle'
+      });
+    }
   }
 
   /**
