@@ -17,6 +17,7 @@ class TableStore {
     this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };     // 컬럼별 정렬
     this.cellVariables = new Map();                                   // 셀 변수 치환 정보
     this.summaryRowVisible = new Map();                               // 테이블별 합계 행 표시 여부
+    this.mergedHeaderVisible = new Map();                             // 테이블별 병합 헤더 표시 여부 (이원분류표)
   }
 
   /**
@@ -188,6 +189,31 @@ class TableStore {
     return CONFIG.TABLE_SHOW_SUMMARY_ROW;
   }
 
+  // =============================================
+  // 병합 헤더 표시 관련 메서드 (이원분류표 전용)
+  // =============================================
+
+  /**
+   * 병합 헤더 표시 여부 설정 (이원분류표)
+   * @param {string} tableId - 테이블 ID
+   * @param {boolean} visible - 표시 여부
+   */
+  setMergedHeaderVisible(tableId, visible) {
+    this.mergedHeaderVisible.set(tableId, visible);
+  }
+
+  /**
+   * 병합 헤더 표시 여부 조회 (이원분류표)
+   * @param {string} tableId - 테이블 ID
+   * @returns {boolean} 표시 여부 (기본값: true)
+   */
+  getMergedHeaderVisible(tableId) {
+    if (this.mergedHeaderVisible.has(tableId)) {
+      return this.mergedHeaderVisible.get(tableId);
+    }
+    return true; // 기본값: 표시
+  }
+
   /**
    * 기본값으로 초기화
    */
@@ -198,6 +224,7 @@ class TableStore {
     this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };
     this.cellVariables.clear();
     this.summaryRowVisible.clear();
+    this.mergedHeaderVisible.clear();
   }
 
   /**

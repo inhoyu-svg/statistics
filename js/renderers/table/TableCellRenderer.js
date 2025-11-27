@@ -258,7 +258,8 @@ class TableCellRenderer {
     const {
       x, y, width, height, rowCount, columnWidths, hasSummaryRow,
       mergedHeaderHeight, columnHeaderHeight,
-      mergedHeaderLineColor, mergedHeaderLineWidth
+      mergedHeaderLineColor, mergedHeaderLineWidth,
+      showMergedHeader = true
     } = layer.data;
 
     const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
@@ -271,14 +272,16 @@ class TableCellRenderer {
     this.ctx.lineTo(x + width, y + height);
     this.ctx.stroke();
 
-    // 병합 헤더 아래 구분선 (#8DCF66, 데이터 열 영역만)
-    const dataColumnStartX = x + columnWidths[0];
-    this.ctx.strokeStyle = mergedHeaderLineColor;
-    this.ctx.lineWidth = mergedHeaderLineWidth;
-    this.ctx.beginPath();
-    this.ctx.moveTo(dataColumnStartX, y + mergedHeaderHeight);
-    this.ctx.lineTo(x + width, y + mergedHeaderHeight);
-    this.ctx.stroke();
+    // 병합 헤더 아래 구분선 (#8DCF66, 데이터 열 영역만) - 조건부 렌더링
+    if (showMergedHeader && mergedHeaderHeight > 0) {
+      const dataColumnStartX = x + columnWidths[0];
+      this.ctx.strokeStyle = mergedHeaderLineColor;
+      this.ctx.lineWidth = mergedHeaderLineWidth;
+      this.ctx.beginPath();
+      this.ctx.moveTo(dataColumnStartX, y + mergedHeaderHeight);
+      this.ctx.lineTo(x + width, y + mergedHeaderHeight);
+      this.ctx.stroke();
+    }
 
     // 컬럼 헤더 아래 선 (두께 2, 밝은 회색)
     this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;

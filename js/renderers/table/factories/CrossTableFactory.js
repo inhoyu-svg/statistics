@@ -20,12 +20,12 @@ class CrossTableFactory {
   /**
    * 이원 분류표 레이어 생성
    * @param {LayerManager} layerManager - 레이어 매니저
-   * @param {Object} data - 파싱된 데이터 { rowLabelColumn, columnHeaders, rows, totals, showTotal }
+   * @param {Object} data - 파싱된 데이터 { rowLabelColumn, columnHeaders, rows, totals, showTotal, showMergedHeader }
    * @param {Object} config - 테이블 설정
    * @param {string} tableId - 테이블 고유 ID
    */
   static createTableLayers(layerManager, data, config = null, tableId = 'table-1') {
-    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true } = data;
+    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true } = data;
 
     // 열 개수: 행 라벨 열 + 데이터 열들
     const columnCount = columnHeaders.length + 1;
@@ -35,8 +35,9 @@ class CrossTableFactory {
     const padding = CONFIG.TABLE_PADDING;
     const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
 
-    // Canvas 높이 계산 (병합 헤더 + 컬럼 헤더 + 데이터 행들)
-    const totalHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT + CONFIG.TABLE_HEADER_HEIGHT;
+    // Canvas 높이 계산 (병합 헤더 조건부 + 컬럼 헤더 + 데이터 행들)
+    const mergedHeaderHeight = showMergedHeader ? CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
+    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
     const canvasHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
     // 열 너비 계산
@@ -70,17 +71,20 @@ class CrossTableFactory {
       columnWidths,
       tableId,
       hasSummaryRow: showTotal,
-      mergedHeaderHeight: CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT
+      mergedHeaderHeight,
+      showMergedHeader
     });
     rootLayer.addChild(gridLayer);
 
-    // 병합 헤더 레이어 (상대도수)
-    const mergedHeaderLayer = this._createMergedHeaderLayer(
-      columnWidths,
-      padding,
-      tableId
-    );
-    rootLayer.addChild(mergedHeaderLayer);
+    // 병합 헤더 레이어 (상대도수) - 조건부 생성
+    if (showMergedHeader) {
+      const mergedHeaderLayer = this._createMergedHeaderLayer(
+        columnWidths,
+        padding,
+        tableId
+      );
+      rootLayer.addChild(mergedHeaderLayer);
+    }
 
     // 컬럼 헤더 레이어 (혈액형 | 남학생 | 여학생)
     const columnHeaderLayer = this._createColumnHeaderLayer(
@@ -88,7 +92,8 @@ class CrossTableFactory {
       columnHeaders,
       columnWidths,
       padding,
-      tableId
+      tableId,
+      mergedHeaderHeight
     );
     rootLayer.addChild(columnHeaderLayer);
 
@@ -99,7 +104,8 @@ class CrossTableFactory {
         rowIndex,
         columnWidths,
         padding,
-        tableId
+        tableId,
+        mergedHeaderHeight
       );
       rootLayer.addChild(rowLayer);
     });
@@ -111,7 +117,8 @@ class CrossTableFactory {
         rows.length,
         columnWidths,
         padding,
-        tableId
+        tableId,
+        mergedHeaderHeight
       );
       rootLayer.addChild(summaryLayer);
     }
@@ -143,7 +150,8 @@ class CrossTableFactory {
       columnWidths,
       tableId,
       hasSummaryRow,
-      mergedHeaderHeight
+      mergedHeaderHeight,
+      showMergedHeader = true
     } = options;
 
     const totalWidth = canvasWidth - padding * 2;
@@ -167,7 +175,8 @@ class CrossTableFactory {
         mergedHeaderHeight,
         columnHeaderHeight: CONFIG.TABLE_HEADER_HEIGHT,
         mergedHeaderLineColor: CROSS_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
-        mergedHeaderLineWidth: CROSS_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH
+        mergedHeaderLineWidth: CROSS_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
+        showMergedHeader
       }
     });
   }
@@ -242,7 +251,7 @@ class CrossTableFactory {
   /**
    * 컬럼 헤더 레이어 생성 (혈액형 | 남학생 | 여학생)
    */
-  static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId) {
+  static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
     const headerGroup = new Layer({
       id: `cross-table-${tableId}-table-header`,
       name: '컬럼 헤더',
@@ -253,7 +262,7 @@ class CrossTableFactory {
     });
 
     let x = padding;
-    const y = padding + CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT;
+    const y = padding + mergedHeaderHeight;
 
     // 첫 번째 열은 행 라벨 컬럼명 (예: 혈액형)
     const allHeaders = [rowLabelColumn, ...columnHeaders];
@@ -292,7 +301,7 @@ class CrossTableFactory {
   /**
    * 데이터 행 레이어 생성
    */
-  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId) {
+  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
     const rowGroup = new Layer({
       id: `cross-table-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
@@ -303,7 +312,7 @@ class CrossTableFactory {
     });
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 이후)
-    const totalHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT + CONFIG.TABLE_HEADER_HEIGHT;
+    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
     const y = padding + totalHeaderHeight + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
     let x = padding;
 
@@ -354,7 +363,7 @@ class CrossTableFactory {
   /**
    * 합계 행 레이어 생성
    */
-  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId) {
+  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
     const summaryGroup = new Layer({
       id: `cross-table-${tableId}-table-summary`,
       name: '합계 행',
@@ -365,7 +374,7 @@ class CrossTableFactory {
     });
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 + 데이터 행들 이후)
-    const totalHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT + CONFIG.TABLE_HEADER_HEIGHT;
+    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
     const y = padding + totalHeaderHeight + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
     let x = padding;
 

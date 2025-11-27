@@ -219,16 +219,18 @@ class TableRenderer {
     this.currentTableType = type;
     this.currentData = data;
 
-    // 이원분류표인 경우 합계 행 표시 여부 적용
+    // 이원분류표인 경우 합계 행 및 병합 헤더 표시 여부 적용
     if (type === CONFIG.TABLE_TYPES.CROSS_TABLE) {
       data.showTotal = tableStore.getSummaryRowVisible(this.tableId);
+      data.showMergedHeader = tableStore.getMergedHeaderVisible(this.tableId);
     }
 
     // 행 수 계산 (타입별)
     const rowCount = this._calculateRowCount(type, data);
 
-    // Canvas 크기 계산 (이원분류표는 병합 헤더 추가)
-    const mergedHeaderHeight = type === CONFIG.TABLE_TYPES.CROSS_TABLE ? 35 : 0;
+    // Canvas 크기 계산 (이원분류표는 병합 헤더 조건부 추가)
+    const showMergedHeader = type === CONFIG.TABLE_TYPES.CROSS_TABLE && data.showMergedHeader !== false;
+    const mergedHeaderHeight = showMergedHeader ? 35 : 0;
     const canvasHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
     this.canvas.width = CONFIG.TABLE_CANVAS_WIDTH;
@@ -504,6 +506,18 @@ class TableRenderer {
       summaryCheckbox.checked = tableStore.getSummaryRowVisible(this.tableId);
     }
 
+    // 병합 헤더 옵션 (이원분류표 전용)
+    const mergedHeaderOption = document.getElementById('mergedHeaderOption');
+    const mergedHeaderCheckbox = document.getElementById('showMergedHeaderCheckbox');
+    const isCrossTable = this.currentTableType === CONFIG.TABLE_TYPES.CROSS_TABLE;
+
+    if (mergedHeaderOption) {
+      mergedHeaderOption.style.display = isCrossTable ? 'block' : 'none';
+    }
+    if (mergedHeaderCheckbox && isCrossTable) {
+      mergedHeaderCheckbox.checked = tableStore.getMergedHeaderVisible(this.tableId);
+    }
+
     // 모달 표시
     modal.style.display = 'flex';
 
@@ -707,6 +721,20 @@ class TableRenderer {
     // 합계 행 상태 저장
     tableStore.setSummaryRowVisible(this.tableId, newSummaryRowVisible);
 
+    // 병합 헤더 체크박스 상태 확인 (이원분류표 전용)
+    const isCrossTable = this.currentTableType === CONFIG.TABLE_TYPES.CROSS_TABLE;
+    let mergedHeaderChanged = false;
+
+    if (isCrossTable) {
+      const mergedHeaderCheckbox = document.getElementById('showMergedHeaderCheckbox');
+      const newMergedHeaderVisible = mergedHeaderCheckbox ? mergedHeaderCheckbox.checked : true;
+      const oldMergedHeaderVisible = tableStore.getMergedHeaderVisible(this.tableId);
+      mergedHeaderChanged = newMergedHeaderVisible !== oldMergedHeaderVisible;
+
+      // 병합 헤더 상태 저장
+      tableStore.setMergedHeaderVisible(this.tableId, newMergedHeaderVisible);
+    }
+
     // 모든 데이터 셀 확인
     table.querySelectorAll('td').forEach(td => {
       const rowIndex = parseInt(td.dataset.row);
@@ -750,8 +778,8 @@ class TableRenderer {
       }
     });
 
-    // 합계 행 상태가 변경되었으면 테이블 재생성
-    if (summaryRowChanged) {
+    // 합계 행 또는 병합 헤더 상태가 변경되었으면 테이블 재생성
+    if (summaryRowChanged || mergedHeaderChanged) {
       if (this.currentTableType && this.currentData) {
         // 커스텀 테이블 (이원분류표 등)
         this.drawCustomTable(this.currentTableType, this.currentData, this.currentConfig);
