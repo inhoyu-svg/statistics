@@ -74,11 +74,11 @@ class DataProcessor {
     const classes = [];
     const startValue = 0; // 항상 0부터 시작
 
-    // 최대값을 커버할 수 있을 때까지 계급 생성
+    // 최대값을 포함하는 계급까지 생성
     let i = 0;
     let classMax = 0;
 
-    while (classMax < max || i < classCount) {
+    while (classMax <= max || i < classCount) {
       const classMin = startValue + (i * classWidth);
       classMax = classMin + classWidth;
       classes.push({
@@ -90,8 +90,8 @@ class DataProcessor {
       });
       i++;
 
-      // 최대값을 커버했고 최소 계급 개수도 충족했으면 종료
-      if (classMax >= max && i >= classCount) break;
+      // 최대값을 포함하는 계급을 생성한 후 종료
+      if (classMax > max && i >= classCount) break;
     }
 
     // 끝에 빈 구간 1개 추가
