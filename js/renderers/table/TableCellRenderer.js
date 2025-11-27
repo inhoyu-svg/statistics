@@ -716,6 +716,9 @@ class TableCellRenderer {
     const superFontSize = 14;
     const superYOffset = -8;
 
+    // 한글 포함 여부 확인
+    const isKorean = (text) => /[가-힣]/.test(text);
+
     this.ctx.save();
     this.ctx.fillStyle = color;
     this.ctx.textBaseline = 'middle';
@@ -725,7 +728,8 @@ class TableCellRenderer {
     parts.forEach(part => {
       const fontSize = part.super ? superFontSize : normalFontSize;
       const fontWeight = bold && !part.super ? 'bold ' : '';
-      this.ctx.font = `${fontWeight}${fontSize}px KaTeX_Main, Times New Roman, serif`;
+      const fontFamily = isKorean(part.text) ? 'sans-serif' : 'KaTeX_Main, Times New Roman, serif';
+      this.ctx.font = `${fontWeight}${fontSize}px ${fontFamily}`;
       totalWidth += this.ctx.measureText(part.text).width;
     });
 
@@ -745,7 +749,8 @@ class TableCellRenderer {
       const fontSize = part.super ? superFontSize : normalFontSize;
       const yOffset = part.super ? superYOffset : 0;
       const fontWeight = bold && !part.super ? 'bold ' : '';
-      this.ctx.font = `${fontWeight}${fontSize}px KaTeX_Main, Times New Roman, serif`;
+      const fontFamily = isKorean(part.text) ? 'sans-serif' : 'KaTeX_Main, Times New Roman, serif';
+      this.ctx.font = `${fontWeight}${fontSize}px ${fontFamily}`;
       this.ctx.fillText(part.text, currentX, y + yOffset);
       currentX += this.ctx.measureText(part.text).width;
     });
