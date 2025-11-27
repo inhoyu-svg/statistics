@@ -719,7 +719,9 @@ class DataProcessor {
       tables,
       // 원본 데이터 및 테이블 타입 (데이터셋 폼 복원용)
       rawData: jsonData.rawData || null,
-      tableType: jsonData.tableType || 'frequency'
+      tableType: jsonData.tableType || 'frequency',
+      // 커스텀 계급 범위 (설정된 경우에만)
+      customRange: jsonData.customRange || null
     };
   }
 }

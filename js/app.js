@@ -1524,6 +1524,15 @@ class FrequencyDistributionApp {
         }
       }
 
+      // 커스텀 계급 범위 저장 (설정된 경우에만)
+      const firstEnd = parseFloat(document.getElementById('firstEnd')?.value);
+      const secondEnd = parseFloat(document.getElementById('secondEnd')?.value);
+      const lastStart = parseFloat(document.getElementById('lastStart')?.value);
+
+      if (firstEnd && secondEnd && lastStart) {
+        jsonData.customRange = { firstEnd, secondEnd, lastStart };
+      }
+
       // JSON 문자열 생성 (들여쓰기 포함)
       const jsonString = JSON.stringify(jsonData, null, 2);
 
@@ -1720,6 +1729,29 @@ class FrequencyDistributionApp {
         tableType: data.tableType
       };
       this.syncDatasetFormFromImport(classes, formConfig);
+
+      // customRange 적용 (있는 경우에만)
+      if (data.customRange) {
+        const { firstEnd, secondEnd, lastStart } = data.customRange;
+
+        const firstEndInput = document.getElementById('firstEnd');
+        const secondEndInput = document.getElementById('secondEnd');
+        const lastStartInput = document.getElementById('lastStart');
+
+        if (firstEndInput) firstEndInput.value = firstEnd;
+        if (secondEndInput) secondEndInput.value = secondEnd;
+        if (lastStartInput) lastStartInput.value = lastStart;
+
+        // 관련 표시 업데이트 (secondStart, lastEnd, intervalDisplay)
+        const secondStartEl = document.getElementById('secondStart');
+        const lastEndEl = document.getElementById('lastEnd');
+        const intervalDisplay = document.getElementById('intervalDisplay');
+        const interval = secondEnd - firstEnd;
+
+        if (secondStartEl) secondStartEl.textContent = firstEnd;
+        if (lastEndEl) lastEndEl.textContent = lastStart + interval;
+        if (intervalDisplay) intervalDisplay.textContent = `(간격: ${interval})`;
+      }
     }
   }
 
