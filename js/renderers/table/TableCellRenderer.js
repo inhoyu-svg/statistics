@@ -703,6 +703,50 @@ class TableCellRenderer {
   }
 
   /**
+   * 텍스트를 문자 유형별로 분리
+   * @param {string} text - 분리할 텍스트
+   * @returns {Array} [{text, type: 'korean'|'lowercase'|'other'}, ...]
+   */
+  _splitByCharType(text) {
+    const result = [];
+    let current = { text: '', type: null };
+
+    for (const char of text) {
+      let type;
+      if (/[가-힣]/.test(char)) type = 'korean';
+      else if (/[a-z]/.test(char)) type = 'lowercase';
+      else type = 'other'; // 대문자, 숫자, 특수문자
+
+      if (type === current.type) {
+        current.text += char;
+      } else {
+        if (current.text) result.push(current);
+        current = { text: char, type };
+      }
+    }
+    if (current.text) result.push(current);
+    return result;
+  }
+
+  /**
+   * 문자 유형에 따른 폰트 정보 반환
+   * @param {string} type - 문자 유형 ('korean', 'lowercase', 'other')
+   * @param {number} fontSize - 폰트 크기
+   * @param {boolean} bold - 볼드 여부
+   * @returns {string} CSS 폰트 문자열
+   */
+  _getFontForCharType(type, fontSize, bold = false) {
+    const fontWeight = bold ? 'bold ' : '';
+    if (type === 'korean') {
+      return `${fontWeight}${fontSize}px sans-serif`;
+    } else if (type === 'lowercase') {
+      return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
+    } else {
+      return `${fontWeight}${fontSize}px KaTeX_Main, Times New Roman, serif`;
+    }
+  }
+
+  /**
    * 상첨자가 포함된 텍스트 렌더링
    * @param {Array} parts - 파싱된 텍스트 파트 배열
    * @param {number} x - X 좌표
@@ -716,21 +760,19 @@ class TableCellRenderer {
     const superFontSize = 14;
     const superYOffset = -8;
 
-    // 한글 포함 여부 확인
-    const isKorean = (text) => /[가-힣]/.test(text);
-
     this.ctx.save();
     this.ctx.fillStyle = color;
     this.ctx.textBaseline = 'middle';
 
-    // 전체 너비 계산
+    // 전체 너비 계산 (각 파트를 문자 유형별로 분리하여 측정)
     let totalWidth = 0;
     parts.forEach(part => {
       const fontSize = part.super ? superFontSize : normalFontSize;
-      const fontWeight = bold && !part.super ? 'bold ' : '';
-      const fontFamily = isKorean(part.text) ? 'sans-serif' : 'KaTeX_Main, Times New Roman, serif';
-      this.ctx.font = `${fontWeight}${fontSize}px ${fontFamily}`;
-      totalWidth += this.ctx.measureText(part.text).width;
+      const segments = this._splitByCharType(part.text);
+      segments.forEach(seg => {
+        this.ctx.font = this._getFontForCharType(seg.type, fontSize, bold && !part.super);
+        totalWidth += this.ctx.measureText(seg.text).width;
+      });
     });
 
     // 정렬에 따른 시작 X 좌표
@@ -743,16 +785,18 @@ class TableCellRenderer {
       currentX = x;
     }
 
-    // 각 파트 렌더링
+    // 각 파트 렌더링 (문자 유형별로 분리하여 렌더링)
     this.ctx.textAlign = 'left';
     parts.forEach(part => {
       const fontSize = part.super ? superFontSize : normalFontSize;
       const yOffset = part.super ? superYOffset : 0;
-      const fontWeight = bold && !part.super ? 'bold ' : '';
-      const fontFamily = isKorean(part.text) ? 'sans-serif' : 'KaTeX_Main, Times New Roman, serif';
-      this.ctx.font = `${fontWeight}${fontSize}px ${fontFamily}`;
-      this.ctx.fillText(part.text, currentX, y + yOffset);
-      currentX += this.ctx.measureText(part.text).width;
+      const segments = this._splitByCharType(part.text);
+
+      segments.forEach(seg => {
+        this.ctx.font = this._getFontForCharType(seg.type, fontSize, bold && !part.super);
+        this.ctx.fillText(seg.text, currentX, y + yOffset);
+        currentX += this.ctx.measureText(seg.text).width;
+      });
     });
 
     this.ctx.restore();
