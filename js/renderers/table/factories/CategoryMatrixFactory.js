@@ -173,7 +173,7 @@ class CategoryMatrixFactory {
           y,
           width: columnWidths[colIndex],
           height: CONFIG.TABLE_ROW_HEIGHT,
-          alignment: isLabelColumn ? 'left' : 'center',
+          alignment: isLabelColumn ? 'center' : 'center',
           highlighted: false,
           highlightProgress: 0,
           isEvenRow: rowIndex % 2 === 1,
