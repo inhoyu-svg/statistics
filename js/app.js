@@ -1916,11 +1916,15 @@ class FrequencyDistributionApp {
         const tableConfig = this.getDefaultTableConfig();
         const dataType = ChartStore.getDataType(); // 전역 차트 데이터 유형
 
-        // 5.1. 통합 좌표 시스템을 위한 최대 Y값 계산
+        // 5.1. 통합 좌표 시스템을 위한 최대 Y값 및 계급 개수 계산
         let unifiedMaxY = 0;
+        let unifiedClassCount = 0;
         for (const dataset of processedDatasets) {
           const freq = dataset.classes.map(c => c.frequency);
           const total = freq.reduce((a, b) => a + b, 0);
+
+          // 최대 계급 개수 계산
+          unifiedClassCount = Math.max(unifiedClassCount, dataset.classes.length);
 
           if (total > 0) {
             if (dataType === 'frequency') {
@@ -1956,7 +1960,8 @@ class FrequencyDistributionApp {
             tableConfig,
             dataset.settings.calloutTemplate,
             clearCanvas,
-            unifiedMaxY // 통합 최대 Y값
+            unifiedMaxY, // 통합 최대 Y값
+            unifiedClassCount // 통합 계급 개수
           );
         }
 

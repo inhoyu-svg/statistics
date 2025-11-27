@@ -89,8 +89,9 @@ class ChartRenderer {
    * @param {string} calloutTemplate - 말풍선 템플릿
    * @param {boolean} clearCanvas - 캔버스 및 레이어 초기화 여부 (기본: true)
    * @param {number} unifiedMaxY - 통합 최대 Y값 (여러 데이터셋 사용 시, 없으면 자동 계산)
+   * @param {number} unifiedClassCount - 통합 계급 개수 (여러 데이터셋 사용 시, 없으면 자동 계산)
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null) {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null) {
     if (clearCanvas) {
       // 캔버스 초기화
       this.canvas.width = CONFIG.CANVAS_WIDTH;
@@ -129,11 +130,12 @@ class ChartRenderer {
       maxY = unifiedMaxY !== null ? unifiedMaxY : Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER;
     }
 
-    // 좌표 시스템 생성
+    // 좌표 시스템 생성 (통합 계급 개수 우선 사용)
+    const effectiveClassCount = unifiedClassCount || classes.length;
     const coords = CoordinateSystem.create(
       this.canvas,
       this.padding,
-      classes.length,
+      effectiveClassCount,
       ellipsisInfo,
       maxY,
       dataType
