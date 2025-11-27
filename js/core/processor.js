@@ -15,13 +15,33 @@ class DataProcessor {
    * @example
    * parseInput("1, 2, 3") // [1, 2, 3]
    * parseInput("1 2 3") // [1, 2, 3]
-   * parseInput("1, abc, 3") // [1, 3] (NaN 제거)
+   * parseInput("16*18") // [16, 16, ...(18번)]
+   * parseInput("40*2 50*11") // 40 2개, 50 11개
    */
   static parseInput(input) {
-    return input
-      .split(/[,\s]+/)
-      .map(Number)
-      .filter(n => !isNaN(n) && isFinite(n));
+    const tokens = input.split(/[,\s]+/);
+    const result = [];
+
+    tokens.forEach(token => {
+      // 숫자*반복횟수 패턴 체크 (예: 16*18, -5*3, 3.14*2)
+      const repeatMatch = token.match(/^(-?\d+\.?\d*)\*(\d+)$/);
+      if (repeatMatch) {
+        const value = Number(repeatMatch[1]);
+        const count = parseInt(repeatMatch[2], 10);
+        if (!isNaN(value) && isFinite(value) && count > 0) {
+          for (let i = 0; i < count; i++) {
+            result.push(value);
+          }
+        }
+      } else {
+        const num = Number(token);
+        if (!isNaN(num) && isFinite(num)) {
+          result.push(num);
+        }
+      }
+    });
+
+    return result;
   }
 
   /**
