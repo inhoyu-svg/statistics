@@ -868,13 +868,9 @@ class FrequencyDistributionApp {
   }
 
   /**
-   * 커스텀 범위로 도수분포표 재생성
+   * 커스텀 범위로 도수분포표 재생성 (다중 데이터셋 지원)
    */
   regenerateWithCustomRange() {
-    // 데이터가 없으면 아무것도 하지 않음
-    const data = DataStore.getRawData();
-    if (!data || data.length === 0) return;
-
     try {
       const firstEnd = parseFloat(document.getElementById('firstEnd')?.value);
       const secondEnd = parseFloat(document.getElementById('secondEnd')?.value);
@@ -885,31 +881,122 @@ class FrequencyDistributionApp {
 
       const customRange = { firstEnd, secondEnd, lastStart };
 
+      // 모든 데이터셋의 입력값 가져오기
+      const allDatasetInputs = this.getAllDatasetInputValues();
+      if (allDatasetInputs.length === 0) return;
+
       // 고급 설정 값 가져오기
       const customLabels = this.getCustomLabels();
-      const tableConfig = this.getTableConfig();
-
-      // 데이터 처리
-      const stats = DataStore.getStats();
-      const { classes } = DataProcessor.createClasses(stats, 0, null, customRange);
-      DataProcessor.calculateFrequencies(data, classes);
-      DataProcessor.calculateRelativeAndCumulative(classes, data.length);
-
-      // 중략 표시 여부 확인
-      const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
-
-      // Store 업데이트
-      DataStore.setClasses(classes);
-      ChartStore.setConfig(customLabels.axis, ellipsisInfo);
-
-      // UI 재렌더링
-      const configWithAlignment = this.getTableConfigWithAlignment();
-
-      this.tableRenderer.draw(classes, data.length, configWithAlignment);
-
-      // 차트 데이터 타입 가져오기
+      const tableConfig = this.getTableConfigWithAlignment();
       const dataType = ChartStore.getDataType();
-      this.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+
+      // 각 데이터셋 처리
+      const processedDatasets = [];
+
+      for (let i = 0; i < allDatasetInputs.length; i++) {
+        const inputValues = allDatasetInputs[i];
+
+        try {
+          // 데이터 파싱
+          const data = DataProcessor.parseInput(inputValues.rawData);
+          if (data.length === 0) continue;
+
+          // 통계 계산
+          const stats = DataProcessor.calculateBasicStats(data);
+
+          // 커스텀 범위로 계급 생성
+          const { classes } = DataProcessor.createClasses(stats, 0, null, customRange);
+          DataProcessor.calculateFrequencies(data, classes);
+          DataProcessor.calculateRelativeAndCumulative(classes, data.length);
+
+          // 중략 표시 여부 확인
+          const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
+
+          // 테이블 렌더링
+          if (this.tableRenderers[i]) {
+            this.tableRenderers[i].draw(classes, data.length, tableConfig);
+          }
+
+          // 처리된 데이터셋 저장
+          processedDatasets.push({
+            datasetId: inputValues.datasetId,
+            data,
+            stats,
+            classes,
+            ellipsisInfo,
+            settings: inputValues.settings
+          });
+
+        } catch (error) {
+          console.error(`데이터셋 ${inputValues.datasetId} 처리 오류:`, error);
+        }
+      }
+
+      if (processedDatasets.length === 0) return;
+
+      // 첫 번째 데이터셋으로 Store 업데이트 (기존 호환성)
+      const firstDataset = processedDatasets[0];
+      DataStore.setData(firstDataset.data, firstDataset.stats, firstDataset.classes);
+      ChartStore.setConfig(customLabels.axis, firstDataset.ellipsisInfo);
+
+      // 통합 좌표 시스템 계산
+      let unifiedMaxY = 0;
+      let unifiedClassCount = 0;
+      let unifiedEllipsisInfo = null;
+
+      for (const dataset of processedDatasets) {
+        const freq = dataset.classes.map(c => c.frequency);
+        const total = freq.reduce((a, b) => a + b, 0);
+
+        unifiedClassCount = Math.max(unifiedClassCount, dataset.classes.length);
+
+        // 가장 넓은 ellipsisInfo 선택
+        if (!unifiedEllipsisInfo) {
+          unifiedEllipsisInfo = dataset.ellipsisInfo;
+        } else if (!dataset.ellipsisInfo.show) {
+          unifiedEllipsisInfo = dataset.ellipsisInfo;
+        } else if (unifiedEllipsisInfo.show && dataset.ellipsisInfo.show) {
+          if (dataset.ellipsisInfo.firstDataIndex < unifiedEllipsisInfo.firstDataIndex) {
+            unifiedEllipsisInfo = dataset.ellipsisInfo;
+          }
+        }
+
+        if (total > 0) {
+          if (dataType === 'frequency') {
+            unifiedMaxY = Math.max(unifiedMaxY, Math.max(...freq));
+          } else {
+            const relativeFreqs = freq.map(f => f / total);
+            unifiedMaxY = Math.max(unifiedMaxY, Math.max(...relativeFreqs) * CONFIG.CHART_Y_SCALE_MULTIPLIER);
+          }
+        }
+      }
+
+      // 모든 데이터셋 차트 렌더링
+      for (let i = 0; i < processedDatasets.length; i++) {
+        const dataset = processedDatasets[i];
+
+        // 각 데이터셋의 설정 적용
+        CONFIG.SHOW_HISTOGRAM = dataset.settings.showHistogram;
+        CONFIG.SHOW_POLYGON = dataset.settings.showPolygon;
+        CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
+        CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
+        CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
+        CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
+
+        const clearCanvas = (i === 0);
+
+        this.chartRenderer.draw(
+          dataset.classes,
+          customLabels.axis,
+          unifiedEllipsisInfo,
+          dataType,
+          tableConfig,
+          dataset.settings.calloutTemplate,
+          clearCanvas,
+          unifiedMaxY,
+          unifiedClassCount
+        );
+      }
 
       // 레이어 패널 재렌더링
       this.renderLayerPanel();
@@ -1916,15 +2003,30 @@ class FrequencyDistributionApp {
         const tableConfig = this.getDefaultTableConfig();
         const dataType = ChartStore.getDataType(); // 전역 차트 데이터 유형
 
-        // 5.1. 통합 좌표 시스템을 위한 최대 Y값 및 계급 개수 계산
+        // 5.1. 통합 좌표 시스템 계산 (maxY, 계급 개수, ellipsisInfo)
         let unifiedMaxY = 0;
         let unifiedClassCount = 0;
+        let unifiedEllipsisInfo = null;
+
         for (const dataset of processedDatasets) {
           const freq = dataset.classes.map(c => c.frequency);
           const total = freq.reduce((a, b) => a + b, 0);
 
           // 최대 계급 개수 계산
           unifiedClassCount = Math.max(unifiedClassCount, dataset.classes.length);
+
+          // 가장 넓은 ellipsisInfo 선택 (압축 안 하는 것 우선)
+          if (!unifiedEllipsisInfo) {
+            unifiedEllipsisInfo = dataset.ellipsisInfo;
+          } else if (!dataset.ellipsisInfo.show) {
+            // 압축 안 하는 데이터셋 우선
+            unifiedEllipsisInfo = dataset.ellipsisInfo;
+          } else if (unifiedEllipsisInfo.show && dataset.ellipsisInfo.show) {
+            // 둘 다 압축하면, firstDataIndex가 작은 것 (덜 압축) 선택
+            if (dataset.ellipsisInfo.firstDataIndex < unifiedEllipsisInfo.firstDataIndex) {
+              unifiedEllipsisInfo = dataset.ellipsisInfo;
+            }
+          }
 
           if (total > 0) {
             if (dataType === 'frequency') {
@@ -1955,7 +2057,7 @@ class FrequencyDistributionApp {
           this.chartRenderer.draw(
             dataset.classes,
             customLabels.axis,
-            dataset.ellipsisInfo,
+            unifiedEllipsisInfo, // 통합 ellipsisInfo (가장 넓은 범위)
             dataType, // 전역 설정 사용
             tableConfig,
             dataset.settings.calloutTemplate,
