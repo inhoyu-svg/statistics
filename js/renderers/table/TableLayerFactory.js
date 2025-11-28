@@ -9,6 +9,8 @@ import { Layer } from '../../animation/index.js';
 
 // 탈리마크 컬럼 인덱스 (원본 순서 기준)
 const TALLY_COLUMN_INDEX = 2;
+// 도수 컬럼 인덱스 (원본 순서 기준)
+const FREQUENCY_COLUMN_INDEX = 3;
 
 class TableLayerFactory {
   /**
@@ -88,10 +90,21 @@ class TableLayerFactory {
     );
     rootLayer.addChild(gridLayer);
 
-    // 헤더 레이어 생성
-    const headerLayer = this._createHeaderLayer(
+    // 필터링된 원본 인덱스 배열 (탈리/도수 병합 판별용)
+    const filteredOriginalIndices = columnOrder.filter((_, i) => orderedVisibleColumns[i]);
+
+    // 헤더용 라벨/너비 계산 (탈리+도수 병합)
+    const { headerLabels, headerWidths } = this._mergeFrequencyHeaders(
       filteredLabels,
       columnWidths,
+      filteredOriginalIndices,
+      tableLabels
+    );
+
+    // 헤더 레이어 생성
+    const headerLayer = this._createHeaderLayer(
+      headerLabels,
+      headerWidths,
       columnAlignment,
       padding,
       tableId
@@ -133,6 +146,46 @@ class TableLayerFactory {
 
     // LayerManager에 추가 (root의 자식으로)
     layerManager.addLayer(rootLayer, 'root');
+  }
+
+  /**
+   * 헤더용 라벨/너비 병합 (탈리+도수 → 도수)
+   * @param {Array} labels - 필터링된 라벨 배열
+   * @param {Array} widths - 필터링된 너비 배열
+   * @param {Array} originalIndices - 필터링된 원본 인덱스 배열
+   * @param {Object} tableLabels - 테이블 라벨 설정
+   * @returns {Object} { headerLabels, headerWidths }
+   */
+  static _mergeFrequencyHeaders(labels, widths, originalIndices, tableLabels) {
+    const headerLabels = [];
+    const headerWidths = [];
+
+    // 탈리와 도수 인덱스 찾기
+    let tallyIdx = -1;
+    let freqIdx = -1;
+    originalIndices.forEach((origIdx, i) => {
+      if (origIdx === TALLY_COLUMN_INDEX) tallyIdx = i;
+      if (origIdx === FREQUENCY_COLUMN_INDEX) freqIdx = i;
+    });
+
+    // 탈리와 도수가 둘 다 visible이고 연속인 경우 병합
+    const shouldMerge = tallyIdx !== -1 && freqIdx !== -1 && freqIdx === tallyIdx + 1;
+
+    for (let i = 0; i < labels.length; i++) {
+      if (shouldMerge && i === tallyIdx) {
+        // 탈리+도수 → "도수" 하나로 병합
+        headerLabels.push(tableLabels.frequency);
+        headerWidths.push(widths[i] + widths[i + 1]);
+      } else if (shouldMerge && i === freqIdx) {
+        // 도수는 이미 병합되었으므로 스킵
+        continue;
+      } else {
+        headerLabels.push(labels[i]);
+        headerWidths.push(widths[i]);
+      }
+    }
+
+    return { headerLabels, headerWidths };
   }
 
   /**
