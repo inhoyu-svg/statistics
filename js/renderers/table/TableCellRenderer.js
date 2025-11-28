@@ -851,13 +851,15 @@ class TableCellRenderer {
    * @returns {string} CSS 폰트 문자열
    */
   _getFontForCharType(type, fontSize, bold = false) {
-    const fontWeight = bold ? 'bold ' : '';
     if (type === 'korean') {
+      // 한글만 볼드 적용
+      const fontWeight = bold ? 'bold ' : '';
       return `${fontWeight}${fontSize}px sans-serif`;
     } else if (type === 'lowercase') {
       return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
     } else {
-      return `${fontWeight}${fontSize}px KaTeX_Main, Times New Roman, serif`;
+      // 대문자/숫자는 볼드 적용 안 함
+      return `${fontSize}px KaTeX_Main, Times New Roman, serif`;
     }
   }
 

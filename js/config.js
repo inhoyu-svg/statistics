@@ -169,7 +169,7 @@ const CONFIG = {
 
   // 테이블 기본 컬럼 설정
   // 인덱스: [계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수]
-  TABLE_DEFAULT_VISIBLE_COLUMNS: [true, true, false, true, true, false, false], // 탈리, 누적도수, 누적상대도수 숨김
+  TABLE_DEFAULT_VISIBLE_COLUMNS: [true, false, false, true, true, false, false], // 계급값, 탈리, 누적도수, 누적상대도수 숨김
   TABLE_DEFAULT_COLUMN_ORDER: [0, 1, 2, 3, 4, 5, 6],
 
   // 범위 밖 데이터 미리보기 최대 개수
