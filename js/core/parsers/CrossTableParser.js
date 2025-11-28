@@ -42,15 +42,36 @@ class CrossTableParser {
       };
     }
 
+    // 커스텀 병합 헤더 감지: 첫 줄이 "헤더:"로 시작하지 않고 ":"도 없으면 커스텀 라벨
+    let mergedHeaderText = null;
+    let startLineIndex = 0;
+    const firstLine = lines[0];
+
+    if (!firstLine.toLowerCase().startsWith('헤더:') && !firstLine.includes(':')) {
+      mergedHeaderText = firstLine;
+      startLineIndex = 1;
+    }
+
+    // 남은 줄이 충분한지 확인
+    const remainingLines = lines.slice(startLineIndex);
+    if (remainingLines.length < 2) {
+      return {
+        success: false,
+        data: null,
+        error: '최소 헤더 1줄과 데이터 1줄이 필요합니다.'
+      };
+    }
+
     const result = {
       rowLabelColumn: '',    // 행 라벨 컬럼명 (혈액형)
       columnHeaders: [],     // 열 헤더 (남학생, 여학생)
       rowHeaders: [],        // 행 헤더 (A, B, AB, O)
       rows: [],              // 데이터 행
-      showTotal: true        // 합계 행 표시 여부
+      showTotal: true,       // 합계 행 표시 여부
+      mergedHeaderText       // 커스텀 병합 헤더 텍스트 (null이면 기본값 '상대도수')
     };
 
-    for (let i = 0; i < lines.length; i++) {
+    for (let i = startLineIndex; i < lines.length; i++) {
       const line = lines[i];
       const colonIndex = line.indexOf(':');
 
@@ -73,8 +94,8 @@ class CrossTableParser {
         };
       }
 
-      // 첫 번째 줄: 헤더 (첫 값 = 행 라벨 컬럼명, 나머지 = 열 헤더)
-      if (i === 0 && label.toLowerCase() === '헤더') {
+      // 첫 번째 데이터 줄: 헤더 (첫 값 = 행 라벨 컬럼명, 나머지 = 열 헤더)
+      if (i === startLineIndex && label.toLowerCase() === '헤더') {
         const allHeaders = valuesStr.split(',').map(v => v.trim()).filter(v => v);
         if (allHeaders.length < 2) {
           return {

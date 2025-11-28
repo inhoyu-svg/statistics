@@ -25,7 +25,10 @@ class CrossTableFactory {
    * @param {string} tableId - 테이블 고유 ID
    */
   static createTableLayers(layerManager, data, config = null, tableId = 'table-1') {
-    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true } = data;
+    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true, mergedHeaderText = null } = data;
+
+    // 커스텀 병합 헤더 텍스트 (없으면 기본값 '상대도수')
+    const headerText = mergedHeaderText || CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT;
 
     // 열 개수: 행 라벨 열 + 데이터 열들
     const columnCount = columnHeaders.length + 1;
@@ -76,12 +79,13 @@ class CrossTableFactory {
     });
     rootLayer.addChild(gridLayer);
 
-    // 병합 헤더 레이어 (상대도수) - 조건부 생성
+    // 병합 헤더 레이어 (상대도수 또는 커스텀 텍스트) - 조건부 생성
     if (showMergedHeader) {
       const mergedHeaderLayer = this._createMergedHeaderLayer(
         columnWidths,
         padding,
-        tableId
+        tableId,
+        headerText
       );
       rootLayer.addChild(mergedHeaderLayer);
     }
@@ -182,9 +186,13 @@ class CrossTableFactory {
   }
 
   /**
-   * 병합 헤더 레이어 생성 (상대도수)
+   * 병합 헤더 레이어 생성 (상대도수 또는 커스텀 텍스트)
+   * @param {Array} columnWidths - 열 너비 배열
+   * @param {number} padding - 패딩
+   * @param {string} tableId - 테이블 ID
+   * @param {string} headerText - 병합 헤더 텍스트
    */
-  static _createMergedHeaderLayer(columnWidths, padding, tableId) {
+  static _createMergedHeaderLayer(columnWidths, padding, tableId, headerText = CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT) {
     const mergedHeaderGroup = new Layer({
       id: `cross-table-${tableId}-table-merged-header`,
       name: '병합 헤더',
@@ -219,11 +227,11 @@ class CrossTableFactory {
     });
     mergedHeaderGroup.addChild(emptyCell);
 
-    // 나머지 열은 "상대도수" 병합
+    // 나머지 열은 커스텀 텍스트 병합
     const mergedWidth = columnWidths.slice(1).reduce((a, b) => a + b, 0);
     const mergedCell = new Layer({
       id: `cross-table-${tableId}-table-merged-header-title`,
-      name: CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT,
+      name: headerText,
       type: 'cell',
       visible: true,
       order: 1,
@@ -231,7 +239,7 @@ class CrossTableFactory {
         rowType: 'merged-header',
         rowIndex: -2,
         colIndex: 1,
-        cellText: CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT,
+        cellText: headerText,
         x: padding + columnWidths[0],
         y,
         width: mergedWidth,

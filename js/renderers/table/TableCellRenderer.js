@@ -330,25 +330,22 @@ class TableCellRenderer {
   }
 
   /**
-   * 병합 헤더 셀 렌더링 (상대도수)
+   * 병합 헤더 셀 렌더링 (상대도수 또는 커스텀 텍스트)
    * @param {Layer} layer - 병합 헤더 셀 레이어
    */
   renderMergedHeaderCell(layer) {
-    const { x, y, width, height, cellText, alignment, headerTextColor, isMergedCell } = layer.data;
+    const { x, y, width, height, cellText, alignment, headerTextColor } = layer.data;
 
     // 빈 셀이면 렌더링 안 함
     if (!cellText) return;
 
-    // 병합 헤더 텍스트
-    this.ctx.fillStyle = headerTextColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
-    this.ctx.font = CONFIG.TABLE_FONT_HEADER;
-    this.ctx.textBaseline = 'middle';
-    this.ctx.textAlign = alignment;
-
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
-    this.ctx.fillText(cellText, cellX, cellY);
+    const color = headerTextColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
+
+    // _renderCellText 사용하여 괄호 처리 적용 (isHeader=true)
+    this._renderCellText(cellText, cellX, cellY, alignment, color, false, true);
   }
 
   /**
