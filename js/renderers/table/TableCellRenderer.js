@@ -613,7 +613,8 @@ class TableCellRenderer {
     const hasKorean = /[가-힣]/.test(str);
     const parenMatch = str.match(/^(.*?)(\s*\([^)]*\))$/);
 
-    if (hasKorean && parenMatch) {
+    if (hasKorean && parenMatch && parenMatch[1].trim()) {
+      // mainText가 있을 때만 작은 괄호 렌더링 (예: "학생 수(명)" ✅, "(가)" ❌)
       this._renderTextWithSmallParen(parenMatch[1], parenMatch[2], x, y, alignment, color, bold, fontSize);
       return;
     }
