@@ -255,6 +255,16 @@ const CONFIG = {
   // 막대 라벨 설정
   SHOW_BAR_LABELS: false,                   // 막대 위 값 표시 여부 (기본값)
 
+  // 합동 삼각형 설정
+  SHOW_CONGRUENT_TRIANGLES: false,          // 합동 삼각형 표시 여부 (기본값)
+  CONGRUENT_TRIANGLE_INDEX: 0,              // 표시할 구간 인덱스 (0부터 시작)
+  // 삼각형 A (막대 밖) 색상 - 빨간색 그라디언트
+  TRIANGLE_A_FILL_START: 'rgba(95, 46, 87, 0.5)',
+  TRIANGLE_A_FILL_END: 'rgba(255, 0, 115, 0.5)',
+  TRIANGLE_A_STROKE_START: 'rgb(209, 93, 164)',
+  TRIANGLE_A_STROKE_END: 'rgb(205, 93, 209)',
+  // 삼각형 B (막대 안) - 히스토그램 색상 사용 (CSS 변수)
+
   // 파선 설정
   SHOW_DASHED_LINES: false,                 // 수직 파선 표시 여부 (기본값)
 

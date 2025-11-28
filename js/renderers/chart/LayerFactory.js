@@ -224,6 +224,11 @@ class LayerFactory {
       layerManager.addLayer(labelsGroup);
     }
 
+    // 합동 삼각형 레이어 생성 (SHOW_CONGRUENT_TRIANGLES가 true일 때만)
+    if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
+      this._createCongruentTriangleLayers(layerManager, values, coords, timestamp);
+    }
+
     // 말풍선 레이어 생성 (템플릿이 제공된 경우)
     if (calloutTemplate) {
       const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, timestamp, layerManager);
@@ -300,6 +305,195 @@ class LayerFactory {
     });
 
     return calloutLayer;
+  }
+
+  /**
+   * 합동 삼각형 레이어 생성
+   * @param {LayerManager} layerManager - 레이어 매니저
+   * @param {Array} values - 값 배열
+   * @param {Object} coords - 좌표 시스템
+   * @param {number} timestamp - 타임스탬프
+   */
+  static _createCongruentTriangleLayers(layerManager, values, coords, timestamp) {
+    const i = CONFIG.CONGRUENT_TRIANGLE_INDEX;
+
+    // 유효 범위 체크
+    if (i < 0 || i >= values.length - 1) return;
+
+    const { toX, toY, xScale } = coords;
+
+    // 좌표 계산
+    const p1x = CoordinateSystem.getBarCenterX(i, toX, xScale);
+    const p1y = toY(values[i]);
+    const p2x = CoordinateSystem.getBarCenterX(i + 1, toX, xScale);
+    const p2y = toY(values[i + 1]);
+
+    // 막대 경계 X (막대 i의 우측 = 막대 i+1의 좌측)
+    const boundaryX = toX(i + 1);
+
+    // 선과 막대 경계의 교점 Y 계산 (선형 보간)
+    const t = (boundaryX - p1x) / (p2x - p1x);
+    const intersectY = p1y + t * (p2y - p1y);
+
+    // 선 방향에 따라 색상 결정 (위=파랑, 아래=빨강)
+    const isLineGoingUp = p1y > p2y; // canvas Y좌표: 클수록 아래
+
+    // 위쪽 삼각형 색상 (파란색 = 히스토그램)
+    const upperColors = {
+      fill: { start: CONFIG.getColor('--chart-bar-color'), end: CONFIG.getColor('--chart-bar-color-end') },
+      stroke: { start: CONFIG.getColor('--chart-bar-stroke-start'), end: CONFIG.getColor('--chart-bar-stroke-end') },
+      fillAlpha: CONFIG.CHART_BAR_ALPHA
+    };
+
+    // 아래쪽 삼각형 색상 (빨간색)
+    const lowerColors = {
+      fill: { start: CONFIG.TRIANGLE_A_FILL_START, end: CONFIG.TRIANGLE_A_FILL_END },
+      stroke: { start: CONFIG.TRIANGLE_A_STROKE_START, end: CONFIG.TRIANGLE_A_STROKE_END }
+    };
+
+    // Triangle A: 선 상승 시 아래(빨강), 선 하강 시 위(파랑)
+    const colorsA = isLineGoingUp ? lowerColors : upperColors;
+    // Triangle B: 선 상승 시 위(파랑), 선 하강 시 아래(빨강)
+    const colorsB = isLineGoingUp ? upperColors : lowerColors;
+
+    // 삼각형 그룹
+    const trianglesGroup = new Layer({
+      id: `triangles-${timestamp}`,
+      name: '합동 삼각형',
+      type: 'group',
+      visible: true
+    });
+
+    // 삼각형 A (막대 i 우측)
+    const triangleA = new Layer({
+      id: `triangle-a-${timestamp}`,
+      name: '삼각형 A',
+      type: 'triangle',
+      visible: true,
+      data: {
+        points: [
+          { x: p1x, y: p1y },           // 막대 i 중앙 상단 (다각형 점)
+          { x: boundaryX, y: p1y },     // 막대 i 우측 상단 (막대 모서리)
+          { x: boundaryX, y: intersectY } // 교점
+        ],
+        fillColors: colorsA.fill,
+        strokeColors: colorsA.stroke,
+        fillAlpha: colorsA.fillAlpha
+      }
+    });
+
+    // 삼각형 B (막대 i+1 좌측)
+    const triangleB = new Layer({
+      id: `triangle-b-${timestamp}`,
+      name: '삼각형 B',
+      type: 'triangle',
+      visible: true,
+      data: {
+        points: [
+          { x: boundaryX, y: p2y },     // 막대 i+1 좌측 상단 (막대 모서리)
+          { x: p2x, y: p2y },           // 막대 i+1 중앙 상단 (다각형 점)
+          { x: boundaryX, y: intersectY } // 교점
+        ],
+        fillColors: colorsB.fill,
+        strokeColors: colorsB.stroke,
+        fillAlpha: colorsB.fillAlpha
+      }
+    });
+
+    trianglesGroup.addChild(triangleA);
+    trianglesGroup.addChild(triangleB);
+
+    // 라벨 오프셋 (라벨과 직각 모서리 사이 거리)
+    const labelOffset = 40;
+
+    // 라벨 위치 계산 (선 방향에 따라 결정)
+    let labelPosBlue, labelPosRed;
+    let rightAngleBlue, rightAngleRed;
+
+    if (isLineGoingUp) {
+      // 선 상승 시:
+      // 파란(B) = S₁: 직각(boundaryX, p2y) 좌측 상단
+      // 빨간(A) = S₂: 직각(boundaryX, p1y) 우측 하단
+      rightAngleBlue = { x: boundaryX, y: p2y };
+      rightAngleRed = { x: boundaryX, y: p1y };
+      labelPosBlue = { x: boundaryX - labelOffset, y: p2y - labelOffset };
+      labelPosRed = { x: boundaryX + labelOffset, y: p1y + labelOffset };
+    } else {
+      // 선 하강 시:
+      // 파란(A) = S₁: 직각(boundaryX, p1y) 우측 상단
+      // 빨간(B) = S₂: 직각(boundaryX, p2y) 좌측 하단
+      rightAngleBlue = { x: boundaryX, y: p1y };
+      rightAngleRed = { x: boundaryX, y: p2y };
+      labelPosBlue = { x: boundaryX + labelOffset, y: p1y - labelOffset };
+      labelPosRed = { x: boundaryX - labelOffset, y: p2y + labelOffset };
+    }
+
+    // S₁ 라벨 (파란 삼각형)
+    const labelS1 = new Layer({
+      id: `triangle-label-s1-${timestamp}`,
+      name: '라벨 S₁',
+      type: 'triangle-label',
+      visible: true,
+      data: {
+        text: 'S',
+        subscript: '1',
+        x: labelPosBlue.x,
+        y: labelPosBlue.y,
+        color: CONFIG.getColor('--chart-bar-stroke-start') // 파란색 계열
+      }
+    });
+
+    // S₂ 라벨 (빨간 삼각형)
+    const labelS2 = new Layer({
+      id: `triangle-label-s2-${timestamp}`,
+      name: '라벨 S₂',
+      type: 'triangle-label',
+      visible: true,
+      data: {
+        text: 'S',
+        subscript: '2',
+        x: labelPosRed.x,
+        y: labelPosRed.y,
+        color: CONFIG.TRIANGLE_A_STROKE_END // 빨간색 계열
+      }
+    });
+
+    // S₁ 점선 (라벨 → 직각 모서리)
+    const lineS1 = new Layer({
+      id: `triangle-label-line-s1-${timestamp}`,
+      name: '점선 S₁',
+      type: 'triangle-label-line',
+      visible: true,
+      data: {
+        fromX: labelPosBlue.x,
+        fromY: labelPosBlue.y,
+        toX: rightAngleBlue.x,
+        toY: rightAngleBlue.y,
+        color: CONFIG.getColor('--chart-bar-stroke-start')
+      }
+    });
+
+    // S₂ 점선 (라벨 → 직각 모서리)
+    const lineS2 = new Layer({
+      id: `triangle-label-line-s2-${timestamp}`,
+      name: '점선 S₂',
+      type: 'triangle-label-line',
+      visible: true,
+      data: {
+        fromX: labelPosRed.x,
+        fromY: labelPosRed.y,
+        toX: rightAngleRed.x,
+        toY: rightAngleRed.y,
+        color: CONFIG.TRIANGLE_A_STROKE_END
+      }
+    });
+
+    trianglesGroup.addChild(lineS1);
+    trianglesGroup.addChild(lineS2);
+    trianglesGroup.addChild(labelS1);
+    trianglesGroup.addChild(labelS2);
+
+    layerManager.addLayer(trianglesGroup);
   }
 }
 

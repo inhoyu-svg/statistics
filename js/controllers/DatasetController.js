@@ -204,6 +204,9 @@ class DatasetController {
       const showSuperscript = section.querySelector('.dataset-show-superscript')?.checked ?? true;
       const showBarLabels = section.querySelector('.dataset-show-bar-labels')?.checked ?? false;
       const showDashedLines = section.querySelector('.dataset-show-dashed-lines')?.checked ?? false;
+      const showTriangles = section.querySelector('.dataset-show-triangles')?.checked ?? false;
+      const triangleBoundaryValue = parseFloat(section.querySelector('.dataset-triangle-boundary')?.value);
+      const triangleBoundary = isNaN(triangleBoundaryValue) ? null : triangleBoundaryValue;
       const showCallout = section.querySelector('.dataset-show-callout')?.checked ?? false;
 
       // 색상 프리셋
@@ -226,6 +229,8 @@ class DatasetController {
           showSuperscript,
           showBarLabels,
           showDashedLines,
+          showTriangles,
+          triangleBoundary,
           showCallout,
           calloutTemplate,
           colorPreset

@@ -190,6 +190,19 @@ class GenerationController {
         CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
         CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
         CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
+        CONFIG.SHOW_CONGRUENT_TRIANGLES = dataset.settings.showTriangles;
+        // 경계값 → 인덱스 변환
+        let triangleIndex = 0;
+        if (dataset.settings.triangleBoundary !== null) {
+          const boundary = dataset.settings.triangleBoundary;
+          for (let j = 0; j < dataset.classes.length; j++) {
+            if (dataset.classes[j].max === boundary) {
+              triangleIndex = j;
+              break;
+            }
+          }
+        }
+        CONFIG.CONGRUENT_TRIANGLE_INDEX = triangleIndex;
         CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
 
         const clearCanvas = (i === 0);
@@ -422,6 +435,19 @@ class GenerationController {
           CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
           CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
           CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
+          CONFIG.SHOW_CONGRUENT_TRIANGLES = dataset.settings.showTriangles;
+          // 경계값 → 인덱스 변환
+          let triangleIndex = 0;
+          if (dataset.settings.triangleBoundary !== null) {
+            const boundary = dataset.settings.triangleBoundary;
+            for (let j = 0; j < dataset.classes.length; j++) {
+              if (dataset.classes[j].max === boundary) {
+                triangleIndex = j;
+                break;
+              }
+            }
+          }
+          CONFIG.CONGRUENT_TRIANGLE_INDEX = triangleIndex;
           CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
 
           const clearCanvas = (i === 0);
@@ -852,6 +878,16 @@ class GenerationController {
     const showDashedLines = datasetSection.querySelector('.dataset-show-dashed-lines');
     if (showDashedLines) {
       showDashedLines.checked = chartElements.showDashedLines === true;
+    }
+
+    const showTriangles = datasetSection.querySelector('.dataset-show-triangles');
+    if (showTriangles) {
+      showTriangles.checked = chartElements.showTriangles === true;
+    }
+
+    const triangleBoundaryInput = datasetSection.querySelector('.dataset-triangle-boundary');
+    if (triangleBoundaryInput && chartElements.triangleBoundary !== undefined) {
+      triangleBoundaryInput.value = chartElements.triangleBoundary;
     }
 
     const colorPreset = config.colorPreset || 'default';

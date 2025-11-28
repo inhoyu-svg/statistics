@@ -16,6 +16,7 @@ import PolygonRenderer from './chart/PolygonRenderer.js';
 import AxisRenderer from './chart/AxisRenderer.js';
 import CalloutRenderer from './chart/CalloutRenderer.js';
 import DashedLineRenderer from './chart/DashedLineRenderer.js';
+import TriangleRenderer from './chart/TriangleRenderer.js';
 
 /**
  * @class ChartRenderer
@@ -41,6 +42,7 @@ class ChartRenderer {
     this.axisRenderer = new AxisRenderer(this.ctx, this.canvas, this.padding);
     this.calloutRenderer = new CalloutRenderer(this.ctx);
     this.dashedLineRenderer = new DashedLineRenderer(this.ctx);
+    this.triangleRenderer = new TriangleRenderer(this.ctx);
 
     // Layer 시스템
     this.layerManager = new LayerManager();
@@ -229,6 +231,15 @@ class ChartRenderer {
       case 'bar-label':
         this.histogramRenderer.renderBarLabel(layer);
         break;
+      case 'triangle':
+        this.triangleRenderer.renderTriangle(layer);
+        break;
+      case 'triangle-label':
+        this.triangleRenderer.renderTriangleLabel(layer);
+        break;
+      case 'triangle-label-line':
+        this.triangleRenderer.renderTriangleLabelLine(layer);
+        break;
       case 'callout':
         this.calloutRenderer.render(layer);
         break;
@@ -340,6 +351,9 @@ class ChartRenderer {
     });
 
     for (let i = 0; i < classCount; i++) {
+      // ellipsis 범위 건너뛰기 (빈 계급에 대한 타이밍 낭비 방지)
+      if (CoordinateSystem.shouldSkipEllipsis(i, this.currentEllipsisInfo)) continue;
+
       // 현재 계급 인덱스 i를 기준으로 막대, 점, 라벨 찾기
       const barIdx = barIndexMap.get(i);
       const bar = barIdx !== undefined ? bars[barIdx] : null;
@@ -424,6 +438,52 @@ class ChartRenderer {
           effect: 'custom', // 투명도 애니메이션은 직접 처리
           effectOptions: {},
           easing: 'easeIn'
+        });
+      }
+
+      // 합동 삼각형 애니메이션 (선 애니메이션 완료 후)
+      const trianglesGroup = reversedLayers.find(l => l.id.startsWith('triangles'));
+      if (trianglesGroup && trianglesGroup.children) {
+        const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
+
+        // 삼각형 먼저 애니메이션
+        const triangles = trianglesGroup.children.filter(c => c.type === 'triangle');
+        triangles.forEach((triangle, idx) => {
+          this.timeline.addAnimation(triangle.id, {
+            startTime: lineEndTime + (idx * 150),
+            duration: 300,
+            effect: 'fade',
+            effectOptions: {},
+            easing: 'easeOut'
+          });
+        });
+
+        // 삼각형 애니메이션 완료 후 라벨 및 점선 애니메이션
+        const triangleEndTime = lineEndTime + (triangles.length * 150) + 300;
+        const labelLines = trianglesGroup.children.filter(c => c.type === 'triangle-label-line');
+        const labels = trianglesGroup.children.filter(c => c.type === 'triangle-label');
+
+        // 점선 먼저 (draw 효과)
+        labelLines.forEach((line, idx) => {
+          this.timeline.addAnimation(line.id, {
+            startTime: triangleEndTime + (idx * 100),
+            duration: 200,
+            effect: 'fade',
+            effectOptions: {},
+            easing: 'easeOut'
+          });
+        });
+
+        // 라벨 (fade 효과)
+        const labelStartTime = triangleEndTime + (labelLines.length * 100) + 100;
+        labels.forEach((label, idx) => {
+          this.timeline.addAnimation(label.id, {
+            startTime: labelStartTime + (idx * 100),
+            duration: 200,
+            effect: 'fade',
+            effectOptions: {},
+            easing: 'easeOut'
+          });
         });
       }
     }
@@ -536,8 +596,8 @@ class ChartRenderer {
       return { anim, layer, isActive, isCompleted };
     }).filter(item => item !== null);
 
-    // 렌더링 순서: bar → line → dashed-line → point (타입 기준 정렬)
-    const renderOrder = { 'bar': 0, 'line': 1, 'dashed-line': 2, 'point': 3, 'bar-label': 4, 'callout': 5 };
+    // 렌더링 순서: bar → triangle → triangle-label-line → triangle-label → line → dashed-line → point (타입 기준 정렬)
+    const renderOrder = { 'bar': 0, 'triangle': 1, 'triangle-label-line': 2, 'triangle-label': 3, 'line': 4, 'dashed-line': 5, 'point': 6, 'bar-label': 7, 'callout': 8 };
     allAnimations.sort((a, b) => {
       const orderA = renderOrder[a.layer.type] ?? 999;
       const orderB = renderOrder[b.layer.type] ?? 999;

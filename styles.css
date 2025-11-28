@@ -620,6 +620,36 @@ button:active {
   font-size: 11px;
 }
 
+/* 합동 삼각형 구간 선택 */
+.triangle-index-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+  padding-left: var(--spacing-sm);
+}
+
+.triangle-index-wrapper .index-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.dataset-triangle-boundary {
+  width: 60px;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: center;
+}
+
+.dataset-triangle-boundary:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
 /* 다각형 색상 프리셋 */
 .polygon-color-presets {
   display: flex;
