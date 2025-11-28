@@ -44,8 +44,11 @@ class CoordinateSystem {
     let adjustedMaxY, gridDivisions;
 
     if (customYInterval && customYInterval > 0) {
-      // 커스텀 간격 사용
-      gridDivisions = Math.ceil(maxY / customYInterval);
+      // 커스텀 간격 사용 (도수 모드일 때 간격 2칸 여백 적용)
+      const targetMax = (dataType === 'frequency')
+        ? Math.ceil(maxY) + (customYInterval * 2)
+        : maxY;
+      gridDivisions = Math.ceil(targetMax / customYInterval);
       adjustedMaxY = gridDivisions * customYInterval;
     } else {
       // 자동 계산 (스마트 격자)
