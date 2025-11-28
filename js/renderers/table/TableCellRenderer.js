@@ -616,6 +616,9 @@ class TableCellRenderer {
         align: alignment,
         baseline: 'middle'
       });
+    } else if (this._containsMixedKoreanAndNumeric(str)) {
+      // 한글+숫자/알파벳 혼합인 경우 분리 렌더링 (예: "1반", "2반")
+      this._renderMixedText(str, x, y, alignment, color, bold, fontSize);
     } else {
       // 한글 등은 기본 폰트 사용
       this.ctx.fillStyle = color;
@@ -672,6 +675,62 @@ class TableCellRenderer {
   _isNumericOrAlpha(text) {
     // 숫자, 소수점, 음수, 알파벳, 공백, ~만 포함
     return /^[-\d.\sA-Za-z~%]+$/.test(text);
+  }
+
+  /**
+   * 한글과 숫자/알파벳이 혼합된 문자열인지 확인
+   * @param {string} text - 확인할 텍스트
+   * @returns {boolean}
+   */
+  _containsMixedKoreanAndNumeric(text) {
+    const hasKorean = /[가-힣]/.test(text);
+    const hasNumericOrAlpha = /[0-9A-Za-z]/.test(text);
+    return hasKorean && hasNumericOrAlpha;
+  }
+
+  /**
+   * 한글+숫자/알파벳 혼합 텍스트 렌더링 (예: "1반", "2반")
+   * 숫자/알파벳은 KaTeX 폰트, 한글은 기본 폰트 사용
+   * @param {string} text - 렌더링할 텍스트
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {string} alignment - 정렬 방식
+   * @param {string} color - 텍스트 색상
+   * @param {boolean} bold - 볼드 여부
+   * @param {number} fontSize - 폰트 크기 (숫자/알파벳용)
+   */
+  _renderMixedText(text, x, y, alignment, color, bold, fontSize) {
+    const segments = this._splitByCharType(text);
+    // 한글은 기존 테이블 폰트 크기(18px) 유지
+    const koreanFontSize = 18;
+
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    this.ctx.textBaseline = 'middle';
+
+    // 전체 너비 계산
+    let totalWidth = 0;
+    segments.forEach(seg => {
+      const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
+      this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+      totalWidth += this.ctx.measureText(seg.text).width;
+    });
+
+    // 정렬에 따른 시작 X 좌표
+    let currentX = x;
+    if (alignment === 'center') currentX = x - totalWidth / 2;
+    else if (alignment === 'right') currentX = x - totalWidth;
+
+    // 각 세그먼트 렌더링
+    this.ctx.textAlign = 'left';
+    segments.forEach(seg => {
+      const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
+      this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+      this.ctx.fillText(seg.text, currentX, y);
+      currentX += this.ctx.measureText(seg.text).width;
+    });
+
+    this.ctx.restore();
   }
 
   /**
