@@ -83,7 +83,7 @@ class TriangleRenderer {
 
     // KaTeX_Main 폰트로 아래첨자 렌더링 (2.5배 확대: 16 → 40)
     KatexUtils.renderWithScript(ctx, text, null, subscript, x, y, {
-      fontSize: 30,
+      fontSize: 40,
       color: color,
       align: 'center',
       baseline: 'middle'

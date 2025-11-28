@@ -439,7 +439,7 @@ class LayerFactory {
         subscript: '1',
         x: labelPosBlue.x,
         y: labelPosBlue.y,
-        color: CONFIG.getColor('--chart-bar-stroke-start') // 파란색 계열
+        color: '#008AFF'
       }
     });
 
@@ -454,7 +454,7 @@ class LayerFactory {
         subscript: '2',
         x: labelPosRed.x,
         y: labelPosRed.y,
-        color: CONFIG.TRIANGLE_A_STROKE_END // 빨간색 계열
+        color: '#E749AF'
       }
     });
 
@@ -469,7 +469,7 @@ class LayerFactory {
         fromY: labelPosBlue.y,
         toX: rightAngleBlue.x,
         toY: rightAngleBlue.y,
-        color: CONFIG.getColor('--chart-bar-stroke-start')
+        color: '#008AFF'
       }
     });
 
@@ -484,7 +484,7 @@ class LayerFactory {
         fromY: labelPosRed.y,
         toX: rightAngleRed.x,
         toY: rightAngleRed.y,
-        color: CONFIG.TRIANGLE_A_STROKE_END
+        color: '#E749AF'
       }
     });
 
