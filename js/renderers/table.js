@@ -334,14 +334,17 @@ class TableRenderer {
       }
 
       // 탈리마크 너비 계산 (Canvas 그리기 기준)
-      // 5개 묶음: 4 * spacing, 나머지: (n-1) * spacing
       const tallyCount = c.frequency;
       const groups = Math.floor(tallyCount / 5);
       const remainder = tallyCount % 5;
-      const tallyPixelWidth = groups * (4 * CONFIG.TALLY_LINE_SPACING + CONFIG.TALLY_GROUP_SPACING)
-        + (remainder > 0 ? (remainder - 1) * CONFIG.TALLY_LINE_SPACING : 0);
+      const groupWidth = 4 * CONFIG.TALLY_LINE_SPACING;
+      const groupSpacing = CONFIG.TALLY_GROUP_SPACING;
+      const remainderWidth = remainder > 0 ? (remainder - 1) * CONFIG.TALLY_LINE_SPACING : 0;
+      // 간격 개수: 그룹만 있으면 groups-1, 나머지도 있으면 groups
+      const numGaps = groups > 0 ? (remainder > 0 ? groups : Math.max(0, groups - 1)) : 0;
+      const tallyPixelWidth = groups * groupWidth + numGaps * groupSpacing + remainderWidth;
       // 너비 계산용 placeholder (대략적인 문자 수로 변환)
-      const tallyWidthChars = 'X'.repeat(Math.ceil(tallyPixelWidth / 8) + 2);
+      const tallyWidthChars = 'X'.repeat(Math.ceil(tallyPixelWidth / 10));
 
       const allCells = [
         classText,                    // 0: 계급

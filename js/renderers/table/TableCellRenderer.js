@@ -831,7 +831,9 @@ class TableCellRenderer {
     const remainder = count % 5;
     const groupWidth = 4 * lineSpacing; // 5개 묶음 너비 (세로선 4개 + 대각선)
     const remainderWidth = remainder > 0 ? (remainder - 1) * lineSpacing : 0;
-    const totalWidth = groups * (groupWidth + groupSpacing) + remainderWidth;
+    // 간격 개수: 그룹만 있으면 groups-1, 나머지도 있으면 groups
+    const numGaps = groups > 0 ? (remainder > 0 ? groups : Math.max(0, groups - 1)) : 0;
+    const totalWidth = groups * groupWidth + numGaps * groupSpacing + remainderWidth;
 
     // 셀 중앙 정렬
     let x = cellX + (cellWidth - totalWidth) / 2;
