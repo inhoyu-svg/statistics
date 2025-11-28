@@ -21,6 +21,7 @@ class ChartSettingsController {
 
   /**
    * 차트 데이터 타입 라디오 버튼 동적 생성 및 이벤트 리스너 등록
+   * 각 모드별 Y축 간격 입력 필드 포함
    */
   initChartDataTypeRadios() {
     const container = document.getElementById('chartDataTypeRadios');
@@ -30,8 +31,9 @@ class ChartSettingsController {
 
     CONFIG.CHART_DATA_TYPES.forEach((typeInfo, index) => {
       const radioItem = document.createElement('div');
-      radioItem.className = 'radio-item';
+      radioItem.className = 'radio-item y-axis-mode-item';
 
+      // 라디오 버튼
       const radio = document.createElement('input');
       radio.type = 'radio';
       radio.id = `chartDataType${index}`;
@@ -39,16 +41,50 @@ class ChartSettingsController {
       radio.value = typeInfo.id;
       radio.checked = typeInfo.id === defaultDataType;
 
+      // 라벨
       const label = document.createElement('label');
       label.htmlFor = `chartDataType${index}`;
       label.textContent = typeInfo.label;
 
+      // 간격 입력 필드
+      const intervalWrapper = document.createElement('span');
+      intervalWrapper.className = 'y-interval-wrapper';
+      intervalWrapper.innerHTML = `
+        <span class="interval-label">간격:</span>
+        <input type="number"
+               class="y-interval-input"
+               data-mode="${typeInfo.id}"
+               step="${typeInfo.id === 'frequency' ? '1' : '0.01'}"
+               min="0"
+               placeholder="자동">
+      `;
+
       radio.addEventListener('change', () => this.handleChartDataTypeChange(typeInfo.id));
+
+      // 간격 입력 변경 시 차트 업데이트
+      const intervalInput = intervalWrapper.querySelector('.y-interval-input');
+      intervalInput.addEventListener('change', () => {
+        if (radio.checked) {
+          this.updateChart();
+        }
+      });
 
       radioItem.appendChild(radio);
       radioItem.appendChild(label);
+      radioItem.appendChild(intervalWrapper);
       container.appendChild(radioItem);
     });
+  }
+
+  /**
+   * 현재 선택된 Y축 간격 값 가져오기
+   * @returns {number|null} 커스텀 간격 값 (없으면 null)
+   */
+  getCustomYInterval() {
+    const dataType = ChartStore.getDataType();
+    const input = document.querySelector(`.y-interval-input[data-mode="${dataType}"]`);
+    const value = parseFloat(input?.value);
+    return (!isNaN(value) && value > 0) ? value : null;
   }
 
   /**
@@ -134,8 +170,9 @@ class ChartSettingsController {
         const dataType = ChartStore.getDataType();
         const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
         const configWithAlignment = this.app.tableConfigController.getTableConfigWithAlignment();
+        const customYInterval = this.getCustomYInterval();
 
-        this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+        this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate, true, null, null, customYInterval);
 
         this.app.chartRenderer.stopAnimation();
         this.app.chartRenderer.timeline.currentTime = this.app.chartRenderer.timeline.duration;
@@ -158,8 +195,9 @@ class ChartSettingsController {
         const dataType = ChartStore.getDataType();
         const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
         const configWithAlignment = this.app.tableConfigController.getTableConfigWithAlignment();
+        const customYInterval = this.getCustomYInterval();
 
-        this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+        this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate, true, null, null, customYInterval);
         this.app.chartRenderer.stopAnimation();
         this.app.chartRenderer.timeline.currentTime = this.app.chartRenderer.timeline.duration;
         this.app.chartRenderer.renderFrame();
@@ -176,8 +214,9 @@ class ChartSettingsController {
         const dataType = ChartStore.getDataType();
         const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
         const configWithAlignment = this.app.tableConfigController.getTableConfigWithAlignment();
+        const customYInterval = this.getCustomYInterval();
 
-        this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+        this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate, true, null, null, customYInterval);
         this.app.chartRenderer.stopAnimation();
         this.app.chartRenderer.timeline.currentTime = this.app.chartRenderer.timeline.duration;
         this.app.chartRenderer.renderFrame();
@@ -202,8 +241,9 @@ class ChartSettingsController {
             const dataType = ChartStore.getDataType();
             const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
             const configWithAlignment = this.app.tableConfigController.getTableConfigWithAlignment();
+            const customYInterval = this.getCustomYInterval();
 
-            this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+            this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate, true, null, null, customYInterval);
             this.app.chartRenderer.stopAnimation();
             this.app.chartRenderer.timeline.currentTime = this.app.chartRenderer.timeline.duration;
             this.app.chartRenderer.renderFrame();
@@ -223,8 +263,9 @@ class ChartSettingsController {
       const dataType = ChartStore.getDataType();
       const ellipsisInfo = ChartStore.getConfig()?.ellipsisInfo;
       const configWithAlignment = this.app.tableConfigController.getTableConfigWithAlignment();
+      const customYInterval = this.getCustomYInterval();
 
-      this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate);
+      this.app.chartRenderer.draw(classes, customLabels.axis, ellipsisInfo, dataType, configWithAlignment, customLabels.calloutTemplate, true, null, null, customYInterval);
 
       this.app.chartRenderer.stopAnimation();
       this.app.chartRenderer.timeline.currentTime = this.app.chartRenderer.timeline.duration;
@@ -242,9 +283,10 @@ class ChartSettingsController {
     const dataType = ChartStore.getDataType();
     const tableConfig = this.app.tableConfigController.getTableConfigWithAlignment();
     const customLabels = this.app.tableConfigController.getCustomLabels();
+    const customYInterval = this.getCustomYInterval();
 
     if (classes) {
-      this.app.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, tableConfig, customLabels.calloutTemplate);
+      this.app.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, tableConfig, customLabels.calloutTemplate, true, null, null, customYInterval);
     }
   }
 

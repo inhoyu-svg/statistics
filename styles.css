@@ -548,6 +548,78 @@ button:active {
   accent-color: var(--color-primary);
 }
 
+/* Y축 설정 섹션 */
+.y-axis-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.y-axis-settings .settings-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+
+.y-axis-mode-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.y-axis-mode-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.y-axis-mode-item input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.y-axis-mode-item label {
+  font-size: 13px;
+  min-width: 80px;
+}
+
+.y-interval-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}
+
+.y-interval-wrapper .interval-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.y-interval-input {
+  width: 60px;
+  padding: 4px 6px;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-align: center;
+}
+
+.y-interval-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.y-interval-input::placeholder {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
 /* 다각형 색상 프리셋 */
 .polygon-color-presets {
   display: flex;

@@ -14,9 +14,10 @@ class CoordinateSystem {
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {number} maxY - Y축 최댓값
    * @param {string} dataType - 데이터 타입
+   * @param {number} customYInterval - 커스텀 Y축 간격 (없으면 자동 계산)
    * @returns {Object} 좌표 변환 함수와 스케일 객체
    */
-  static create(canvas, padding, classCount, ellipsisInfo, maxY, dataType = 'relativeFrequency') {
+  static create(canvas, padding, classCount, ellipsisInfo, maxY, dataType = 'relativeFrequency', customYInterval = null) {
     const chartW = canvas.width - padding * 2;
     const chartH = canvas.height - padding * 2;
 
@@ -39,10 +40,19 @@ class CoordinateSystem {
       toX = (index) => padding + index * xScale;
     }
 
-    // 그리드 설정 계산 (스마트 격자)
-    const gridConfig = CONFIG.calculateGridDivisions(maxY, dataType);
-    const adjustedMaxY = gridConfig.maxY;
-    const gridDivisions = gridConfig.divisions;
+    // 그리드 설정 계산
+    let adjustedMaxY, gridDivisions;
+
+    if (customYInterval && customYInterval > 0) {
+      // 커스텀 간격 사용
+      gridDivisions = Math.ceil(maxY / customYInterval);
+      adjustedMaxY = gridDivisions * customYInterval;
+    } else {
+      // 자동 계산 (스마트 격자)
+      const gridConfig = CONFIG.calculateGridDivisions(maxY, dataType);
+      adjustedMaxY = gridConfig.maxY;
+      gridDivisions = gridConfig.divisions;
+    }
 
     const yScale = chartH / adjustedMaxY;
     const toY = (value) => {

@@ -90,8 +90,9 @@ class ChartRenderer {
    * @param {boolean} clearCanvas - 캔버스 및 레이어 초기화 여부 (기본: true)
    * @param {number} unifiedMaxY - 통합 최대 Y값 (여러 데이터셋 사용 시, 없으면 자동 계산)
    * @param {number} unifiedClassCount - 통합 계급 개수 (여러 데이터셋 사용 시, 없으면 자동 계산)
+   * @param {number} customYInterval - 커스텀 Y축 간격 (없으면 자동 계산)
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null) {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null, customYInterval = null) {
     if (clearCanvas) {
       // 캔버스 초기화
       this.canvas.width = CONFIG.CANVAS_WIDTH;
@@ -138,7 +139,8 @@ class ChartRenderer {
       effectiveClassCount,
       ellipsisInfo,
       maxY,
-      dataType
+      dataType,
+      customYInterval
     );
 
     // 차트 데이터 저장 (애니메이션 모드용)

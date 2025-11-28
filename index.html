@@ -81,14 +81,6 @@
               </div>
             </div>
 
-            <!-- 차트 데이터 유형 -->
-            <div class="setting-group">
-              <h4>차트 데이터 유형</h4>
-              <div class="radio-group" id="chartDataTypeRadios">
-                <!-- 동적 생성됨 -->
-              </div>
-            </div>
-
             <!-- 표 컬럼 설정 -->
             <div class="setting-group">
               <h4>표 컬럼 설정 (드래그하여 순서 변경)</h4>
@@ -421,6 +413,14 @@
             <input type="checkbox" class="dataset-show-dashed-lines">
             <span>수직 파선 표시</span>
           </label>
+        </div>
+
+        <!-- Y축 모드 및 간격 설정 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options y-axis-settings">
+          <span class="settings-label">Y축 설정:</span>
+          <div class="y-axis-mode-group" id="chartDataTypeRadios">
+            <!-- 동적 생성: 라디오 버튼 + 간격 입력 필드 -->
+          </div>
         </div>
       </div>
     </details>

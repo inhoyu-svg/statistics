@@ -193,6 +193,7 @@ class GenerationController {
         CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
 
         const clearCanvas = (i === 0);
+        const customYInterval = this.app.chartSettingsController.getCustomYInterval();
 
         this.app.chartRenderer.draw(
           dataset.classes,
@@ -203,7 +204,8 @@ class GenerationController {
           dataset.settings.calloutTemplate,
           clearCanvas,
           unifiedMaxY,
-          unifiedClassCount
+          unifiedClassCount,
+          customYInterval
         );
       }
 
@@ -423,6 +425,7 @@ class GenerationController {
           CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
 
           const clearCanvas = (i === 0);
+          const customYInterval = this.app.chartSettingsController.getCustomYInterval();
 
           this.app.chartRenderer.draw(
             dataset.classes,
@@ -433,7 +436,8 @@ class GenerationController {
             dataset.settings.calloutTemplate,
             clearCanvas,
             unifiedMaxY,
-            unifiedClassCount
+            unifiedClassCount,
+            customYInterval
           );
         }
 
@@ -733,7 +737,8 @@ class GenerationController {
         mergedTableConfig.labels = CONFIG.DEFAULT_LABELS.table;
       }
 
-      this.app.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, mergedTableConfig, null);
+      const customYInterval = this.app.chartSettingsController.getCustomYInterval();
+      this.app.chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, mergedTableConfig, null, true, null, null, customYInterval);
 
       if (this.app.tableRenderers.length > 0) {
         this.app.tableRenderers[0].draw(classes, total, mergedTableConfig);
