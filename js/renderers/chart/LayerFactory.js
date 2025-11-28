@@ -404,7 +404,7 @@ class LayerFactory {
     trianglesGroup.addChild(triangleB);
 
     // 라벨 오프셋 (라벨과 직각 모서리 사이 거리)
-    const labelOffset = 40;
+    const labelOffset = 30;
 
     // 라벨 위치 계산 (선 방향에 따라 결정)
     let labelPosBlue, labelPosRed;

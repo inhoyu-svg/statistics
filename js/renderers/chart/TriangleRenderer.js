@@ -81,9 +81,9 @@ class TriangleRenderer {
     ctx.save();
     ctx.globalAlpha = currentAlpha;
 
-    // KaTeX_Main 폰트로 아래첨자 렌더링 (2.5배 확대: 16 → 40)
+    // KaTeX_Main 폰트로 아래첨자 렌더링
     KatexUtils.renderWithScript(ctx, text, null, subscript, x, y, {
-      fontSize: 40,
+      fontSize: 30,
       color: color,
       align: 'center',
       baseline: 'middle'
@@ -104,8 +104,8 @@ class TriangleRenderer {
     const currentAlpha = ctx.globalAlpha;
     if (currentAlpha <= 0) return;
 
-    // 라벨 반경 (40px 폰트 기준, 라벨과 겹치지 않도록)
-    const labelRadius = 25;
+    // 라벨 반경 (30px 폰트 기준, 라벨과 겹치지 않도록)
+    const labelRadius = 18;
 
     // 방향 벡터 계산 (라벨 → 직각 모서리)
     const dx = toX - fromX;
