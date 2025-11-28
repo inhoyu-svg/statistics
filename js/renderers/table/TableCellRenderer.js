@@ -102,7 +102,8 @@ class TableCellRenderer {
       isEvenRow,
       classData,
       showSuperscript,
-      colLabel
+      colLabel,
+      tallyCount
     } = layer.data;
 
     // 하이라이트 배경 렌더링
@@ -114,6 +115,12 @@ class TableCellRenderer {
 
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
+
+    // 탈리마크 셀인 경우 Canvas로 직접 그리기
+    if (colLabel === CONFIG.DEFAULT_LABELS.table.tally && tallyCount !== undefined) {
+      this._renderTallyCanvas(tallyCount, x, y, width, height, CONFIG.getColor('--color-text'));
+      return;
+    }
 
     // 상첨자가 필요한 경우 (첫 행의 계급 컬럼)
     if (classData && showSuperscript) {
@@ -590,7 +597,7 @@ class TableCellRenderer {
     const fontSize = isHeader ? 18 : 24;
 
     // 언더바만 있는 경우 빈칸으로 처리 (렌더링 스킵)
-    if (str === '_') {
+    if (str === '_' || str === '') {
       return;
     }
 
@@ -801,6 +808,90 @@ class TableCellRenderer {
     });
 
     this.ctx.restore();
+  }
+
+  /**
+   * Canvas로 탈리마크 그리기 (정자 스타일: 세로선 4개 + 대각선 = 5)
+   * @param {number} count - 탈리 개수
+   * @param {number} cellX - 셀 X 좌표
+   * @param {number} cellY - 셀 Y 좌표
+   * @param {number} cellWidth - 셀 너비
+   * @param {number} cellHeight - 셀 높이
+   * @param {string} color - 선 색상
+   */
+  _renderTallyCanvas(count, cellX, cellY, cellWidth, cellHeight, color) {
+    if (count <= 0) return;
+
+    const lineHeight = CONFIG.TALLY_LINE_HEIGHT;
+    const lineSpacing = CONFIG.TALLY_LINE_SPACING;
+    const groupSpacing = CONFIG.TALLY_GROUP_SPACING;
+
+    // 전체 너비 계산
+    const groups = Math.floor(count / 5);
+    const remainder = count % 5;
+    const groupWidth = 4 * lineSpacing; // 5개 묶음 너비 (세로선 4개 + 대각선)
+    const remainderWidth = remainder > 0 ? (remainder - 1) * lineSpacing : 0;
+    const totalWidth = groups * (groupWidth + groupSpacing) + remainderWidth;
+
+    // 셀 중앙 정렬
+    let x = cellX + (cellWidth - totalWidth) / 2;
+    const y = cellY + cellHeight / 2;
+
+    this.ctx.save();
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = CONFIG.TALLY_LINE_WIDTH;
+    this.ctx.lineCap = 'round';
+
+    let remaining = count;
+
+    while (remaining > 0) {
+      if (remaining >= 5) {
+        // 5개 묶음: 세로선 4개 + 대각선
+        this._drawTallyGroup(x, y, lineHeight, lineSpacing);
+        x += groupWidth + groupSpacing;
+        remaining -= 5;
+      } else {
+        // 나머지: 세로선만
+        for (let i = 0; i < remaining; i++) {
+          this._drawTallyLine(x + i * lineSpacing, y, lineHeight);
+        }
+        remaining = 0;
+      }
+    }
+
+    this.ctx.restore();
+  }
+
+  /**
+   * 탈리 슬래시 1개 그리기 (/)
+   * @param {number} x - X 좌표
+   * @param {number} y - 중앙 Y 좌표
+   * @param {number} height - 선 높이
+   */
+  _drawTallyLine(x, y, height) {
+    this.ctx.beginPath();
+    this.ctx.moveTo(x - height / 4, y + height / 2);  // 왼쪽 아래
+    this.ctx.lineTo(x + height / 4, y - height / 2);  // 오른쪽 위
+    this.ctx.stroke();
+  }
+
+  /**
+   * 탈리 5개 묶음 그리기 (슬래시 4개 + 교차선)
+   * @param {number} x - 시작 X 좌표
+   * @param {number} y - 중앙 Y 좌표
+   * @param {number} height - 선 높이
+   * @param {number} spacing - 선 간격
+   */
+  _drawTallyGroup(x, y, height, spacing) {
+    // 슬래시 4개 (/)
+    for (let i = 0; i < 4; i++) {
+      this._drawTallyLine(x + i * spacing, y, height);
+    }
+    // 교차선 (\) - 왼쪽 위 → 오른쪽 아래
+    this.ctx.beginPath();
+    this.ctx.moveTo(x - spacing * 0.3, y - height / 2);  // 왼쪽 위
+    this.ctx.lineTo(x + 3 * spacing + spacing * 0.3, y + height / 2);  // 오른쪽 아래
+    this.ctx.stroke();
   }
 }
 

@@ -17,7 +17,7 @@ class TableConfigController {
    */
   constructor(app) {
     this.app = app;
-    this.columnOrder = [0, 1, 2, 3, 4, 5];
+    this.columnOrder = [0, 1, 2, 3, 4, 5, 6]; // 7개 컬럼
     this.draggedElement = null;
   }
 
@@ -29,11 +29,12 @@ class TableConfigController {
     const panel = this._getTableConfigPanel();
     if (!panel) return;
 
-    // CONFIG에서 컬럼 정보 가져오기
+    // CONFIG에서 컬럼 정보 가져오기 (7개 컬럼)
     const tableLabels = CONFIG.DEFAULT_LABELS.table;
     const columns = [
       { key: 'class', label: tableLabels.class },
       { key: 'midpoint', label: tableLabels.midpoint },
+      { key: 'tally', label: tableLabels.tally },
       { key: 'frequency', label: tableLabels.frequency },
       { key: 'relativeFrequency', label: tableLabels.relativeFrequency },
       { key: 'cumulativeFrequency', label: tableLabels.cumulativeFrequency },
@@ -237,10 +238,11 @@ class TableConfigController {
       ? (document.getElementById('calloutTemplate')?.value.trim() || CONFIG.CALLOUT_TEMPLATE)
       : null;
 
-    // CONFIG의 기본 라벨 순서
+    // CONFIG의 기본 라벨 순서 (7개: 계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수)
     const defaults = [
       CONFIG.DEFAULT_LABELS.table.class,
       CONFIG.DEFAULT_LABELS.table.midpoint,
+      CONFIG.DEFAULT_LABELS.table.tally,
       CONFIG.DEFAULT_LABELS.table.frequency,
       CONFIG.DEFAULT_LABELS.table.relativeFrequency,
       CONFIG.DEFAULT_LABELS.table.cumulativeFrequency,
@@ -256,12 +258,12 @@ class TableConfigController {
       labels = labelInputs.map((input, i) => input.value.trim() || defaults[i]);
     }
 
-    const [label1, label2, label3, label4, label5, label6] = labels;
+    const [label1, label2, label3, label4, label5, label6, label7] = labels;
 
     // X축 라벨과 표의 "계급" 컬럼을 통합
     const classLabel = xAxisLabel || label1 || CONFIG.DEFAULT_LABELS.table.class;
     // Y축 라벨과 표의 "상대도수(%)" 컬럼을 통합
-    const relativeFreqLabel = yAxisLabel || label4 || CONFIG.DEFAULT_LABELS.table.relativeFrequency;
+    const relativeFreqLabel = yAxisLabel || label5 || CONFIG.DEFAULT_LABELS.table.relativeFrequency;
 
     return {
       axis: {
@@ -271,10 +273,11 @@ class TableConfigController {
       table: {
         class: classLabel,
         midpoint: label2,
-        frequency: label3,
+        tally: label3,
+        frequency: label4,
         relativeFrequency: relativeFreqLabel,
-        cumulativeFrequency: label5,
-        cumulativeRelativeFrequency: label6
+        cumulativeFrequency: label6,
+        cumulativeRelativeFrequency: label7
       },
       calloutTemplate
     };

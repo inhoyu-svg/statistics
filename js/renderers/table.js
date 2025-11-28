@@ -309,11 +309,11 @@ class TableRenderer {
     const columnOrder = config?.columnOrder || CONFIG.TABLE_DEFAULT_COLUMN_ORDER;
     const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
 
-    // 헤더 텍스트 배열 생성
+    // 헤더 텍스트 배열 생성 (7개: 계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수)
     const allLabels = [
-      tableLabels.class, tableLabels.midpoint, tableLabels.frequency,
-      tableLabels.relativeFrequency, tableLabels.cumulativeFrequency,
-      tableLabels.cumulativeRelativeFrequency
+      tableLabels.class, tableLabels.midpoint, tableLabels.tally,
+      tableLabels.frequency, tableLabels.relativeFrequency,
+      tableLabels.cumulativeFrequency, tableLabels.cumulativeRelativeFrequency
     ];
 
     // 정렬 및 필터링된 헤더
@@ -333,28 +333,40 @@ class TableRenderer {
         classText = `${c.min}이상 ~ ${c.max}미만`;
       }
 
+      // 탈리마크 너비 계산 (Canvas 그리기 기준)
+      // 5개 묶음: 4 * spacing, 나머지: (n-1) * spacing
+      const tallyCount = c.frequency;
+      const groups = Math.floor(tallyCount / 5);
+      const remainder = tallyCount % 5;
+      const tallyPixelWidth = groups * (4 * CONFIG.TALLY_LINE_SPACING + CONFIG.TALLY_GROUP_SPACING)
+        + (remainder > 0 ? (remainder - 1) * CONFIG.TALLY_LINE_SPACING : 0);
+      // 너비 계산용 placeholder (대략적인 문자 수로 변환)
+      const tallyWidthChars = 'X'.repeat(Math.ceil(tallyPixelWidth / 8) + 2);
+
       const allCells = [
-        classText,
-        String(c.midpoint),
-        String(c.frequency),
-        `${relFreq}%`,
-        String(c.cumulativeFreq),
-        `${cumRelFreq}%`
+        classText,                    // 0: 계급
+        String(c.midpoint),           // 1: 계급값
+        tallyWidthChars,              // 2: 탈리마크 (너비 계산용)
+        String(c.frequency),          // 3: 도수
+        `${relFreq}%`,                // 4: 상대도수
+        String(c.cumulativeFreq),     // 5: 누적도수
+        `${cumRelFreq}%`              // 6: 누적상대도수
       ];
       const orderedCells = columnOrder.map(i => allCells[i]);
       return orderedCells.filter((_, i) => orderedVisible[i]);
     });
 
-    // 합계 행 추가
+    // 합계 행 추가 (7개 컬럼)
     if (showSummaryRow) {
       const summaryRow = columnOrder.map(i => {
         switch (i) {
           case 0: return '합계';
           case 1: return '';
-          case 2: return String(total);
-          case 3: return '100%';
-          case 4: return String(total);
-          case 5: return '100%';
+          case 2: return '';           // 탈리마크 칸 빈값
+          case 3: return String(total);
+          case 4: return '100%';
+          case 5: return String(total);
+          case 6: return '100%';
           default: return '';
         }
       }).filter((_, idx) => orderedVisible[idx]);

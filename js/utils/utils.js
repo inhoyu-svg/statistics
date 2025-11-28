@@ -155,6 +155,7 @@ class Utils {
     // 끝자리 0 제거 (0.30 → 0.3, 0.10 → 0.1, 0.00 → 0)
     return str.replace(/\.?0+$/, '') || '0';
   }
+
 }
 
 export default Utils;

@@ -135,6 +135,12 @@ const CONFIG = {
   TABLE_CLASS_SEPARATOR: ' ~ ',           // 계급 구분자
   TABLE_NO_DATA_MESSAGE: '데이터가 없습니다', // 데이터 없음 메시지
 
+  // 탈리마크 선 그리기 설정 (Canvas 직접 그리기)
+  TALLY_LINE_WIDTH: 2,          // 탈리 선 두께
+  TALLY_LINE_HEIGHT: 16,        // 탈리 선 높이
+  TALLY_LINE_SPACING: 6,        // 선 간격
+  TALLY_GROUP_SPACING: 12,      // 5개 묶음 간격
+
   // 차트 선 너비
   CHART_LINE_WIDTH_THIN: 1,               // 얇은 선 (격자선)
   CHART_LINE_WIDTH_NORMAL: 2,             // 보통 선 (막대 테두리)
@@ -153,6 +159,7 @@ const CONFIG = {
     table: {
       class: '계급',
       midpoint: '계급값',
+      tally: '탈리',
       frequency: '도수',
       relativeFrequency: '상대도수(%)',
       cumulativeFrequency: '누적도수',
@@ -161,8 +168,9 @@ const CONFIG = {
   },
 
   // 테이블 기본 컬럼 설정
-  TABLE_DEFAULT_VISIBLE_COLUMNS: [true, true, true, true, false, false], // 누적도수, 누적상대도수 숨김
-  TABLE_DEFAULT_COLUMN_ORDER: [0, 1, 2, 3, 4, 5],
+  // 인덱스: [계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수]
+  TABLE_DEFAULT_VISIBLE_COLUMNS: [true, true, false, true, true, false, false], // 탈리, 누적도수, 누적상대도수 숨김
+  TABLE_DEFAULT_COLUMN_ORDER: [0, 1, 2, 3, 4, 5, 6],
 
   // 범위 밖 데이터 미리보기 최대 개수
   OUT_OF_RANGE_MAX_DISPLAY: 10,
@@ -171,6 +179,7 @@ const CONFIG = {
   TABLE_DEFAULT_ALIGNMENT: {
     '계급': 'center',
     '계급값': 'center',
+    '탈리': 'center',
     '도수': 'center',
     '상대도수(%)': 'center',
     '누적도수': 'center',

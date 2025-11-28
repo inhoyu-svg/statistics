@@ -7,6 +7,9 @@ import CONFIG from '../../config.js';
 import Utils from '../../utils/utils.js';
 import { Layer } from '../../animation/index.js';
 
+// 탈리마크 컬럼 인덱스 (원본 순서 기준)
+const TALLY_COLUMN_INDEX = 2;
+
 class TableLayerFactory {
   /**
    * 테이블 레이어 생성 (LayerManager에 추가)
@@ -25,10 +28,11 @@ class TableLayerFactory {
     const showSuperscript = config?.showSuperscript ?? CONFIG.TABLE_SHOW_SUPERSCRIPT;
     const showSummaryRow = config?.showSummaryRow ?? CONFIG.TABLE_SHOW_SUMMARY_ROW;
 
-    // 원본 라벨 배열
+    // 원본 라벨 배열 (7개: 계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수)
     const allLabels = [
       tableLabels.class,
       tableLabels.midpoint,
+      tableLabels.tally,
       tableLabels.frequency,
       tableLabels.relativeFrequency,
       tableLabels.cumulativeFrequency,
@@ -271,14 +275,16 @@ class TableLayerFactory {
     // 상대도수 형식 (차트 Y축 설정과 동일)
     const relFreqFormat = CONFIG.AXIS_Y_LABEL_FORMAT || 'percent';
 
-    // 원본 셀 데이터
+    // 원본 셀 데이터 (7개: 계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수)
+    // 탈리마크는 빈 문자열로 저장 (실제 렌더링은 tallyCount로 Canvas에 직접 그림)
     const allCells = [
-      `${classData.min} ~ ${classData.max}`,
-      Utils.formatNumberClean(classData.midpoint),
-      classData.frequency,
-      Utils.formatRelativeFrequency(classData.relativeFreq, relFreqFormat),
-      classData.cumulativeFreq,
-      Utils.formatRelativeFrequency(classData.cumulativeRelFreq, relFreqFormat)
+      `${classData.min} ~ ${classData.max}`,                              // 0: 계급
+      Utils.formatNumberClean(classData.midpoint),                         // 1: 계급값
+      '',                                                                  // 2: 탈리마크 (Canvas 직접 그리기)
+      classData.frequency,                                                 // 3: 도수
+      Utils.formatRelativeFrequency(classData.relativeFreq, relFreqFormat),// 4: 상대도수
+      classData.cumulativeFreq,                                            // 5: 누적도수
+      Utils.formatRelativeFrequency(classData.cumulativeRelFreq, relFreqFormat) // 6: 누적상대도수
     ];
 
     // columnOrder에 따라 재정렬
@@ -296,10 +302,11 @@ class TableLayerFactory {
       const label = filteredLabels[i];
       const originalIndex = filteredOriginalIndices[i]; // 원본 컬럼 인덱스
       const isClassColumn = originalIndex === 0; // 계급 컬럼 여부
+      const isTallyColumn = originalIndex === TALLY_COLUMN_INDEX; // 탈리 컬럼 여부
 
       const cellLayer = new Layer({
         id: `frequency-${tableId}-table-row-${rowIndex}-col${i}`,
-        name: String(cellText),
+        name: isTallyColumn ? `탈리(${classData.frequency})` : String(cellText),
         type: 'cell',
         visible: true,
         order: i,
@@ -320,7 +327,9 @@ class TableLayerFactory {
           classData: rowIndex === 0 && isClassColumn ? classData : null,
           showSuperscript: rowIndex === 0 && isClassColumn ? showSuperscript : false,
           // 짝수 행 배경색 표시 여부
-          isEvenRow: rowIndex % 2 === 1
+          isEvenRow: rowIndex % 2 === 1,
+          // 탈리 컬럼인 경우 탈리 개수 전달
+          tallyCount: isTallyColumn ? classData.frequency : undefined
         }
       });
 
@@ -370,8 +379,8 @@ class TableLayerFactory {
     const relFreqFormat = CONFIG.AXIS_Y_LABEL_FORMAT || 'percent';
     const totalRelFreq = relFreqFormat === 'percent' ? '100%' : '1';
 
-    // 원본 셀 데이터 (계급, 계급값은 "합계"로 병합, 나머지는 값)
-    const allCells = ['합계', '', total, totalRelFreq, total, totalRelFreq];
+    // 원본 셀 데이터 (7개: 합계, 빈칸, 탈리빈칸, 도수합계, 상대도수합계, 누적도수합계, 누적상대도수합계)
+    const allCells = ['합계', '', '', total, totalRelFreq, total, totalRelFreq];
 
     // columnOrder에 따라 재정렬
     const orderedCells = columnOrder.map(i => allCells[i]);
