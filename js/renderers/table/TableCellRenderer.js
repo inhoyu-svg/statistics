@@ -594,7 +594,7 @@ class TableCellRenderer {
    */
   _renderCellText(text, x, y, alignment, color, bold = false, isHeader = false) {
     const str = String(text).trim();
-    const fontSize = isHeader ? 18 : 24;
+    const fontSize = isHeader ? 22 : 24;
 
     // 언더바만 있는 경우 빈칸으로 처리 (렌더링 스킵)
     if (str === '_' || str === '') {
@@ -605,6 +605,16 @@ class TableCellRenderer {
     if (str.includes('^')) {
       const parts = this._parseSuperscript(str);
       this._renderWithSuperscript(parts, x, y, alignment, color, bold, isHeader);
+      return;
+    }
+
+    // 한글 포함 + 괄호 있는 경우 먼저 처리 (괄호를 작게 렌더링)
+    // 예: "O형인 학생 수(명)", "전체 학생 수 (명)"
+    const hasKorean = /[가-힣]/.test(str);
+    const parenMatch = str.match(/^(.*?)(\s*\([^)]*\))$/);
+
+    if (hasKorean && parenMatch) {
+      this._renderTextWithSmallParen(parenMatch[1], parenMatch[2], x, y, alignment, color, bold, fontSize);
       return;
     }
 
@@ -620,50 +630,12 @@ class TableCellRenderer {
       // 한글+숫자/알파벳 혼합인 경우 분리 렌더링 (예: "1반", "2반")
       this._renderMixedText(str, x, y, alignment, color, bold, fontSize);
     } else {
-      // 한글 등은 기본 폰트 사용
+      // 한글 등은 기본 폰트 사용 (괄호 처리는 상단에서 이미 완료됨)
       this.ctx.fillStyle = color;
       this.ctx.textBaseline = 'middle';
-
-      // 괄호 부분 분리 (예: "전체 학생 수 (명)" → "전체 학생 수 " + "(명)")
-      const match = str.match(/^(.*?)(\s*\([^)]*\))$/);
-      if (match) {
-        const mainText = match[1];
-        const parenText = match[2];
-
-        // 메인 텍스트 너비 측정
-        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
-        const mainWidth = this.ctx.measureText(mainText).width;
-
-        // 괄호 텍스트 너비 측정 (작은 폰트)
-        const smallFont = bold ? 'bold 12px sans-serif' : '12px sans-serif';
-        this.ctx.font = smallFont;
-        const parenWidth = this.ctx.measureText(parenText).width;
-
-        // 전체 너비로 시작 X 좌표 계산
-        const totalWidth = mainWidth + parenWidth;
-        let startX;
-        if (alignment === 'center') {
-          startX = x - totalWidth / 2;
-        } else if (alignment === 'right') {
-          startX = x - totalWidth;
-        } else {
-          startX = x;
-        }
-
-        // 메인 텍스트 렌더링
-        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText(mainText, startX, y);
-
-        // 괄호 텍스트 렌더링 (작은 폰트, 약간 아래로)
-        this.ctx.font = smallFont;
-        this.ctx.fillText(parenText, startX + mainWidth, y + 2);
-      } else {
-        // 괄호 없으면 기존대로 렌더링
-        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
-        this.ctx.textAlign = alignment;
-        this.ctx.fillText(str, x, y);
-      }
+      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+      this.ctx.textAlign = alignment;
+      this.ctx.fillText(str, x, y);
     }
   }
 
@@ -729,6 +701,84 @@ class TableCellRenderer {
       this.ctx.fillText(seg.text, currentX, y);
       currentX += this.ctx.measureText(seg.text).width;
     });
+
+    this.ctx.restore();
+  }
+
+  /**
+   * 괄호가 있는 텍스트를 분리하여 렌더링 (괄호는 작은 폰트)
+   * 예: "O형인 학생 수(명)" → "O형인 학생 수" + "(명)"
+   * @param {string} mainText - 메인 텍스트
+   * @param {string} parenText - 괄호 텍스트
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {string} alignment - 정렬 방식
+   * @param {string} color - 텍스트 색상
+   * @param {boolean} bold - 볼드 여부
+   * @param {number} fontSize - 폰트 크기
+   */
+  _renderTextWithSmallParen(mainText, parenText, x, y, alignment, color, bold, fontSize) {
+    this.ctx.save();
+    this.ctx.fillStyle = color;
+    this.ctx.textBaseline = 'middle';
+
+    const smallFont = bold ? 'bold 12px sans-serif' : '12px sans-serif';
+    const koreanFontSize = 18;
+
+    // 메인 텍스트 너비 계산
+    let mainWidth = 0;
+    const isMixed = this._containsMixedKoreanAndNumeric(mainText);
+
+    if (isMixed) {
+      // 혼합 텍스트: 세그먼트별 너비 계산
+      const segments = this._splitByCharType(mainText);
+      segments.forEach(seg => {
+        const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
+        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+        mainWidth += this.ctx.measureText(seg.text).width;
+      });
+    } else {
+      // 순수 한글: 기본 폰트
+      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+      mainWidth = this.ctx.measureText(mainText).width;
+    }
+
+    // 괄호 텍스트 너비 계산
+    this.ctx.font = smallFont;
+    const parenWidth = this.ctx.measureText(parenText).width;
+
+    // 전체 너비로 시작 X 좌표 계산
+    const totalWidth = mainWidth + parenWidth;
+    let startX;
+    if (alignment === 'center') {
+      startX = x - totalWidth / 2;
+    } else if (alignment === 'right') {
+      startX = x - totalWidth;
+    } else {
+      startX = x;
+    }
+
+    // 메인 텍스트 렌더링
+    this.ctx.textAlign = 'left';
+    if (isMixed) {
+      // 혼합 텍스트: 세그먼트별 렌더링
+      const segments = this._splitByCharType(mainText);
+      let currentX = startX;
+      segments.forEach(seg => {
+        const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
+        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+        this.ctx.fillText(seg.text, currentX, y);
+        currentX += this.ctx.measureText(seg.text).width;
+      });
+    } else {
+      // 순수 한글
+      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+      this.ctx.fillText(mainText, startX, y);
+    }
+
+    // 괄호 텍스트 렌더링 (작은 폰트, 약간 아래로)
+    this.ctx.font = smallFont;
+    this.ctx.fillText(parenText, startX + mainWidth, y + 2);
 
     this.ctx.restore();
   }
