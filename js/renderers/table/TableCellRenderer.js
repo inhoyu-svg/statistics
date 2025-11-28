@@ -743,9 +743,29 @@ class TableCellRenderer {
       mainWidth = this.ctx.measureText(mainText).width;
     }
 
-    // 괄호 텍스트 너비 계산
+    // 괄호 텍스트 너비 계산 (KaTeX 폰트 적용 고려)
+    const parenContent = parenText.replace(/[()]/g, '').trim();
+    const smallFontSize = 12;
+    const lowercaseFontSize = 15; // 소문자는 이탤릭이라 더 크게
+    let parenWidth = 0;
+
+    // 여는 괄호
     this.ctx.font = smallFont;
-    const parenWidth = this.ctx.measureText(parenText).width;
+    parenWidth += this.ctx.measureText('(').width;
+
+    // 괄호 내부 텍스트
+    if (parenContent) {
+      const segments = this._splitByCharType(parenContent);
+      segments.forEach(seg => {
+        const segSize = seg.type === 'lowercase' ? lowercaseFontSize : smallFontSize;
+        this.ctx.font = this._getFontForCharType(seg.type, segSize, false);
+        parenWidth += this.ctx.measureText(seg.text).width;
+      });
+    }
+
+    // 닫는 괄호
+    this.ctx.font = smallFont;
+    parenWidth += this.ctx.measureText(')').width;
 
     // 전체 너비로 시작 X 좌표 계산
     const totalWidth = mainWidth + parenWidth;
@@ -777,8 +797,28 @@ class TableCellRenderer {
     }
 
     // 괄호 텍스트 렌더링 (작은 폰트, 약간 아래로)
+    // 괄호 내부 텍스트에 KaTeX 폰트 적용
+    let parenX = startX + mainWidth;
+
+    // 여는 괄호
     this.ctx.font = smallFont;
-    this.ctx.fillText(parenText, startX + mainWidth, y + 2);
+    this.ctx.fillText('(', parenX, y + 2);
+    parenX += this.ctx.measureText('(').width;
+
+    // 괄호 내부 텍스트: 문자 유형별 폰트 적용
+    if (parenContent) {
+      const segments = this._splitByCharType(parenContent);
+      segments.forEach(seg => {
+        const segSize = seg.type === 'lowercase' ? lowercaseFontSize : smallFontSize;
+        this.ctx.font = this._getFontForCharType(seg.type, segSize, false);
+        this.ctx.fillText(seg.text, parenX, y + 2);
+        parenX += this.ctx.measureText(seg.text).width;
+      });
+    }
+
+    // 닫는 괄호
+    this.ctx.font = smallFont;
+    this.ctx.fillText(')', parenX, y + 2);
 
     this.ctx.restore();
   }

@@ -166,11 +166,20 @@ class TableEditModal {
       html += `<tr class="${isSummary ? 'summary-row' : ''}" data-row-id="${row.id}">`;
 
       row.children.forEach((cell, colIndex) => {
-        const { rowIndex, cellText, originalValue } = cell.data;
-        const displayValue = cellText;
-        const originalVal = originalValue !== undefined ? originalValue : cellText;
+        const { rowIndex, cellText, originalValue, tallyCount } = cell.data;
+        // tallyCount가 정의되어 있으면 탈리 컬럼 (헤더 병합과 관계없이 정확히 판별)
+        const isTallyColumn = tallyCount !== undefined;
 
-        html += `<td data-row="${rowIndex}" data-col="${colIndex}" data-original="${originalVal}">${displayValue}</td>`;
+        // 탈리 컬럼인 경우 tallyCount 표시, 아니면 cellText 표시
+        let displayValue = cellText;
+        let originalVal = originalValue !== undefined ? originalValue : cellText;
+
+        if (isTallyColumn) {
+          displayValue = String(tallyCount);
+          originalVal = String(tallyCount);
+        }
+
+        html += `<td data-row="${rowIndex}" data-col="${colIndex}" data-original="${originalVal}" data-is-tally="${isTallyColumn}">${displayValue}</td>`;
       });
 
       html += '</tr>';
@@ -285,6 +294,7 @@ class TableEditModal {
       const colIndex = parseInt(td.dataset.col);
       const originalValue = td.dataset.original;
       const currentValue = td.textContent.trim();
+      const isTallyColumn = td.dataset.isTally === 'true';
 
       // 레이어에서 해당 셀 찾기
       let cellLayer = null;
@@ -301,6 +311,22 @@ class TableEditModal {
       }
 
       if (!cellLayer) return;
+
+      // 탈리 컬럼 특별 처리
+      if (isTallyColumn) {
+        // '_' 입력 시 0으로, 숫자 입력 시 해당 값으로 tallyCount 업데이트
+        if (currentValue === '_' || currentValue === '') {
+          cellLayer.data.tallyCount = 0;
+        } else {
+          const numValue = parseInt(currentValue);
+          if (!isNaN(numValue)) {
+            cellLayer.data.tallyCount = numValue;
+          }
+        }
+        // 탈리 컬럼의 cellText는 항상 빈 문자열 유지
+        cellLayer.data.cellText = '';
+        return;
+      }
 
       // 값이 변경되었는지 확인
       if (currentValue !== originalValue) {
