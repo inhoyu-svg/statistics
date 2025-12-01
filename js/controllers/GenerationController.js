@@ -38,8 +38,9 @@ class GenerationController {
     const secondStart = document.getElementById('secondStart');
     const lastEnd = document.getElementById('lastEnd');
     const intervalDisplay = document.getElementById('intervalDisplay');
+    const applyBtn = document.getElementById('applyClassRangeBtn');
 
-    const updateValues = () => {
+    const updateDisplayValues = () => {
       const firstEnd = parseFloat(firstEndInput?.value) || 1;
       const secondEnd = parseFloat(secondEndInput?.value) || 3;
       const lastStart = parseFloat(lastStartInput?.value) || 15;
@@ -56,13 +57,15 @@ class GenerationController {
       if (lastEnd) {
         lastEnd.textContent = lastStart + interval;
       }
-
-      this.regenerateWithCustomRange();
     };
 
-    firstEndInput?.addEventListener('input', updateValues);
-    secondEndInput?.addEventListener('input', updateValues);
-    lastStartInput?.addEventListener('input', updateValues);
+    firstEndInput?.addEventListener('input', updateDisplayValues);
+    secondEndInput?.addEventListener('input', updateDisplayValues);
+    lastStartInput?.addEventListener('input', updateDisplayValues);
+
+    applyBtn?.addEventListener('click', () => {
+      this.regenerateWithCustomRange();
+    });
   }
 
   /**
@@ -84,9 +87,9 @@ class GenerationController {
       const secondEndInput = document.getElementById('secondEnd');
       const lastStartInput = document.getElementById('lastStart');
 
-      if (firstEndInput) firstEndInput.placeholder = firstEnd;
-      if (secondEndInput) secondEndInput.placeholder = secondEnd;
-      if (lastStartInput) lastStartInput.placeholder = lastStart;
+      if (firstEndInput) firstEndInput.value = firstEnd;
+      if (secondEndInput) secondEndInput.value = secondEnd;
+      if (lastStartInput) lastStartInput.value = lastStart;
     }
   }
 
@@ -100,6 +103,17 @@ class GenerationController {
       const lastStart = parseFloat(document.getElementById('lastStart')?.value);
 
       if (!firstEnd || !secondEnd || !lastStart) return;
+
+      // 루프 전 초기화 (generate()와 동일)
+      this.app.chartRenderer.canvas.width = CONFIG.CANVAS_WIDTH;
+      this.app.chartRenderer.canvas.height = CONFIG.CANVAS_HEIGHT;
+      this.app.chartRenderer.clear();
+      this.app.chartRenderer.layerManager.root.children = [];
+      this.app.chartRenderer.timeline.animations = new Map();
+      this.app.chartRenderer.timeline.timeline = [];
+      this.app.chartRenderer.timeline.currentTime = 0;
+      this.app.chartRenderer.timeline.duration = 0;
+      this.app.chartRenderer.lastHighlightInfo = null;
 
       const customRange = { firstEnd, secondEnd, lastStart };
 

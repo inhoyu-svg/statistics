@@ -10,7 +10,6 @@ import { applyEasing } from './timeline.utils.js';
  */
 export function rebuildTimeline(timelineInstance) {
   timelineInstance.timeline = Array.from(timelineInstance.animations.values());
-  console.log('Rebuilt timeline:', timelineInstance.timeline);
 
   // 전체 지속 시간 계산
   timelineInstance.duration = timelineInstance.timeline.reduce((max, anim) => {
