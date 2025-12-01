@@ -1268,24 +1268,26 @@ class TableRenderer {
   }
 
   /**
-   * 병합된 셀 그룹 렌더링 (각 애니메이션을 독립적으로 렌더링, 겹침 허용)
+   * 병합된 셀 그룹 렌더링 (인접 셀 병합, 방향 제약 적용)
    * @param {number} progress - 애니메이션 진행도 (0~1)
    */
   _renderMergedAnimations(progress) {
     if (this.savedAnimations.length === 0) return;
 
-    // 색상 결정: 애니메이션 1개면 초록색, 2개 이상이면 파랑/분홍/주황
-    const colors = this.savedAnimations.length === 1
-      ? ['#89EC4E']  // 단일 애니메이션: 초록색
-      : ['#008aff', '#e749af', '#ff764f'];  // 복수 애니메이션: 파랑, 분홍, 주황
+    // 모든 애니메이션의 셀을 수집
+    const allCells = this._collectAllAnimationCells();
+    if (allCells.length === 0) return;
 
-    // 각 애니메이션을 독립적으로 렌더링 (겹침 허용)
-    this.savedAnimations.forEach((anim, animIndex) => {
-      const cells = this._collectAnimationCellsForSingleAnim(anim);
-      if (cells.length === 0) return;
+    // 전체 셀을 그룹화 (인접 셀 병합, 방향 제약 적용)
+    const groups = this._groupAdjacentCells(allCells);
 
-      const groups = this._groupCellsWithDirection(cells);
-      const color = colors[animIndex] || colors[colors.length - 1];
+    // 색상: 그룹 1개면 초록색, 2개 이상이면 파랑/분홍/주황
+    const colors = groups.length === 1
+      ? ['#89EC4E']
+      : ['#008aff', '#e749af', '#ff764f'];
+
+    groups.forEach((group, groupIndex) => {
+      const color = colors[groupIndex % colors.length];
       const fillAlpha = progress * 0.3;
       const strokeAlpha = progress;
 
@@ -1294,50 +1296,48 @@ class TableRenderer {
       const g = parseInt(color.slice(3, 5), 16);
       const b = parseInt(color.slice(5, 7), 16);
 
-      groups.forEach(group => {
-        const cellSet = new Set(group.map(c => `${c.row}-${c.col}`));
+      const cellSet = new Set(group.map(c => `${c.row}-${c.col}`));
 
-        this.ctx.save();
+      this.ctx.save();
 
-        // 1. 모든 셀에 fill
-        this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${fillAlpha})`;
-        group.forEach(c => {
-          this.ctx.fillRect(c.bounds.x, c.bounds.y, c.bounds.width, c.bounds.height);
-        });
-
-        // 2. 외곽 변만 stroke (인접 셀과 공유하는 변은 제외)
-        this.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${strokeAlpha})`;
-        this.ctx.lineWidth = 2;
-
-        group.forEach(c => {
-          const { x, y, width, height } = c.bounds;
-          const hasTop = cellSet.has(`${c.row - 1}-${c.col}`);
-          const hasBottom = cellSet.has(`${c.row + 1}-${c.col}`);
-          const hasLeft = cellSet.has(`${c.row}-${c.col - 1}`);
-          const hasRight = cellSet.has(`${c.row}-${c.col + 1}`);
-
-          this.ctx.beginPath();
-          if (!hasTop) { // 위쪽 변
-            this.ctx.moveTo(x, y);
-            this.ctx.lineTo(x + width, y);
-          }
-          if (!hasBottom) { // 아래쪽 변
-            this.ctx.moveTo(x, y + height);
-            this.ctx.lineTo(x + width, y + height);
-          }
-          if (!hasLeft) { // 왼쪽 변
-            this.ctx.moveTo(x, y);
-            this.ctx.lineTo(x, y + height);
-          }
-          if (!hasRight) { // 오른쪽 변
-            this.ctx.moveTo(x + width, y);
-            this.ctx.lineTo(x + width, y + height);
-          }
-          this.ctx.stroke();
-        });
-
-        this.ctx.restore();
+      // 1. 모든 셀에 fill
+      this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${fillAlpha})`;
+      group.forEach(c => {
+        this.ctx.fillRect(c.bounds.x, c.bounds.y, c.bounds.width, c.bounds.height);
       });
+
+      // 2. 외곽 변만 stroke (인접 셀과 공유하는 변은 제외)
+      this.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${strokeAlpha})`;
+      this.ctx.lineWidth = 2;
+
+      group.forEach(c => {
+        const { x, y, width, height } = c.bounds;
+        const hasTop = cellSet.has(`${c.row - 1}-${c.col}`);
+        const hasBottom = cellSet.has(`${c.row + 1}-${c.col}`);
+        const hasLeft = cellSet.has(`${c.row}-${c.col - 1}`);
+        const hasRight = cellSet.has(`${c.row}-${c.col + 1}`);
+
+        this.ctx.beginPath();
+        if (!hasTop) { // 위쪽 변
+          this.ctx.moveTo(x, y);
+          this.ctx.lineTo(x + width, y);
+        }
+        if (!hasBottom) { // 아래쪽 변
+          this.ctx.moveTo(x, y + height);
+          this.ctx.lineTo(x + width, y + height);
+        }
+        if (!hasLeft) { // 왼쪽 변
+          this.ctx.moveTo(x, y);
+          this.ctx.lineTo(x, y + height);
+        }
+        if (!hasRight) { // 오른쪽 변
+          this.ctx.moveTo(x + width, y);
+          this.ctx.lineTo(x + width, y + height);
+        }
+        this.ctx.stroke();
+      });
+
+      this.ctx.restore();
     });
   }
 
