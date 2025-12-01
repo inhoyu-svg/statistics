@@ -307,7 +307,7 @@ function applyCellVariables(classes, cellVariables, tableId) {
   cellVariables.forEach(cv => {
     // Find row index by class range
     const rowIndex = classes.findIndex(c =>
-      `${c.start}~${c.end}` === cv.class
+      `${c.min}~${c.max}` === cv.class
     );
     if (rowIndex === -1) return;
 
