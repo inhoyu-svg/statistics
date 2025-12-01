@@ -272,12 +272,27 @@ class DataProcessor {
   static shouldShowEllipsis(classes) {
     const firstDataIndex = classes.findIndex(classData => classData.frequency > 0);
 
-    // 첫 데이터가 threshold 미만 계급에 있으면 중략 불필요
-    if (firstDataIndex < CONFIG.ELLIPSIS_THRESHOLD) {
+    // 첫 데이터가 없으면 중략 불필요
+    if (firstDataIndex === -1) {
       return { show: false, firstDataIndex: -1 };
     }
 
-    return { show: true, firstDataIndex };
+    // 기존 조건: 첫 데이터가 threshold 이상 계급에 있으면 중략 필요
+    if (firstDataIndex >= CONFIG.ELLIPSIS_THRESHOLD) {
+      return { show: true, firstDataIndex };
+    }
+
+    // 추가 조건: 첫 계급이 비어있고 범위가 크면 중략 필요 (커스텀 범위 대응)
+    if (firstDataIndex >= 1 && classes[0].frequency === 0) {
+      const firstClassRange = classes[0].max - classes[0].min;
+      const classWidth = classes.length >= 2 ? classes[1].max - classes[1].min : firstClassRange;
+      // 첫 계급의 범위가 일반 계급 간격의 threshold배 이상이면 중략 표시
+      if (firstClassRange >= classWidth * CONFIG.ELLIPSIS_THRESHOLD) {
+        return { show: true, firstDataIndex };
+      }
+    }
+
+    return { show: false, firstDataIndex: -1 };
   }
 
   /**
