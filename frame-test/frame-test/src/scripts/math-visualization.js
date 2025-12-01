@@ -1,5 +1,5 @@
 import { renderGraph } from '../../src/scripts/visualization-api.esm.js';
-import { renderChart } from '../../../../js/viz-api.js';
+import { render } from '../../../../js/viz-api.js';
 
 class MathVisualization {
   // 이전 렌더 사이클에서 보였던 viz 컨테이너 ID 집합
@@ -114,7 +114,7 @@ class MathVisualization {
       if (vizMode === 'chart' || vizMode === 'table' || vizMode === 'both') {
         // Statistics 차트/테이블 렌더링
         console.log(`[MathVisualization] Statistics 모드: ${vizMode}`);
-        renderChart(vizElement, config);
+        render(vizElement, config);
       } else {
         // 기본: 좌표평면 그래프 렌더링
         // renderGraph가 내부적으로 data-viz-canvas, config 수집, 좌표 계산을 모두 처리
