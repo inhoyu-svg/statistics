@@ -1,0 +1,24 @@
+{
+  "name": "statistics-main",
+  "version": "1.0.0",
+  "description": "Statistics visualization library with charts and tables",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c build-helper/rollup.config.js",
+    "build:api": "rollup -c build-helper/rollup.config.api.js",
+    "build:watch": "rollup -c build-helper/rollup.config.api.js --watch",
+    "zip": "node build-helper/zip-bundle.js"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup": "^4.9.4"
+  },
+  "keywords": [
+    "statistics",
+    "chart",
+    "histogram",
+    "frequency",
+    "visualization"
+  ],
+  "license": "MIT"
+}

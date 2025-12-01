@@ -50,6 +50,8 @@ export async function render(element, config) {
  * @param {Object} [config.options] - Additional options
  * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
  * @param {string} [config.options.dataType='relativeFrequency'] - Data type ('frequency' | 'relativeFrequency')
+ * @param {boolean} [config.options.showHistogram=true] - Show histogram bars
+ * @param {boolean} [config.options.showPolygon=true] - Show frequency polygon
  * @param {boolean} [config.options.animation=true] - Enable animation
  * @returns {Promise<Object>} { chartRenderer, canvas, classes } or { error }
  */
@@ -119,6 +121,12 @@ export async function renderChart(element, config) {
     const animation = typeof animationConfig === 'object'
       ? animationConfig.enabled !== false
       : animationConfig !== false;
+
+    // Show/hide histogram and polygon
+    const showHistogram = options.showHistogram !== false;
+    const showPolygon = options.showPolygon !== false;
+    CONFIG.SHOW_HISTOGRAM = showHistogram;
+    CONFIG.SHOW_POLYGON = showPolygon;
 
     if (!animation) {
       chartRenderer.disableAnimation();
