@@ -114,6 +114,9 @@ class FrequencyDistributionApp {
     // 하이라이트 테스트 버튼 초기화
     this.layerPanelController.initHighlightTestButtons();
 
+    // 애니메이션 테스트 버튼 초기화
+    this.layerPanelController.initAnimationTestButtons();
+
     // 계급 범위 편집기 초기화
     this.generationController.initClassRangeEditor();
   }

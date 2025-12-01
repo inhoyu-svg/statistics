@@ -1510,6 +1510,131 @@ canvas {
   transform: translateY(0);
 }
 
+/* Animation Test Group */
+.animation-test-group {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.animation-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.animation-input-row label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+.anim-input {
+  flex: 1;
+  min-width: 45px;
+  padding: 4px 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  font-size: 11px;
+  text-align: center;
+}
+
+.anim-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(84, 160, 246, 0.2);
+}
+
+.animation-test-group .test-button-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.anim-btn {
+  padding: 6px 4px;
+  font-size: 11px;
+  min-width: unset;
+}
+
+.anim-btn.stop-btn {
+  background: rgba(255, 100, 100, 0.1);
+  border-color: rgba(255, 100, 100, 0.3);
+  color: #ff6464;
+}
+
+.anim-btn.stop-btn:hover {
+  background: #ff6464;
+  color: white;
+  border-color: #ff6464;
+}
+
+.anim-btn.play-btn {
+  background: rgba(137, 236, 78, 0.1);
+  border-color: rgba(137, 236, 78, 0.3);
+  color: #89EC4E;
+}
+
+.anim-btn.play-btn:hover {
+  background: #89EC4E;
+  color: #1a1a2e;
+  border-color: #89EC4E;
+}
+
+/* Saved Animation List */
+.saved-anim-list {
+  margin-top: 8px;
+  max-height: 100px;
+  overflow-y: auto;
+  font-size: 11px;
+}
+
+.saved-anim-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  background: rgba(137, 236, 78, 0.1);
+  border: 1px solid rgba(137, 236, 78, 0.3);
+  border-radius: 4px;
+  color: var(--color-text);
+}
+
+.saved-anim-item .anim-info {
+  flex: 1;
+}
+
+.saved-anim-item .remove-btn {
+  background: transparent;
+  border: none;
+  color: #ff6464;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+.saved-anim-item .remove-btn:hover {
+  color: #ff8888;
+}
+
+.blink-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.blink-checkbox input {
+  cursor: pointer;
+}
+
 /* Speed Control */
 #speedControl {
   color: var(--color-text);

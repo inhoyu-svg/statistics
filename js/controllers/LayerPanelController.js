@@ -651,6 +651,141 @@ class LayerPanelController {
       group.style.display = 'block';
     }
   }
+
+  /**
+   * 애니메이션 테스트 버튼 초기화
+   */
+  initAnimationTestButtons() {
+    const addAnimationBtn = document.getElementById('addAnimationBtn');
+    const playAllAnimBtn = document.getElementById('playAllAnimBtn');
+    const clearAnimBtn = document.getElementById('clearAnimBtn');
+    const savedAnimList = document.getElementById('savedAnimList');
+
+    const rowIndexInput = document.getElementById('animRowIndex');
+    const colIndexInput = document.getElementById('animColIndex');
+    const repeatInput = document.getElementById('animRepeat');
+    const durationInput = document.getElementById('animDuration');
+    const blinkEnabledCheckbox = document.getElementById('animBlinkEnabled');
+    const repeatLabel = document.getElementById('animRepeatLabel');
+
+    // 블링크 체크박스 변경 시 반복 필드 표시/숨김
+    blinkEnabledCheckbox?.addEventListener('change', () => {
+      if (repeatLabel) {
+        repeatLabel.style.display = blinkEnabledCheckbox.checked ? '' : 'none';
+      }
+    });
+
+    // 현재 활성화된 테이블 렌더러 가져오기
+    const getActiveTableRenderer = () => {
+      return this.app.tableRenderers?.[0] || this.app.tableRenderer;
+    };
+
+    // 입력값 읽기 헬퍼 (빈 값은 null로 처리)
+    const getAnimationOptions = () => {
+      const rowVal = rowIndexInput?.value;
+      const colVal = colIndexInput?.value;
+      return {
+        rowIndex: rowVal !== '' ? parseInt(rowVal) : null,
+        colIndex: colVal !== '' ? parseInt(colVal) : null,
+        repeat: parseInt(repeatInput?.value) || 3,
+        duration: parseInt(durationInput?.value) || 1500
+      };
+    };
+
+    // 저장된 애니메이션 목록 UI 업데이트
+    const updateSavedAnimList = () => {
+      const renderer = getActiveTableRenderer();
+      if (!renderer || !savedAnimList) return;
+
+      const animations = renderer.getSavedAnimations();
+      savedAnimList.innerHTML = '';
+
+      if (animations.length === 0) {
+        savedAnimList.innerHTML = '<div style="color: var(--color-text-light); font-size: 10px;">저장된 애니메이션 없음</div>';
+        return;
+      }
+
+      animations.forEach(anim => {
+        const item = document.createElement('div');
+        item.className = 'saved-anim-item';
+
+        // 애니메이션 타입 표시
+        let typeText;
+        if (anim.rowIndex !== null && anim.colIndex !== null) {
+          typeText = `셀 [${anim.rowIndex}, ${anim.colIndex}]`;
+        } else if (anim.rowIndex !== null) {
+          typeText = `행 ${anim.rowIndex} 전체`;
+        } else if (anim.colIndex !== null) {
+          typeText = `열 ${anim.colIndex} 전체`;
+        } else {
+          typeText = '전체';
+        }
+
+        item.innerHTML = `
+          <span class="anim-info">${typeText} (${anim.repeat}회, ${anim.duration}ms)</span>
+          <button class="remove-btn" data-id="${anim.id}">×</button>
+        `;
+
+        // 삭제 버튼 이벤트
+        item.querySelector('.remove-btn').addEventListener('click', (e) => {
+          const id = parseFloat(e.target.dataset.id);
+          renderer.removeAnimation(id);
+          updateSavedAnimList();
+        });
+
+        savedAnimList.appendChild(item);
+      });
+    };
+
+    // 애니메이션 추가
+    addAnimationBtn?.addEventListener('click', () => {
+      const renderer = getActiveTableRenderer();
+      if (!renderer) {
+        MessageManager.warning('테이블이 없습니다. 먼저 도수분포표를 생성하세요.');
+        return;
+      }
+      const opts = getAnimationOptions();
+
+      // 행과 열 둘 다 비어있으면 경고
+      if (opts.rowIndex === null && opts.colIndex === null) {
+        MessageManager.warning('행 또는 열을 지정해주세요.');
+        return;
+      }
+
+      renderer.addAnimation(opts);
+      updateSavedAnimList();
+      MessageManager.success('애니메이션이 추가되었습니다.');
+    });
+
+    // 모든 애니메이션 재생
+    playAllAnimBtn?.addEventListener('click', () => {
+      const renderer = getActiveTableRenderer();
+      if (!renderer) {
+        MessageManager.warning('테이블이 없습니다. 먼저 도수분포표를 생성하세요.');
+        return;
+      }
+      if (renderer.getSavedAnimations().length === 0) {
+        MessageManager.warning('저장된 애니메이션이 없습니다. 먼저 애니메이션을 추가하세요.');
+        return;
+      }
+      const blinkEnabled = blinkEnabledCheckbox?.checked ?? true;
+      renderer.playAllAnimations({ blinkEnabled });
+    });
+
+    // 애니메이션 초기화
+    clearAnimBtn?.addEventListener('click', () => {
+      const renderer = getActiveTableRenderer();
+      if (renderer) {
+        renderer.stopCellAnimation();
+        renderer.clearSavedAnimations();
+        updateSavedAnimList();
+        MessageManager.success('애니메이션이 초기화되었습니다.');
+      }
+    });
+
+    // 초기 목록 업데이트
+    updateSavedAnimList();
+  }
 }
 
 export default LayerPanelController;

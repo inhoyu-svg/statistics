@@ -53,6 +53,19 @@ class TableRenderer {
     // 타임라인 콜백
     this.timeline.onUpdate = () => this.renderFrame();
 
+    // 셀 애니메이션 상태
+    this.cellAnimationActive = false;
+    this.cellAnimationStart = 0;
+    this.cellAnimationDuration = 1000;
+    this.cellAnimationRepeat = 3;
+    this.cellAnimationTargets = []; // [{row, col}, ...]
+    this.cellAnimationFrameId = null;
+    this.cellAnimationBlinkEnabled = true;
+
+    // 복수 애니메이션 저장
+    this.savedAnimations = []; // [{rowIndex, colIndex, duration, repeat}, ...]
+    this.activeAnimations = []; // 현재 재생 중인 애니메이션들
+
     // 편집 모달 관리자
     this.editModal = new TableEditModal(this);
 
@@ -439,10 +452,29 @@ class TableRenderer {
    */
   renderFrame() {
     this.clear();
+
+    // 셀 애니메이션 진행도 계산 및 적용
+    this.processTableAnimations();
+
     const rootLayer = this.layerManager.root;
     if (rootLayer && rootLayer.children.length > 0) {
       // root의 자식들(도수분포표)을 렌더링
       rootLayer.children.forEach(child => this.renderLayer(child));
+    }
+
+    // 병합된 셀 애니메이션 렌더링 (인접 셀은 하나의 영역으로)
+    if (this.cellAnimationActive) {
+      let renderProgress;
+      if (this.cellAnimationBlinkEnabled) {
+        // 블링크 활성화: 펄스 효과 (사인파)
+        const elapsed = Date.now() - this.cellAnimationStart;
+        const progress = Math.min(elapsed / this.cellAnimationDuration, 1);
+        renderProgress = Math.sin(progress * Math.PI * 2 * this.cellAnimationRepeat) * 0.5 + 0.5;
+      } else {
+        // 블링크 비활성화: 정적 하이라이트
+        renderProgress = 1;
+      }
+      this._renderMergedAnimations(renderProgress);
     }
   }
 
@@ -584,6 +616,608 @@ class TableRenderer {
     });
 
     this.renderFrame();
+  }
+
+  // =============================================
+  // 셀 애니메이션 API
+  // =============================================
+
+  /**
+   * 셀 애니메이션 실행
+   * @param {Object} options - 애니메이션 옵션
+   * @param {number} [options.rowIndex] - 행 인덱스 (null이면 전체 행)
+   * @param {number} [options.colIndex] - 열 인덱스 (null이면 전체 열)
+   * @param {Array} [options.cells] - 복수 셀 [{row, col}, ...]
+   * @param {number} [options.duration=1500] - 애니메이션 시간 (ms)
+   * @param {number} [options.repeat=3] - 반복 횟수
+   * @param {string} [options.color] - 애니메이션 색상 (CSS rgba 또는 hex)
+   */
+  animateCells(options = {}) {
+    const {
+      rowIndex = null,
+      colIndex = null,
+      cells = null,
+      duration = 1500,
+      repeat = 3,
+      color = null
+    } = options;
+
+    // 기존 애니메이션 중지
+    this.stopCellAnimation();
+
+    // 대상 셀 결정
+    this.cellAnimationTargets = this._resolveAnimationTargets(rowIndex, colIndex, cells);
+
+    if (this.cellAnimationTargets.length === 0) {
+      console.warn('animateCells: 대상 셀이 없습니다.');
+      return;
+    }
+
+    // 애니메이션 상태 설정
+    this.cellAnimationActive = true;
+    this.cellAnimationStart = Date.now();
+    this.cellAnimationDuration = duration;
+    this.cellAnimationRepeat = repeat;
+    this.cellAnimationColor = color;
+
+    // 애니메이션 루프 시작
+    this._runCellAnimationLoop();
+  }
+
+  /**
+   * 셀 애니메이션 중지
+   */
+  stopCellAnimation() {
+    this.cellAnimationActive = false;
+
+    if (this.cellAnimationFrameId) {
+      cancelAnimationFrame(this.cellAnimationFrameId);
+      this.cellAnimationFrameId = null;
+    }
+
+    // 모든 셀의 애니메이션 상태 초기화
+    this._clearAnimationFromAllCells();
+    this.cellAnimationTargets = [];
+
+    this.renderFrame();
+  }
+
+  /**
+   * 셀 애니메이션 대상 결정
+   * @param {number|null} rowIndex - 행 인덱스 (0: 헤더, 1+: 데이터행, 마지막: 합계)
+   * @param {number|null} colIndex - 열 인덱스
+   * @param {Array|null} cells - 복수 셀 배열
+   * @returns {Array} 대상 셀 배열 [{row, col}, ...]
+   */
+  _resolveAnimationTargets(rowIndex, colIndex, cells) {
+    // 복수 셀이 지정된 경우
+    if (cells && Array.isArray(cells) && cells.length > 0) {
+      return cells.map(c => ({ row: c.row, col: c.col }));
+    }
+
+    const targets = [];
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return targets;
+
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return targets;
+
+    const prefix = this._getLayerIdPrefix();
+
+    // 테이블 구조 파악: 헤더, 데이터 행들, 합계
+    const rowStructure = this._getTableRowStructure(tableLayer, prefix);
+
+    // 행만 지정: 해당 행의 모든 셀
+    if (rowIndex !== null && colIndex === null) {
+      const rowInfo = rowStructure[rowIndex];
+      if (rowInfo) {
+        const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
+        if (rowLayer) {
+          rowLayer.children.forEach((_, idx) => {
+            targets.push({ row: rowIndex, col: idx });
+          });
+        }
+      }
+    }
+    // 열만 지정: 해당 열의 모든 행
+    else if (rowIndex === null && colIndex !== null) {
+      rowStructure.forEach((rowInfo, idx) => {
+        targets.push({ row: idx, col: colIndex });
+      });
+    }
+    // 둘 다 지정: 특정 셀
+    else if (rowIndex !== null && colIndex !== null) {
+      targets.push({ row: rowIndex, col: colIndex });
+    }
+
+    return targets;
+  }
+
+  /**
+   * 테이블 행 구조 파악
+   * @param {Layer} tableLayer - 테이블 레이어
+   * @param {string} prefix - 레이어 ID 접두사
+   * @returns {Array} 행 정보 배열 [{type, layerId}, ...]
+   */
+  _getTableRowStructure(tableLayer, prefix) {
+    const structure = [];
+
+    tableLayer.children.forEach(child => {
+      if (child.type === 'group') {
+        if (child.id === `${prefix}-table-header`) {
+          structure.push({ type: 'header', layerId: child.id });
+        } else if (child.id.startsWith(`${prefix}-table-row-`)) {
+          structure.push({ type: 'data', layerId: child.id });
+        } else if (child.id === `${prefix}-table-summary`) {
+          structure.push({ type: 'summary', layerId: child.id });
+        }
+      }
+    });
+
+    return structure;
+  }
+
+  /**
+   * 셀 애니메이션 루프
+   */
+  _runCellAnimationLoop() {
+    if (!this.cellAnimationActive) return;
+
+    const elapsed = Date.now() - this.cellAnimationStart;
+
+    // 애니메이션 종료 체크
+    if (elapsed >= this.cellAnimationDuration) {
+      this.stopCellAnimation();
+      return;
+    }
+
+    // 다음 프레임 예약
+    this.cellAnimationFrameId = requestAnimationFrame(() => this._runCellAnimationLoop());
+
+    // 렌더링은 processTableAnimations()에서 처리
+    this.renderFrame();
+  }
+
+  /**
+   * 테이블 애니메이션 진행도 계산 및 적용
+   */
+  processTableAnimations() {
+    if (!this.cellAnimationActive) return;
+
+    const elapsed = Date.now() - this.cellAnimationStart;
+    const progress = Math.min(elapsed / this.cellAnimationDuration, 1);
+
+    // 펄스 효과: 사인파 곡선 (repeat 횟수만큼 반복)
+    // progress가 0~1일 때, repeat 횟수만큼 사인파가 반복됨
+    const pulseProgress = Math.sin(progress * Math.PI * 2 * this.cellAnimationRepeat) * 0.5 + 0.5;
+
+    // 대상 셀들에 애니메이션 진행도 적용
+    this._applyAnimationToTargetCells(pulseProgress);
+  }
+
+  /**
+   * 대상 셀들에 애니메이션 진행도 적용
+   * @param {number} progress - 애니메이션 진행도 (0~1)
+   */
+  _applyAnimationToTargetCells(progress) {
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return;
+
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return;
+
+    const prefix = this._getLayerIdPrefix();
+    const rowStructure = this._getTableRowStructure(tableLayer, prefix);
+
+    this.cellAnimationTargets.forEach(target => {
+      const rowInfo = rowStructure[target.row];
+      if (!rowInfo) return;
+
+      // 행 타입에 따른 셀 ID 생성
+      let layerId;
+      if (rowInfo.type === 'header') {
+        layerId = `${prefix}-table-header-col${target.col}`;
+      } else if (rowInfo.type === 'summary') {
+        layerId = `${prefix}-table-summary-col${target.col}`;
+      } else {
+        // 데이터 행: layerId에서 row 번호 추출
+        const match = rowInfo.layerId.match(/row-(\d+)$/);
+        const dataRowIdx = match ? match[1] : (target.row - 1);
+        layerId = `${prefix}-table-row-${dataRowIdx}-col${target.col}`;
+      }
+
+      const cellLayer = this.layerManager.findLayer(layerId);
+      if (cellLayer) {
+        cellLayer.data.animating = true;
+        cellLayer.data.animationProgress = progress;
+        if (this.cellAnimationColor) {
+          cellLayer.data.animationColor = this.cellAnimationColor;
+        }
+      }
+    });
+  }
+
+  /**
+   * 모든 셀의 애니메이션 상태 초기화
+   */
+  _clearAnimationFromAllCells() {
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return;
+
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return;
+
+    const prefix = this._getLayerIdPrefix();
+
+    // 헤더, 데이터 행, 합계 행 모두 초기화
+    tableLayer.children.forEach(child => {
+      if (child.type === 'group') {
+        const isRow = child.id.startsWith(`${prefix}-table-row-`);
+        const isHeader = child.id === `${prefix}-table-header`;
+        const isSummary = child.id === `${prefix}-table-summary`;
+
+        if (isRow || isHeader || isSummary) {
+          child.children.forEach(cellLayer => {
+            if (cellLayer.type === 'cell') {
+              cellLayer.data.animating = false;
+              cellLayer.data.animationProgress = 0;
+              delete cellLayer.data.animationColor;
+            }
+          });
+        }
+      }
+    });
+
+    // 행/열 전체 애니메이션 상태도 초기화
+    this.rowColumnAnimations = [];
+  }
+
+  // =============================================
+  // 복수 애니메이션 저장/재생 API
+  // =============================================
+
+  /**
+   * 애니메이션 추가 (저장)
+   * @param {Object} options - 애니메이션 옵션
+   * @param {number|null} options.rowIndex - 행 인덱스 (null이면 전체)
+   * @param {number|null} options.colIndex - 열 인덱스 (null이면 전체)
+   * @param {number} options.duration - 애니메이션 시간 (ms)
+   * @param {number} options.repeat - 반복 횟수
+   */
+  addAnimation(options) {
+    const animation = {
+      id: Date.now() + Math.random(), // 고유 ID
+      rowIndex: options.rowIndex ?? null,
+      colIndex: options.colIndex ?? null,
+      duration: options.duration || 1500,
+      repeat: options.repeat || 3
+    };
+    this.savedAnimations.push(animation);
+    return animation;
+  }
+
+  /**
+   * 저장된 애니메이션 목록 반환
+   * @returns {Array} 저장된 애니메이션 배열
+   */
+  getSavedAnimations() {
+    return [...this.savedAnimations];
+  }
+
+  /**
+   * 저장된 애니메이션 삭제
+   * @param {number} id - 애니메이션 ID
+   */
+  removeAnimation(id) {
+    this.savedAnimations = this.savedAnimations.filter(a => a.id !== id);
+  }
+
+  /**
+   * 저장된 모든 애니메이션 초기화
+   */
+  clearSavedAnimations() {
+    this.savedAnimations = [];
+  }
+
+  /**
+   * 저장된 모든 애니메이션 동시 재생
+   * @param {Object} options - 재생 옵션
+   * @param {boolean} [options.blinkEnabled=true] - 블링크 효과 활성화
+   */
+  playAllAnimations(options = {}) {
+    const { blinkEnabled = true } = options;
+
+    if (this.savedAnimations.length === 0) {
+      console.warn('playAllAnimations: 저장된 애니메이션이 없습니다.');
+      return;
+    }
+
+    // 기존 애니메이션 중지
+    this.stopCellAnimation();
+
+    // 최대 duration과 repeat 계산
+    const maxDuration = Math.max(...this.savedAnimations.map(a => a.duration));
+    const maxRepeat = Math.max(...this.savedAnimations.map(a => a.repeat));
+
+    // 애니메이션 상태 설정
+    this.cellAnimationActive = true;
+    this.cellAnimationStart = Date.now();
+    this.cellAnimationDuration = blinkEnabled ? maxDuration : Infinity; // 블링크 비활성화 시 무한
+    this.cellAnimationRepeat = maxRepeat;
+    this.cellAnimationBlinkEnabled = blinkEnabled;
+
+    if (blinkEnabled) {
+      // 블링크 활성화: 애니메이션 루프 시작
+      this._runCellAnimationLoop();
+    } else {
+      // 블링크 비활성화: 정적 렌더링 한 번
+      this.renderFrame();
+    }
+  }
+
+  /**
+   * 행/열 전체 애니메이션 영역 계산
+   * @param {string} type - 'row' 또는 'column'
+   * @param {number} index - 행 또는 열 인덱스
+   * @returns {Object|null} {x, y, width, height}
+   */
+  _getRowColumnBounds(type, index) {
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return null;
+
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return null;
+
+    const prefix = this._getLayerIdPrefix();
+    const rowStructure = this._getTableRowStructure(tableLayer, prefix);
+
+    if (type === 'row') {
+      // 행 전체 영역 계산
+      const rowInfo = rowStructure[index];
+      if (!rowInfo) return null;
+
+      const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
+      if (!rowLayer || rowLayer.children.length === 0) return null;
+
+      // 첫 번째 셀과 마지막 셀로 영역 계산
+      const firstCell = rowLayer.children[0];
+      const lastCell = rowLayer.children[rowLayer.children.length - 1];
+
+      if (!firstCell || !lastCell) return null;
+
+      return {
+        x: firstCell.x,
+        y: firstCell.y,
+        width: (lastCell.x + lastCell.width) - firstCell.x,
+        height: firstCell.height
+      };
+    } else if (type === 'column') {
+      // 열 전체 영역 계산
+      let minY = Infinity, maxY = -Infinity;
+      let x = 0, width = 0;
+
+      rowStructure.forEach((rowInfo) => {
+        const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
+        if (rowLayer && rowLayer.children[index]) {
+          const cell = rowLayer.children[index];
+          x = cell.x;
+          width = cell.width;
+          minY = Math.min(minY, cell.y);
+          maxY = Math.max(maxY, cell.y + cell.height);
+        }
+      });
+
+      if (minY === Infinity) return null;
+
+      return {
+        x,
+        y: minY,
+        width,
+        height: maxY - minY
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * 행/열 전체 애니메이션 렌더링 (하나의 박스)
+   * @param {number} progress - 애니메이션 진행도 (0~1)
+   */
+  _renderRowColumnAnimations(progress) {
+    if (!this.rowColumnAnimations || this.rowColumnAnimations.length === 0) return;
+
+    this.rowColumnAnimations.forEach(anim => {
+      const bounds = this._getRowColumnBounds(anim.type, anim.index);
+      if (!bounds) return;
+
+      // 개별 애니메이션의 진행도 계산
+      const elapsed = Date.now() - this.cellAnimationStart;
+      const animProgress = Math.min(elapsed / anim.duration, 1);
+      const pulseProgress = Math.sin(animProgress * Math.PI * 2 * anim.repeat) * 0.5 + 0.5;
+
+      // 하나의 박스로 렌더링
+      const fillAlpha = pulseProgress * 0.3;
+      const strokeAlpha = pulseProgress;
+
+      this.ctx.save();
+      this.ctx.fillStyle = `rgba(137, 236, 78, ${fillAlpha})`;
+      this.ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+      this.ctx.strokeStyle = `rgba(137, 236, 78, ${strokeAlpha})`;
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(bounds.x + 1, bounds.y + 1, bounds.width - 2, bounds.height - 2);
+      this.ctx.restore();
+    });
+  }
+
+  // =============================================
+  // 인접 셀 병합 렌더링
+  // =============================================
+
+  /**
+   * 모든 애니메이션 대상 셀 수집
+   * @returns {Array} [{row, col, bounds}, ...]
+   */
+  _collectAllAnimationCells() {
+    const cells = new Map(); // "row-col" -> {row, col, bounds}
+
+    this.savedAnimations.forEach(anim => {
+      const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+      targets.forEach(t => {
+        const key = `${t.row}-${t.col}`;
+        if (!cells.has(key)) {
+          const bounds = this._getCellBounds(t.row, t.col);
+          if (bounds) cells.set(key, { ...t, bounds });
+        }
+      });
+    });
+
+    return Array.from(cells.values());
+  }
+
+  /**
+   * 인접한 셀들을 그룹으로 묶기 (Union-Find)
+   * @param {Array} cells - 셀 배열
+   * @returns {Array} 그룹 배열 [[cell1, cell2, ...], ...]
+   */
+  _groupAdjacentCells(cells) {
+    const cellMap = new Map();
+    cells.forEach(c => cellMap.set(`${c.row}-${c.col}`, c));
+
+    const parent = new Map();
+    const find = (key) => {
+      if (!parent.has(key)) parent.set(key, key);
+      if (parent.get(key) !== key) {
+        parent.set(key, find(parent.get(key)));
+      }
+      return parent.get(key);
+    };
+    const union = (a, b) => {
+      const pa = find(a), pb = find(b);
+      if (pa !== pb) parent.set(pa, pb);
+    };
+
+    // 인접 셀 연결
+    cells.forEach(c => {
+      const key = `${c.row}-${c.col}`;
+      const neighbors = [
+        `${c.row - 1}-${c.col}`, // 위
+        `${c.row + 1}-${c.col}`, // 아래
+        `${c.row}-${c.col - 1}`, // 왼쪽
+        `${c.row}-${c.col + 1}`  // 오른쪽
+      ];
+      neighbors.forEach(nKey => {
+        if (cellMap.has(nKey)) union(key, nKey);
+      });
+    });
+
+    // 그룹별로 분류
+    const groups = new Map();
+    cells.forEach(c => {
+      const key = `${c.row}-${c.col}`;
+      const root = find(key);
+      if (!groups.has(root)) groups.set(root, []);
+      groups.get(root).push(c);
+    });
+
+    return Array.from(groups.values());
+  }
+
+  /**
+   * 셀 좌표로 bounds 가져오기
+   * @param {number} row - 행 인덱스
+   * @param {number} col - 열 인덱스
+   * @returns {Object|null} {x, y, width, height}
+   */
+  _getCellBounds(row, col) {
+    const prefix = this._getLayerIdPrefix();
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer?.children[0]) return null;
+
+    const tableLayer = rootLayer.children[0];
+    const rowStructure = this._getTableRowStructure(tableLayer, prefix);
+    const rowInfo = rowStructure[row];
+    if (!rowInfo) return null;
+
+    // 행 타입에 따른 셀 ID 생성 (기존 _applyAnimationToTargetCells와 동일한 로직)
+    let layerId;
+    if (rowInfo.type === 'header') {
+      layerId = `${prefix}-table-header-col${col}`;
+    } else if (rowInfo.type === 'summary') {
+      layerId = `${prefix}-table-summary-col${col}`;
+    } else {
+      // 데이터 행: layerId에서 row 번호 추출
+      const match = rowInfo.layerId.match(/row-(\d+)$/);
+      const dataRowIdx = match ? match[1] : (row - 1);
+      layerId = `${prefix}-table-row-${dataRowIdx}-col${col}`;
+    }
+
+    const cellLayer = this.layerManager.findLayer(layerId);
+    if (!cellLayer) return null;
+
+    // 레이어 데이터에서 위치 정보 가져오기
+    const data = cellLayer.data;
+    if (!data) return null;
+
+    return { x: data.x, y: data.y, width: data.width, height: data.height };
+  }
+
+  /**
+   * 병합된 셀 그룹 렌더링 (인접 셀은 하나의 영역으로)
+   * @param {number} progress - 애니메이션 진행도 (0~1)
+   */
+  _renderMergedAnimations(progress) {
+    const cells = this._collectAllAnimationCells();
+    if (cells.length === 0) return;
+
+    const groups = this._groupAdjacentCells(cells);
+    const fillAlpha = progress * 0.3;
+    const strokeAlpha = progress;
+
+    groups.forEach(group => {
+      const cellSet = new Set(group.map(c => `${c.row}-${c.col}`));
+
+      this.ctx.save();
+
+      // 1. 모든 셀에 fill
+      this.ctx.fillStyle = `rgba(137, 236, 78, ${fillAlpha})`;
+      group.forEach(c => {
+        this.ctx.fillRect(c.bounds.x, c.bounds.y, c.bounds.width, c.bounds.height);
+      });
+
+      // 2. 외곽 변만 stroke (인접 셀과 공유하는 변은 제외)
+      this.ctx.strokeStyle = `rgba(137, 236, 78, ${strokeAlpha})`;
+      this.ctx.lineWidth = 2;
+
+      group.forEach(c => {
+        const { x, y, width, height } = c.bounds;
+        const hasTop = cellSet.has(`${c.row - 1}-${c.col}`);
+        const hasBottom = cellSet.has(`${c.row + 1}-${c.col}`);
+        const hasLeft = cellSet.has(`${c.row}-${c.col - 1}`);
+        const hasRight = cellSet.has(`${c.row}-${c.col + 1}`);
+
+        this.ctx.beginPath();
+        if (!hasTop) { // 위쪽 변
+          this.ctx.moveTo(x, y);
+          this.ctx.lineTo(x + width, y);
+        }
+        if (!hasBottom) { // 아래쪽 변
+          this.ctx.moveTo(x, y + height);
+          this.ctx.lineTo(x + width, y + height);
+        }
+        if (!hasLeft) { // 왼쪽 변
+          this.ctx.moveTo(x, y);
+          this.ctx.lineTo(x, y + height);
+        }
+        if (!hasRight) { // 오른쪽 변
+          this.ctx.moveTo(x + width, y);
+          this.ctx.lineTo(x + width, y + height);
+        }
+        this.ctx.stroke();
+      });
+
+      this.ctx.restore();
+    });
   }
 
   /**

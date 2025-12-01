@@ -72,7 +72,12 @@ class TableCellRenderer {
    * @param {Layer} layer - 헤더 셀 레이어
    */
   renderHeaderCell(layer) {
-    const { x, y, width, height, cellText, alignment, headerTextColor } = layer.data;
+    const { x, y, width, height, cellText, alignment, headerTextColor, animating, animationProgress } = layer.data;
+
+    // 애니메이션 배경 렌더링 (펄스 효과)
+    if (animating && animationProgress > 0) {
+      this._renderAnimationBackground(x, y, width, height, animationProgress);
+    }
 
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
@@ -103,8 +108,16 @@ class TableCellRenderer {
       classData,
       showSuperscript,
       colLabel,
-      tallyCount
+      tallyCount,
+      animating,
+      animationProgress,
+      animationColor
     } = layer.data;
+
+    // 애니메이션 배경 렌더링 (펄스 효과)
+    if (animating && animationProgress > 0) {
+      this._renderAnimationBackground(x, y, width, height, animationProgress);
+    }
 
     // 하이라이트 배경 렌더링
     if (highlighted && highlightProgress > 0) {
@@ -137,7 +150,12 @@ class TableCellRenderer {
    * @param {Layer} layer - 합계 셀 레이어
    */
   renderSummaryCell(layer) {
-    const { x, y, width, height, cellText, alignment } = layer.data;
+    const { x, y, width, height, cellText, alignment, animating, animationProgress } = layer.data;
+
+    // 애니메이션 배경 렌더링 (펄스 효과)
+    if (animating && animationProgress > 0) {
+      this._renderAnimationBackground(x, y, width, height, animationProgress);
+    }
 
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
@@ -151,7 +169,12 @@ class TableCellRenderer {
    * @param {Layer} layer - 행 헤더 셀 레이어
    */
   renderRowHeaderCell(layer) {
-    const { x, y, width, height, cellText, alignment, textColor } = layer.data;
+    const { x, y, width, height, cellText, alignment, textColor, animating, animationProgress } = layer.data;
+
+    // 애니메이션 배경 렌더링 (펄스 효과)
+    if (animating && animationProgress > 0) {
+      this._renderAnimationBackground(x, y, width, height, animationProgress);
+    }
 
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
@@ -1046,6 +1069,33 @@ class TableCellRenderer {
     this.ctx.moveTo(x - spacing * 0.3, y - height / 2);  // 왼쪽 위
     this.ctx.lineTo(x + 3 * spacing + spacing * 0.3, y + height / 2);  // 오른쪽 아래
     this.ctx.stroke();
+  }
+
+  /**
+   * 애니메이션 배경 렌더링 (펄스 효과)
+   * @param {number} x - 셀 X 좌표
+   * @param {number} y - 셀 Y 좌표
+   * @param {number} width - 셀 너비
+   * @param {number} height - 셀 높이
+   * @param {number} progress - 애니메이션 진행도 (0~1)
+   */
+  _renderAnimationBackground(x, y, width, height, progress) {
+    // 색상: #89EC4E (RGB: 137, 236, 78)
+    const fillAlpha = progress * 0.3; // fill: 30% opacity
+    const strokeAlpha = progress; // stroke: 100% opacity
+
+    this.ctx.save();
+
+    // Fill (30% opacity)
+    this.ctx.fillStyle = `rgba(137, 236, 78, ${fillAlpha})`;
+    this.ctx.fillRect(x, y, width, height);
+
+    // Stroke (100% opacity)
+    this.ctx.strokeStyle = `rgba(137, 236, 78, ${strokeAlpha})`;
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(x + 1, y + 1, width - 2, height - 2);
+
+    this.ctx.restore();
   }
 }
 

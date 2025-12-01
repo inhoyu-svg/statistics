@@ -160,6 +160,26 @@
               <button id="clearHighlight" class="test-btn">하이라이트 해제</button>
             </div>
           </div>
+
+          <!-- 테이블 셀 애니메이션 테스트 -->
+          <div class="animation-test-group">
+            <h3 class="test-title">🎬 셀 애니메이션</h3>
+            <div class="animation-input-row">
+              <label>행: <input type="number" id="animRowIndex" value="" placeholder="-" min="0" max="20" class="anim-input"></label>
+              <label>열: <input type="number" id="animColIndex" value="" placeholder="-" min="0" max="10" class="anim-input"></label>
+            </div>
+            <div class="animation-input-row">
+              <label class="blink-checkbox"><input type="checkbox" id="animBlinkEnabled" checked> 블링크</label>
+              <label id="animRepeatLabel">반복: <input type="number" id="animRepeat" value="3" min="1" max="10" class="anim-input"></label>
+              <label>시간(ms): <input type="number" id="animDuration" value="1500" step="100" min="500" max="5000" class="anim-input"></label>
+            </div>
+            <div class="test-button-row">
+              <button id="addAnimationBtn" class="test-btn anim-btn">+ 추가</button>
+              <button id="playAllAnimBtn" class="test-btn anim-btn play-btn">▶ 재생</button>
+              <button id="clearAnimBtn" class="test-btn anim-btn stop-btn">초기화</button>
+            </div>
+            <div id="savedAnimList" class="saved-anim-list"></div>
+          </div>
         </div>
 
         <!-- 표 + 차트 영역 -->
