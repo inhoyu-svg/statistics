@@ -23,7 +23,7 @@ class TableLayerFactory {
    */
   static createTableLayers(layerManager, classes, total, config = null, tableId = 'table-1') {
     // 설정 가져오기
-    const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
+    const tableLabels = { ...CONFIG.DEFAULT_LABELS.table, ...config?.labels };
     const visibleColumns = config?.visibleColumns || CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS;
     const columnOrder = config?.columnOrder || CONFIG.TABLE_DEFAULT_COLUMN_ORDER;
     const columnAlignment = config?.columnAlignment || CONFIG.TABLE_DEFAULT_ALIGNMENT;

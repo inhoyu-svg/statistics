@@ -5,8 +5,10 @@
 
 import CONFIG from './config.js';
 import DataProcessor from './core/processor.js';
+import { ParserFactory } from './core/parsers/index.js';
 import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
+import tableStore from './core/tableStore.js';
 import { waitForFonts } from './utils/katex.js';
 
 // Counter for unique ID generation
@@ -135,7 +137,13 @@ export async function renderChart(element, config) {
     // 9. Draw chart
     chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType);
 
-    // 10. Return result
+    // 10. Play animation (draw() sets currentTime to 100%, so reset and play)
+    if (animation) {
+      chartRenderer.timeline.seekTo(0);
+      chartRenderer.playAnimation();
+    }
+
+    // 11. Return result
     return {
       chartRenderer,
       canvas,
@@ -154,13 +162,18 @@ export async function renderChart(element, config) {
  * Table Rendering API
  * @param {HTMLElement} element - Container element to append canvas
  * @param {Object} config - Configuration object
- * @param {string} config.data - Raw data string (comma/space separated)
- * @param {number} [config.classCount=5] - Number of classes
+ * @param {string} [config.tableType='frequency'] - Table type
+ *   ('frequency' | 'category-matrix' | 'cross-table' | 'stem-leaf')
+ * @param {string} config.data - Raw data string (format depends on tableType)
+ * @param {number} [config.classCount=5] - Number of classes (for frequency table)
  * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
  * @param {Object} [config.options] - Additional options
  * @param {Object} [config.options.tableConfig] - Table configuration
  * @param {boolean} [config.options.animation=true] - Enable animation
- * @returns {Promise<Object>} { tableRenderer, canvas, classes, stats } or { error }
+ * @param {Object} [config.options.crossTable] - Cross-table specific options
+ * @param {boolean} [config.options.crossTable.showTotal=true] - Show total row
+ * @param {boolean} [config.options.crossTable.showMergedHeader=true] - Show merged header
+ * @returns {Promise<Object>} { tableRenderer, canvas, classes?, stats?, parsedData? } or { error }
  */
 export async function renderTable(element, config) {
   try {
@@ -175,39 +188,26 @@ export async function renderTable(element, config) {
       return { error: 'config.data is required' };
     }
 
-    // 2. Parse data (support both array and string format)
+    // 2. Get table type
+    const tableType = config.tableType || 'frequency';
+
+    // 3. Parse data (support both array and string format)
     const dataString = Array.isArray(config.data)
       ? config.data.join(', ')
       : config.data;
-    const rawData = DataProcessor.parseInput(dataString);
-    if (rawData.length === 0) {
-      return { error: 'No valid numeric data found' };
-    }
 
-    // 3. Calculate statistics
-    const stats = DataProcessor.calculateBasicStats(rawData);
-
-    // 4. Create classes
-    const classCount = config.classCount || 5;
-    const classWidth = config.classWidth || null;
-    const { classes } = DataProcessor.createClasses(stats, classCount, classWidth);
-
-    // 5. Calculate frequencies
-    DataProcessor.calculateFrequencies(rawData, classes);
-    DataProcessor.calculateRelativeAndCumulative(classes, rawData.length);
-
-    // 6. Create canvas element
+    // 4. Create canvas element
     const canvasId = `viz-table-${++tableInstanceCounter}`;
     const canvas = document.createElement('canvas');
     canvas.id = canvasId;
     canvas.width = config.canvasWidth || CONFIG.TABLE_DEFAULT_WIDTH || 600;
     canvas.height = config.canvasHeight || CONFIG.TABLE_DEFAULT_HEIGHT || 400;
     canvas.setAttribute('role', 'img');
-    canvas.setAttribute('aria-label', 'Frequency distribution table');
+    canvas.setAttribute('aria-label', 'Data table');
 
     element.appendChild(canvas);
 
-    // 7. Create TableRenderer and render
+    // 5. Create TableRenderer
     const tableRenderer = new TableRenderer(canvasId);
 
     // Process options
@@ -222,21 +222,100 @@ export async function renderTable(element, config) {
       tableRenderer.animationMode = false;
     }
 
-    // 8. Draw table
-    tableRenderer.draw(classes, rawData.length, tableConfig);
+    // 6. Handle by table type
+    if (tableType === 'frequency') {
+      // Frequency table: use DataProcessor
+      const rawData = DataProcessor.parseInput(dataString);
+      if (rawData.length === 0) {
+        return { error: 'No valid numeric data found' };
+      }
 
-    // 9. Return result
-    return {
-      tableRenderer,
-      canvas,
-      classes,
-      stats
-    };
+      const stats = DataProcessor.calculateBasicStats(rawData);
+      const classCount = config.classCount || 5;
+      const classWidth = config.classWidth || null;
+      const { classes } = DataProcessor.createClasses(stats, classCount, classWidth);
+
+      DataProcessor.calculateFrequencies(rawData, classes);
+      DataProcessor.calculateRelativeAndCumulative(classes, rawData.length);
+
+      tableRenderer.draw(classes, rawData.length, tableConfig);
+
+      // Apply cell variables if specified
+      if (tableConfig?.cellVariables && Array.isArray(tableConfig.cellVariables)) {
+        applyCellVariables(classes, tableConfig.cellVariables, tableRenderer.tableId);
+        // Re-render to apply cell variables
+        tableRenderer.draw(classes, rawData.length, tableConfig);
+      }
+
+      return {
+        tableRenderer,
+        canvas,
+        classes,
+        stats
+      };
+    } else {
+      // Custom table types: use ParserFactory
+      const parseResult = ParserFactory.parse(tableType, dataString);
+      if (!parseResult.success) {
+        return { error: parseResult.error || 'Failed to parse data' };
+      }
+
+      // Apply cross-table specific options
+      if (tableType === 'cross-table') {
+        const crossTableOptions = options.crossTable || {};
+        if (crossTableOptions.showTotal !== undefined) {
+          parseResult.data.showTotal = crossTableOptions.showTotal;
+        }
+        if (crossTableOptions.showMergedHeader !== undefined) {
+          parseResult.data.showMergedHeader = crossTableOptions.showMergedHeader;
+        }
+      }
+
+      tableRenderer.drawCustomTable(tableType, parseResult.data, tableConfig);
+
+      return {
+        tableRenderer,
+        canvas,
+        parsedData: parseResult.data
+      };
+    }
 
   } catch (error) {
     console.error('renderTable error:', error);
     return { error: error.message };
   }
+}
+
+/**
+ * Apply cell variables to table cells
+ * @param {Array} classes - Class data array
+ * @param {Array} cellVariables - Cell variable definitions
+ * @param {string} tableId - Table ID
+ */
+function applyCellVariables(classes, cellVariables, tableId) {
+  // Column name → index mapping
+  const columnMap = {
+    'class': 0,
+    'midpoint': 1,
+    'tally': 2,
+    'frequency': 3,
+    'relativeFrequency': 4,
+    'cumulativeFrequency': 5,
+    'cumulativeRelativeFrequency': 6
+  };
+
+  cellVariables.forEach(cv => {
+    // Find row index by class range
+    const rowIndex = classes.findIndex(c =>
+      `${c.start}~${c.end}` === cv.class
+    );
+    if (rowIndex === -1) return;
+
+    const colIndex = columnMap[cv.column];
+    if (colIndex === undefined) return;
+
+    tableStore.setCellVariable(tableId, rowIndex, colIndex, cv.value);
+  });
 }
 
 export default { render, renderChart, renderTable };

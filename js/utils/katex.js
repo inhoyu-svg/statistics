@@ -315,11 +315,110 @@ export function isFontsLoaded() {
   return fontsLoaded;
 }
 
+/**
+ * 문자 유형 분류
+ * @param {string} char - 단일 문자
+ * @returns {'lowercase'|'uppercase'|'korean'|'other'}
+ */
+function getCharType(char) {
+  if (/[a-z]/.test(char)) return 'lowercase';
+  if (/[A-Z]/.test(char)) return 'uppercase';
+  if (/[가-힣]/.test(char)) return 'korean';
+  return 'other';
+}
+
+/**
+ * 텍스트를 문자 유형별로 분리
+ * @param {string} text - 분석할 텍스트
+ * @returns {Array<{text: string, type: string}>}
+ */
+export function splitByCharType(text) {
+  const result = [];
+  let current = { text: '', type: null };
+
+  for (const char of text) {
+    const type = getCharType(char);
+    if (type === current.type) {
+      current.text += char;
+    } else {
+      if (current.text) result.push(current);
+      current = { text: char, type };
+    }
+  }
+  if (current.text) result.push(current);
+  return result;
+}
+
+/**
+ * 문자 유형별 폰트 반환
+ * @param {string} type - 문자 유형 ('lowercase', 'uppercase', 'korean', 'other')
+ * @param {number} fontSize - 폰트 크기
+ * @returns {string} CSS 폰트 문자열
+ */
+export function getFontForCharType(type, fontSize) {
+  if (type === 'lowercase') {
+    // 영어 소문자: KaTeX_Math 이탤릭
+    return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
+  }
+  if (type === 'korean') {
+    // 한글: sans-serif (기존 폰트 유지)
+    return `${fontSize}px sans-serif`;
+  }
+  // 대문자, 숫자, 기호 등: KaTeX_Main
+  return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;
+}
+
+/**
+ * 혼합 텍스트 렌더링 (축 라벨용)
+ * 소문자는 KaTeX_Math 이탤릭, 그 외는 KaTeX_Main으로 렌더링
+ * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+ * @param {string} text - 렌더링할 텍스트
+ * @param {number} x - X 좌표
+ * @param {number} y - Y 좌표
+ * @param {Object} options - 옵션
+ * @returns {{width: number, height: number}}
+ */
+export function renderMixedText(ctx, text, x, y, options = {}) {
+  const { fontSize = 14, color = '#e5e7eb', align = 'right', baseline = 'middle' } = options;
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.textBaseline = baseline;
+
+  // 전체 너비 계산
+  const segments = splitByCharType(text);
+  let totalWidth = 0;
+  segments.forEach(seg => {
+    ctx.font = getFontForCharType(seg.type, fontSize);
+    totalWidth += ctx.measureText(seg.text).width;
+  });
+
+  // 시작 위치 계산
+  let startX = x;
+  if (align === 'center') startX = x - totalWidth / 2;
+  else if (align === 'right') startX = x - totalWidth;
+
+  // 세그먼트별 렌더링
+  ctx.textAlign = 'left';
+  let currentX = startX;
+  segments.forEach(seg => {
+    ctx.font = getFontForCharType(seg.type, fontSize);
+    ctx.fillText(seg.text, currentX, y);
+    currentX += ctx.measureText(seg.text).width;
+  });
+
+  ctx.restore();
+  return { width: totalWidth, height: fontSize };
+}
+
 export default {
   waitForFonts,
   render,
   renderMathText,
   renderWithScript,
   renderFraction,
+  renderMixedText,
+  splitByCharType,
+  getFontForCharType,
   isFontsLoaded
 };

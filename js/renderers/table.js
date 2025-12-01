@@ -100,8 +100,8 @@ class TableRenderer {
     this.currentTotal = total;
     this.currentConfig = config;
 
-    // 합계 행 표시 여부 (tableStore에서 가져오기)
-    const showSummaryRow = tableStore.getSummaryRowVisible(this.tableId);
+    // 합계 행 표시 여부 (config 우선, 없으면 tableStore에서 가져오기)
+    const showSummaryRow = config?.showSummaryRow ?? tableStore.getSummaryRowVisible(this.tableId);
 
     // Canvas 크기 계산
     const rowCount = visibleClasses.length + (showSummaryRow ? 1 : 0); // 합계 행 조건부

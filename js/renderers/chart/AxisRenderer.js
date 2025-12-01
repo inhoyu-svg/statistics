@@ -67,13 +67,10 @@ class AxisRenderer {
       // 마지막 라벨은 축 제목으로 대체 (4글자 초과 시 폰트 축소)
       if (i === gridDivisions && yLabel) {
         const fontSize = yLabel.length > 4 ? 11 : 14;
-        this.ctx.font = `${fontSize}px sans-serif`;
-        this.ctx.fillStyle = color;
-        this.ctx.textAlign = 'right';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(yLabel,
+        KatexUtils.renderMixedText(this.ctx, yLabel,
           this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
-          toY(value) + CONFIG.CHART_LABEL_OFFSET
+          toY(value) + CONFIG.CHART_LABEL_OFFSET,
+          { fontSize, color, align: 'right', baseline: 'middle' }
         );
         continue;
       }
@@ -144,12 +141,9 @@ class AxisRenderer {
       }
 
       // 마지막 라벨: 축 제목으로 대체
-      this.ctx.font = '14px sans-serif';
-      this.ctx.fillStyle = color;
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.fillText(xLabel || String(classes[classes.length - 1].max),
-        toX(classes.length - 1) + xScale, labelY
+      KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
+        toX(classes.length - 1) + xScale, labelY,
+        { fontSize: 14, color, align: 'center', baseline: 'middle' }
       );
     } else {
       // 중략 없이 전체 표시 (KaTeX 폰트)
@@ -163,12 +157,9 @@ class AxisRenderer {
 
       // 마지막 라벨: 축 제목으로 대체
       if (classes.length > 0) {
-        this.ctx.font = '14px sans-serif';
-        this.ctx.fillStyle = color;
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(xLabel || String(classes[classes.length - 1].max),
-          toX(classes.length), labelY
+        KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
+          toX(classes.length), labelY,
+          { fontSize: 14, color, align: 'center', baseline: 'middle' }
         );
       }
     }
