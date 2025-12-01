@@ -7,6 +7,7 @@ import CONFIG from './config.js';
 import DataProcessor from './core/processor.js';
 import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
+import { waitForFonts } from './utils/katex.js';
 
 // Counter for unique ID generation
 let chartInstanceCounter = 0;
@@ -21,9 +22,12 @@ let tableInstanceCounter = 0;
  * @param {number} [config.classCount=5] - Number of classes
  * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
  * @param {Object} [config.options] - Additional options
- * @returns {Object} Renderer result or { error }
+ * @returns {Promise<Object>} Renderer result or { error }
  */
-export function render(element, config) {
+export async function render(element, config) {
+  // Wait for KaTeX fonts to load
+  await waitForFonts();
+
   const purpose = config.purpose || 'chart';
 
   if (purpose === 'chart') {
@@ -47,10 +51,12 @@ export function render(element, config) {
  * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
  * @param {string} [config.options.dataType='relativeFrequency'] - Data type ('frequency' | 'relativeFrequency')
  * @param {boolean} [config.options.animation=true] - Enable animation
- * @returns {Object} { chartRenderer, canvas, classes } or { error }
+ * @returns {Promise<Object>} { chartRenderer, canvas, classes } or { error }
  */
-export function renderChart(element, config) {
+export async function renderChart(element, config) {
   try {
+    // Wait for KaTeX fonts to load
+    await waitForFonts();
     // 1. Parameter validation
     if (!element || !(element instanceof HTMLElement)) {
       return { error: 'element must be a valid HTMLElement' };
@@ -146,10 +152,12 @@ export function renderChart(element, config) {
  * @param {Object} [config.options] - Additional options
  * @param {Object} [config.options.tableConfig] - Table configuration
  * @param {boolean} [config.options.animation=true] - Enable animation
- * @returns {Object} { tableRenderer, canvas, classes, stats } or { error }
+ * @returns {Promise<Object>} { tableRenderer, canvas, classes, stats } or { error }
  */
-export function renderTable(element, config) {
+export async function renderTable(element, config) {
   try {
+    // Wait for KaTeX fonts to load
+    await waitForFonts();
     // 1. Parameter validation
     if (!element || !(element instanceof HTMLElement)) {
       return { error: 'element must be a valid HTMLElement' };

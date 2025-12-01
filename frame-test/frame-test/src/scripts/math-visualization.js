@@ -106,15 +106,15 @@ class MathVisualization {
    * @param {HTMLElement} vizElement - 시각화 컨테이너 요소
    * @param {Object} config - 시각화 설정
    */
-  static renderGraphInternal(vizElement, config) {
+  static async renderGraphInternal(vizElement, config) {
     try {
       // data-viz-mode 확인
       const vizMode = vizElement.getAttribute('data-viz-mode');
 
       if (vizMode === 'chart' || vizMode === 'table' || vizMode === 'both') {
-        // Statistics 차트/테이블 렌더링
+        // Statistics 차트/테이블 렌더링 (폰트 로드 대기 포함)
         console.log(`[MathVisualization] Statistics 모드: ${vizMode}`);
-        render(vizElement, config);
+        await render(vizElement, config);
       } else {
         // 기본: 좌표평면 그래프 렌더링
         // renderGraph가 내부적으로 data-viz-canvas, config 수집, 좌표 계산을 모두 처리
