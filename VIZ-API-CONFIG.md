@@ -305,17 +305,198 @@
 |:-----|:-----|:------:|:-----|
 | `canvasWidth` | `number` | `600` | 캔버스 너비 (px) |
 | `canvasHeight` | `number` | `400` | 캔버스 높이 (px) |
-| `options.tableConfig` | `object` | `null` | 테이블 상세 설정 |
+| `options.tableConfig` | `object` | `null` | 테이블 상세 설정 (아래 참조) |
 
-### 📋 테이블 표시 컬럼
+---
 
-기본적으로 다음 컬럼이 표시됩니다:
+## 📋 테이블 컬럼 설정 (tableConfig)
 
-| 컬럼 | 설명 | 예시 |
-|:-----|:-----|:-----|
-| 📐 계급 | 구간 범위 | 60이상~70미만 |
-| 🔵 도수 | 해당 계급의 데이터 개수 | 3 |
-| 📈 상대도수(%) | 전체 대비 비율 | 30% |
+`options.tableConfig` 객체로 테이블의 컬럼을 세밀하게 제어할 수 있습니다.
+
+### 🔢 사용 가능한 컬럼 (7개)
+
+| 인덱스 | 컬럼명 | 설명 | 기본 표시 |
+|:------:|:-------|:-----|:--------:|
+| 0 | 📐 계급 | 구간 범위 (예: 60~70) | ✅ 표시 |
+| 1 | 📊 계급값 | 구간 중앙값 (예: 65) | ❌ 숨김 |
+| 2 | 📝 탈리 | 정(正)자 표시 | ❌ 숨김 |
+| 3 | 🔵 도수 | 데이터 개수 | ✅ 표시 |
+| 4 | 📈 상대도수(%) | 전체 대비 비율 | ✅ 표시 |
+| 5 | 📊 누적도수 | 누적 데이터 개수 | ❌ 숨김 |
+| 6 | 📈 누적상대도수(%) | 누적 비율 | ❌ 숨김 |
+
+### ⚙️ tableConfig 옵션
+
+| 옵션 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:------:|:-----|
+| `visibleColumns` | `boolean[]` | `[true,false,false,true,true,false,false]` | 7개 컬럼 표시 여부 |
+| `columnOrder` | `number[]` | `[0,1,2,3,4,5,6]` | 컬럼 표시 순서 |
+| `labels` | `object` | 기본 라벨 | 컬럼 헤더 텍스트 |
+| `showSuperscript` | `boolean` | `true` | 첫 행에 "이상/미만" 표시 |
+
+### 🏷️ labels 객체 구조
+
+```json
+{
+  "labels": {
+    "class": "계급",
+    "midpoint": "계급값",
+    "tally": "탈리",
+    "frequency": "도수",
+    "relativeFrequency": "상대도수(%)",
+    "cumulativeFrequency": "누적도수",
+    "cumulativeRelativeFrequency": "누적상대도수(%)"
+  }
+}
+```
+
+---
+
+### 📝 tableConfig 예시
+
+#### 1️⃣ 모든 컬럼 표시
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "visibleColumns": [true, true, true, true, true, true, true]
+    }
+  }
+}
+```
+
+✅ **결과**: 계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수 모두 표시
+
+---
+
+#### 2️⃣ 계급 + 도수만 표시
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "visibleColumns": [true, false, false, true, false, false, false]
+    }
+  }
+}
+```
+
+✅ **결과**: 계급과 도수 컬럼만 표시 (간단한 도수분포표)
+
+---
+
+#### 3️⃣ 탈리(정자) 표시
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "visibleColumns": [true, false, true, true, true, false, false]
+    }
+  }
+}
+```
+
+✅ **결과**: 탈리(정자 표시) 컬럼 추가 - 도수를 시각적으로 표현
+
+---
+
+#### 4️⃣ 누적도수 포함
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "visibleColumns": [true, false, false, true, true, true, true]
+    }
+  }
+}
+```
+
+✅ **결과**: 누적도수와 누적상대도수 컬럼 추가
+
+---
+
+#### 5️⃣ 컬럼 라벨 커스터마이징
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "visibleColumns": [true, false, false, true, true, false, false],
+      "labels": {
+        "class": "점수 구간",
+        "frequency": "학생 수",
+        "relativeFrequency": "비율(%)"
+      }
+    }
+  }
+}
+```
+
+✅ **결과**: 헤더가 "점수 구간", "학생 수", "비율(%)"로 표시됨
+
+---
+
+#### 6️⃣ 상첨자(이상/미만) 숨기기
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "showSuperscript": false
+    }
+  }
+}
+```
+
+✅ **결과**: 첫 행에 "60이상~70미만" 대신 "60~70"으로 표시
+
+---
+
+#### 7️⃣ 컬럼 순서 변경
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "visibleColumns": [true, false, false, true, true, false, false],
+      "columnOrder": [3, 0, 4]
+    }
+  }
+}
+```
+
+✅ **결과**: 도수 → 계급 → 상대도수 순서로 표시
+
+---
+
+### 📌 visibleColumns 기본값 설명
+
+```
+기본값: [true, false, false, true, true, false, false]
+
+인덱스:  0      1      2      3     4      5      6
+컬럼:   계급  계급값  탈리   도수  상대도수 누적도수 누적상대도수
+표시:    ✅     ❌     ❌     ✅     ✅      ❌       ❌
+```
+
+> 💡 **Tip**: 필요한 컬럼만 `true`로 설정하면 테이블이 간결해집니다.
 
 ---
 
