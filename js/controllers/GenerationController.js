@@ -202,6 +202,7 @@ class GenerationController {
         CONFIG.SHOW_HISTOGRAM = dataset.settings.showHistogram;
         CONFIG.SHOW_POLYGON = dataset.settings.showPolygon;
         CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
+        CONFIG.HISTOGRAM_COLOR_PRESET = dataset.settings.histogramColorPreset || 'default';
         CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
         CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
         CONFIG.SHOW_CONGRUENT_TRIANGLES = dataset.settings.showTriangles;
@@ -447,6 +448,7 @@ class GenerationController {
           CONFIG.SHOW_HISTOGRAM = dataset.settings.showHistogram;
           CONFIG.SHOW_POLYGON = dataset.settings.showPolygon;
           CONFIG.POLYGON_COLOR_PRESET = dataset.settings.colorPreset;
+          CONFIG.HISTOGRAM_COLOR_PRESET = dataset.settings.histogramColorPreset || 'default';
           CONFIG.SHOW_BAR_LABELS = dataset.settings.showBarLabels;
           CONFIG.SHOW_DASHED_LINES = dataset.settings.showDashedLines;
           CONFIG.SHOW_CONGRUENT_TRIANGLES = dataset.settings.showTriangles;

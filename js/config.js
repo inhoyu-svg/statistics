@@ -293,6 +293,25 @@ const CONFIG = {
     }
   },
 
+  // 히스토그램 색상 프리셋
+  HISTOGRAM_COLOR_PRESET: 'default',
+  HISTOGRAM_COLOR_PRESETS: {
+    default: {
+      fillStart: '#4141A3',
+      fillEnd: '#2CA0E8',
+      strokeStart: '#54A0F6',
+      strokeEnd: '#6DE0FC',
+      alpha: 0.5
+    },
+    green: {
+      fillStart: '#AEFF7E',
+      fillEnd: '#68994C',
+      strokeStart: '#AEFF7E',
+      strokeEnd: '#68994C',
+      alpha: 0.3
+    }
+  },
+
   // 격자선 설정
   GRID_SHOW_HORIZONTAL: true,               // 가로 격자선 표시 여부
   GRID_SHOW_VERTICAL: true,                 // 세로 격자선 표시 여부

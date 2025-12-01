@@ -261,20 +261,38 @@ class AxisRenderer {
 
     // 히스토그램 범례
     const y1 = CONFIG.CHART_LEGEND_Y_START;
+
+    // 히스토그램 프리셋 색상 가져오기
+    const histPreset = CONFIG.HISTOGRAM_COLOR_PRESETS[CONFIG.HISTOGRAM_COLOR_PRESET]
+                    || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
+
     const barGradient = this.ctx.createLinearGradient(
       legendX,
       y1,
       legendX,
       y1 + CONFIG.CHART_LEGEND_BAR_HEIGHT
     );
-    barGradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
-    barGradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
+    barGradient.addColorStop(0, histPreset.fillStart);
+    barGradient.addColorStop(1, histPreset.fillEnd);
 
+    this.ctx.globalAlpha = histPreset.alpha;
     this.ctx.fillStyle = barGradient;
     this.ctx.fillRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
-    this.ctx.strokeStyle = CONFIG.getColor('--color-border');
+    this.ctx.globalAlpha = CONFIG.CHART_DEFAULT_ALPHA;
+
+    // 테두리 (프리셋 색상 사용)
+    const strokeGradient = this.ctx.createLinearGradient(
+      legendX,
+      y1,
+      legendX,
+      y1 + CONFIG.CHART_LEGEND_BAR_HEIGHT
+    );
+    strokeGradient.addColorStop(0, histPreset.strokeStart);
+    strokeGradient.addColorStop(1, histPreset.strokeEnd);
+    this.ctx.strokeStyle = strokeGradient;
     this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
     this.ctx.strokeRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
+
     this.ctx.fillStyle = CONFIG.getColor('--color-text');
     this.ctx.fillText(CONFIG.LEGEND_LABEL_HISTOGRAM, legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y1 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET);
 

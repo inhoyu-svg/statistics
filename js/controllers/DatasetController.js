@@ -57,6 +57,12 @@ class DatasetController {
       });
     });
 
+    // 히스토그램 색상 프리셋 라디오 버튼에 name 속성 설정
+    const histColorRadios = section.querySelectorAll('.dataset-histogram-color');
+    histColorRadios.forEach(radio => {
+      radio.name = `histogramColor-${datasetId}`;
+    });
+
     // 삭제 버튼 이벤트 리스너
     const removeBtn = section.querySelector('.dataset-remove-btn');
     removeBtn?.addEventListener('click', (e) => {
@@ -213,6 +219,10 @@ class DatasetController {
       const colorRadio = section.querySelector('.dataset-polygon-color:checked');
       const colorPreset = colorRadio?.value || 'default';
 
+      // 히스토그램 색상 프리셋
+      const histColorRadio = section.querySelector('.dataset-histogram-color:checked');
+      const histogramColorPreset = histColorRadio?.value || 'default';
+
       // 말풍선 템플릿
       const calloutTemplateInput = section.querySelector('.dataset-callout-template');
       const calloutTemplate = calloutTemplateInput?.value || '';
@@ -233,7 +243,8 @@ class DatasetController {
           triangleBoundary,
           showCallout,
           calloutTemplate,
-          colorPreset
+          colorPreset,
+          histogramColorPreset
         }
       };
     } catch (error) {

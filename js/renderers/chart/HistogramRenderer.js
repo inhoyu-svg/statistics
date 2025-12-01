@@ -27,6 +27,10 @@ class HistogramRenderer {
   draw(values, freq, coords, ellipsisInfo, dataType = 'relativeFrequency') {
     const { toX, toY, xScale } = coords;
 
+    // 프리셋 색상 가져오기
+    const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[CONFIG.HISTOGRAM_COLOR_PRESET]
+                || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
+
     values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
@@ -37,10 +41,10 @@ class HistogramRenderer {
 
       // 그라디언트 막대
       const gradient = this.ctx.createLinearGradient(x, y, x, y + h);
-      gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
-      gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
+      gradient.addColorStop(0, preset.fillStart);
+      gradient.addColorStop(1, preset.fillEnd);
 
-      this.ctx.globalAlpha = CONFIG.CHART_BAR_ALPHA;
+      this.ctx.globalAlpha = preset.alpha;
       this.ctx.fillStyle = gradient;
       this.ctx.fillRect(x, y, barWidth, h);
       this.ctx.globalAlpha = CONFIG.CHART_DEFAULT_ALPHA;
@@ -49,8 +53,8 @@ class HistogramRenderer {
       if (freq[index] > 0) {
         const strokeGradient = Utils.createVerticalGradient(
           this.ctx, x, y, h,
-          CONFIG.getColor('--chart-bar-stroke-start'),
-          CONFIG.getColor('--chart-bar-stroke-end')
+          preset.strokeStart,
+          preset.strokeEnd
         );
         this.ctx.strokeStyle = strokeGradient;
         this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
@@ -72,6 +76,10 @@ class HistogramRenderer {
     // 애니메이션 progress 가져오기 (0~1)
     const progress = layer.data.animationProgress !== undefined ? layer.data.animationProgress : 1;
 
+    // 프리셋 색상 가져오기
+    const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[CONFIG.HISTOGRAM_COLOR_PRESET]
+                || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
+
     const x = toX(index);
     const baseY = toY(0); // 바닥 (높이 0)
     const fullY = toY(relativeFreq); // 최종 높이
@@ -84,10 +92,10 @@ class HistogramRenderer {
 
     // 그라디언트 막대
     const gradient = this.ctx.createLinearGradient(x, animatedY, x, animatedY + animatedH);
-    gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
-    gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
+    gradient.addColorStop(0, preset.fillStart);
+    gradient.addColorStop(1, preset.fillEnd);
 
-    this.ctx.globalAlpha = CONFIG.CHART_BAR_ALPHA;
+    this.ctx.globalAlpha = preset.alpha;
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(x, animatedY, barWidth, animatedH);
     this.ctx.globalAlpha = CONFIG.CHART_DEFAULT_ALPHA;
@@ -96,8 +104,8 @@ class HistogramRenderer {
     if (frequency > 0 && animatedH > 0) {
       const strokeGradient = Utils.createVerticalGradient(
         this.ctx, x, animatedY, animatedH,
-        CONFIG.getColor('--chart-bar-stroke-start'),
-        CONFIG.getColor('--chart-bar-stroke-end')
+        preset.strokeStart,
+        preset.strokeEnd
       );
       this.ctx.strokeStyle = strokeGradient;
       this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
