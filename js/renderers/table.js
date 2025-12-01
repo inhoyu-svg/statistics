@@ -81,12 +81,18 @@ class TableRenderer {
   extractTableId(canvasId) {
     // 'frequencyTable' → 'table-1'
     // 'frequencyTable-2' → 'table-2'
+    // 'viz-table-1' → 'viz-table-1' (viz-api용)
     if (canvasId === 'frequencyTable') {
       return 'table-1';
     }
-    const match = canvasId.match(/frequencyTable-(\d+)/);
-    if (match) {
-      return `table-${match[1]}`;
+    const freqMatch = canvasId.match(/frequencyTable-(\d+)/);
+    if (freqMatch) {
+      return `table-${freqMatch[1]}`;
+    }
+    // viz-api 형식: viz-table-1, viz-table-2 등 → 그대로 사용
+    const vizMatch = canvasId.match(/viz-table-\d+/);
+    if (vizMatch) {
+      return canvasId;
     }
     // 기본값
     return 'table-1';
@@ -758,6 +764,14 @@ class TableRenderer {
   _getTableRowStructure(tableLayer, prefix) {
     const structure = [];
 
+    // 디버그: 한 번만 출력
+    const shouldLog = !this._debugRowStructureLogged;
+    if (shouldLog) {
+      this._debugRowStructureLogged = true;
+      console.log('[_getTableRowStructure] prefix:', prefix);
+      console.log('[_getTableRowStructure] tableLayer children count:', tableLayer?.children?.length);
+    }
+
     tableLayer.children.forEach(child => {
       if (child.type === 'group') {
         if (child.id === `${prefix}-table-header`) {
@@ -769,6 +783,10 @@ class TableRenderer {
         }
       }
     });
+
+    if (shouldLog) {
+      console.log('[_getTableRowStructure] result:', structure);
+    }
 
     return structure;
   }
@@ -961,6 +979,13 @@ class TableRenderer {
     this.cellAnimationDuration = blinkEnabled ? maxDuration : 300; // 블링크 비활성화 시 페이드인 시간
     this.cellAnimationRepeat = maxRepeat;
     this.cellAnimationBlinkEnabled = blinkEnabled;
+
+    // 디버그 플래그 초기화 (새 애니메이션 시작 시 로그 출력)
+    this._debugLoggedOnce = false;
+    this._debugLoggedGroups = false;
+    this._debugGroupLoggedOnce = false;
+    this._debugRowStructureLogged = false;
+    this._debugCellBoundsLogged = {};
 
     // 애니메이션 루프 시작 (블링크/페이드인 모두)
     this._runCellAnimationLoop();
@@ -1252,13 +1277,28 @@ class TableRenderer {
   _groupAdjacentCellsWithOverlap() {
     const groups = [];
 
-    this.savedAnimations.forEach(anim => {
+    // 디버그: 한 번만 출력
+    const shouldLogGroup = !this._debugGroupLoggedOnce;
+    if (shouldLogGroup) {
+      this._debugGroupLoggedOnce = true;
+      // 레이어 구조 디버깅
+      const prefix = this._getLayerIdPrefix();
+      const rootLayer = this.layerManager.root;
+      const tableLayer = rootLayer?.children?.[0];
+      console.log('[_groupAdjacentCellsWithOverlap] prefix:', prefix);
+      console.log('[_groupAdjacentCellsWithOverlap] tableLayer id:', tableLayer?.id);
+      console.log('[_groupAdjacentCellsWithOverlap] tableLayer children:', tableLayer?.children?.map(c => c.id));
+    }
+
+    this.savedAnimations.forEach((anim, idx) => {
       const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+      if (shouldLogGroup) console.log(`[_groupAdjacentCellsWithOverlap] anim[${idx}]:`, anim, 'targets:', targets);
       if (targets.length === 0) return;
 
       // 셀에 bounds 추가
       const cells = targets.map(t => {
         const bounds = this._getCellBounds(t.row, t.col);
+        if (shouldLogGroup && !bounds) console.log(`[_groupAdjacentCellsWithOverlap] bounds null for row=${t.row}, col=${t.col}`);
         return bounds ? { row: t.row, col: t.col, bounds } : null;
       }).filter(Boolean);
 
@@ -1355,14 +1395,23 @@ class TableRenderer {
    * @returns {Object|null} {x, y, width, height}
    */
   _getCellBounds(row, col) {
+    const debugKey = `${row}-${col}`;
+    const shouldLog = !this._debugCellBoundsLogged?.[debugKey];
+
     const prefix = this._getLayerIdPrefix();
     const rootLayer = this.layerManager.root;
-    if (!rootLayer?.children[0]) return null;
+    if (!rootLayer?.children[0]) {
+      if (shouldLog) console.log('[_getCellBounds] rootLayer missing');
+      return null;
+    }
 
     const tableLayer = rootLayer.children[0];
     const rowStructure = this._getTableRowStructure(tableLayer, prefix);
     const rowInfo = rowStructure[row];
-    if (!rowInfo) return null;
+    if (!rowInfo) {
+      if (shouldLog) console.log('[_getCellBounds] rowInfo missing for row:', row, 'rowStructure:', rowStructure);
+      return null;
+    }
 
     // 행 타입에 따른 셀 ID 생성 (기존 _applyAnimationToTargetCells와 동일한 로직)
     let layerId;
@@ -1377,13 +1426,25 @@ class TableRenderer {
       layerId = `${prefix}-table-row-${dataRowIdx}-col${col}`;
     }
 
+    if (shouldLog) console.log('[_getCellBounds] looking for layerId:', layerId);
     const cellLayer = this.layerManager.findLayer(layerId);
-    if (!cellLayer) return null;
+    if (!cellLayer) {
+      if (shouldLog) console.log('[_getCellBounds] cellLayer not found');
+      return null;
+    }
 
     // 레이어 데이터에서 위치 정보 가져오기
     const data = cellLayer.data;
-    if (!data) return null;
+    if (!data) {
+      if (shouldLog) console.log('[_getCellBounds] data missing');
+      return null;
+    }
 
+    if (shouldLog) {
+      console.log('[_getCellBounds] found bounds:', { x: data.x, y: data.y, width: data.width, height: data.height });
+      if (!this._debugCellBoundsLogged) this._debugCellBoundsLogged = {};
+      this._debugCellBoundsLogged[debugKey] = true;
+    }
     return { x: data.x, y: data.y, width: data.width, height: data.height };
   }
 
@@ -1392,10 +1453,19 @@ class TableRenderer {
    * @param {number} progress - 애니메이션 진행도 (0~1)
    */
   _renderMergedAnimations(progress) {
+    // 디버깅: 한 번만 로그 출력
+    if (!this._debugLoggedOnce) {
+      console.log('[table] _renderMergedAnimations called, savedAnimations:', this.savedAnimations.length);
+      this._debugLoggedOnce = true;
+    }
     if (this.savedAnimations.length === 0) return;
 
     // 인접 셀 그룹화 (겹침 허용, 직접 bounds 수집)
     const allGroups = this._groupAdjacentCellsWithOverlap();
+    if (!this._debugLoggedGroups) {
+      console.log('[table] allGroups:', allGroups);
+      this._debugLoggedGroups = true;
+    }
     if (allGroups.length === 0) return;
 
     // 색상: 그룹 1개면 초록색, 2개 이상이면 파랑/분홍/주황

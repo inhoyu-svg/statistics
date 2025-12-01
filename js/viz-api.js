@@ -176,6 +176,7 @@ export async function renderChart(element, config) {
  * @returns {Promise<Object>} { tableRenderer, canvas, classes?, stats?, parsedData? } or { error }
  */
 export async function renderTable(element, config) {
+  console.log('[viz-api] renderTable called with config:', config);
   try {
     // Wait for KaTeX fonts to load
     await waitForFonts();
@@ -247,6 +248,9 @@ export async function renderTable(element, config) {
         tableRenderer.draw(classes, rawData.length, tableConfig);
       }
 
+      // Apply cell animations if specified
+      applyCellAnimationsFromConfig(tableRenderer, config);
+
       return {
         tableRenderer,
         canvas,
@@ -273,6 +277,9 @@ export async function renderTable(element, config) {
 
       tableRenderer.drawCustomTable(tableType, parseResult.data, tableConfig);
 
+      // Apply cell animations if specified
+      applyCellAnimationsFromConfig(tableRenderer, config);
+
       return {
         tableRenderer,
         canvas,
@@ -283,6 +290,39 @@ export async function renderTable(element, config) {
   } catch (error) {
     console.error('renderTable error:', error);
     return { error: error.message };
+  }
+}
+
+/**
+ * Apply cell animations from config
+ * @param {TableRenderer} tableRenderer - Table renderer instance
+ * @param {Object} config - Configuration object
+ */
+function applyCellAnimationsFromConfig(tableRenderer, config) {
+  console.log('[viz-api] applyCellAnimationsFromConfig called', config.cellAnimations);
+
+  if (!config.cellAnimations || !Array.isArray(config.cellAnimations)) {
+    console.log('[viz-api] No cellAnimations found');
+    return;
+  }
+
+  console.log('[viz-api] Adding', config.cellAnimations.length, 'animations');
+  config.cellAnimations.forEach(anim => {
+    tableRenderer.addAnimation({
+      rowIndex: anim.rowIndex,
+      colIndex: anim.colIndex,
+      duration: anim.duration,
+      repeat: anim.repeat
+    });
+  });
+
+  // Auto play if animations were added
+  if (config.cellAnimations.length > 0) {
+    const playOptions = config.cellAnimationOptions || {};
+    console.log('[viz-api] Playing animations with options:', playOptions);
+    console.log('[viz-api] Saved animations:', tableRenderer.getSavedAnimations());
+    tableRenderer.playAllAnimations(playOptions);
+    console.log('[viz-api] playAllAnimations called');
   }
 }
 
@@ -318,4 +358,84 @@ function applyCellVariables(classes, cellVariables, tableId) {
   });
 }
 
-export default { render, renderChart, renderTable };
+// ============================================
+// Cell Animation API
+// ============================================
+
+/**
+ * 셀 애니메이션 추가
+ * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+ * @param {Object} options - 애니메이션 옵션
+ * @param {number} [options.rowIndex] - 행 인덱스 (null이면 열 전체)
+ * @param {number} [options.colIndex] - 열 인덱스 (null이면 행 전체)
+ * @param {number} [options.duration=1500] - 애니메이션 시간 (ms)
+ * @param {number} [options.repeat=3] - 반복 횟수
+ * @returns {Object} 추가된 애니메이션 객체 { id, rowIndex, colIndex, duration, repeat }
+ */
+export function addCellAnimation(tableRenderer, options) {
+  if (!tableRenderer) return { error: 'tableRenderer is required' };
+  return tableRenderer.addAnimation(options);
+}
+
+/**
+ * 특정 셀 애니메이션 삭제
+ * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+ * @param {number} id - 삭제할 애니메이션 ID
+ */
+export function removeCellAnimation(tableRenderer, id) {
+  if (!tableRenderer) return;
+  tableRenderer.removeAnimation(id);
+}
+
+/**
+ * 저장된 셀 애니메이션 목록 조회
+ * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+ * @returns {Array} 애니메이션 배열 [{ id, rowIndex, colIndex, duration, repeat }, ...]
+ */
+export function getCellAnimations(tableRenderer) {
+  if (!tableRenderer) return [];
+  return tableRenderer.getSavedAnimations();
+}
+
+/**
+ * 저장된 모든 셀 애니메이션 재생
+ * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+ * @param {Object} [options] - 재생 옵션
+ * @param {boolean} [options.blinkEnabled=true] - 블링크 효과 활성화
+ */
+export function playCellAnimations(tableRenderer, options = {}) {
+  if (!tableRenderer) return;
+  tableRenderer.playAllAnimations(options);
+}
+
+/**
+ * 셀 애니메이션 재생 중지 (목록은 유지)
+ * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+ */
+export function stopCellAnimations(tableRenderer) {
+  if (!tableRenderer) return;
+  tableRenderer.stopCellAnimation();
+}
+
+/**
+ * 모든 셀 애니메이션 초기화 (중지 + 목록 삭제)
+ * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+ */
+export function clearCellAnimations(tableRenderer) {
+  if (!tableRenderer) return;
+  tableRenderer.stopCellAnimation();
+  tableRenderer.clearSavedAnimations();
+}
+
+export default {
+  render,
+  renderChart,
+  renderTable,
+  // Cell Animation API
+  addCellAnimation,
+  removeCellAnimation,
+  getCellAnimations,
+  playCellAnimations,
+  stopCellAnimations,
+  clearCellAnimations
+};
