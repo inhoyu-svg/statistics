@@ -111,9 +111,6 @@ class FrequencyDistributionApp {
     // 레이어 소스 선택기 초기화
     this.layerPanelController.initLayerSourceSelector();
 
-    // 하이라이트 테스트 버튼 초기화
-    this.layerPanelController.initHighlightTestButtons();
-
     // 애니메이션 테스트 버튼 초기화
     this.layerPanelController.initAnimationTestButtons();
 

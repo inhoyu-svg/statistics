@@ -465,14 +465,16 @@ class TableRenderer {
     // 병합된 셀 애니메이션 렌더링 (인접 셀은 하나의 영역으로)
     if (this.cellAnimationActive) {
       let renderProgress;
+      const elapsed = Date.now() - this.cellAnimationStart;
+
       if (this.cellAnimationBlinkEnabled) {
         // 블링크 활성화: 펄스 효과 (사인파)
-        const elapsed = Date.now() - this.cellAnimationStart;
         const progress = Math.min(elapsed / this.cellAnimationDuration, 1);
         renderProgress = Math.sin(progress * Math.PI * 2 * this.cellAnimationRepeat) * 0.5 + 0.5;
       } else {
-        // 블링크 비활성화: 정적 하이라이트
-        renderProgress = 1;
+        // 블링크 비활성화: 페이드인 후 정적 하이라이트
+        const fadeInDuration = 300; // 300ms 페이드인
+        renderProgress = Math.min(elapsed / fadeInDuration, 1);
       }
       this._renderMergedAnimations(renderProgress);
     }
@@ -765,13 +767,13 @@ class TableRenderer {
 
     const elapsed = Date.now() - this.cellAnimationStart;
 
-    // 애니메이션 종료 체크
-    if (elapsed >= this.cellAnimationDuration) {
+    // 애니메이션 종료 체크 (블링크 활성화 시에만)
+    if (this.cellAnimationBlinkEnabled && elapsed >= this.cellAnimationDuration) {
       this.stopCellAnimation();
       return;
     }
 
-    // 다음 프레임 예약
+    // 다음 프레임 예약 (블링크 비활성화 시 페이드인 완료 후에도 계속)
     this.cellAnimationFrameId = requestAnimationFrame(() => this._runCellAnimationLoop());
 
     // 렌더링은 processTableAnimations()에서 처리
@@ -942,17 +944,12 @@ class TableRenderer {
     // 애니메이션 상태 설정
     this.cellAnimationActive = true;
     this.cellAnimationStart = Date.now();
-    this.cellAnimationDuration = blinkEnabled ? maxDuration : Infinity; // 블링크 비활성화 시 무한
+    this.cellAnimationDuration = blinkEnabled ? maxDuration : 300; // 블링크 비활성화 시 페이드인 시간
     this.cellAnimationRepeat = maxRepeat;
     this.cellAnimationBlinkEnabled = blinkEnabled;
 
-    if (blinkEnabled) {
-      // 블링크 활성화: 애니메이션 루프 시작
-      this._runCellAnimationLoop();
-    } else {
-      // 블링크 비활성화: 정적 렌더링 한 번
-      this.renderFrame();
-    }
+    // 애니메이션 루프 시작 (블링크/페이드인 모두)
+    this._runCellAnimationLoop();
   }
 
   /**
@@ -1076,51 +1073,159 @@ class TableRenderer {
   }
 
   /**
-   * 인접한 셀들을 그룹으로 묶기 (Union-Find)
-   * @param {Array} cells - 셀 배열
+   * 단일 애니메이션의 셀만 수집
+   * @param {Object} anim - 애니메이션 객체 {rowIndex, colIndex, ...}
+   * @returns {Array} [{row, col, bounds}, ...]
+   */
+  _collectAnimationCellsForSingleAnim(anim) {
+    const cells = [];
+    const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+
+    targets.forEach(t => {
+      const bounds = this._getCellBounds(t.row, t.col);
+      if (bounds) {
+        cells.push({ row: t.row, col: t.col, bounds });
+      }
+    });
+
+    return cells;
+  }
+
+  /**
+   * 단일 애니메이션 내에서 인접 셀 그룹화 (방향 제약 적용)
+   * @param {Array} cells - 셀 배열 [{row, col, bounds}, ...]
    * @returns {Array} 그룹 배열 [[cell1, cell2, ...], ...]
    */
-  _groupAdjacentCells(cells) {
+  _groupCellsWithDirection(cells) {
+    if (cells.length === 0) return [];
+
+    const groups = [];
+    const cellToGroup = new Map();
     const cellMap = new Map();
     cells.forEach(c => cellMap.set(`${c.row}-${c.col}`, c));
 
-    const parent = new Map();
-    const find = (key) => {
-      if (!parent.has(key)) parent.set(key, key);
-      if (parent.get(key) !== key) {
-        parent.set(key, find(parent.get(key)));
-      }
-      return parent.get(key);
-    };
-    const union = (a, b) => {
-      const pa = find(a), pb = find(b);
-      if (pa !== pb) parent.set(pa, pb);
-    };
+    cells.forEach(cell => {
+      const key = `${cell.row}-${cell.col}`;
+      if (cellToGroup.has(key)) return;
 
-    // 인접 셀 연결
-    cells.forEach(c => {
-      const key = `${c.row}-${c.col}`;
       const neighbors = [
-        `${c.row - 1}-${c.col}`, // 위
-        `${c.row + 1}-${c.col}`, // 아래
-        `${c.row}-${c.col - 1}`, // 왼쪽
-        `${c.row}-${c.col + 1}`  // 오른쪽
+        { key: `${cell.row - 1}-${cell.col}`, dir: 'vertical' },
+        { key: `${cell.row + 1}-${cell.col}`, dir: 'vertical' },
+        { key: `${cell.row}-${cell.col - 1}`, dir: 'horizontal' },
+        { key: `${cell.row}-${cell.col + 1}`, dir: 'horizontal' }
       ];
-      neighbors.forEach(nKey => {
-        if (cellMap.has(nKey)) union(key, nKey);
+
+      let targetGroupIdx = null;
+      let mergeDirection = null;
+
+      for (const n of neighbors) {
+        if (!cellToGroup.has(n.key)) continue;
+        if (!cellMap.has(n.key)) continue;
+
+        const groupIdx = cellToGroup.get(n.key);
+        const group = groups[groupIdx];
+
+        if (group.direction === 'undetermined' || group.direction === n.dir) {
+          targetGroupIdx = groupIdx;
+          mergeDirection = n.dir;
+          break;
+        }
+      }
+
+      if (targetGroupIdx !== null) {
+        const group = groups[targetGroupIdx];
+        group.cells.add(key);
+        cellToGroup.set(key, targetGroupIdx);
+
+        if (group.direction === 'undetermined' && group.cells.size >= 2) {
+          group.direction = mergeDirection;
+        }
+      } else {
+        const newGroup = { cells: new Set([key]), direction: 'undetermined' };
+        const newIdx = groups.length;
+        groups.push(newGroup);
+        cellToGroup.set(key, newIdx);
+      }
+    });
+
+    return groups.map(g => {
+      return Array.from(g.cells).map(key => cellMap.get(key)).filter(Boolean);
+    }).filter(g => g.length > 0);
+  }
+
+  /**
+   * 인접한 셀들을 그룹으로 묶기 (방향 제약 적용)
+   * - 행 그룹: 같은 행의 셀만 병합 가능 (가로 방향)
+   * - 열 그룹: 같은 열의 셀만 병합 가능 (세로 방향)
+   * - 단일 셀: 방향 미정, 다음 셀 추가 시 방향 결정
+   * @param {Array} cells - 셀 배열 [{row, col, bounds}, ...]
+   * @returns {Array} 그룹 배열 [[cell1, cell2, ...], ...]
+   */
+  _groupAdjacentCells(cells) {
+    // 그룹 구조: { cells: Set<"row-col">, direction: 'undetermined' | 'horizontal' | 'vertical' }
+    const groups = [];
+    const cellToGroup = new Map(); // "row-col" -> group index
+    const cellMap = new Map();
+    cells.forEach(c => cellMap.set(`${c.row}-${c.col}`, c));
+
+    // savedAnimations 순서대로 처리 (추가 순서 유지)
+    this.savedAnimations.forEach(anim => {
+      const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+
+      targets.forEach(t => {
+        const key = `${t.row}-${t.col}`;
+        if (cellToGroup.has(key)) return; // 이미 그룹에 있음
+        if (!cellMap.has(key)) return; // bounds 없음
+
+        // 인접한 기존 그룹 찾기
+        const neighbors = [
+          { key: `${t.row - 1}-${t.col}`, dir: 'vertical' },   // 위
+          { key: `${t.row + 1}-${t.col}`, dir: 'vertical' },   // 아래
+          { key: `${t.row}-${t.col - 1}`, dir: 'horizontal' }, // 왼쪽
+          { key: `${t.row}-${t.col + 1}`, dir: 'horizontal' }  // 오른쪽
+        ];
+
+        let targetGroupIdx = null;
+        let mergeDirection = null;
+
+        for (const n of neighbors) {
+          if (!cellToGroup.has(n.key)) continue;
+
+          const groupIdx = cellToGroup.get(n.key);
+          const group = groups[groupIdx];
+
+          // 병합 가능 여부 확인
+          if (group.direction === 'undetermined' || group.direction === n.dir) {
+            targetGroupIdx = groupIdx;
+            mergeDirection = n.dir;
+            break; // 첫 번째 병합 가능한 그룹 선택
+          }
+        }
+
+        if (targetGroupIdx !== null) {
+          // 기존 그룹에 추가
+          const group = groups[targetGroupIdx];
+          group.cells.add(key);
+          cellToGroup.set(key, targetGroupIdx);
+
+          // 방향 결정 (그룹에 셀이 2개 이상이면)
+          if (group.direction === 'undetermined' && group.cells.size >= 2) {
+            group.direction = mergeDirection;
+          }
+        } else {
+          // 새 그룹 생성
+          const newGroup = { cells: new Set([key]), direction: 'undetermined' };
+          const newIdx = groups.length;
+          groups.push(newGroup);
+          cellToGroup.set(key, newIdx);
+        }
       });
     });
 
-    // 그룹별로 분류
-    const groups = new Map();
-    cells.forEach(c => {
-      const key = `${c.row}-${c.col}`;
-      const root = find(key);
-      if (!groups.has(root)) groups.set(root, []);
-      groups.get(root).push(c);
-    });
-
-    return Array.from(groups.values());
+    // 결과 변환: Set<key> → Array<cell>
+    return groups.map(g => {
+      return Array.from(g.cells).map(key => cellMap.get(key)).filter(Boolean);
+    }).filter(g => g.length > 0);
   }
 
   /**
@@ -1163,60 +1268,76 @@ class TableRenderer {
   }
 
   /**
-   * 병합된 셀 그룹 렌더링 (인접 셀은 하나의 영역으로)
+   * 병합된 셀 그룹 렌더링 (각 애니메이션을 독립적으로 렌더링, 겹침 허용)
    * @param {number} progress - 애니메이션 진행도 (0~1)
    */
   _renderMergedAnimations(progress) {
-    const cells = this._collectAllAnimationCells();
-    if (cells.length === 0) return;
+    if (this.savedAnimations.length === 0) return;
 
-    const groups = this._groupAdjacentCells(cells);
-    const fillAlpha = progress * 0.3;
-    const strokeAlpha = progress;
+    // 색상 결정: 애니메이션 1개면 초록색, 2개 이상이면 파랑/분홍/주황
+    const colors = this.savedAnimations.length === 1
+      ? ['#89EC4E']  // 단일 애니메이션: 초록색
+      : ['#008aff', '#e749af', '#ff764f'];  // 복수 애니메이션: 파랑, 분홍, 주황
 
-    groups.forEach(group => {
-      const cellSet = new Set(group.map(c => `${c.row}-${c.col}`));
+    // 각 애니메이션을 독립적으로 렌더링 (겹침 허용)
+    this.savedAnimations.forEach((anim, animIndex) => {
+      const cells = this._collectAnimationCellsForSingleAnim(anim);
+      if (cells.length === 0) return;
 
-      this.ctx.save();
+      const groups = this._groupCellsWithDirection(cells);
+      const color = colors[animIndex] || colors[colors.length - 1];
+      const fillAlpha = progress * 0.3;
+      const strokeAlpha = progress;
 
-      // 1. 모든 셀에 fill
-      this.ctx.fillStyle = `rgba(137, 236, 78, ${fillAlpha})`;
-      group.forEach(c => {
-        this.ctx.fillRect(c.bounds.x, c.bounds.y, c.bounds.width, c.bounds.height);
+      // hex to rgb 변환
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+
+      groups.forEach(group => {
+        const cellSet = new Set(group.map(c => `${c.row}-${c.col}`));
+
+        this.ctx.save();
+
+        // 1. 모든 셀에 fill
+        this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${fillAlpha})`;
+        group.forEach(c => {
+          this.ctx.fillRect(c.bounds.x, c.bounds.y, c.bounds.width, c.bounds.height);
+        });
+
+        // 2. 외곽 변만 stroke (인접 셀과 공유하는 변은 제외)
+        this.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${strokeAlpha})`;
+        this.ctx.lineWidth = 2;
+
+        group.forEach(c => {
+          const { x, y, width, height } = c.bounds;
+          const hasTop = cellSet.has(`${c.row - 1}-${c.col}`);
+          const hasBottom = cellSet.has(`${c.row + 1}-${c.col}`);
+          const hasLeft = cellSet.has(`${c.row}-${c.col - 1}`);
+          const hasRight = cellSet.has(`${c.row}-${c.col + 1}`);
+
+          this.ctx.beginPath();
+          if (!hasTop) { // 위쪽 변
+            this.ctx.moveTo(x, y);
+            this.ctx.lineTo(x + width, y);
+          }
+          if (!hasBottom) { // 아래쪽 변
+            this.ctx.moveTo(x, y + height);
+            this.ctx.lineTo(x + width, y + height);
+          }
+          if (!hasLeft) { // 왼쪽 변
+            this.ctx.moveTo(x, y);
+            this.ctx.lineTo(x, y + height);
+          }
+          if (!hasRight) { // 오른쪽 변
+            this.ctx.moveTo(x + width, y);
+            this.ctx.lineTo(x + width, y + height);
+          }
+          this.ctx.stroke();
+        });
+
+        this.ctx.restore();
       });
-
-      // 2. 외곽 변만 stroke (인접 셀과 공유하는 변은 제외)
-      this.ctx.strokeStyle = `rgba(137, 236, 78, ${strokeAlpha})`;
-      this.ctx.lineWidth = 2;
-
-      group.forEach(c => {
-        const { x, y, width, height } = c.bounds;
-        const hasTop = cellSet.has(`${c.row - 1}-${c.col}`);
-        const hasBottom = cellSet.has(`${c.row + 1}-${c.col}`);
-        const hasLeft = cellSet.has(`${c.row}-${c.col - 1}`);
-        const hasRight = cellSet.has(`${c.row}-${c.col + 1}`);
-
-        this.ctx.beginPath();
-        if (!hasTop) { // 위쪽 변
-          this.ctx.moveTo(x, y);
-          this.ctx.lineTo(x + width, y);
-        }
-        if (!hasBottom) { // 아래쪽 변
-          this.ctx.moveTo(x, y + height);
-          this.ctx.lineTo(x + width, y + height);
-        }
-        if (!hasLeft) { // 왼쪽 변
-          this.ctx.moveTo(x, y);
-          this.ctx.lineTo(x, y + height);
-        }
-        if (!hasRight) { // 오른쪽 변
-          this.ctx.moveTo(x + width, y);
-          this.ctx.lineTo(x + width, y + height);
-        }
-        this.ctx.stroke();
-      });
-
-      this.ctx.restore();
     });
   }
 

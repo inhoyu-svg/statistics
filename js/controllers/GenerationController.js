@@ -500,8 +500,6 @@ class GenerationController {
         jsonButtons.style.display = 'flex';
       }
 
-      this.app.layerPanelController.showHighlightTestButtons();
-
       if (processedCount === 1) {
         MessageManager.success('도수분포표가 생성되었습니다!');
       } else {
