@@ -458,25 +458,39 @@ class TableRenderer {
 
     const rootLayer = this.layerManager.root;
     if (rootLayer && rootLayer.children.length > 0) {
-      // root의 자식들(도수분포표)을 렌더링
-      rootLayer.children.forEach(child => this.renderLayer(child));
-    }
+      const tableLayer = rootLayer.children[0];
+      if (tableLayer && tableLayer.children) {
+        // 1. 그리드 레이어 먼저 렌더링
+        tableLayer.children.forEach(child => {
+          if (child.type === 'grid' || child.type === 'cross-table-grid' ||
+              child.type === 'stem-leaf-grid' || child.type === 'stem-leaf-single-grid') {
+            this.renderLayer(child);
+          }
+        });
 
-    // 병합된 셀 애니메이션 렌더링 (인접 셀은 하나의 영역으로)
-    if (this.cellAnimationActive) {
-      let renderProgress;
-      const elapsed = Date.now() - this.cellAnimationStart;
+        // 2. 하이라이트 렌더링 (그리드 위, 텍스트 아래)
+        if (this.cellAnimationActive) {
+          let renderProgress;
+          const elapsed = Date.now() - this.cellAnimationStart;
 
-      if (this.cellAnimationBlinkEnabled) {
-        // 블링크 활성화: 펄스 효과 (사인파)
-        const progress = Math.min(elapsed / this.cellAnimationDuration, 1);
-        renderProgress = Math.sin(progress * Math.PI * 2 * this.cellAnimationRepeat) * 0.5 + 0.5;
-      } else {
-        // 블링크 비활성화: 페이드인 후 정적 하이라이트
-        const fadeInDuration = 300; // 300ms 페이드인
-        renderProgress = Math.min(elapsed / fadeInDuration, 1);
+          if (this.cellAnimationBlinkEnabled) {
+            const progress = Math.min(elapsed / this.cellAnimationDuration, 1);
+            renderProgress = Math.sin(progress * Math.PI * 2 * this.cellAnimationRepeat) * 0.5 + 0.5;
+          } else {
+            const fadeInDuration = 300;
+            renderProgress = Math.min(elapsed / fadeInDuration, 1);
+          }
+          this._renderMergedAnimations(renderProgress);
+        }
+
+        // 3. 셀 레이어 렌더링 (텍스트)
+        tableLayer.children.forEach(child => {
+          if (child.type !== 'grid' && child.type !== 'cross-table-grid' &&
+              child.type !== 'stem-leaf-grid' && child.type !== 'stem-leaf-single-grid') {
+            this.renderLayer(child);
+          }
+        });
       }
-      this._renderMergedAnimations(renderProgress);
     }
   }
 
@@ -1229,6 +1243,112 @@ class TableRenderer {
   }
 
   /**
+   * 인접 셀 그룹화 (겹침 허용)
+   * - savedAnimations 순서대로 처리
+   * - 인접하고 방향 맞으면 기존 그룹에 추가
+   * - 방향이 다르면 새 그룹 생성, 겹치는 셀도 포함
+   * @returns {Array} 그룹 배열 [[cell1, cell2, ...], ...]
+   */
+  _groupAdjacentCellsWithOverlap() {
+    const groups = [];
+
+    this.savedAnimations.forEach(anim => {
+      const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+      if (targets.length === 0) return;
+
+      // 셀에 bounds 추가
+      const cells = targets.map(t => {
+        const bounds = this._getCellBounds(t.row, t.col);
+        return bounds ? { row: t.row, col: t.col, bounds } : null;
+      }).filter(Boolean);
+
+      if (cells.length === 0) return;
+
+      // 방향 추론
+      let direction = 'undetermined';
+      if (cells.length >= 2) {
+        direction = cells[0].row === cells[1].row ? 'horizontal' : 'vertical';
+      }
+
+      // 인접한 기존 그룹 찾기 (방향 맞는 것만)
+      let targetGroup = null;
+      for (const group of groups) {
+        // 둘 다 방향이 정해져 있고 다르면 스킵
+        if (group.direction !== 'undetermined' && direction !== 'undetermined'
+            && group.direction !== direction) {
+          continue;
+        }
+
+        // 인접 여부 체크
+        outer:
+        for (const c1 of cells) {
+          for (const c2 of group.cells) {
+            const rowDiff = Math.abs(c1.row - c2.row);
+            const colDiff = Math.abs(c1.col - c2.col);
+            if ((rowDiff + colDiff) === 1) {
+              const adjacencyDir = rowDiff === 0 ? 'horizontal' : 'vertical';
+
+              // 그룹 방향이 정해져 있으면, 인접 방향이 그룹 방향과 맞아야 함
+              if (group.direction !== 'undetermined' && adjacencyDir !== group.direction) {
+                continue;
+              }
+
+              // 그룹 방향이 미정이면 인접 방향으로 설정
+              if (group.direction === 'undetermined') {
+                group.direction = adjacencyDir;
+              }
+
+              targetGroup = group;
+              break outer;
+            }
+          }
+        }
+        if (targetGroup) break;
+      }
+
+      if (targetGroup) {
+        // 기존 그룹에 추가 (중복 체크)
+        cells.forEach(c => {
+          if (!targetGroup.cells.some(tc => tc.row === c.row && tc.col === c.col)) {
+            targetGroup.cells.push(c);
+          }
+        });
+        if (targetGroup.direction === 'undetermined') targetGroup.direction = direction;
+
+        // 다른 방향 그룹에도 인접하면 추가 (겹침 처리)
+        for (const otherGroup of groups) {
+          if (otherGroup === targetGroup) continue;
+          if (otherGroup.direction === 'undetermined') continue;
+          if (otherGroup.direction === targetGroup.direction) continue;
+
+          cells.forEach(c => {
+            // 이미 있으면 스킵
+            if (otherGroup.cells.some(tc => tc.row === c.row && tc.col === c.col)) return;
+
+            // 인접 여부 체크
+            for (const oc of otherGroup.cells) {
+              const rowDiff = Math.abs(c.row - oc.row);
+              const colDiff = Math.abs(c.col - oc.col);
+              if ((rowDiff + colDiff) === 1) {
+                const adjacencyDir = rowDiff === 0 ? 'horizontal' : 'vertical';
+                if (adjacencyDir === otherGroup.direction) {
+                  otherGroup.cells.push({ ...c });
+                  break;
+                }
+              }
+            }
+          });
+        }
+      } else {
+        // 새 그룹 생성
+        groups.push({ cells: [...cells], direction });
+      }
+    });
+
+    return groups.map(g => g.cells);
+  }
+
+  /**
    * 셀 좌표로 bounds 가져오기
    * @param {number} row - 행 인덱스
    * @param {number} col - 열 인덱스
@@ -1268,25 +1388,22 @@ class TableRenderer {
   }
 
   /**
-   * 병합된 셀 그룹 렌더링 (인접 셀 병합, 방향 제약 적용)
+   * 병합된 셀 그룹 렌더링 (인접 셀 병합, 겹침 허용)
    * @param {number} progress - 애니메이션 진행도 (0~1)
    */
   _renderMergedAnimations(progress) {
     if (this.savedAnimations.length === 0) return;
 
-    // 모든 애니메이션의 셀을 수집
-    const allCells = this._collectAllAnimationCells();
-    if (allCells.length === 0) return;
-
-    // 전체 셀을 그룹화 (인접 셀 병합, 방향 제약 적용)
-    const groups = this._groupAdjacentCells(allCells);
+    // 인접 셀 그룹화 (겹침 허용, 직접 bounds 수집)
+    const allGroups = this._groupAdjacentCellsWithOverlap();
+    if (allGroups.length === 0) return;
 
     // 색상: 그룹 1개면 초록색, 2개 이상이면 파랑/분홍/주황
-    const colors = groups.length === 1
+    const colors = allGroups.length === 1
       ? ['#89EC4E']
       : ['#008aff', '#e749af', '#ff764f'];
 
-    groups.forEach((group, groupIndex) => {
+    allGroups.forEach((group, groupIndex) => {
       const color = colors[groupIndex % colors.length];
       const fillAlpha = progress * 0.3;
       const strokeAlpha = progress;
