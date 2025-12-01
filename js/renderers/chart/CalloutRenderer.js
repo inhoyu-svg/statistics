@@ -5,6 +5,7 @@
 
 import CONFIG from '../../config.js';
 import Utils from '../../utils/utils.js';
+import * as KatexUtils from '../../utils/katex.js';
 
 class CalloutRenderer {
   /**
@@ -127,18 +128,11 @@ class CalloutRenderer {
    * @param {string} polygonPreset - 다각형 색상 프리셋
    */
   _drawText(x, y, width, height, text, polygonPreset) {
-    const ctx = this.ctx;
-    const padding = CONFIG.CALLOUT_PADDING;
     const lineHeight = CONFIG.CALLOUT_LINE_HEIGHT;
 
     // 프리셋에 따른 텍스트 색상
     const preset = polygonPreset || 'default';
     const textColor = CONFIG.CALLOUT_TEXT_COLORS[preset] || CONFIG.CALLOUT_TEXT_COLORS.default;
-
-    ctx.font = CONFIG.CALLOUT_FONT;
-    ctx.fillStyle = textColor;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
 
     // 줄바꿈 분할
     const lines = text.split('\n');
@@ -150,7 +144,13 @@ class CalloutRenderer {
     lines.forEach((line, i) => {
       const textX = x + width / 2; // 가로 중앙
       const lineY = textY + i * lineHeight;
-      ctx.fillText(line, textX, lineY);
+      // KaTeX 규칙 적용 렌더링 (소문자 이탤릭 등)
+      KatexUtils.renderMixedText(this.ctx, line, textX, lineY, {
+        fontSize: 20,
+        color: textColor,
+        align: 'center',
+        baseline: 'top'
+      });
     });
   }
 

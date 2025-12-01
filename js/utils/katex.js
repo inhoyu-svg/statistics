@@ -403,7 +403,9 @@ export function renderMixedText(ctx, text, x, y, options = {}) {
   let currentX = startX;
   segments.forEach(seg => {
     ctx.font = getFontForCharType(seg.type, fontSize);
-    ctx.fillText(seg.text, currentX, y);
+    // KaTeX 폰트(serif)가 한글 폰트(sans-serif)보다 위로 올라가므로 아래로 보정
+    const yOffset = seg.type === 'korean' ? 0 : fontSize * 0.05;
+    ctx.fillText(seg.text, currentX, y + yOffset);
     currentX += ctx.measureText(seg.text).width;
   });
 
