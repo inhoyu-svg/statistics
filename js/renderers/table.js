@@ -45,6 +45,9 @@ class TableRenderer {
     // 셀 렌더러
     this.cellRenderer = new TableCellRenderer(this.ctx);
 
+    // 스케일 비율 (canvasWidth/canvasHeight 설정 시 사용)
+    this.scaleRatio = 1;
+
     // 현재 설정 저장 (renderFrame에서 사용)
     this.currentClasses = null;
     this.currentTotal = null;
@@ -129,27 +132,29 @@ class TableRenderer {
     // 동적 너비 계산
     const dynamicConfig = this._calculateFrequencyTableDynamicWidth(visibleClasses, total, config, showSummaryRow);
 
-    // 사용자 설정값 우선, 없으면 자동 계산값 사용
-    const finalCanvasWidth = config?.canvasWidth || dynamicConfig.canvasWidth;
-    const finalCanvasHeight = config?.canvasHeight || autoHeight;
-    this.canvas.width = finalCanvasWidth;
-    this.canvas.height = finalCanvasHeight;
-    this.clear();
-
-    // 사용자가 canvasWidth를 설정한 경우 columnWidths 비례 조정
-    let finalColumnWidths = dynamicConfig.columnWidths;
+    // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
+    let ratio = 1;
     if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
-      const ratio = config.canvasWidth / dynamicConfig.canvasWidth;
-      finalColumnWidths = dynamicConfig.columnWidths.map(w => Math.round(w * ratio));
+      ratio = config.canvasWidth / dynamicConfig.canvasWidth;
+    } else if (config?.canvasHeight && autoHeight > 0) {
+      ratio = config.canvasHeight / autoHeight;
     }
 
-    // 레이어 생성
+    // 최종 canvas 크기 계산 (비율 적용)
+    const finalCanvasWidth = config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio);
+    const finalCanvasHeight = config?.canvasHeight || Math.round(autoHeight * ratio);
+    this.canvas.width = finalCanvasWidth;
+    this.canvas.height = finalCanvasHeight;
+    this.scaleRatio = ratio; // renderFrame에서 사용
+    this.clear();
+
+    // 레이어 생성 (원래 크기로 생성, renderFrame에서 scale 적용)
     this.layerManager.clearAll();
     const layerConfig = {
       ...config,
       showSummaryRow,
-      columnWidths: finalColumnWidths,
-      canvasWidth: finalCanvasWidth
+      columnWidths: dynamicConfig.columnWidths,
+      canvasWidth: dynamicConfig.canvasWidth
     };
     TableLayerFactory.createTableLayers(
       this.layerManager,
@@ -278,26 +283,28 @@ class TableRenderer {
     // 동적 너비 계산 (줄기-잎 제외)
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
 
-    // 사용자 설정값 우선, 없으면 자동 계산값 사용
-    const finalCanvasWidth = config?.canvasWidth || dynamicConfig.canvasWidth;
-    const finalCanvasHeight = config?.canvasHeight || autoHeight;
-    this.canvas.width = finalCanvasWidth;
-    this.canvas.height = finalCanvasHeight;
-    this.clear();
-
-    // 사용자가 canvasWidth를 설정한 경우 columnWidths 비례 조정
-    let finalColumnWidths = dynamicConfig.columnWidths;
+    // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
+    let ratio = 1;
     if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
-      const ratio = config.canvasWidth / dynamicConfig.canvasWidth;
-      finalColumnWidths = dynamicConfig.columnWidths.map(w => Math.round(w * ratio));
+      ratio = config.canvasWidth / dynamicConfig.canvasWidth;
+    } else if (config?.canvasHeight && autoHeight > 0) {
+      ratio = config.canvasHeight / autoHeight;
     }
 
-    // 레이어 생성 (TableFactoryRouter 사용)
+    // 최종 canvas 크기 계산 (비율 적용)
+    const finalCanvasWidth = config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio);
+    const finalCanvasHeight = config?.canvasHeight || Math.round(autoHeight * ratio);
+    this.canvas.width = finalCanvasWidth;
+    this.canvas.height = finalCanvasHeight;
+    this.scaleRatio = ratio; // renderFrame에서 사용
+    this.clear();
+
+    // 레이어 생성 (원래 크기로 생성, renderFrame에서 scale 적용)
     this.layerManager.clearAll();
     const layerConfig = {
       ...config,
-      columnWidths: finalColumnWidths,
-      canvasWidth: finalCanvasWidth
+      columnWidths: dynamicConfig.columnWidths,
+      canvasWidth: dynamicConfig.canvasWidth
     };
     TableFactoryRouter.createTableLayers(type, this.layerManager, data, layerConfig, this.tableId);
 
@@ -479,6 +486,12 @@ class TableRenderer {
   renderFrame() {
     this.clear();
 
+    // 스케일 적용
+    this.ctx.save();
+    if (this.scaleRatio !== 1) {
+      this.ctx.scale(this.scaleRatio, this.scaleRatio);
+    }
+
     // 셀 애니메이션 진행도 계산 및 적용
     this.processTableAnimations();
 
@@ -518,6 +531,9 @@ class TableRenderer {
         });
       }
     }
+
+    // 스케일 복원
+    this.ctx.restore();
   }
 
   /**
