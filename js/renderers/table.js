@@ -1036,10 +1036,10 @@ class TableRenderer {
   /**
    * 저장된 모든 애니메이션 동시 재생
    * @param {Object} options - 재생 옵션
-   * @param {boolean} [options.blinkEnabled=true] - 블링크 효과 활성화
+   * @param {boolean} [options.blinkEnabled=false] - 블링크 효과 활성화
    */
   playAllAnimations(options = {}) {
-    const { blinkEnabled = true } = options;
+    const { blinkEnabled = false } = options;
 
     if (this.savedAnimations.length === 0) {
       console.warn('playAllAnimations: 저장된 애니메이션이 없습니다.');

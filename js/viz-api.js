@@ -571,27 +571,33 @@ function applyCellVariablesGeneric(cellVariables, parseResult, tableType) {
  * Apply cell variable to stem-leaf data
  * Single mode: colIndex 0=stem, 1=leaves
  * Compare mode: colIndex 0=leftLeaves, 1=stem, 2=rightLeaves
+ * @param {Object} data - Parsed stem-leaf data
+ * @param {number} dataRowIndex - Data row index (0-based, excluding header)
+ * @param {number} colIndex - Column index
+ * @param {string|Array} value - Value to set (array for leaves, string for stem)
  */
 function applyCellVariableToStemLeaf(data, dataRowIndex, colIndex, value) {
   if (!data.stems || dataRowIndex >= data.stems.length) return;
 
   const stemData = data.stems[dataRowIndex];
+  // 잎 값은 배열 또는 단일 값 지원
+  const leavesValue = Array.isArray(value) ? value : [value];
 
   if (data.isSingleMode === false) {
     // Compare mode: col0=leftLeaves, col1=stem, col2=rightLeaves
     if (colIndex === 0) {
-      stemData.leftLeaves = [value];
+      stemData.leftLeaves = leavesValue;
     } else if (colIndex === 1) {
-      stemData.stem = value;
+      stemData.stem = Array.isArray(value) ? value[0] : value;
     } else if (colIndex === 2) {
-      stemData.rightLeaves = [value];
+      stemData.rightLeaves = leavesValue;
     }
   } else {
     // Single mode: col0=stem, col1=leaves
     if (colIndex === 0) {
-      stemData.stem = value;
+      stemData.stem = Array.isArray(value) ? value[0] : value;
     } else if (colIndex === 1) {
-      stemData.leaves = [value];
+      stemData.leaves = leavesValue;
     }
   }
 }
@@ -673,7 +679,7 @@ export function getCellAnimations(tableRenderer) {
  * 저장된 모든 셀 애니메이션 재생
  * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
  * @param {Object} [options] - 재생 옵션
- * @param {boolean} [options.blinkEnabled=true] - 블링크 효과 활성화
+ * @param {boolean} [options.blinkEnabled=false] - 블링크 효과 활성화
  */
 export function playCellAnimations(tableRenderer, options = {}) {
   if (!tableRenderer) return;

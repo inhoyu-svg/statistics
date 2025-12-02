@@ -212,6 +212,10 @@ class StemLeafFactory {
 
     // 잎 (왼쪽 정렬, 오름차순)
     const leavesText = stemData.leaves.join('      ');
+    // 비숫자 값이 포함되어 있으면 isVariable = true (_, x, A 등)
+    const hasVariable = stemData.leaves.some(leaf =>
+      typeof leaf === 'string' && !/^\d+$/.test(String(leaf).trim())
+    );
     const leavesCell = new Layer({
       id: `stem-leaf-${tableId}-table-row-${rowIndex}-col1`,
       name: `잎: ${leavesText}`,
@@ -234,7 +238,8 @@ class StemLeafFactory {
         isEvenRow: rowIndex % 2 === 1,
         leaves: stemData.leaves,
         maxLeafCount,
-        isSingleMode: true
+        isSingleMode: true,
+        isVariable: hasVariable
       }
     });
     rowGroup.addChild(leavesCell);
@@ -416,6 +421,10 @@ class StemLeafFactory {
 
     // 왼쪽 잎 (오른쪽 정렬, 내림차순)
     const leftLeavesText = stemData.leftLeaves.join('      ');
+    // 비숫자 값이 포함되어 있으면 isVariable = true
+    const leftHasVariable = stemData.leftLeaves.some(leaf =>
+      typeof leaf === 'string' && !/^\d+$/.test(String(leaf).trim())
+    );
     const leftCell = new Layer({
       id: `stem-leaf-${tableId}-table-row-${rowIndex}-col0`,
       name: `왼쪽 잎: ${leftLeavesText}`,
@@ -438,7 +447,8 @@ class StemLeafFactory {
         isEvenRow: rowIndex % 2 === 1,
         leaves: stemData.leftLeaves,
         maxLeafCount,
-        isSingleMode: false
+        isSingleMode: false,
+        isVariable: leftHasVariable
       }
     });
     rowGroup.addChild(leftCell);
@@ -473,6 +483,10 @@ class StemLeafFactory {
 
     // 오른쪽 잎 (왼쪽 정렬, 오름차순)
     const rightLeavesText = stemData.rightLeaves.join('      ');
+    // 비숫자 값이 포함되어 있으면 isVariable = true
+    const rightHasVariable = stemData.rightLeaves.some(leaf =>
+      typeof leaf === 'string' && !/^\d+$/.test(String(leaf).trim())
+    );
     const rightCell = new Layer({
       id: `stem-leaf-${tableId}-table-row-${rowIndex}-col2`,
       name: `오른쪽 잎: ${rightLeavesText}`,
@@ -495,7 +509,8 @@ class StemLeafFactory {
         isEvenRow: rowIndex % 2 === 1,
         leaves: stemData.rightLeaves,
         maxLeafCount,
-        isSingleMode: false
+        isSingleMode: false,
+        isVariable: rightHasVariable
       }
     });
     rowGroup.addChild(rightCell);
