@@ -87,7 +87,8 @@ config (최상위)
 |:-----|:-----|:----------|:-----|
 | `options` | 최상위 | 차트/테이블 | 세부 설정 컨테이너 |
 | `options.tableConfig` | options 하위 | 도수분포표 | 컬럼 표시/순서/라벨 설정 |
-| `options.tableConfig.cellVariables` | tableConfig 하위 | 도수분포표 | 특정 셀 값 커스터마이징 |
+| `options.tableConfig.cellVariables` | tableConfig 하위 | 도수분포표 | 특정 셀 값 커스터마이징 (컬럼명 기반) |
+| `cellVariables` | 최상위 | 줄기-잎, 카테고리 매트릭스, 이원분류표 | 특정 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 | `options.crossTable` | options 하위 | 이원분류표 | 합계/병합헤더 설정 |
 | `options.axisLabels` | options 하위 | 차트 | 축 끝 라벨 커스터마이징 |
 | `cellAnimations` | 최상위 | 모든 테이블 | 셀 하이라이트 애니메이션 |
@@ -816,11 +817,24 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 | 1행 | `헤더: A, B, C, ...` | 열 이름들 |
 | 2행~ | `라벨: 값1, 값2, ...` | 각 행의 데이터 |
 
+> **비숫자 문자 지원**: 값에 숫자 외에 `_`, `?`, 영문자 등 임의의 문자를 사용할 수 있습니다.
+> - `_` 입력 → 빈칸으로 표시
+> - `?` 입력 → `?`로 표시
+
 ```json
 {
   "purpose": "table",
   "tableType": "category-matrix",
   "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90"
+}
+```
+
+**비숫자 예시:**
+```json
+{
+  "purpose": "table",
+  "tableType": "category-matrix",
+  "data": "헤더: A, B, C\n질문 1: O, X, ?\n질문 2: X, O, _"
 }
 ```
 
@@ -836,11 +850,24 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 | 2행 | `헤더: 행라벨명, 열1, 열2, ...` | 열 구조 정의 |
 | 3행~ | `행이름: 값1, 값2, ...` | 각 행의 데이터 |
 
+> **비숫자 문자 지원**: 값에 숫자 외에 `_`, `?`, 영문자 등 임의의 문자를 사용할 수 있습니다.
+> - `_` 입력 → 빈칸으로 표시
+> - `?` 입력 → `?`로 표시
+
 ```json
 {
   "purpose": "table",
   "tableType": "cross-table",
   "data": "비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24"
+}
+```
+
+**비숫자 예시:**
+```json
+{
+  "purpose": "table",
+  "tableType": "cross-table",
+  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, ?\nB: ?, 0.2\nAB: _, 0.16"
 }
 ```
 
@@ -869,6 +896,8 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 ### 4. stem-leaf (줄기-잎 그림)
 
+줄기-잎 그림은 숫자를 입력하면 자동으로 줄기/잎으로 분리되어 배치됩니다.
+
 #### 단일 모드 (숫자만)
 
 ```json
@@ -888,6 +917,63 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
   "data": "남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207"
 }
 ```
+
+#### cellVariables (줄기-잎 전용)
+
+줄기-잎은 데이터가 자동 배치되므로, 특정 셀 값을 수정하려면 `cellVariables`를 사용합니다.
+
+> **참고**: 줄기-잎에서는 data 문자열에 `_`나 `?`를 직접 넣을 수 없습니다 (숫자만 파싱됨).
+> 특정 잎을 `?`나 빈칸으로 표시하려면 `cellVariables`를 사용해야 합니다.
+
+**배열 항목 구조:**
+
+| 필드 | 타입 | 필수 | 설명 |
+|:-----|:-----|:----:|:-----|
+| `rowIndex` | `number` | O | 행 인덱스 (0=헤더, 1~=데이터행) |
+| `colIndex` | `number` | O | 열 인덱스 (아래 표 참조) |
+| `value` | `string` | O | 표시할 값 (`?`, `_` 등) |
+
+**단일 모드 열 인덱스:**
+
+| colIndex | 대상 |
+|:--------:|:-----|
+| 0 | 줄기 (stem) |
+| 1 | 잎 (leaves) |
+
+**비교 모드 열 인덱스:**
+
+| colIndex | 대상 |
+|:--------:|:-----|
+| 0 | 왼쪽 잎 (leftLeaves) |
+| 1 | 줄기 (stem) |
+| 2 | 오른쪽 잎 (rightLeaves) |
+
+**예시 (단일 모드):**
+```json
+{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "162 178 175 174",
+  "cellVariables": [
+    { "rowIndex": 2, "colIndex": 1, "value": "?" }
+  ]
+}
+```
+→ 줄기 17 행(rowIndex 2)의 잎을 `?`로 표시
+
+**예시 (비교 모드):**
+```json
+{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "남: 162 178 175\n여: 160 170",
+  "cellVariables": [
+    { "rowIndex": 1, "colIndex": 0, "value": "?" },
+    { "rowIndex": 2, "colIndex": 2, "value": "_" }
+  ]
+}
+```
+→ rowIndex 1의 왼쪽 잎을 `?`로, rowIndex 2의 오른쪽 잎을 빈칸으로 표시
 
 ---
 

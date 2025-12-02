@@ -435,7 +435,13 @@ export async function renderTable(element, config) {
         }
       }
 
-      tableRenderer.drawCustomTable(tableType, parseResult.data, tableConfig);
+      // Apply cell variables if specified (for custom table types)
+      let finalParseResult = parseResult;
+      if (config.cellVariables && Array.isArray(config.cellVariables)) {
+        finalParseResult = applyCellVariablesGeneric(config.cellVariables, parseResult, tableType);
+      }
+
+      tableRenderer.drawCustomTable(tableType, finalParseResult.data, tableConfig);
 
       // Apply cell animations if specified
       applyCellAnimationsFromConfig(tableRenderer, config);
@@ -509,6 +515,104 @@ function applyCellVariables(classes, cellVariables, tableId) {
 
     tableStore.setCellVariable(tableId, rowIndex, colIndex, cv.value);
   });
+}
+
+/**
+ * Apply cell variables using rowIndex/colIndex (generic for all table types)
+ * Modifies the parsed data directly so the factory uses modified values
+ * @param {Array} cellVariables - Cell variable definitions [{ rowIndex, colIndex, value }, ...]
+ * @param {Object} parseResult - Parsed data result from parser
+ * @param {string} tableType - Table type
+ * @returns {Object} Modified parseResult
+ */
+function applyCellVariablesGeneric(cellVariables, parseResult, tableType) {
+  if (!cellVariables || !Array.isArray(cellVariables)) return parseResult;
+  if (!parseResult || !parseResult.data) return parseResult;
+
+  // Create a deep copy to avoid mutating original
+  const data = JSON.parse(JSON.stringify(parseResult.data));
+
+  cellVariables.forEach(cv => {
+    if (cv.rowIndex === undefined || cv.colIndex === undefined) return;
+    if (cv.value === undefined) return;
+
+    // rowIndex 0 is header, data starts from rowIndex 1
+    const dataRowIndex = cv.rowIndex - 1;
+    if (dataRowIndex < 0) return; // Can't modify header
+
+    if (tableType === 'stem-leaf') {
+      applyCellVariableToStemLeaf(data, dataRowIndex, cv.colIndex, cv.value);
+    } else if (tableType === 'category-matrix') {
+      applyCellVariableToCategoryMatrix(data, dataRowIndex, cv.colIndex, cv.value);
+    } else if (tableType === 'cross-table') {
+      applyCellVariableToCrossTable(data, dataRowIndex, cv.colIndex, cv.value);
+    }
+  });
+
+  return { ...parseResult, data };
+}
+
+/**
+ * Apply cell variable to stem-leaf data
+ * Single mode: colIndex 0=stem, 1=leaves
+ * Compare mode: colIndex 0=leftLeaves, 1=stem, 2=rightLeaves
+ */
+function applyCellVariableToStemLeaf(data, dataRowIndex, colIndex, value) {
+  if (!data.stems || dataRowIndex >= data.stems.length) return;
+
+  const stemData = data.stems[dataRowIndex];
+
+  if (data.isSingleMode === false) {
+    // Compare mode: col0=leftLeaves, col1=stem, col2=rightLeaves
+    if (colIndex === 0) {
+      stemData.leftLeaves = [value];
+    } else if (colIndex === 1) {
+      stemData.stem = value;
+    } else if (colIndex === 2) {
+      stemData.rightLeaves = [value];
+    }
+  } else {
+    // Single mode: col0=stem, col1=leaves
+    if (colIndex === 0) {
+      stemData.stem = value;
+    } else if (colIndex === 1) {
+      stemData.leaves = [value];
+    }
+  }
+}
+
+/**
+ * Apply cell variable to category-matrix data
+ */
+function applyCellVariableToCategoryMatrix(data, dataRowIndex, colIndex, value) {
+  if (!data.rows || dataRowIndex >= data.rows.length) return;
+
+  const row = data.rows[dataRowIndex];
+  if (colIndex === 0) {
+    row.label = value;
+  } else {
+    const valueIndex = colIndex - 1;
+    if (row.values && valueIndex < row.values.length) {
+      row.values[valueIndex] = value;
+    }
+  }
+}
+
+/**
+ * Apply cell variable to cross-table data
+ */
+function applyCellVariableToCrossTable(data, dataRowIndex, colIndex, value) {
+  if (!data.rows || dataRowIndex >= data.rows.length) return;
+
+  const row = data.rows[dataRowIndex];
+  if (colIndex === 0) {
+    row.label = value;
+  } else {
+    const valueIndex = colIndex - 1;
+    if (row.values && valueIndex < row.values.length) {
+      row.values[valueIndex] = value;
+    }
+  }
 }
 
 // ============================================
