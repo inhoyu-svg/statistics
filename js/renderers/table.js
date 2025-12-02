@@ -124,13 +124,14 @@ class TableRenderer {
 
     // Canvas 크기 계산
     const rowCount = visibleClasses.length + (showSummaryRow ? 1 : 0); // 합계 행 조건부
-    const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
+    const autoHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
     // 동적 너비 계산
     const dynamicConfig = this._calculateFrequencyTableDynamicWidth(visibleClasses, total, config, showSummaryRow);
 
-    this.canvas.width = dynamicConfig.canvasWidth;
-    this.canvas.height = canvasHeight;
+    // 사용자 설정값 우선, 없으면 자동 계산값 사용
+    this.canvas.width = config.canvasWidth || dynamicConfig.canvasWidth;
+    this.canvas.height = config.canvasHeight || autoHeight;
     this.clear();
 
     // 레이어 생성
@@ -263,13 +264,14 @@ class TableRenderer {
     // Canvas 크기 계산 (이원분류표는 병합 헤더 조건부 추가)
     const showMergedHeader = type === CONFIG.TABLE_TYPES.CROSS_TABLE && data.showMergedHeader !== false;
     const mergedHeaderHeight = showMergedHeader ? 35 : 0;
-    const canvasHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
+    const autoHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
     // 동적 너비 계산 (줄기-잎 제외)
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
 
-    this.canvas.width = dynamicConfig.canvasWidth;
-    this.canvas.height = canvasHeight;
+    // 사용자 설정값 우선, 없으면 자동 계산값 사용
+    this.canvas.width = config.canvasWidth || dynamicConfig.canvasWidth;
+    this.canvas.height = config.canvasHeight || autoHeight;
     this.clear();
 
     // 레이어 생성 (TableFactoryRouter 사용)
