@@ -987,6 +987,10 @@ class TableRenderer {
    * @param {Object} options - 애니메이션 옵션
    * @param {number|null} options.rowIndex - 행 인덱스 (null이면 전체)
    * @param {number|null} options.colIndex - 열 인덱스 (null이면 전체)
+   * @param {number|null} options.rowStart - 행 범위 시작 (colIndex와 함께 사용)
+   * @param {number|null} options.rowEnd - 행 범위 끝 (colIndex와 함께 사용)
+   * @param {number|null} options.colStart - 열 범위 시작 (rowIndex와 함께 사용)
+   * @param {number|null} options.colEnd - 열 범위 끝 (rowIndex와 함께 사용)
    * @param {number} options.duration - 애니메이션 시간 (ms)
    * @param {number} options.repeat - 반복 횟수
    */
@@ -995,6 +999,10 @@ class TableRenderer {
       id: Date.now() + Math.random(), // 고유 ID
       rowIndex: options.rowIndex ?? null,
       colIndex: options.colIndex ?? null,
+      rowStart: options.rowStart ?? null,
+      rowEnd: options.rowEnd ?? null,
+      colStart: options.colStart ?? null,
+      colEnd: options.colEnd ?? null,
       duration: options.duration || 1500,
       repeat: options.repeat || 3
     };

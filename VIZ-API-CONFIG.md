@@ -78,7 +78,7 @@ config (최상위)
 │
 ├── cellAnimationOptions    { blinkEnabled: true/false }
 │
-└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (줄기-잎, 이원분류표, 카테고리 매트릭스용)
+└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (줄기-잎 전용)
 ```
 
 ---
@@ -90,7 +90,7 @@ config (최상위)
 | `options` | 최상위 | 차트/테이블 | 세부 설정 컨테이너 |
 | `options.tableConfig` | options 하위 | 도수분포표 | 컬럼 표시/순서/라벨 설정 |
 | `options.tableConfig.cellVariables` | tableConfig 하위 | 도수분포표 | 특정 셀 값 커스터마이징 (컬럼명 기반) |
-| `cellVariables` | 최상위 | 줄기-잎, 카테고리 매트릭스, 이원분류표 | 특정 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
+| `cellVariables` | 최상위 | 줄기-잎 | 특정 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 | `options.crossTable` | options 하위 | 이원분류표 | 합계/병합헤더 설정 |
 | `options.axisLabels` | options 하위 | 차트 | 축 끝 라벨 커스터마이징 |
 | `cellAnimations` | 최상위 | 모든 테이블 | 셀 하이라이트 애니메이션 |
@@ -1351,42 +1351,23 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
        colIndex: 0     1     2     3     4     5
 ```
 
-#### cellAnimations 예시
+> **셀 애니메이션**: 셀 구조를 참고하여 rowIndex/colIndex를 지정합니다. 자세한 설정은 [셀 애니메이션](#셀-애니메이션-cell-animation) 섹션 참조.
+
+#### 셀 값 커스터마이징
+
+데이터 문자열에서 직접 `_`, `?`, `x` 등을 사용할 수 있습니다.
 
 ```json
 {
-  "cellAnimations": [
-    { "rowIndex": 2, "colIndex": 3 },
-    { "rowIndex": 2, "colIndex": 4 },
-    { "colIndex": 1 }
-  ]
+  "data": "헤더: A, B, C\n전체: 200, _, 300\nO형: x, 60, ?"
 }
 ```
 
-| 설정 | 결과 |
+| 입력 | 결과 |
 |:-----|:-----|
-| `{ "rowIndex": 2, "colIndex": 3 }` | "O형인 학생 수" 행의 "C" 열 셀 (70) |
-| `{ "rowIndex": 2, "colIndex": 4 }` | "O형인 학생 수" 행의 "D" 열 셀 (80) |
-| `{ "colIndex": 1 }` | "A" 열 전체 (헤더 포함) |
-
-#### cellVariables 예시
-
-```json
-{
-  "purpose": "table",
-  "tableType": "category-matrix",
-  "data": "헤더: A, B, C\n전체: 200, 250, 300\nO형: 50, 60, 70",
-  "cellVariables": [
-    { "rowIndex": 1, "colIndex": 2, "value": "x" },
-    { "rowIndex": 2, "colIndex": 3, "value": "_" }
-  ]
-}
-```
-
-| 설정 | 결과 |
-|:-----|:-----|
-| `{ "rowIndex": 1, "colIndex": 2, "value": "x" }` | "전체" 행의 "B" 열 값을 `x`로 표시 |
-| `{ "rowIndex": 2, "colIndex": 3, "value": "_" }` | "O형" 행의 "C" 열 값을 빈칸으로 표시 |
+| `_` | 빈칸 |
+| `?` | 물음표 표시 |
+| `x`, `A` 등 | 해당 문자 그대로 표시 |
 
 ---
 
@@ -1437,125 +1418,7 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
 
 ---
 
-#### showTotal과 showMergedHeader 조합별 결과
-
-이원분류표의 모양은 `showTotal`과 `showMergedHeader` 옵션 조합에 따라 달라집니다.
-
-##### 조합 1: 둘 다 true (기본값)
-
-```json
-{
-  "options": {
-    "crossTable": {
-      "showTotal": true,
-      "showMergedHeader": true
-    }
-  }
-}
-```
-
-**결과 테이블:**
-```
-┌─────────────────────────────────┐
-│           상대도수               │  ← 병합 헤더 (표시됨)
-├─────────┬──────────┬────────────┤
-│ 혈액형   │  남학생   │   여학생   │
-├─────────┼──────────┼────────────┤
-│    A    │   0.4    │    0.4     │
-├─────────┼──────────┼────────────┤
-│    B    │   0.22   │    0.2     │
-├─────────┼──────────┼────────────┤
-│   합계   │    1     │     1      │  ← 합계 행 (표시됨)
-└─────────┴──────────┴────────────┘
-```
-
----
-
-##### 조합 2: showTotal만 true
-
-```json
-{
-  "options": {
-    "crossTable": {
-      "showTotal": true,
-      "showMergedHeader": false
-    }
-  }
-}
-```
-
-**결과 테이블:**
-```
-┌─────────┬──────────┬────────────┐
-│ 혈액형   │  남학생   │   여학생   │  ← 병합 헤더 없이 바로 시작
-├─────────┼──────────┼────────────┤
-│    A    │   0.4    │    0.4     │
-├─────────┼──────────┼────────────┤
-│    B    │   0.22   │    0.2     │
-├─────────┼──────────┼────────────┤
-│   합계   │    1     │     1      │  ← 합계 행 (표시됨)
-└─────────┴──────────┴────────────┘
-```
-
----
-
-##### 조합 3: showMergedHeader만 true
-
-```json
-{
-  "options": {
-    "crossTable": {
-      "showTotal": false,
-      "showMergedHeader": true
-    }
-  }
-}
-```
-
-**결과 테이블:**
-```
-┌─────────────────────────────────┐
-│           상대도수               │  ← 병합 헤더 (표시됨)
-├─────────┬──────────┬────────────┤
-│ 혈액형   │  남학생   │   여학생   │
-├─────────┼──────────┼────────────┤
-│    A    │   0.4    │    0.4     │
-├─────────┼──────────┼────────────┤
-│    B    │   0.22   │    0.2     │
-└─────────┴──────────┴────────────┘
-                                    ← 합계 행 없음
-```
-
----
-
-##### 조합 4: 둘 다 false
-
-```json
-{
-  "options": {
-    "crossTable": {
-      "showTotal": false,
-      "showMergedHeader": false
-    }
-  }
-}
-```
-
-**결과 테이블:**
-```
-┌─────────┬──────────┬────────────┐
-│ 혈액형   │  남학생   │   여학생   │  ← 병합 헤더 없이 바로 시작
-├─────────┼──────────┼────────────┤
-│    A    │   0.4    │    0.4     │
-├─────────┼──────────┼────────────┤
-│    B    │   0.22   │    0.2     │
-└─────────┴──────────┴────────────┘
-                                    ← 합계 행 없음
-```
-
----
-
-#### 옵션 조합 요약표
+#### 옵션 조합별 결과
 
 | showMergedHeader | showTotal | 병합 헤더 | 합계 행 | 용도 |
 |:----------------:|:---------:|:---------:|:-------:|:-----|
@@ -1653,78 +1516,25 @@ O: 0.26, 0.24
 
 > **Tip**: `showMergedHeader: false`이면 모든 rowIndex가 1씩 줄어듭니다.
 
+> **셀 애니메이션**: 위 셀 구조를 참고하여 rowIndex/colIndex를 지정합니다. 자세한 설정은 [셀 애니메이션](#셀-애니메이션-cell-animation) 섹션 참조.
+
 ---
 
-#### cellAnimations 예시
+#### 셀 값 커스터마이징
 
-##### showMergedHeader: true일 때
-
-```json
-{
-  "options": {
-    "crossTable": {
-      "showMergedHeader": true,
-      "showTotal": true
-    }
-  },
-  "cellAnimations": [
-    { "rowIndex": 2, "colIndex": 1 },
-    { "rowIndex": 2, "colIndex": 2 },
-    { "rowIndex": 6 }
-  ]
-}
-```
-
-| 설정 | 결과 |
-|:-----|:-----|
-| `{ "rowIndex": 2, "colIndex": 1 }` | A형 남학생 셀 (0.4) |
-| `{ "rowIndex": 2, "colIndex": 2 }` | A형 여학생 셀 (0.4) |
-| `{ "rowIndex": 6 }` | 합계 행 전체 |
-
-##### showMergedHeader: false일 때
+데이터 문자열에서 직접 `_`, `?`, `x` 등을 사용할 수 있습니다.
 
 ```json
 {
-  "options": {
-    "crossTable": {
-      "showMergedHeader": false,
-      "showTotal": true
-    }
-  },
-  "cellAnimations": [
-    { "rowIndex": 1, "colIndex": 1 },
-    { "rowIndex": 1, "colIndex": 2 },
-    { "rowIndex": 5 }
-  ]
+  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, _\nB: ?, 0.2"
 }
 ```
 
-| 설정 | 결과 |
+| 입력 | 결과 |
 |:-----|:-----|
-| `{ "rowIndex": 1, "colIndex": 1 }` | A형 남학생 셀 (0.4) |
-| `{ "rowIndex": 1, "colIndex": 2 }` | A형 여학생 셀 (0.4) |
-| `{ "rowIndex": 5 }` | 합계 행 전체 |
-
-#### cellVariables 예시
-
-```json
-{
-  "purpose": "table",
-  "tableType": "cross-table",
-  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2",
-  "cellVariables": [
-    { "rowIndex": 1, "colIndex": 2, "value": "x" },
-    { "rowIndex": 2, "colIndex": 1, "value": "_" }
-  ]
-}
-```
-
-| 설정 | 결과 |
-|:-----|:-----|
-| `{ "rowIndex": 1, "colIndex": 2, "value": "x" }` | A형 여학생 값을 `x`로 표시 |
-| `{ "rowIndex": 2, "colIndex": 1, "value": "_" }` | B형 남학생 값을 빈칸으로 표시 |
-
-> **Note**: `showMergedHeader: true`일 때는 rowIndex가 1 증가합니다 (병합헤더가 row 0).
+| `_` | 빈칸 |
+| `?` | 물음표 표시 |
+| `x`, `A` 등 | 해당 문자 그대로 표시 |
 
 ---
 
@@ -1789,21 +1599,7 @@ O: 0.26, 0.24
 colIndex: 0         1
 ```
 
-#### cellAnimations 예시 (단일)
-
-```json
-{
-  "cellAnimations": [
-    { "rowIndex": 3, "colIndex": 1 },
-    { "colIndex": 0 }
-  ]
-}
-```
-
-| 설정 | 결과 |
-|:-----|:-----|
-| `{ "rowIndex": 3, "colIndex": 1 }` | 줄기 18의 잎 셀 (1 3 3 6 9) |
-| `{ "colIndex": 0 }` | 줄기 열 전체 |
+> **셀 애니메이션**: 셀 구조를 참고하여 rowIndex/colIndex를 지정합니다. 자세한 설정은 [셀 애니메이션](#셀-애니메이션-cell-animation) 섹션 참조.
 
 #### cellVariables 예시 (단일)
 
@@ -1880,23 +1676,7 @@ colIndex: 0         1
 | 가운데 열 | 1 | 줄기 |
 | 오른쪽 열 | 2 | 여학생 잎 (정순 정렬) |
 
-#### cellAnimations 예시 (비교)
-
-```json
-{
-  "cellAnimations": [
-    { "rowIndex": 3, "colIndex": 0 },
-    { "rowIndex": 3, "colIndex": 2 },
-    { "colIndex": 1 }
-  ]
-}
-```
-
-| 설정 | 결과 |
-|:-----|:-----|
-| `{ "rowIndex": 3, "colIndex": 0 }` | 줄기 18의 남학생 잎 (9 6 3 3 1) |
-| `{ "rowIndex": 3, "colIndex": 2 }` | 줄기 18의 여학생 잎 (0 2 4 8) |
-| `{ "colIndex": 1 }` | 줄기 열 전체 |
+> **셀 애니메이션**: 셀 구조를 참고하여 rowIndex/colIndex를 지정합니다. 자세한 설정은 [셀 애니메이션](#셀-애니메이션-cell-animation) 섹션 참조.
 
 #### cellVariables 예시 (비교)
 

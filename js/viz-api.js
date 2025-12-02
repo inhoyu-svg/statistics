@@ -484,6 +484,10 @@ function applyCellAnimationsFromConfig(tableRenderer, config) {
     tableRenderer.addAnimation({
       rowIndex: anim.rowIndex,
       colIndex: anim.colIndex,
+      rowStart: anim.rowStart,
+      rowEnd: anim.rowEnd,
+      colStart: anim.colStart,
+      colEnd: anim.colEnd,
       duration: anim.duration,
       repeat: anim.repeat
     });
