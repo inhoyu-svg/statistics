@@ -47,10 +47,10 @@ const CONFIG = {
   ELLIPSIS_POSITION_RATIO: 0.25, // 압축 구간에서 이중물결 기호 위치 (0~1 사이 값)
 
   // 차트 폰트 설정
-  CHART_FONT_SMALL: '11px sans-serif',
-  CHART_FONT_REGULAR: '12px sans-serif',
-  CHART_FONT_BOLD: 'bold 14px sans-serif',
-  CHART_FONT_LARGE: '16px sans-serif',
+  CHART_FONT_SMALL: "11px 'SCDream', sans-serif",
+  CHART_FONT_REGULAR: "12px 'SCDream', sans-serif",
+  CHART_FONT_BOLD: "bold 14px 'SCDream', sans-serif",
+  CHART_FONT_LARGE: "16px 'SCDream', sans-serif",
 
   // 소수점 자릿수
   DECIMAL_PLACES: 2,
@@ -112,9 +112,9 @@ const CONFIG = {
   TABLE_ROW_HEIGHT: 40,
   TABLE_HEADER_HEIGHT: 45,
   TABLE_PADDING: 10,
-  TABLE_FONT_HEADER: 'bold 18px sans-serif',
-  TABLE_FONT_DATA: '18px sans-serif',
-  TABLE_FONT_SUMMARY: 'bold 18px sans-serif',
+  TABLE_FONT_HEADER: "bold 18px 'SCDream', sans-serif",
+  TABLE_FONT_DATA: "18px 'SCDream', sans-serif",
+  TABLE_FONT_SUMMARY: "bold 18px 'SCDream', sans-serif",
   TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
   TABLE_SHOW_SUMMARY_ROW: true, // 합계 행 표시 여부 (도수분포표, 이원분류표)
   TABLE_SUPERSCRIPT_Y_OFFSET: 4, // 상첨자 위치 오프셋 (위로 이동)
@@ -127,7 +127,7 @@ const CONFIG = {
   TABLE_STEM_LEAF_PADDING: 20,            // 줄기-잎 데이터 셀 패딩 (세로선과의 간격)
   TABLE_GRID_DASH_PATTERN: [5, 3],        // 수직 점선 패턴 [선, 간격]
   TABLE_EMPTY_CANVAS_HEIGHT: 100,         // 빈 테이블 캔버스 높이
-  TABLE_FONT_SUPERSCRIPT: '11px sans-serif', // 상첨자 폰트
+  TABLE_FONT_SUPERSCRIPT: "11px 'SCDream', sans-serif", // 상첨자 폰트
 
   // 테이블 문자열 상수
   TABLE_SUPERSCRIPT_MIN_TEXT: '이상',      // 상첨자 최솟값 텍스트
@@ -218,7 +218,7 @@ const CONFIG = {
   CALLOUT_TAIL_HEIGHT: 10,                  // 꼬리 높이 (미사용)
   CALLOUT_BORDER_RADIUS: 0,                 // 모서리 둥글기 (0 = 둥글기 없음)
   CALLOUT_PADDING: 8,                       // 내부 패딩
-  CALLOUT_FONT: '20px sans-serif',          // 폰트
+  CALLOUT_FONT: "20px 'SCDream', sans-serif",          // 폰트
   CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
   CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
   CALLOUT_ACCENT_BAR_WIDTH: 4,              // 오른쪽 세로 막대 너비
