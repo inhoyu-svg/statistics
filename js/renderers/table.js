@@ -649,6 +649,10 @@ class TableRenderer {
    * @param {Object} options - 애니메이션 옵션
    * @param {number} [options.rowIndex] - 행 인덱스 (null이면 전체 행)
    * @param {number} [options.colIndex] - 열 인덱스 (null이면 전체 열)
+   * @param {number} [options.rowStart] - 행 범위 시작 (colIndex와 함께 사용)
+   * @param {number} [options.rowEnd] - 행 범위 끝 (colIndex와 함께 사용)
+   * @param {number} [options.colStart] - 열 범위 시작 (rowIndex와 함께 사용)
+   * @param {number} [options.colEnd] - 열 범위 끝 (rowIndex와 함께 사용)
    * @param {Array} [options.cells] - 복수 셀 [{row, col}, ...]
    * @param {number} [options.duration=1500] - 애니메이션 시간 (ms)
    * @param {number} [options.repeat=3] - 반복 횟수
@@ -658,6 +662,10 @@ class TableRenderer {
     const {
       rowIndex = null,
       colIndex = null,
+      rowStart = null,
+      rowEnd = null,
+      colStart = null,
+      colEnd = null,
       cells = null,
       duration = 1500,
       repeat = 3,
@@ -668,7 +676,9 @@ class TableRenderer {
     this.stopCellAnimation();
 
     // 대상 셀 결정
-    this.cellAnimationTargets = this._resolveAnimationTargets(rowIndex, colIndex, cells);
+    this.cellAnimationTargets = this._resolveAnimationTargets({
+      rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, cells
+    });
 
     if (this.cellAnimationTargets.length === 0) {
       console.warn('animateCells: 대상 셀이 없습니다.');
@@ -706,12 +716,27 @@ class TableRenderer {
 
   /**
    * 셀 애니메이션 대상 결정
-   * @param {number|null} rowIndex - 행 인덱스 (0: 헤더, 1+: 데이터행, 마지막: 합계)
-   * @param {number|null} colIndex - 열 인덱스
-   * @param {Array|null} cells - 복수 셀 배열
+   * @param {Object} anim - 애니메이션 설정 객체
+   * @param {number|null} anim.rowIndex - 행 인덱스 (0: 헤더, 1+: 데이터행, 마지막: 합계)
+   * @param {number|null} anim.colIndex - 열 인덱스
+   * @param {number|null} anim.rowStart - 행 범위 시작 (colIndex와 함께 사용)
+   * @param {number|null} anim.rowEnd - 행 범위 끝 (colIndex와 함께 사용)
+   * @param {number|null} anim.colStart - 열 범위 시작 (rowIndex와 함께 사용)
+   * @param {number|null} anim.colEnd - 열 범위 끝 (rowIndex와 함께 사용)
+   * @param {Array|null} anim.cells - 복수 셀 배열
    * @returns {Array} 대상 셀 배열 [{row, col}, ...]
    */
-  _resolveAnimationTargets(rowIndex, colIndex, cells) {
+  _resolveAnimationTargets(anim) {
+    const {
+      rowIndex = null,
+      colIndex = null,
+      rowStart = null,
+      rowEnd = null,
+      colStart = null,
+      colEnd = null,
+      cells = null
+    } = anim || {};
+
     // 복수 셀이 지정된 경우
     if (cells && Array.isArray(cells) && cells.length > 0) {
       return cells.map(c => ({ row: c.row, col: c.col }));
@@ -729,8 +754,31 @@ class TableRenderer {
     // 테이블 구조 파악: 헤더, 데이터 행들, 합계
     const rowStructure = this._getTableRowStructure(tableLayer, prefix);
 
-    // 행만 지정: 해당 행의 모든 셀
-    if (rowIndex !== null && colIndex === null) {
+    // 1. colIndex + rowStart/rowEnd: 특정 열의 행 범위
+    if (colIndex !== null && rowStart !== null && rowEnd !== null) {
+      for (let r = rowStart; r <= rowEnd; r++) {
+        if (r >= 0 && r < rowStructure.length) {
+          targets.push({ row: r, col: colIndex });
+        }
+      }
+    }
+    // 2. rowIndex + colStart/colEnd: 특정 행의 열 범위
+    else if (rowIndex !== null && colStart !== null && colEnd !== null) {
+      const rowInfo = rowStructure[rowIndex];
+      if (rowInfo) {
+        const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
+        if (rowLayer) {
+          const maxCol = rowLayer.children.length - 1;
+          for (let c = colStart; c <= colEnd; c++) {
+            if (c >= 0 && c <= maxCol) {
+              targets.push({ row: rowIndex, col: c });
+            }
+          }
+        }
+      }
+    }
+    // 3. 행만 지정: 해당 행의 모든 셀
+    else if (rowIndex !== null && colIndex === null) {
       const rowInfo = rowStructure[rowIndex];
       if (rowInfo) {
         const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
@@ -741,13 +789,13 @@ class TableRenderer {
         }
       }
     }
-    // 열만 지정: 해당 열의 모든 행
+    // 4. 열만 지정: 해당 열의 모든 행
     else if (rowIndex === null && colIndex !== null) {
       rowStructure.forEach((rowInfo, idx) => {
         targets.push({ row: idx, col: colIndex });
       });
     }
-    // 둘 다 지정: 특정 셀
+    // 5. 둘 다 지정: 특정 셀
     else if (rowIndex !== null && colIndex !== null) {
       targets.push({ row: rowIndex, col: colIndex });
     }
@@ -1079,7 +1127,7 @@ class TableRenderer {
     const cells = new Map(); // "row-col" -> {row, col, bounds}
 
     this.savedAnimations.forEach(anim => {
-      const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+      const targets = this._resolveAnimationTargets(anim);
       targets.forEach(t => {
         const key = `${t.row}-${t.col}`;
         if (!cells.has(key)) {
@@ -1099,7 +1147,7 @@ class TableRenderer {
    */
   _collectAnimationCellsForSingleAnim(anim) {
     const cells = [];
-    const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+    const targets = this._resolveAnimationTargets(anim);
 
     targets.forEach(t => {
       const bounds = this._getCellBounds(t.row, t.col);
@@ -1190,7 +1238,7 @@ class TableRenderer {
 
     // savedAnimations 순서대로 처리 (추가 순서 유지)
     this.savedAnimations.forEach(anim => {
-      const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+      const targets = this._resolveAnimationTargets(anim);
 
       targets.forEach(t => {
         const key = `${t.row}-${t.col}`;
@@ -1259,7 +1307,7 @@ class TableRenderer {
     const groups = [];
 
     this.savedAnimations.forEach((anim, idx) => {
-      const targets = this._resolveAnimationTargets(anim.rowIndex, anim.colIndex, null);
+      const targets = this._resolveAnimationTargets(anim);
       if (targets.length === 0) return;
 
       // 셀에 bounds 추가

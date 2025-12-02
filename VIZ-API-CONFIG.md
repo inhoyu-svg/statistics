@@ -74,7 +74,7 @@ config (최상위)
 │       ├── showTotal       합계 행 표시
 │       └── showMergedHeader 병합 헤더 표시
 │
-├── cellAnimations          [{ rowIndex, colIndex, duration, repeat }, ...]
+├── cellAnimations          [{ rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, duration, repeat }, ...]
 │
 └── cellAnimationOptions    { blinkEnabled: true/false }
 ```
@@ -1939,6 +1939,10 @@ colIndex: 0         1
 |:-----|:-----|:----:|:------:|:-----|
 | `rowIndex` | `number` | X | `null` | 행 인덱스 (생략 시 열 전체) |
 | `colIndex` | `number` | X | `null` | 열 인덱스 (생략 시 행 전체) |
+| `rowStart` | `number` | X | `null` | 행 범위 시작 (colIndex와 함께 사용) |
+| `rowEnd` | `number` | X | `null` | 행 범위 끝 (colIndex와 함께 사용) |
+| `colStart` | `number` | X | `null` | 열 범위 시작 (rowIndex와 함께 사용) |
+| `colEnd` | `number` | X | `null` | 열 범위 끝 (rowIndex와 함께 사용) |
 | `duration` | `number` | X | `1500` | 애니메이션 시간 (ms) |
 | `repeat` | `number` | X | `3` | 반복 횟수 |
 
@@ -1946,12 +1950,23 @@ colIndex: 0         1
 
 ### 동작 규칙
 
+#### 기본 지정
+
 | rowIndex | colIndex | 결과 |
 |:--------:|:--------:|:-----|
 | 지정 | 지정 | 특정 셀 하이라이트 |
 | 지정 | 생략 | 해당 행 전체 하이라이트 |
 | 생략 | 지정 | 해당 열 전체 하이라이트 |
 | 생략 | 생략 | 동작 안 함 |
+
+#### 범위 지정
+
+| 조합 | 결과 |
+|:-----|:-----|
+| `colIndex` + `rowStart` + `rowEnd` | 특정 열의 행 범위 하이라이트 |
+| `rowIndex` + `colStart` + `colEnd` | 특정 행의 열 범위 하이라이트 |
+
+> **범위 지정 우선순위**: 범위 지정(`rowStart/rowEnd` 또는 `colStart/colEnd`)이 있으면 기본 지정보다 우선합니다.
 
 ---
 
@@ -2035,6 +2050,57 @@ colIndex: 0         1
 ```
 
 **결과**: 0~2행의 2열 셀들이 하이라이트됨 (인접한 셀은 자동 병합)
+
+---
+
+### 열의 행 범위 하이라이트 (범위 지정)
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "cellAnimations": [
+    { "colIndex": 2, "rowStart": 1, "rowEnd": 4 }
+  ]
+}
+```
+
+**결과**: 2열의 1~4행이 하나의 그룹으로 하이라이트됨
+
+> **Tip**: 위의 "여러 셀 하이라이트" 예시와 동일한 결과를 더 간단하게 표현 가능
+
+---
+
+### 행의 열 범위 하이라이트 (범위 지정)
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "cellAnimations": [
+    { "rowIndex": 2, "colStart": 0, "colEnd": 2 }
+  ]
+}
+```
+
+**결과**: 2행의 0~2열이 하나의 그룹으로 하이라이트됨
+
+---
+
+### 범위 지정 + 기본 지정 혼합
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "cellAnimations": [
+    { "colIndex": 1, "rowStart": 2, "rowEnd": 5 },
+    { "rowIndex": 0 }
+  ]
+}
+```
+
+**결과**: 1열의 2~5행과 0행 전체가 각각 다른 그룹으로 하이라이트됨
 
 ---
 
