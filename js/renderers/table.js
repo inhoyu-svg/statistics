@@ -130,17 +130,26 @@ class TableRenderer {
     const dynamicConfig = this._calculateFrequencyTableDynamicWidth(visibleClasses, total, config, showSummaryRow);
 
     // 사용자 설정값 우선, 없으면 자동 계산값 사용
-    this.canvas.width = config?.canvasWidth || dynamicConfig.canvasWidth;
-    this.canvas.height = config?.canvasHeight || autoHeight;
+    const finalCanvasWidth = config?.canvasWidth || dynamicConfig.canvasWidth;
+    const finalCanvasHeight = config?.canvasHeight || autoHeight;
+    this.canvas.width = finalCanvasWidth;
+    this.canvas.height = finalCanvasHeight;
     this.clear();
+
+    // 사용자가 canvasWidth를 설정한 경우 columnWidths 비례 조정
+    let finalColumnWidths = dynamicConfig.columnWidths;
+    if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
+      const ratio = config.canvasWidth / dynamicConfig.canvasWidth;
+      finalColumnWidths = dynamicConfig.columnWidths.map(w => Math.round(w * ratio));
+    }
 
     // 레이어 생성
     this.layerManager.clearAll();
     const layerConfig = {
       ...config,
       showSummaryRow,
-      columnWidths: dynamicConfig.columnWidths,
-      canvasWidth: dynamicConfig.canvasWidth
+      columnWidths: finalColumnWidths,
+      canvasWidth: finalCanvasWidth
     };
     TableLayerFactory.createTableLayers(
       this.layerManager,
@@ -270,16 +279,25 @@ class TableRenderer {
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
 
     // 사용자 설정값 우선, 없으면 자동 계산값 사용
-    this.canvas.width = config?.canvasWidth || dynamicConfig.canvasWidth;
-    this.canvas.height = config?.canvasHeight || autoHeight;
+    const finalCanvasWidth = config?.canvasWidth || dynamicConfig.canvasWidth;
+    const finalCanvasHeight = config?.canvasHeight || autoHeight;
+    this.canvas.width = finalCanvasWidth;
+    this.canvas.height = finalCanvasHeight;
     this.clear();
+
+    // 사용자가 canvasWidth를 설정한 경우 columnWidths 비례 조정
+    let finalColumnWidths = dynamicConfig.columnWidths;
+    if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
+      const ratio = config.canvasWidth / dynamicConfig.canvasWidth;
+      finalColumnWidths = dynamicConfig.columnWidths.map(w => Math.round(w * ratio));
+    }
 
     // 레이어 생성 (TableFactoryRouter 사용)
     this.layerManager.clearAll();
     const layerConfig = {
       ...config,
-      columnWidths: dynamicConfig.columnWidths,
-      canvasWidth: dynamicConfig.canvasWidth
+      columnWidths: finalColumnWidths,
+      canvasWidth: finalCanvasWidth
     };
     TableFactoryRouter.createTableLayers(type, this.layerManager, data, layerConfig, this.tableId);
 
