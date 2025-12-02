@@ -1286,8 +1286,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
 | `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
 | `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
-
-> **Note**: `cellVariables`는 frequency 타입 전용입니다. category-matrix에서는 사용할 수 없습니다.
+| `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 
 #### data 형식 상세
 
@@ -1331,6 +1330,25 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
 | `{ "rowIndex": 2, "colIndex": 4 }` | "O형인 학생 수" 행의 "D" 열 셀 (80) |
 | `{ "colIndex": 1 }` | "A" 열 전체 (헤더 포함) |
 
+#### cellVariables 예시
+
+```json
+{
+  "purpose": "table",
+  "tableType": "category-matrix",
+  "data": "헤더: A, B, C\n전체: 200, 250, 300\nO형: 50, 60, 70",
+  "cellVariables": [
+    { "rowIndex": 1, "colIndex": 2, "value": "?" },
+    { "rowIndex": 2, "colIndex": 3, "value": "_" }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 1, "colIndex": 2, "value": "?" }` | "전체" 행의 "B" 열 값을 `?`로 표시 |
+| `{ "rowIndex": 2, "colIndex": 3, "value": "_" }` | "O형" 행의 "C" 열 값을 빈칸으로 표시 |
+
 ---
 
 ### 3. cross-table (이원 분류표)
@@ -1369,8 +1387,7 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
 | `options.crossTable` | `object` | X | 이원분류표 전용 옵션 |
 | `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
 | `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
-
-> **Note**: `cellVariables`는 frequency 타입 전용입니다. cross-table에서는 사용할 수 없습니다.
+| `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 
 #### options.crossTable 상세
 
@@ -1649,6 +1666,27 @@ O: 0.26, 0.24
 | `{ "rowIndex": 1, "colIndex": 2 }` | A형 여학생 셀 (0.4) |
 | `{ "rowIndex": 5 }` | 합계 행 전체 |
 
+#### cellVariables 예시
+
+```json
+{
+  "purpose": "table",
+  "tableType": "cross-table",
+  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2",
+  "cellVariables": [
+    { "rowIndex": 1, "colIndex": 2, "value": "?" },
+    { "rowIndex": 2, "colIndex": 1, "value": "_" }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 1, "colIndex": 2, "value": "?" }` | A형 여학생 값을 `?`로 표시 |
+| `{ "rowIndex": 2, "colIndex": 1, "value": "_" }` | B형 남학생 값을 빈칸으로 표시 |
+
+> **Note**: `showMergedHeader: true`일 때는 rowIndex가 1 증가합니다 (병합헤더가 row 0).
+
 ---
 
 ### 4. stem-leaf (줄기-잎 그림)
@@ -1681,8 +1719,9 @@ O: 0.26, 0.24
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
 | `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
 | `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
+| `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 
-> **Note**: `cellVariables`는 frequency 타입 전용입니다. stem-leaf에서는 사용할 수 없습니다.
+> **참고**: 줄기-잎은 숫자만 파싱되므로, `?`나 `_` 같은 특수문자는 `cellVariables`로 지정해야 합니다.
 
 #### data 형식 상세 (단일)
 
@@ -1726,6 +1765,25 @@ colIndex: 0         1
 |:-----|:-----|
 | `{ "rowIndex": 3, "colIndex": 1 }` | 줄기 18의 잎 셀 (1 3 3 6 9) |
 | `{ "colIndex": 0 }` | 줄기 열 전체 |
+
+#### cellVariables 예시 (단일)
+
+```json
+{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "162 178 175 174",
+  "cellVariables": [
+    { "rowIndex": 2, "colIndex": 1, "value": "?" }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 2, "colIndex": 1, "value": "?" }` | 줄기 17의 잎을 `?`로 표시 |
+
+> **열 인덱스 (단일 모드)**: colIndex 0 = 줄기, colIndex 1 = 잎
 
 ---
 
@@ -1800,6 +1858,27 @@ colIndex: 0         1
 | `{ "rowIndex": 3, "colIndex": 0 }` | 줄기 18의 남학생 잎 (9 6 3 3 1) |
 | `{ "rowIndex": 3, "colIndex": 2 }` | 줄기 18의 여학생 잎 (0 2 4 8) |
 | `{ "colIndex": 1 }` | 줄기 열 전체 |
+
+#### cellVariables 예시 (비교)
+
+```json
+{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "남: 162 178 175\n여: 160 170",
+  "cellVariables": [
+    { "rowIndex": 1, "colIndex": 0, "value": "?" },
+    { "rowIndex": 2, "colIndex": 2, "value": "_" }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 1, "colIndex": 0, "value": "?" }` | 줄기 16의 남학생 잎을 `?`로 표시 |
+| `{ "rowIndex": 2, "colIndex": 2, "value": "_" }` | 줄기 17의 여학생 잎을 빈칸으로 표시 |
+
+> **열 인덱스 (비교 모드)**: colIndex 0 = 왼쪽 잎, colIndex 1 = 줄기, colIndex 2 = 오른쪽 잎
 
 ---
 
