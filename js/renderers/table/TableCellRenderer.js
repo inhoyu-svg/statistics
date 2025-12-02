@@ -638,7 +638,7 @@ class TableCellRenderer {
 
     if (hasKorean && parenMatch && parenMatch[1].trim()) {
       // mainText가 있을 때만 작은 괄호 렌더링 (예: "학생 수(명)" ✅, "(가)" ❌)
-      this._renderTextWithSmallParen(parenMatch[1], parenMatch[2], x, y, alignment, color, bold, fontSize);
+      this._renderTextWithSmallParen(parenMatch[1], parenMatch[2], x, y, alignment, color, bold, fontSize, isHeader);
       return;
     }
 
@@ -657,7 +657,8 @@ class TableCellRenderer {
       // 한글 등은 기본 폰트 사용 (괄호 처리는 상단에서 이미 완료됨)
       this.ctx.fillStyle = color;
       this.ctx.textBaseline = 'middle';
-      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+      // 헤더 → TABLE_FONT_HEADER, 합계 → TABLE_FONT_SUMMARY, 일반 → TABLE_FONT_DATA
+      this.ctx.font = isHeader ? CONFIG.TABLE_FONT_HEADER : (bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA);
       this.ctx.textAlign = alignment;
       this.ctx.fillText(str, x, y);
     }
@@ -740,8 +741,9 @@ class TableCellRenderer {
    * @param {string} color - 텍스트 색상
    * @param {boolean} bold - 볼드 여부
    * @param {number} fontSize - 폰트 크기
+   * @param {boolean} isHeader - 헤더 여부
    */
-  _renderTextWithSmallParen(mainText, parenText, x, y, alignment, color, bold, fontSize) {
+  _renderTextWithSmallParen(mainText, parenText, x, y, alignment, color, bold, fontSize, isHeader = false) {
     this.ctx.save();
     this.ctx.fillStyle = color;
     this.ctx.textBaseline = 'middle';
@@ -762,8 +764,8 @@ class TableCellRenderer {
         mainWidth += this.ctx.measureText(seg.text).width;
       });
     } else {
-      // 순수 한글: 기본 폰트
-      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+      // 순수 한글: 헤더 → TABLE_FONT_HEADER, 합계 → TABLE_FONT_SUMMARY, 일반 → TABLE_FONT_DATA
+      this.ctx.font = isHeader ? CONFIG.TABLE_FONT_HEADER : (bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA);
       mainWidth = this.ctx.measureText(mainText).width;
     }
 
@@ -815,8 +817,8 @@ class TableCellRenderer {
         currentX += this.ctx.measureText(seg.text).width;
       });
     } else {
-      // 순수 한글
-      this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
+      // 순수 한글: 헤더 → TABLE_FONT_HEADER, 합계 → TABLE_FONT_SUMMARY, 일반 → TABLE_FONT_DATA
+      this.ctx.font = isHeader ? CONFIG.TABLE_FONT_HEADER : (bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA);
       this.ctx.fillText(mainText, startX, y);
     }
 
