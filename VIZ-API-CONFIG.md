@@ -253,7 +253,9 @@ config (최상위)
 
 | 필드 | 타입 | 필수 | 기본값 | 설명 |
 |:-----|:-----|:----:|:------:|:-----|
-| `canvasSize` | `number` | X | `700` | 캔버스 크기 (정사각형) |
+| `canvasWidth` | `number` | X | `700` | 캔버스 가로 크기 (px) |
+| `canvasHeight` | `number` | X | `450` | 캔버스 세로 크기 (px) |
+| `canvasSize` | `number` | X | - | 정사각형 캔버스 크기 (우선 적용) |
 | `options.showHistogram` | `boolean` | X | `true` | 히스토그램 표시 |
 | `options.showPolygon` | `boolean` | X | `true` | 도수다각형 표시 |
 | `options.dataType` | `string` | X | `"relativeFrequency"` | Y축 데이터 타입 |
@@ -267,26 +269,60 @@ config (최상위)
 
 ## 차트 필드별 동작
 
-### canvasSize
+### 캔버스 크기 설정
 
-캔버스 크기를 지정합니다.
+차트 캔버스 크기를 지정하는 방법은 두 가지입니다:
 
-| 항목 | 설명 |
-|:-----|:-----|
-| **타입** | `number` |
-| **필수 여부** | 선택 |
-| **기본값** | `700` |
-| **동작** | 정사각형 캔버스 생성 (width = height = canvasSize) |
-| **단위** | 픽셀 (px) |
+#### 1. canvasWidth / canvasHeight (권장)
+
+가로/세로 크기를 개별적으로 지정합니다.
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `canvasWidth` | `number` | X | `700` | 캔버스 가로 크기 (px) |
+| `canvasHeight` | `number` | X | `450` | 캔버스 세로 크기 (px) |
 
 ```json
 {
+  "purpose": "chart",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "canvasWidth": 800,
+  "canvasHeight": 500
+}
+```
+
+**결과**: 800x500px 크기의 직사각형 차트 생성
+
+#### 2. canvasSize (정사각형 단축 옵션)
+
+정사각형 캔버스를 간편하게 생성합니다.
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `canvasSize` | `number` | X | - | 정사각형 캔버스 크기 (width = height) |
+
+```json
+{
+  "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "canvasSize": 500
 }
 ```
 
-**결과**: 500x500px 크기의 차트 생성
+**결과**: 500x500px 크기의 정사각형 차트 생성
+
+#### 우선순위
+
+`canvasSize`가 지정되면 `canvasWidth`/`canvasHeight`보다 우선 적용됩니다.
+
+| 설정 | 결과 |
+|:-----|:-----|
+| 아무것도 설정 안 함 | 700x450 (기본값) |
+| `canvasWidth: 800` | 800x450 |
+| `canvasHeight: 600` | 700x600 |
+| `canvasWidth: 800, canvasHeight: 600` | 800x600 |
+| `canvasSize: 500` | 500x500 (정사각형) |
+| `canvasSize: 500, canvasWidth: 800` | 500x500 (canvasSize 우선) |
 
 ---
 

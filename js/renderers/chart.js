@@ -96,9 +96,7 @@ class ChartRenderer {
    */
   draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null, customYInterval = null) {
     if (clearCanvas) {
-      // 캔버스 초기화
-      this.canvas.width = CONFIG.CANVAS_WIDTH;
-      this.canvas.height = CONFIG.CANVAS_HEIGHT;
+      // 캔버스 초기화 (크기는 viz-api에서 설정하므로 여기서 덮어쓰지 않음)
       this.clear();
 
       // 레이어 매니저 초기화 (겹침 방지) - root의 자식 레이어 모두 제거

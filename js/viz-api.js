@@ -251,13 +251,18 @@ export async function renderChart(element, config) {
     // 6. Generate ellipsis info
     const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
 
-    // 7. Create canvas element (support custom canvasSize)
+    // 7. Create canvas element (support custom canvasWidth/canvasHeight or canvasSize)
     const canvasId = `viz-chart-${++chartInstanceCounter}`;
     const canvas = document.createElement('canvas');
     canvas.id = canvasId;
-    const canvasSize = config.canvasSize || CONFIG.CANVAS_WIDTH;
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
+    // canvasSize는 정사각형 단축 옵션, canvasWidth/canvasHeight는 개별 설정
+    if (config.canvasSize) {
+      canvas.width = config.canvasSize;
+      canvas.height = config.canvasSize;
+    } else {
+      canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
+      canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
+    }
     canvas.setAttribute('role', 'img');
     canvas.setAttribute('aria-label', 'Frequency histogram and relative frequency polygon');
 
