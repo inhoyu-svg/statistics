@@ -19,21 +19,34 @@
 
 ---
 
-## 공통 필드
+# 공통 설정
 
 > 차트와 테이블 모두에서 사용되는 필드입니다.
 
-| 필드 | 타입 | 기본값 | 설명 |
-|:-----|:-----|:------:|:-----|
-| `data` | `number[]` | **필수** | 변량 데이터 배열 |
-| `purpose` | `string` | `"chart"` | `"chart"` (히스토그램) 또는 `"table"` (도수분포표) |
-| `classCount` | `number` | `5` | 계급 개수 |
-| `classWidth` | `number` | 자동 | 계급 간격 (미지정 시 `Math.ceil(범위 / classCount)`) |
-| `animation` | `boolean` \| `object` | `true` | 애니메이션 활성화 |
+## 필드 목록
 
-### data 입력 형식
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `data` | `number[]` | **O** | - | 변량 데이터 배열 |
+| `purpose` | `string` | X | `"chart"` | 렌더링 목적 |
+| `classCount` | `number` | X | `5` | 계급 개수 |
+| `classWidth` | `number` | X | 자동 | 계급 간격 |
+| `animation` | `boolean` \| `object` | X | `true` | 애니메이션 활성화 |
 
-배열 형식만 지원합니다:
+---
+
+## 필드별 동작
+
+### data (필수)
+
+렌더링할 숫자 데이터 배열입니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number[]` (숫자 배열) |
+| **필수 여부** | **필수** |
+| **동작** | 배열의 숫자들을 파싱하여 통계 계산 수행 |
+| **오류 시** | 유효한 숫자가 없으면 `{ error: "No valid numeric data found" }` 반환 |
 
 ```json
 {
@@ -43,13 +56,101 @@
 
 ---
 
-# 차트 (Histogram)
+### purpose
+
+렌더링 목적을 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `string` |
+| **필수 여부** | 선택 |
+| **기본값** | `"chart"` |
+| **가능한 값** | `"chart"`, `"table"` |
+| **동작** | `"chart"`: 히스토그램 렌더링, `"table"`: 도수분포표 렌더링 |
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75]
+}
+```
+
+---
+
+### classCount
+
+데이터를 몇 개의 계급으로 나눌지 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number` |
+| **필수 여부** | 선택 |
+| **기본값** | `5` |
+| **동작** | 데이터 범위를 `classCount`개의 구간으로 나눔 |
+| **계산식** | `classWidth = Math.ceil((최댓값 - 최솟값) / classCount)` |
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "classCount": 4
+}
+```
+
+**결과**: 데이터가 4개 계급으로 나뉨
+
+---
+
+### classWidth
+
+각 계급의 너비를 고정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number` |
+| **필수 여부** | 선택 |
+| **기본값** | 자동 계산 (`Math.ceil(범위 / classCount)`) |
+| **동작** | 지정 시 계급 간격 고정, `classCount`는 자동 조정됨 |
+| **우선순위** | `classWidth` > `classCount` (둘 다 지정 시 `classWidth` 우선) |
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "classWidth": 10
+}
+```
+
+**결과**: 0~10, 10~20, 20~30, ... 형태의 계급 생성
+
+---
+
+### animation
+
+애니메이션 활성화 여부를 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `boolean` 또는 `object` |
+| **필수 여부** | 선택 |
+| **기본값** | `true` |
+| **boolean 동작** | `true`: 애니메이션 활성화, `false`: 즉시 렌더링 |
+| **object 동작** | `{ enabled: true/false }` 형태로 세부 제어 |
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "animation": false
+}
+```
+
+**결과**: 차트/테이블이 애니메이션 없이 즉시 렌더링
+
+---
+
+# 차트 (Chart)
 
 > 히스토그램과 도수다각형을 Canvas에 렌더링합니다.
 
 ## 차트 구성 요소
-
-차트는 다음 두 가지 요소로 구성됩니다:
 
 ### 1. 히스토그램 (Histogram)
 
@@ -69,108 +170,40 @@
 | 선 | 그라데이션 색상 |
 | 위치 | 히스토그램 위에 오버레이 |
 
-> **Tip**: `options.showHistogram`과 `options.showPolygon`으로 표시 여부를 제어할 수 있습니다.
-
 ---
 
 ## 차트 전용 필드
 
-| 필드 | 타입 | 기본값 | 설명 |
-|:-----|:-----|:------:|:-----|
-| `canvasSize` | `number` | `700` | 캔버스 크기 (정사각형) |
-| `options.showHistogram` | `boolean` | `true` | 히스토그램 표시 |
-| `options.showPolygon` | `boolean` | `true` | 도수다각형 표시 |
-| `options.dataType` | `string` | `"relativeFrequency"` | Y축 데이터 타입 |
-| `options.axisLabels` | `object` | `null` | 축 라벨 커스터마이징 |
-
-### options.dataType 값
-
-| 값 | 설명 | Y축 표시 예시 |
-|:---|:-----|:-------------|
-| `"relativeFrequency"` | 상대도수 (기본값) | 0.00, 0.10, 0.20, ... (소수) |
-| `"frequency"` | 도수 | 0, 1, 2, 3, ... (개수) |
-
-### options.axisLabels 구조
-
-```json
-{
-  "options": {
-    "axisLabels": {
-      "xAxis": "점수",
-      "yAxis": "비율"
-    }
-  }
-}
-```
-
-| 속성 | 설명 | 결과 |
-|:-----|:-----|:-----|
-| `xAxis` | X축 끝 라벨 | "(점수)" |
-| `yAxis` | Y축 끝 라벨 | "(비율)" |
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `canvasSize` | `number` | X | `700` | 캔버스 크기 (정사각형) |
+| `options.showHistogram` | `boolean` | X | `true` | 히스토그램 표시 |
+| `options.showPolygon` | `boolean` | X | `true` | 도수다각형 표시 |
+| `options.dataType` | `string` | X | `"relativeFrequency"` | Y축 데이터 타입 |
+| `options.axisLabels` | `object` | X | `null` | 축 라벨 커스터마이징 |
+| `options.histogramColorPreset` | `string` | X | `"default"` | 히스토그램 색상 프리셋 |
+| `options.polygonColorPreset` | `string` | X | `"default"` | 다각형 색상 프리셋 |
+| `options.histogramColor` | `string` \| `object` | X | - | 히스토그램 커스텀 색상 |
+| `options.polygonColor` | `string` \| `object` | X | - | 다각형 커스텀 색상 |
 
 ---
 
-## 차트 예시
+## 차트 필드별 동작
 
-### 최소 설정
+### canvasSize
 
-> 데이터만 입력하면 기본값으로 히스토그램이 생성됩니다.
+캔버스 크기를 지정합니다.
 
-```json
-{
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75]
-}
-```
-
-| 항목 | 값 |
-|:-----|:---|
-| 캔버스 | 700x700px (정사각형) |
-| 계급 개수 | 5개 |
-| Y축 | 상대도수 (%) |
-| 애니메이션 | 활성화 |
-
----
-
-### 계급 개수 지정
-
-> `classCount` - 데이터를 몇 개 구간으로 나눌지 지정
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number` |
+| **필수 여부** | 선택 |
+| **기본값** | `700` |
+| **동작** | 정사각형 캔버스 생성 (width = height = canvasSize) |
+| **단위** | 픽셀 (px) |
 
 ```json
 {
-  "purpose": "chart",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "classCount": 4
-}
-```
-
-**결과**: 4개 계급으로 나뉜 히스토그램. 계급 간격은 자동 계산.
-
----
-
-### 계급 간격 지정
-
-> `classWidth` - 각 계급의 너비를 고정
-
-```json
-{
-  "purpose": "chart",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "classCount": 5,
-  "classWidth": 10
-}
-```
-
-**결과**: 0~10, 10~20, 20~30, ... 형태의 계급 생성
-
----
-
-### 캔버스 크기 지정
-
-> `canvasSize` - 차트 크기 변경 (정사각형)
-
-```json
-{
-  "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "canvasSize": 500
 }
@@ -180,13 +213,73 @@
 
 ---
 
-### 도수 기준 Y축
+### options.showHistogram
 
-> `dataType: "frequency"` - Y축을 상대도수 대신 도수(개수)로 표시
+히스토그램(막대) 표시 여부를 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `boolean` |
+| **필수 여부** | 선택 |
+| **기본값** | `true` |
+| **동작** | `true`: 막대 표시, `false`: 막대 숨김 |
 
 ```json
 {
-  "purpose": "chart",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "showHistogram": false
+  }
+}
+```
+
+**결과**: 도수다각형(점+선)만 표시됨
+
+---
+
+### options.showPolygon
+
+도수다각형(점+선) 표시 여부를 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `boolean` |
+| **필수 여부** | 선택 |
+| **기본값** | `true` |
+| **동작** | `true`: 점+선 표시, `false`: 점+선 숨김 |
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "showPolygon": false
+  }
+}
+```
+
+**결과**: 히스토그램(막대)만 표시됨
+
+---
+
+### options.dataType
+
+Y축 데이터 타입을 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `string` |
+| **필수 여부** | 선택 |
+| **기본값** | `"relativeFrequency"` |
+| **가능한 값** | `"relativeFrequency"`, `"frequency"` |
+| **대소문자** | `dataType`, `datatype` 모두 지원 |
+
+| 값 | 설명 | Y축 표시 예시 |
+|:---|:-----|:-------------|
+| `"relativeFrequency"` | 상대도수 | 0.00, 0.10, 0.20, ... |
+| `"frequency"` | 도수 | 0, 1, 2, 3, ... |
+
+```json
+{
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "options": {
     "dataType": "frequency"
@@ -194,17 +287,28 @@
 }
 ```
 
-**결과**: Y축이 0, 1, 2, 3, ... (개수) 형태로 표시됨
+**결과**: Y축이 도수(개수)로 표시됨
 
 ---
 
-### 커스텀 축 라벨
+### options.axisLabels
 
-> `axisLabels` - X축/Y축 끝에 표시될 라벨 변경
+축 끝에 표시될 라벨을 커스터마이징합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **기본값** | `null` (기본 라벨 사용) |
+| **동작** | X축/Y축 끝에 괄호로 감싼 라벨 표시 |
+
+| 속성 | 타입 | 필수 | 설명 | 표시 결과 |
+|:-----|:-----|:----:|:-----|:----------|
+| `xAxis` | `string` | X | X축 라벨 | `"(점수)"` |
+| `yAxis` | `string` | X | Y축 라벨 | `"(비율)"` |
 
 ```json
 {
-  "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "options": {
     "axisLabels": {
@@ -219,59 +323,295 @@
 
 ---
 
-### 히스토그램만 표시
+## 색상 설정 (Color Settings)
 
-> `showPolygon: false` - 도수다각형 숨기고 히스토그램만 표시
+> 차트의 색상 테마를 변경할 수 있습니다.
+
+### 옵션 우선순위
+
+```
+커스텀 색상 (histogramColor/polygonColor) > 프리셋 > 기본값
+```
+
+| 순위 | 옵션 | 설명 |
+|:----:|:-----|:-----|
+| 1 | `histogramColor` / `polygonColor` | 커스텀 색상 (최우선) |
+| 2 | `histogramColorPreset` / `polygonColorPreset` | 프리셋 선택 |
+| 3 | 기본값 | `"default"` 프리셋 |
+
+---
+
+### options.histogramColorPreset
+
+히스토그램 색상 프리셋을 선택합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `string` |
+| **필수 여부** | 선택 |
+| **기본값** | `"default"` |
+| **대소문자** | `histogramColorPreset`, `histogramcolorpreset` 모두 지원 |
+
+#### 프리셋 목록
+
+| 값 | 채우기 | 테두리 | 투명도 |
+|:---|:-------|:-------|:------:|
+| `"default"` | #4141A3 → #2CA0E8 | #54A0F6 → #6DE0FC | 0.5 |
+| `"green"` | #AEFF7E → #68994C | #AEFF7E → #68994C | 0.3 |
 
 ```json
 {
-  "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "options": {
-    "showPolygon": false
+    "histogramColorPreset": "green"
   }
 }
 ```
 
-**결과**: 막대 그래프만 표시됨 (점+선 없음)
+**결과**: 초록색 계열 히스토그램 표시
 
 ---
 
-### 도수다각형만 표시
+### options.polygonColorPreset
 
-> `showHistogram: false` - 히스토그램 숨기고 도수다각형만 표시
+다각형 색상 프리셋을 선택합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `string` |
+| **필수 여부** | 선택 |
+| **기본값** | `"default"` |
+| **대소문자** | `polygonColorPreset`, `polygoncolorpreset` 모두 지원 |
+
+#### 프리셋 목록
+
+| 값 | 선 | 점 |
+|:---|:---|:---|
+| `"default"` | #AEFF7E → #68994C | #8DCF66 |
+| `"primary"` | #54A0F6 → #6DE0FC | #61C1F9 |
+| `"secondary"` | #D15DA4 → #E178F2 | #D96BCB |
+| `"tertiary"` | #F3A257 → #FA716F | #F68D61 |
 
 ```json
 {
-  "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "options": {
-    "showHistogram": false
+    "polygonColorPreset": "primary"
   }
 }
 ```
 
-**결과**: 점+선 그래프만 표시됨 (막대 없음)
+**결과**: 파란색 계열 도수다각형 표시
 
 ---
 
-### 애니메이션 비활성화
+### options.histogramColor
 
-> `animation: false` - 막대가 즉시 나타남
+히스토그램 커스텀 색상을 지정합니다. 프리셋보다 우선 적용됩니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `string` 또는 `object` |
+| **필수 여부** | 선택 |
+| **기본값** | - (프리셋 사용) |
+| **우선순위** | 프리셋보다 높음 |
+
+#### 타입 1: 단색 문자열
+
+채우기와 테두리 모두 같은 색상이 적용됩니다.
 
 ```json
 {
-  "purpose": "chart",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "animation": false
+  "options": {
+    "histogramColor": "#AEFF7E"
+  }
 }
 ```
 
-**결과**: 차트가 애니메이션 없이 즉시 렌더링됨
+| 동작 | 설명 |
+|:-----|:-----|
+| `fillStart` | `#AEFF7E` |
+| `fillEnd` | `#AEFF7E` |
+| `strokeStart` | `#AEFF7E` |
+| `strokeEnd` | `#AEFF7E` |
+| `alpha` | 기본값 (`0.5`) |
 
 ---
 
-### 차트 전체 옵션 예시
+#### 타입 2: CSS 그라데이션 문자열
+
+CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
+
+```json
+{
+  "options": {
+    "histogramColor": "linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)"
+  }
+}
+```
+
+| 동작 | 설명 |
+|:-----|:-----|
+| `fillStart` | `#AEFF7E` (시작색) |
+| `fillEnd` | `#68994C` (끝색) |
+| `strokeStart` | `#AEFF7E` (시작색) |
+| `strokeEnd` | `#68994C` (끝색) |
+| `alpha` | 기본값 (`0.5`) |
+
+---
+
+#### 타입 3: 객체 (세부 제어)
+
+채우기, 테두리, 투명도를 개별적으로 설정합니다.
+
+| 속성 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `fill` | `string` | X | 프리셋 값 | 막대 채우기 색상 |
+| `stroke` | `string` | X | 프리셋 값 | 막대 테두리 색상 |
+| `alpha` | `number` | X | `0.5` | 막대 전체 투명도 (0~1) |
+
+```json
+{
+  "options": {
+    "histogramColor": {
+      "fill": "linear-gradient(180deg, rgba(174, 255, 126, 0.3) 0%, rgba(104, 153, 76, 0.3) 100%)",
+      "stroke": "linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)",
+      "alpha": 0.3
+    }
+  }
+}
+```
+
+| 동작 | 설명 |
+|:-----|:-----|
+| `fill` 지정 시 | 그라데이션이면 시작/끝색 추출, 단색이면 그대로 사용 |
+| `stroke` 지정 시 | 그라데이션이면 시작/끝색 추출, 단색이면 그대로 사용 |
+| `alpha` 지정 시 | 막대 렌더링 시 `globalAlpha`로 적용 |
+| 미지정 속성 | 기본 프리셋(`default`) 값 사용 |
+
+---
+
+### options.polygonColor
+
+도수다각형 커스텀 색상을 지정합니다. 프리셋보다 우선 적용됩니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `string` 또는 `object` |
+| **필수 여부** | 선택 |
+| **기본값** | - (프리셋 사용) |
+| **우선순위** | 프리셋보다 높음 |
+
+#### 타입 1: 단색 문자열
+
+선과 점 모두 같은 색상이 적용됩니다.
+
+```json
+{
+  "options": {
+    "polygonColor": "#54A0F6"
+  }
+}
+```
+
+| 동작 | 설명 |
+|:-----|:-----|
+| `gradientStart` | `#54A0F6` |
+| `gradientEnd` | `#54A0F6` |
+| `pointColor` | `#54A0F6` |
+
+---
+
+#### 타입 2: CSS 그라데이션 문자열
+
+CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
+
+```json
+{
+  "options": {
+    "polygonColor": "linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%)"
+  }
+}
+```
+
+| 동작 | 설명 |
+|:-----|:-----|
+| `gradientStart` | `#54A0F6` (시작색) |
+| `gradientEnd` | `#6DE0FC` (끝색) |
+| `pointColor` | `#54A0F6` (시작색) |
+
+---
+
+#### 타입 3: 객체 (세부 제어)
+
+선과 점 색상을 개별적으로 설정합니다.
+
+| 속성 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `line` | `string` | X | 프리셋 값 | 선 색상 (단색 또는 그라데이션) |
+| `point` | `string` | X | 프리셋 값 | 점 색상 (단색만) |
+
+```json
+{
+  "options": {
+    "polygonColor": {
+      "line": "linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%)",
+      "point": "#61C1F9"
+    }
+  }
+}
+```
+
+| 동작 | 설명 |
+|:-----|:-----|
+| `line` 지정 시 | 그라데이션이면 시작/끝색 추출, 단색이면 그대로 사용 |
+| `point` 지정 시 | 단색으로 점에 적용 |
+| 미지정 속성 | 기본 프리셋(`default`) 값 사용 |
+
+---
+
+### 지원하는 색상 형식
+
+| 형식 | 예시 | 사용 가능 속성 |
+|:-----|:-----|:--------------|
+| HEX | `#AEFF7E`, `#FFF` | 모든 색상 속성 |
+| RGB | `rgb(174, 255, 126)` | 모든 색상 속성 |
+| RGBA | `rgba(174, 255, 126, 0.3)` | 모든 색상 속성 |
+| CSS Gradient | `linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)` | `fill`, `stroke`, `line` |
+
+### 지원하는 그라데이션 방향
+
+| 값 | 설명 | 방향 |
+|:---|:-----|:-----|
+| `180deg` | 위 → 아래 | 기본값 |
+| `0deg` | 아래 → 위 | |
+| `90deg` | 왼쪽 → 오른쪽 | |
+| `270deg` | 오른쪽 → 왼쪽 | |
+| `to bottom` | 위 → 아래 | `180deg`와 동일 |
+| `to top` | 아래 → 위 | `0deg`와 동일 |
+
+---
+
+## 차트 전체 옵션 예시
+
+### 최소 설정
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75]
+}
+```
+
+| 적용 값 | 설명 |
+|:--------|:-----|
+| `purpose` | `"chart"` (기본값) |
+| `classCount` | `5` (기본값) |
+| `canvasSize` | `700` (기본값) |
+| `dataType` | `"relativeFrequency"` (기본값) |
+
+---
+
+### 전체 설정
 
 ```json
 {
@@ -284,10 +624,19 @@
   "options": {
     "showHistogram": true,
     "showPolygon": true,
-    "dataType": "relativeFrequency",
+    "dataType": "frequency",
     "axisLabels": {
-      "xAxis": "계급",
-      "yAxis": "상대도수"
+      "xAxis": "점수 구간",
+      "yAxis": "학생 수(명)"
+    },
+    "histogramColor": {
+      "fill": "linear-gradient(180deg, rgba(174, 255, 126, 0.3) 0%, rgba(104, 153, 76, 0.3) 100%)",
+      "stroke": "linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)",
+      "alpha": 0.3
+    },
+    "polygonColor": {
+      "line": "linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%)",
+      "point": "#61C1F9"
     }
   }
 }
@@ -295,51 +644,67 @@
 
 ---
 
-## 색상 프리셋 (Color Presets)
-
-> 차트의 색상 테마를 변경할 수 있습니다. (현재 내부 설정만 지원)
-
-### 히스토그램 색상 프리셋
-
-| 프리셋 | 채우기 색상 | 테두리 색상 | 설명 |
-|:-------|:-----------|:-----------|:-----|
-| `default` | #4141A3 → #2CA0E8 | #54A0F6 → #6DE0FC | 파란색 (기본값) |
-| `green` | #AEFF7E → #68994C | #AEFF7E → #68994C | 초록색 |
-
-### 다각형 색상 프리셋
-
-| 프리셋 | 선 색상 | 점 색상 | 설명 |
-|:-------|:--------|:--------|:-----|
-| `default` | #AEFF7E → #68994C | #8DCF66 | 초록색 (기본값) |
-| `primary` | #54A0F6 → #6DE0FC | #61C1F9 | 파란색 |
-| `secondary` | #D15DA4 → #E178F2 | #D96BCB | 분홍색 |
-| `tertiary` | #F3A257 → #FA716F | #F68D61 | 주황색 |
-
----
-
-# 테이블
+# 테이블 (Table)
 
 > 다양한 테이블 형식을 Canvas에 렌더링합니다.
 
 ## 테이블 전용 필드
 
-| 필드 | 타입 | 기본값 | 설명 |
-|:-----|:-----|:------:|:-----|
-| `tableType` | `string` | `"frequency"` | 테이블 타입 (아래 참조) |
-| `canvasWidth` | `number` | `600` | 캔버스 너비 (px) |
-| `canvasHeight` | `number` | `400` | 캔버스 높이 (px) |
-| `options.tableConfig` | `object` | `null` | 테이블 상세 설정 (아래 참조) |
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `tableType` | `string` | X | `"frequency"` | 테이블 타입 |
+| `canvasWidth` | `number` | X | `600` | 캔버스 너비 (px) |
+| `canvasHeight` | `number` | X | `400` | 캔버스 높이 (px) |
+| `options.tableConfig` | `object` | X | `null` | 테이블 상세 설정 |
+| `options.crossTable` | `object` | X | `null` | 이원분류표 전용 옵션 |
+| `cellAnimations` | `array` | X | `null` | 셀 애니메이션 설정 |
+| `cellAnimationOptions` | `object` | X | `null` | 애니메이션 재생 옵션 |
 
 ---
 
-## 테이블 타입 (tableType)
+## 테이블 필드별 동작
 
-| 값 | 이름 | 설명 |
-|:---|:-----|:-----|
-| `"frequency"` | 도수분포표 | 숫자 데이터를 계급별로 분류 (기본값) |
-| `"category-matrix"` | 카테고리 행렬 | 카테고리별 데이터 비교 |
-| `"cross-table"` | 이원 분류표 | 두 변수의 교차 분류 |
-| `"stem-leaf"` | 줄기-잎 그림 | 데이터 분포를 줄기와 잎으로 시각화 |
+### tableType
+
+테이블 형식을 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `string` |
+| **필수 여부** | 선택 |
+| **기본값** | `"frequency"` |
+
+| 값 | 이름 | 설명 | data 형식 |
+|:---|:-----|:-----|:----------|
+| `"frequency"` | 도수분포표 | 숫자 데이터를 계급별로 분류 | 숫자 배열 |
+| `"category-matrix"` | 카테고리 행렬 | 카테고리별 데이터 비교 | 특수 문자열 |
+| `"cross-table"` | 이원 분류표 | 두 변수의 교차 분류 | 특수 문자열 |
+| `"stem-leaf"` | 줄기-잎 그림 | 데이터 분포 시각화 | 숫자 또는 특수 문자열 |
+
+---
+
+### canvasWidth / canvasHeight
+
+테이블 캔버스 크기를 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number` |
+| **필수 여부** | 선택 |
+| **기본값** | `canvasWidth: 600`, `canvasHeight: 400` |
+| **단위** | 픽셀 (px) |
+| **동작** | 지정된 크기의 직사각형 캔버스 생성 |
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "canvasWidth": 700,
+  "canvasHeight": 500
+}
+```
+
+**결과**: 700x500px 크기의 테이블 생성
 
 ---
 
@@ -347,7 +712,13 @@
 
 ### 1. frequency (도수분포표)
 
-> 숫자 배열 형식
+숫자 배열 형식을 사용합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **형식** | `number[]` |
+| **필수 필드** | `data` |
+| **선택 필드** | `classCount`, `classWidth` |
 
 ```json
 {
@@ -358,9 +729,16 @@
 }
 ```
 
+---
+
 ### 2. category-matrix (카테고리 행렬)
 
-> `헤더: 값들` + `라벨: 값들` 형식
+`헤더: 값들` + `라벨: 값들` 형식의 문자열을 사용합니다.
+
+| 행 | 형식 | 설명 |
+|:---|:-----|:-----|
+| 1행 | `헤더: A, B, C, ...` | 열 이름들 |
+| 2행~ | `라벨: 값1, 값2, ...` | 각 행의 데이터 |
 
 ```json
 {
@@ -370,54 +748,38 @@
 }
 ```
 
-| 행 | 구분 |
-|:---|:-----|
-| 1행 | `헤더:` 뒤에 열 이름들 |
-| 2행~ | `라벨:` 뒤에 값들 |
+---
 
 ### 3. cross-table (이원 분류표)
 
-> `헤더: 행라벨명, 열이름들` + `행이름: 값들` 형식
+`헤더: 행라벨명, 열이름들` + `행이름: 값들` 형식의 문자열을 사용합니다.
+
+| 행 | 형식 | 설명 |
+|:---|:-----|:-----|
+| 1행 (선택) | `병합헤더텍스트` | 병합 헤더 커스텀 (생략 시 "상대도수") |
+| 2행 | `헤더: 행라벨명, 열1, 열2, ...` | 열 구조 정의 |
+| 3행~ | `행이름: 값1, 값2, ...` | 각 행의 데이터 |
 
 ```json
 {
   "purpose": "table",
   "tableType": "cross-table",
-  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24"
+  "data": "비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24"
 }
 ```
 
-| 행 | 구분 |
-|:---|:-----|
-| 1행 | `헤더:` 뒤에 `행라벨명, 열이름1, 열이름2, ...` |
-| 2행~ | `행이름:` 뒤에 각 열의 값들 |
+#### options.crossTable
 
-#### 커스텀 병합 헤더
-
-첫 줄에 `헤더:`가 아닌 일반 텍스트를 넣으면 병합 헤더로 사용됩니다.
+| 옵션 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `showTotal` | `boolean` | X | `true` | 합계 행 표시 |
+| `showMergedHeader` | `boolean` | X | `true` | 병합 헤더 표시 |
 
 ```json
 {
   "purpose": "table",
   "tableType": "cross-table",
-  "data": "비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2"
-}
-```
-
-**결과**: 기본값 "상대도수" 대신 "비율"이 병합 헤더에 표시됨
-
-#### 이원 분류표 옵션 (options.crossTable)
-
-| 옵션 | 타입 | 기본값 | 설명 |
-|:-----|:-----|:------:|:-----|
-| `showTotal` | `boolean` | `true` | 합계 행 표시 |
-| `showMergedHeader` | `boolean` | `true` | 병합 헤더 표시 |
-
-```json
-{
-  "purpose": "table",
-  "tableType": "cross-table",
-  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2",
+  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4",
   "options": {
     "crossTable": {
       "showTotal": false,
@@ -427,7 +789,7 @@
 }
 ```
 
-**결과**: 합계 행이 숨겨진 이원 분류표
+---
 
 ### 4. stem-leaf (줄기-잎 그림)
 
@@ -457,70 +819,54 @@
 
 > `tableType: "frequency"`인 경우에만 적용됩니다.
 
-`options.tableConfig` 객체로 테이블의 컬럼을 세밀하게 제어할 수 있습니다.
-
 ### 사용 가능한 컬럼 (7개)
 
 | 인덱스 | 컬럼명 | 설명 | 기본 표시 |
 |:------:|:-------|:-----|:--------:|
-| 0 | 계급 | 구간 범위 (예: 60~70) | 표시 |
-| 1 | 계급값 | 구간 중앙값 (예: 65) | 숨김 |
-| 2 | 탈리 | 정(正)자 표시 | 숨김 |
-| 3 | 도수 | 데이터 개수 | 표시 |
-| 4 | 상대도수(%) | 전체 대비 비율 | 표시 |
-| 5 | 누적도수 | 누적 데이터 개수 | 숨김 |
-| 6 | 누적상대도수(%) | 누적 비율 | 숨김 |
-
-### tableConfig 옵션
-
-| 옵션 | 타입 | 기본값 | 설명 |
-|:-----|:-----|:------:|:-----|
-| `visibleColumns` | `boolean[]` | `[true,false,false,true,true,false,false]` | 7개 컬럼 표시 여부 |
-| `columnOrder` | `number[]` | `[0,1,2,3,4,5,6]` | 컬럼 표시 순서 |
-| `labels` | `object` | 기본 라벨 | 컬럼 헤더 텍스트 (부분 지정 가능) |
-| `showSuperscript` | `boolean` | `true` | 첫 행에 "이상/미만" 표시 |
-| `showSummaryRow` | `boolean` | `true` | 합계 행 표시 |
-| `cellVariables` | `array` | `null` | 셀 값 커스터마이징 (아래 참조) |
-
-### labels 객체 구조
-
-```json
-{
-  "labels": {
-    "class": "계급",
-    "midpoint": "계급값",
-    "tally": "탈리",
-    "frequency": "도수",
-    "relativeFrequency": "상대도수(%)",
-    "cumulativeFrequency": "누적도수",
-    "cumulativeRelativeFrequency": "누적상대도수(%)"
-  }
-}
-```
-
-> **Tip**: 일부만 지정해도 됩니다. 지정하지 않은 라벨은 기본값이 유지됩니다.
-
-```json
-{
-  "labels": {
-    "class": "키(cm)",
-    "frequency": "학생 수(명)"
-  }
-}
-```
-
-**결과**: `class`와 `frequency`만 커스텀, 나머지는 "상대도수(%)" 등 기본값 유지
+| 0 | 계급 | 구간 범위 (예: 60~70) | O |
+| 1 | 계급값 | 구간 중앙값 (예: 65) | X |
+| 2 | 탈리 | 정(正)자 표시 | X |
+| 3 | 도수 | 데이터 개수 | O |
+| 4 | 상대도수(%) | 전체 대비 비율 | O |
+| 5 | 누적도수 | 누적 데이터 개수 | X |
+| 6 | 누적상대도수(%) | 누적 비율 | X |
 
 ---
 
-### tableConfig 예시
+### tableConfig 옵션
 
-#### 1. 모든 컬럼 표시
+| 옵션 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `visibleColumns` | `boolean[]` | X | `[true,false,false,true,true,false,false]` | 7개 컬럼 표시 여부 |
+| `columnOrder` | `number[]` | X | `[0,1,2,3,4,5,6]` | 컬럼 표시 순서 |
+| `labels` | `object` | X | 기본 라벨 | 컬럼 헤더 텍스트 |
+| `showSuperscript` | `boolean` | X | `true` | 첫 행에 "이상/미만" 표시 |
+| `showSummaryRow` | `boolean` | X | `true` | 합계 행 표시 |
+| `cellVariables` | `array` | X | `null` | 셀 값 커스터마이징 |
+
+---
+
+### visibleColumns
+
+컬럼 표시 여부를 배열로 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `boolean[]` (7개 요소) |
+| **필수 여부** | 선택 |
+| **기본값** | `[true, false, false, true, true, false, false]` |
+| **동작** | `true`인 인덱스의 컬럼만 표시 |
+
+```
+기본값: [true, false, false, true, true, false, false]
+
+인덱스:  0      1      2      3     4      5      6
+컬럼:   계급  계급값  탈리   도수  상대도수 누적도수 누적상대도수
+표시:    O      X      X      O      O       X        X
+```
 
 ```json
 {
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "options": {
     "tableConfig": {
       "visibleColumns": [true, true, true, true, true, true, true]
@@ -529,112 +875,23 @@
 }
 ```
 
-**결과**: 계급, 계급값, 탈리, 도수, 상대도수, 누적도수, 누적상대도수 모두 표시
+**결과**: 모든 컬럼 표시
 
 ---
 
-#### 2. 계급 + 도수만 표시
+### columnOrder
+
+컬럼 표시 순서를 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number[]` |
+| **필수 여부** | 선택 |
+| **기본값** | `[0, 1, 2, 3, 4, 5, 6]` |
+| **동작** | 배열 순서대로 컬럼 배치 |
 
 ```json
 {
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "options": {
-    "tableConfig": {
-      "visibleColumns": [true, false, false, true, false, false, false]
-    }
-  }
-}
-```
-
-**결과**: 계급과 도수 컬럼만 표시 (간단한 도수분포표)
-
----
-
-#### 3. 탈리(정자) 표시
-
-```json
-{
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "options": {
-    "tableConfig": {
-      "visibleColumns": [true, false, true, true, true, false, false]
-    }
-  }
-}
-```
-
-**결과**: 탈리(정자 표시) 컬럼 추가 - 도수를 시각적으로 표현
-
----
-
-#### 4. 누적도수 포함
-
-```json
-{
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "options": {
-    "tableConfig": {
-      "visibleColumns": [true, false, false, true, true, true, true]
-    }
-  }
-}
-```
-
-**결과**: 누적도수와 누적상대도수 컬럼 추가
-
----
-
-#### 5. 컬럼 라벨 커스터마이징
-
-> `visibleColumns`는 기본값이므로 생략 가능
-
-```json
-{
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "options": {
-    "tableConfig": {
-      "labels": {
-        "class": "점수 구간",
-        "frequency": "학생 수",
-        "relativeFrequency": "비율(%)"
-      }
-    }
-  }
-}
-```
-
-**결과**: 헤더가 "점수 구간", "학생 수", "비율(%)"로 표시됨
-
----
-
-#### 6. 상첨자(이상/미만) 숨기기
-
-```json
-{
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "options": {
-    "tableConfig": {
-      "showSuperscript": false
-    }
-  }
-}
-```
-
-**결과**: 첫 행에 "60이상~70미만" 대신 "60~70"으로 표시
-
----
-
-#### 7. 컬럼 순서 변경
-
-```json
-{
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "options": {
     "tableConfig": {
       "visibleColumns": [true, false, false, true, true, false, false],
@@ -648,12 +905,80 @@
 
 ---
 
-#### 8. 합계 행 숨기기
+### labels
+
+컬럼 헤더 텍스트를 커스터마이징합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **기본값** | 기본 라벨 |
+| **동작** | 지정된 속성만 덮어쓰기, 나머지는 기본값 유지 |
+
+| 속성 | 기본값 |
+|:-----|:-------|
+| `class` | `"계급"` |
+| `midpoint` | `"계급값"` |
+| `tally` | `"탈리"` |
+| `frequency` | `"도수"` |
+| `relativeFrequency` | `"상대도수(%)"` |
+| `cumulativeFrequency` | `"누적도수"` |
+| `cumulativeRelativeFrequency` | `"누적상대도수(%)"` |
 
 ```json
 {
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "labels": {
+        "class": "키(cm)",
+        "frequency": "학생 수(명)"
+      }
+    }
+  }
+}
+```
+
+**결과**: `class`와 `frequency`만 커스텀, 나머지는 기본값 유지
+
+---
+
+### showSuperscript
+
+첫 행에 "이상/미만" 표시 여부를 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `boolean` |
+| **필수 여부** | 선택 |
+| **기본값** | `true` |
+| **동작** | `true`: "60이상~70미만", `false`: "60~70" |
+
+```json
+{
+  "options": {
+    "tableConfig": {
+      "showSuperscript": false
+    }
+  }
+}
+```
+
+---
+
+### showSummaryRow
+
+합계 행 표시 여부를 지정합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `boolean` |
+| **필수 여부** | 선택 |
+| **기본값** | `true` |
+| **동작** | `true`: 합계 행 표시, `false`: 합계 행 숨김 |
+
+```json
+{
   "options": {
     "tableConfig": {
       "showSummaryRow": false
@@ -662,18 +987,29 @@
 }
 ```
 
-**결과**: 테이블 하단의 "합계" 행이 숨겨짐
-
 ---
 
-#### 9. 셀 값 커스터마이징 (cellVariables)
+### cellVariables
 
-> 특정 셀의 값을 원하는 텍스트로 변경
+특정 셀의 값을 원하는 텍스트로 변경합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `array` |
+| **필수 여부** | 선택 |
+| **기본값** | `null` |
+| **동작** | 지정된 셀의 값을 커스텀 텍스트로 대체 |
+
+#### 배열 항목 구조
+
+| 속성 | 타입 | 필수 | 설명 | 예시 |
+|:-----|:-----|:----:|:-----|:-----|
+| `class` | `string` | **O** | 계급 범위 (시작~끝) | `"60~70"` |
+| `column` | `string` | **O** | 컬럼명 | `"frequency"` |
+| `value` | `string` | **O** | 표시할 값 | `"A"` |
 
 ```json
 {
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "options": {
     "tableConfig": {
       "cellVariables": [
@@ -687,35 +1023,11 @@
 
 **결과**: 60~70 계급의 도수가 "A"로, 70~80 계급의 도수가 "B"로 표시됨
 
-**cellVariables 배열 항목 구조:**
-
-| 키 | 설명 | 예시 |
-|:---|:-----|:-----|
-| `class` | 계급 범위 (시작~끝) | `"60~70"` |
-| `column` | 컬럼명 | `"frequency"`, `"relativeFrequency"` 등 |
-| `value` | 표시할 값 | `"A"`, `"x"`, `"?"` 등 |
-
 ---
 
-### visibleColumns 기본값 설명
-
-```
-기본값: [true, false, false, true, true, false, false]
-
-인덱스:  0      1      2      3     4      5      6
-컬럼:   계급  계급값  탈리   도수  상대도수 누적도수 누적상대도수
-표시:    O      X      X      O      O       X        X
-```
-
-> **Tip**: 필요한 컬럼만 `true`로 설정하면 테이블이 간결해집니다.
-
----
-
-## 테이블 예시
+## 테이블 전체 옵션 예시
 
 ### 최소 설정
-
-> `purpose: "table"` - 도수분포표 생성
 
 ```json
 {
@@ -724,111 +1036,660 @@
 }
 ```
 
-| 항목 | 값 |
-|:-----|:---|
-| 캔버스 | 600x400px |
-| 계급 개수 | 5개 |
-| 컬럼 | 계급, 도수, 상대도수 등 |
+| 적용 값 | 설명 |
+|:--------|:-----|
+| `tableType` | `"frequency"` (기본값) |
+| `classCount` | `5` (기본값) |
+| `canvasWidth` | `600` (기본값) |
+| `canvasHeight` | `400` (기본값) |
 
 ---
 
-### 테이블 크기 지정
+## 타입별 전체 설정 예시
 
-> `canvasWidth`, `canvasHeight` - 테이블 캔버스 크기 변경
+### 1. frequency (도수분포표)
 
 ```json
 {
   "purpose": "table",
+  "tableType": "frequency",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "canvasWidth": 700,
-  "canvasHeight": 500
-}
-```
-
-**결과**: 700x500px 크기의 도수분포표 생성
-
----
-
-### 계급 설정과 함께 사용
-
-```json
-{
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "classCount": 4,
+  "classCount": 5,
   "classWidth": 10,
-  "canvasWidth": 600,
-  "canvasHeight": 350
+  "canvasWidth": 700,
+  "canvasHeight": 500,
+  "animation": true,
+  "options": {
+    "tableConfig": {
+      "visibleColumns": [true, false, true, true, true, false, false],
+      "columnOrder": [0, 2, 3, 4],
+      "labels": {
+        "class": "키(cm)",
+        "frequency": "학생 수(명)",
+        "relativeFrequency": "비율(%)"
+      },
+      "showSuperscript": true,
+      "showSummaryRow": true,
+      "cellVariables": [
+        { "class": "60~70", "column": "frequency", "value": "?" }
+      ]
+    }
+  },
+  "cellAnimations": [
+    { "rowIndex": 0, "colIndex": 2 }
+  ],
+  "cellAnimationOptions": {
+    "blinkEnabled": true
+  }
 }
 ```
 
-**결과**: 4개 계급(간격 10)의 도수분포표
+| 필드 | 설명 |
+|:-----|:-----|
+| `tableType` | `"frequency"` - 도수분포표 |
+| `data` | 숫자 배열 |
+| `classCount` | 계급 개수 |
+| `classWidth` | 계급 간격 |
+| `tableConfig` | 컬럼 표시/라벨 설정 |
+| `cellAnimations` | 셀 하이라이트 설정 |
 
 ---
 
-### 애니메이션 비활성화
+### 2. category-matrix (카테고리 행렬)
 
 ```json
 {
   "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "animation": false
+  "tableType": "category-matrix",
+  "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90\nO형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23",
+  "canvasWidth": 800,
+  "canvasHeight": 300,
+  "animation": true,
+  "cellAnimations": [
+    { "rowIndex": 1, "colIndex": 2, "duration": 1500, "repeat": 3 },
+    { "rowIndex": 2, "colIndex": 2 }
+  ],
+  "cellAnimationOptions": {
+    "blinkEnabled": true
+  }
 }
 ```
 
-**결과**: 테이블이 애니메이션 없이 즉시 렌더링됨
+| 필드 | 타입 | 필수 | 설명 |
+|:-----|:-----|:----:|:-----|
+| `tableType` | `string` | **O** | `"category-matrix"` |
+| `data` | `string` | **O** | `"헤더: 열이름들\n라벨: 값들"` 형식 |
+| `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
+| `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
+| `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
+| `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
+| `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
+
+> **Note**: `cellVariables`는 frequency 타입 전용입니다. category-matrix에서는 사용할 수 없습니다.
+
+#### data 형식 상세
+
+```
+헤더: A, B, C, D, E          ← 열 이름 (5개)
+전체 학생 수 (명): 200, 250, 300, 350, 400   ← 행1: 라벨 + 값들
+O형인 학생 수 (명): 50, 60, 70, 80, 90       ← 행2: 라벨 + 값들
+O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값들
+```
+
+#### 셀 구조 및 인덱스 매핑
+
+```
+┌──────────────────┬─────┬─────┬─────┬─────┬─────┐
+│      (헤더)      │  A  │  B  │  C  │  D  │  E  │  ← rowIndex: 0
+├──────────────────┼─────┼─────┼─────┼─────┼─────┤
+│ 전체 학생 수(명)  │ 200 │ 250 │ 300 │ 350 │ 400 │  ← rowIndex: 1
+├──────────────────┼─────┼─────┼─────┼─────┼─────┤
+│ O형인 학생 수(명) │  50 │  60 │  70 │  80 │  90 │  ← rowIndex: 2
+├──────────────────┼─────┼─────┼─────┼─────┼─────┤
+│ O형인 학생의 비율 │0.25 │0.24 │0.23 │0.23 │0.23 │  ← rowIndex: 3
+└──────────────────┴─────┴─────┴─────┴─────┴─────┘
+       colIndex: 0     1     2     3     4     5
+```
+
+#### cellAnimations 예시
+
+```json
+{
+  "cellAnimations": [
+    { "rowIndex": 2, "colIndex": 3 },
+    { "rowIndex": 2, "colIndex": 4 },
+    { "colIndex": 1 }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 2, "colIndex": 3 }` | "O형인 학생 수" 행의 "C" 열 셀 (70) |
+| `{ "rowIndex": 2, "colIndex": 4 }` | "O형인 학생 수" 행의 "D" 열 셀 (80) |
+| `{ "colIndex": 1 }` | "A" 열 전체 (헤더 포함) |
 
 ---
 
-# 기본값 요약
+### 3. cross-table (이원 분류표)
 
-## 차트 기본값
+```json
+{
+  "purpose": "table",
+  "tableType": "cross-table",
+  "data": "상대도수\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24",
+  "canvasWidth": 500,
+  "canvasHeight": 400,
+  "animation": true,
+  "options": {
+    "crossTable": {
+      "showTotal": true,
+      "showMergedHeader": true
+    }
+  },
+  "cellAnimations": [
+    { "rowIndex": 1, "colIndex": 1, "duration": 1500, "repeat": 3 },
+    { "rowIndex": 1, "colIndex": 2 }
+  ],
+  "cellAnimationOptions": {
+    "blinkEnabled": true
+  }
+}
+```
 
-| 필드 | 기본값 |
-|:-----|:------:|
-| `purpose` | `"chart"` |
-| `classCount` | `5` |
-| `classWidth` | 자동 계산 |
-| `canvasSize` | `700` |
-| `animation` | `true` |
-| `options.showHistogram` | `true` |
-| `options.showPolygon` | `true` |
-| `options.dataType` | `"relativeFrequency"` |
-| `options.axisLabels` | `null` |
+| 필드 | 타입 | 필수 | 설명 |
+|:-----|:-----|:----:|:-----|
+| `tableType` | `string` | **O** | `"cross-table"` |
+| `data` | `string` | **O** | `"병합헤더\n헤더: 행라벨명, 열들\n행: 값들"` 형식 |
+| `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
+| `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
+| `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
+| `options.crossTable` | `object` | X | 이원분류표 전용 옵션 |
+| `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
+| `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
 
-## 테이블 기본값
+> **Note**: `cellVariables`는 frequency 타입 전용입니다. cross-table에서는 사용할 수 없습니다.
 
-| 필드 | 기본값 |
-|:-----|:------:|
-| `purpose` | `"chart"` (주의) |
-| `classCount` | `5` |
-| `classWidth` | 자동 계산 |
-| `canvasWidth` | `600` |
-| `canvasHeight` | `400` |
-| `animation` | `true` |
+#### options.crossTable 상세
 
-> **주의**: 테이블을 렌더링하려면 `purpose: "table"`을 명시해야 합니다.
+| 옵션 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `showTotal` | `boolean` | X | `true` | 합계 행 표시 |
+| `showMergedHeader` | `boolean` | X | `true` | 병합 헤더 표시 |
 
 ---
 
-# 셀 애니메이션
+#### showTotal과 showMergedHeader 조합별 결과
+
+이원분류표의 모양은 `showTotal`과 `showMergedHeader` 옵션 조합에 따라 달라집니다.
+
+##### 조합 1: 둘 다 true (기본값)
+
+```json
+{
+  "options": {
+    "crossTable": {
+      "showTotal": true,
+      "showMergedHeader": true
+    }
+  }
+}
+```
+
+**결과 테이블:**
+```
+┌─────────────────────────────────┐
+│           상대도수               │  ← 병합 헤더 (표시됨)
+├─────────┬──────────┬────────────┤
+│ 혈액형   │  남학생   │   여학생   │
+├─────────┼──────────┼────────────┤
+│    A    │   0.4    │    0.4     │
+├─────────┼──────────┼────────────┤
+│    B    │   0.22   │    0.2     │
+├─────────┼──────────┼────────────┤
+│   합계   │    1     │     1      │  ← 합계 행 (표시됨)
+└─────────┴──────────┴────────────┘
+```
+
+---
+
+##### 조합 2: showTotal만 true
+
+```json
+{
+  "options": {
+    "crossTable": {
+      "showTotal": true,
+      "showMergedHeader": false
+    }
+  }
+}
+```
+
+**결과 테이블:**
+```
+┌─────────┬──────────┬────────────┐
+│ 혈액형   │  남학생   │   여학생   │  ← 병합 헤더 없이 바로 시작
+├─────────┼──────────┼────────────┤
+│    A    │   0.4    │    0.4     │
+├─────────┼──────────┼────────────┤
+│    B    │   0.22   │    0.2     │
+├─────────┼──────────┼────────────┤
+│   합계   │    1     │     1      │  ← 합계 행 (표시됨)
+└─────────┴──────────┴────────────┘
+```
+
+---
+
+##### 조합 3: showMergedHeader만 true
+
+```json
+{
+  "options": {
+    "crossTable": {
+      "showTotal": false,
+      "showMergedHeader": true
+    }
+  }
+}
+```
+
+**결과 테이블:**
+```
+┌─────────────────────────────────┐
+│           상대도수               │  ← 병합 헤더 (표시됨)
+├─────────┬──────────┬────────────┤
+│ 혈액형   │  남학생   │   여학생   │
+├─────────┼──────────┼────────────┤
+│    A    │   0.4    │    0.4     │
+├─────────┼──────────┼────────────┤
+│    B    │   0.22   │    0.2     │
+└─────────┴──────────┴────────────┘
+                                    ← 합계 행 없음
+```
+
+---
+
+##### 조합 4: 둘 다 false
+
+```json
+{
+  "options": {
+    "crossTable": {
+      "showTotal": false,
+      "showMergedHeader": false
+    }
+  }
+}
+```
+
+**결과 테이블:**
+```
+┌─────────┬──────────┬────────────┐
+│ 혈액형   │  남학생   │   여학생   │  ← 병합 헤더 없이 바로 시작
+├─────────┼──────────┼────────────┤
+│    A    │   0.4    │    0.4     │
+├─────────┼──────────┼────────────┤
+│    B    │   0.22   │    0.2     │
+└─────────┴──────────┴────────────┘
+                                    ← 합계 행 없음
+```
+
+---
+
+#### 옵션 조합 요약표
+
+| showMergedHeader | showTotal | 병합 헤더 | 합계 행 | 용도 |
+|:----------------:|:---------:|:---------:|:-------:|:-----|
+| `true` | `true` | O | O | 전체 표시 (기본값) |
+| `false` | `true` | X | O | 합계만 필요할 때 |
+| `true` | `false` | O | X | 헤더만 필요할 때 |
+| `false` | `false` | X | X | 최소 표시 |
+
+---
+
+#### data 형식 상세
+
+```
+상대도수                      ← 1행 (선택): 병합 헤더 텍스트
+헤더: 혈액형, 남학생, 여학생   ← 2행: 열 구조 (행라벨명, 열1, 열2)
+A: 0.4, 0.4                   ← 3행~: 행이름 + 각 열의 값
+B: 0.22, 0.2
+AB: 0.12, 0.16
+O: 0.26, 0.24
+```
+
+#### data 작성 규칙
+
+| 행 | 형식 | 필수 | 설명 |
+|:---|:-----|:----:|:-----|
+| 1행 | `텍스트` (콜론 없음) | X | 병합 헤더 텍스트. 생략 시 "상대도수" |
+| 2행 | `헤더: 행라벨명, 열1, 열2, ...` | **O** | 열 구조 정의. 반드시 `헤더:`로 시작 |
+| 3행~ | `행이름: 값1, 값2, ...` | **O** | 데이터 행. `행이름:`으로 시작 |
+
+#### 병합 헤더 커스텀 예시
+
+```json
+{
+  "data": "비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2"
+}
+```
+
+**결과**: 병합 헤더가 "비율"로 표시됨
+
+#### 병합 헤더 생략 예시
+
+```json
+{
+  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2"
+}
+```
+
+**결과**: 병합 헤더가 기본값 "상대도수"로 표시됨
+
+---
+
+#### 셀 구조 및 인덱스 매핑
+
+> **중요**: rowIndex는 `showMergedHeader` 값에 따라 달라집니다!
+
+##### showMergedHeader: true일 때
+
+```
+┌─────────────────────────────────┐
+│           상대도수               │  ← rowIndex: 0 (병합 헤더)
+├─────────┬──────────┬────────────┤
+│ 혈액형   │  남학생   │   여학생   │  ← rowIndex: 1 (헤더 행)
+├─────────┼──────────┼────────────┤
+│    A    │   0.4    │    0.4     │  ← rowIndex: 2
+├─────────┼──────────┼────────────┤
+│    B    │   0.22   │    0.2     │  ← rowIndex: 3
+├─────────┼──────────┼────────────┤
+│   AB    │   0.12   │    0.16    │  ← rowIndex: 4
+├─────────┼──────────┼────────────┤
+│    O    │   0.26   │    0.24    │  ← rowIndex: 5
+├─────────┼──────────┼────────────┤
+│   합계   │    1     │     1      │  ← rowIndex: 6
+└─────────┴──────────┴────────────┘
+ colIndex:0     1           2
+```
+
+##### showMergedHeader: false일 때
+
+```
+┌─────────┬──────────┬────────────┐
+│ 혈액형   │  남학생   │   여학생   │  ← rowIndex: 0 (헤더 행)
+├─────────┼──────────┼────────────┤
+│    A    │   0.4    │    0.4     │  ← rowIndex: 1
+├─────────┼──────────┼────────────┤
+│    B    │   0.22   │    0.2     │  ← rowIndex: 2
+├─────────┼──────────┼────────────┤
+│   AB    │   0.12   │    0.16    │  ← rowIndex: 3
+├─────────┼──────────┼────────────┤
+│    O    │   0.26   │    0.24    │  ← rowIndex: 4
+├─────────┼──────────┼────────────┤
+│   합계   │    1     │     1      │  ← rowIndex: 5
+└─────────┴──────────┴────────────┘
+ colIndex:0     1           2
+```
+
+> **Tip**: `showMergedHeader: false`이면 모든 rowIndex가 1씩 줄어듭니다.
+
+---
+
+#### cellAnimations 예시
+
+##### showMergedHeader: true일 때
+
+```json
+{
+  "options": {
+    "crossTable": {
+      "showMergedHeader": true,
+      "showTotal": true
+    }
+  },
+  "cellAnimations": [
+    { "rowIndex": 2, "colIndex": 1 },
+    { "rowIndex": 2, "colIndex": 2 },
+    { "rowIndex": 6 }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 2, "colIndex": 1 }` | A형 남학생 셀 (0.4) |
+| `{ "rowIndex": 2, "colIndex": 2 }` | A형 여학생 셀 (0.4) |
+| `{ "rowIndex": 6 }` | 합계 행 전체 |
+
+##### showMergedHeader: false일 때
+
+```json
+{
+  "options": {
+    "crossTable": {
+      "showMergedHeader": false,
+      "showTotal": true
+    }
+  },
+  "cellAnimations": [
+    { "rowIndex": 1, "colIndex": 1 },
+    { "rowIndex": 1, "colIndex": 2 },
+    { "rowIndex": 5 }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 1, "colIndex": 1 }` | A형 남학생 셀 (0.4) |
+| `{ "rowIndex": 1, "colIndex": 2 }` | A형 여학생 셀 (0.4) |
+| `{ "rowIndex": 5 }` | 합계 행 전체 |
+
+---
+
+### 4. stem-leaf (줄기-잎 그림)
+
+#### 단일 데이터
+
+```json
+{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "162 178 175 174 189 186 183 183 181 197 194 191 190 209 205",
+  "canvasWidth": 400,
+  "canvasHeight": 350,
+  "animation": true,
+  "cellAnimations": [
+    { "rowIndex": 2, "colIndex": 1, "duration": 1500, "repeat": 3 }
+  ],
+  "cellAnimationOptions": {
+    "blinkEnabled": true
+  }
+}
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|:-----|:-----|:----:|:-----|
+| `tableType` | `string` | **O** | `"stem-leaf"` |
+| `data` | `string` | **O** | 공백으로 구분된 숫자들 |
+| `canvasWidth` | `number` | X | 캔버스 너비 (기본: 400) |
+| `canvasHeight` | `number` | X | 캔버스 높이 (기본: 350) |
+| `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
+| `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
+| `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
+
+> **Note**: `cellVariables`는 frequency 타입 전용입니다. stem-leaf에서는 사용할 수 없습니다.
+
+#### data 형식 상세 (단일)
+
+```
+162 178 175 174 189 186 183 183 181 197 194 191 190 209 205
+```
+
+**결과**: 자동으로 줄기(십의 자리)와 잎(일의 자리)으로 분리
+
+#### 셀 구조 및 인덱스 매핑 (단일)
+
+```
+┌───────┬───────────────────┐
+│ 줄기   │        잎         │  ← rowIndex: 0 (헤더)
+├───────┼───────────────────┤
+│  16   │  2                │  ← rowIndex: 1
+├───────┼───────────────────┤
+│  17   │  4 5 8            │  ← rowIndex: 2
+├───────┼───────────────────┤
+│  18   │  1 3 3 6 9        │  ← rowIndex: 3
+├───────┼───────────────────┤
+│  19   │  0 1 4 7          │  ← rowIndex: 4
+├───────┼───────────────────┤
+│  20   │  5 9              │  ← rowIndex: 5
+└───────┴───────────────────┘
+colIndex: 0         1
+```
+
+#### cellAnimations 예시 (단일)
+
+```json
+{
+  "cellAnimations": [
+    { "rowIndex": 3, "colIndex": 1 },
+    { "colIndex": 0 }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 3, "colIndex": 1 }` | 줄기 18의 잎 셀 (1 3 3 6 9) |
+| `{ "colIndex": 0 }` | 줄기 열 전체 |
+
+---
+
+#### 비교 데이터 (두 그룹)
+
+```json
+{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207",
+  "canvasWidth": 600,
+  "canvasHeight": 400,
+  "animation": true,
+  "cellAnimations": [
+    { "rowIndex": 3, "colIndex": 0, "duration": 1500, "repeat": 3 },
+    { "rowIndex": 3, "colIndex": 2 }
+  ],
+  "cellAnimationOptions": {
+    "blinkEnabled": true
+  }
+}
+```
+
+#### data 형식 상세 (비교)
+
+```
+남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205
+여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207
+```
+
+**결과**: 양쪽 비교 형태의 줄기-잎 그림 생성
+
+#### 셀 구조 및 인덱스 매핑 (비교)
+
+```
+┌─────────────┬───────┬─────────────┐
+│   남학생     │ 줄기   │   여학생     │  ← rowIndex: 0 (헤더)
+├─────────────┼───────┼─────────────┤
+│           2 │  16   │ 0 5         │  ← rowIndex: 1
+├─────────────┼───────┼─────────────┤
+│       8 5 4 │  17   │ 0 7         │  ← rowIndex: 2
+├─────────────┼───────┼─────────────┤
+│   9 6 3 3 1 │  18   │ 0 2 4 8     │  ← rowIndex: 3
+├─────────────┼───────┼─────────────┤
+│     7 4 1 0 │  19   │ 2 3 6       │  ← rowIndex: 4
+├─────────────┼───────┼─────────────┤
+│         9 5 │  20   │ 1 7         │  ← rowIndex: 5
+└─────────────┴───────┴─────────────┘
+    colIndex: 0    1       2
+```
+
+| 구조 | colIndex | 설명 |
+|:-----|:--------:|:-----|
+| 왼쪽 열 | 0 | 남학생 잎 (역순 정렬) |
+| 가운데 열 | 1 | 줄기 |
+| 오른쪽 열 | 2 | 여학생 잎 (정순 정렬) |
+
+#### cellAnimations 예시 (비교)
+
+```json
+{
+  "cellAnimations": [
+    { "rowIndex": 3, "colIndex": 0 },
+    { "rowIndex": 3, "colIndex": 2 },
+    { "colIndex": 1 }
+  ]
+}
+```
+
+| 설정 | 결과 |
+|:-----|:-----|
+| `{ "rowIndex": 3, "colIndex": 0 }` | 줄기 18의 남학생 잎 (9 6 3 3 1) |
+| `{ "rowIndex": 3, "colIndex": 2 }` | 줄기 18의 여학생 잎 (0 2 4 8) |
+| `{ "colIndex": 1 }` | 줄기 열 전체 |
+
+---
+
+# 셀 애니메이션 (Cell Animation)
 
 > 특정 셀에 하이라이트 애니메이션을 추가합니다.
 
-## cellAnimations 옵션
+## cellAnimations 배열
 
-| 옵션 | 타입 | 기본값 | 설명 |
-|:-----|:-----|:------:|:-----|
-| `rowIndex` | `number` | `null` | 행 인덱스 (생략 시 열 전체) |
-| `colIndex` | `number` | `null` | 열 인덱스 (생략 시 행 전체) |
-| `duration` | `number` | `1500` | 시간 (ms) |
-| `repeat` | `number` | `3` | 반복 횟수 |
+셀 애니메이션 목록을 정의합니다.
 
-## cellAnimationOptions 옵션
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `array` |
+| **필수 여부** | 선택 |
+| **기본값** | `null` |
+| **동작** | 배열에 정의된 셀들에 하이라이트 애니메이션 적용 |
 
-| 옵션 | 타입 | 기본값 | 설명 |
-|:-----|:-----|:------:|:-----|
-| `blinkEnabled` | `boolean` | `true` | 블링크 효과 |
+### 배열 항목 구조
+
+| 속성 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `rowIndex` | `number` | X | `null` | 행 인덱스 (생략 시 열 전체) |
+| `colIndex` | `number` | X | `null` | 열 인덱스 (생략 시 행 전체) |
+| `duration` | `number` | X | `1500` | 애니메이션 시간 (ms) |
+| `repeat` | `number` | X | `3` | 반복 횟수 |
+
+---
+
+### 동작 규칙
+
+| rowIndex | colIndex | 결과 |
+|:--------:|:--------:|:-----|
+| 지정 | 지정 | 특정 셀 하이라이트 |
+| 지정 | 생략 | 해당 행 전체 하이라이트 |
+| 생략 | 지정 | 해당 열 전체 하이라이트 |
+| 생략 | 생략 | 동작 안 함 |
+
+---
+
+## cellAnimationOptions 객체
+
+애니메이션 재생 옵션을 지정합니다.
+
+| 속성 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `blinkEnabled` | `boolean` | X | `true` | 블링크 효과 활성화 |
+
+| 값 | 동작 |
+|:---|:-----|
+| `true` | 하이라이트가 깜빡이며 반복 |
+| `false` | 정적 하이라이트만 표시 |
 
 ---
 
@@ -836,12 +1697,10 @@
 
 ### 특정 셀 하이라이트
 
-> [0, 2] 셀에 하이라이트 추가
-
 ```json
 {
   "purpose": "table",
-  "data": "62, 87, 97",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "cellAnimations": [
     { "rowIndex": 0, "colIndex": 2 }
   ]
@@ -854,10 +1713,10 @@
 
 ### 행 전체 하이라이트
 
-> `colIndex` 생략 시 행 전체 선택
-
 ```json
 {
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "cellAnimations": [
     { "rowIndex": 2 }
   ]
@@ -870,10 +1729,10 @@
 
 ### 열 전체 하이라이트
 
-> `rowIndex` 생략 시 열 전체 선택
-
 ```json
 {
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "cellAnimations": [
     { "colIndex": 3 }
   ]
@@ -884,12 +1743,30 @@
 
 ---
 
-### 블링크 비활성화
-
-> 정적 하이라이트만 표시
+### 여러 셀 하이라이트
 
 ```json
 {
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "cellAnimations": [
+    { "rowIndex": 0, "colIndex": 2 },
+    { "rowIndex": 1, "colIndex": 2 },
+    { "rowIndex": 2, "colIndex": 2 }
+  ]
+}
+```
+
+**결과**: 0~2행의 2열 셀들이 하이라이트됨 (인접한 셀은 자동 병합)
+
+---
+
+### 블링크 비활성화
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "cellAnimations": [
     { "rowIndex": 0, "colIndex": 2 }
   ],
@@ -903,25 +1780,25 @@
 
 ---
 
-### 여러 셀 하이라이트
-
-> 여러 셀에 동시에 하이라이트 추가
+### 커스텀 duration, repeat
 
 ```json
 {
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
   "cellAnimations": [
-    { "rowIndex": 0, "colIndex": 2 },
-    { "rowIndex": 1, "colIndex": 2 },
-    { "rowIndex": 2, "colIndex": 2 }
+    { "rowIndex": 0, "colIndex": 2, "duration": 2000, "repeat": 5 }
   ]
 }
 ```
 
-**결과**: 0~2행의 2열 셀들이 하이라이트됨 (인접한 셀은 자동 병합)
+**결과**: 2초 동안 5번 반복되는 하이라이트
 
 ---
 
 ## 인접 셀 병합 규칙
+
+인접한 셀들은 자동으로 병합되어 하나의 영역으로 하이라이트됩니다.
 
 | 조건 | 결과 | 색상 |
 |:-----|:-----|:-----|
@@ -929,4 +1806,239 @@
 | 2개+ 그룹 | 방향별 분리 | 파랑/분홍/주황 |
 | 겹치는 셀 | 두 그룹 모두 표시 | 중첩 |
 
-> **Tip**: 인접한 셀은 자동으로 병합되어 하나의 영역으로 하이라이트됩니다.
+---
+
+# 특수 문자 (Special Characters)
+
+> 데이터에 특수 문자를 사용하여 특별한 렌더링 효과를 적용할 수 있습니다.
+
+## 언더바 (`_`) → 빈칸
+
+언더바(`_`)를 입력하면 **빈칸으로 렌더링**됩니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **입력** | `_` (언더바) |
+| **출력** | 빈칸 (아무것도 표시 안 됨) |
+| **용도** | 빈칸을 표시해야 하는 셀에 사용 |
+| **적용 범위** | 모든 테이블 타입 |
+
+### 동작 원리
+
+```
+입력값: "_"
+  ↓
+렌더링 시 너비 0으로 처리
+  ↓
+결과: 셀에 아무것도 표시되지 않음
+```
+
+---
+
+## 사용 예시
+
+### 도수분포표에서 빈칸 (cellVariables)
+
+특정 셀의 값을 빈칸으로 표시하려면 `_`를 사용합니다.
+
+```json
+{
+  "purpose": "table",
+  "tableType": "frequency",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "tableConfig": {
+      "cellVariables": [
+        { "class": "60~70", "column": "frequency", "value": "_" },
+        { "class": "70~80", "column": "frequency", "value": "_" }
+      ]
+    }
+  }
+}
+```
+
+**결과:**
+```
+┌────────────┬────────┬─────────────┐
+│    계급    │  도수  │ 상대도수(%) │
+├────────────┼────────┼─────────────┤
+│ 50~60      │   1    │     10      │
+├────────────┼────────┼─────────────┤
+│ 60~70      │        │     20      │  ← 빈칸
+├────────────┼────────┼─────────────┤
+│ 70~80      │        │     30      │  ← 빈칸
+├────────────┼────────┼─────────────┤
+│ 80~90      │   3    │     30      │
+└────────────┴────────┴─────────────┘
+```
+
+---
+
+### 이원분류표에서 빈칸
+
+데이터 값에 직접 `_`를 사용합니다.
+
+```json
+{
+  "purpose": "table",
+  "tableType": "cross-table",
+  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, _\nB: _, 0.2\nAB: 0.12, 0.16"
+}
+```
+
+**결과:**
+```
+┌─────────┬──────────┬──────────┐
+│ 혈액형   │  남학생   │  여학생   │
+├─────────┼──────────┼──────────┤
+│    A    │   0.4    │          │  ← 여학생 빈칸
+├─────────┼──────────┼──────────┤
+│    B    │          │   0.2    │  ← 남학생 빈칸
+├─────────┼──────────┼──────────┤
+│   AB    │   0.12   │   0.16   │
+└─────────┴──────────┴──────────┘
+```
+
+---
+
+### 카테고리 행렬에서 빈칸
+
+```json
+{
+  "purpose": "table",
+  "tableType": "category-matrix",
+  "data": "헤더: A, B, C\n전체: 100, _, 300\n부분: _, 50, _"
+}
+```
+
+**결과:**
+```
+┌────────┬─────┬─────┬─────┐
+│ (헤더)  │  A  │  B  │  C  │
+├────────┼─────┼─────┼─────┤
+│ 전체   │ 100 │     │ 300 │  ← B열 빈칸
+├────────┼─────┼─────┼─────┤
+│ 부분   │     │  50 │     │  ← A, C열 빈칸
+└────────┴─────┴─────┴─────┘
+```
+
+---
+
+### 줄기-잎 그림에서의 주의사항
+
+줄기-잎 그림에서는 숫자 데이터만 파싱하므로, `_`는 무시됩니다.
+
+```json
+{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "162 _ 178 175"
+}
+```
+
+**결과:** `_`는 무시되고 `162, 178, 175`만 파싱됨
+
+> **Tip**: 줄기-잎 그림에서 빈칸을 표현하려면 해당 숫자를 생략하세요.
+
+---
+
+## 언더바 vs 공백
+
+| 입력 | 결과 | 용도 |
+|:-----|:-----|:-----|
+| `_` | 빈칸 (의도적) | 값을 비워야 할 때 |
+| ` ` (공백) | 파싱 구분자 | 데이터 구분용 |
+| `""` (빈 문자열) | 빈칸 | JSON에서 직접 빈 값 지정 |
+
+---
+
+### 의도적 빈칸이 필요한 상황
+
+1. **문제 풀이용 테이블**: 학생이 채워야 하는 칸
+2. **미확정 데이터**: 아직 값이 정해지지 않은 경우
+3. **N/A 표현**: 해당 없음을 표시
+
+```json
+{
+  "options": {
+    "tableConfig": {
+      "cellVariables": [
+        { "class": "60~70", "column": "frequency", "value": "_" },
+        { "class": "60~70", "column": "relativeFrequency", "value": "?" }
+      ]
+    }
+  }
+}
+```
+
+**결과:**
+- `"_"` → 완전한 빈칸
+- `"?"` → 물음표 표시
+
+---
+
+# 기본값 요약
+
+## 차트 기본값
+
+| 필드 | 기본값 | 설명 |
+|:-----|:------:|:-----|
+| `purpose` | `"chart"` | 차트 렌더링 |
+| `classCount` | `5` | 5개 계급 |
+| `classWidth` | 자동 계산 | `Math.ceil(범위/classCount)` |
+| `canvasSize` | `700` | 700x700px |
+| `animation` | `true` | 애니메이션 활성화 |
+| `options.showHistogram` | `true` | 히스토그램 표시 |
+| `options.showPolygon` | `true` | 도수다각형 표시 |
+| `options.dataType` | `"relativeFrequency"` | 상대도수 기준 |
+| `options.axisLabels` | `null` | 기본 축 라벨 |
+| `options.histogramColorPreset` | `"default"` | 기본 색상 |
+| `options.polygonColorPreset` | `"default"` | 기본 색상 |
+
+## 테이블 기본값
+
+| 필드 | 기본값 | 설명 |
+|:-----|:------:|:-----|
+| `purpose` | `"chart"` | **주의: 테이블은 명시 필요** |
+| `tableType` | `"frequency"` | 도수분포표 |
+| `classCount` | `5` | 5개 계급 |
+| `classWidth` | 자동 계산 | `Math.ceil(범위/classCount)` |
+| `canvasWidth` | `600` | 600px |
+| `canvasHeight` | `400` | 400px |
+| `animation` | `true` | 애니메이션 활성화 |
+
+> **주의**: 테이블을 렌더링하려면 반드시 `"purpose": "table"`을 명시해야 합니다.
+
+---
+
+# 필수 필드 체크리스트
+
+## 차트 (Chart)
+
+| 필드 | 필수 여부 | 비고 |
+|:-----|:--------:|:-----|
+| `data` | **필수** | 숫자 배열 |
+| `purpose` | 선택 | 기본값 `"chart"` |
+| `classCount` | 선택 | 기본값 `5` |
+| 그 외 | 선택 | 모두 기본값 있음 |
+
+## 테이블 (Table)
+
+| 필드 | 필수 여부 | 비고 |
+|:-----|:--------:|:-----|
+| `data` | **필수** | 숫자 배열 또는 특수 문자열 |
+| `purpose` | **필수** | 반드시 `"table"` 명시 |
+| `tableType` | 선택 | 기본값 `"frequency"` |
+| 그 외 | 선택 | 모두 기본값 있음 |
+
+---
+
+# 오류 메시지
+
+| 오류 | 원인 | 해결 방법 |
+|:-----|:-----|:----------|
+| `element must be a valid HTMLElement` | 컨테이너 요소 없음 | 유효한 DOM 요소 전달 |
+| `config.data is required` | data 필드 누락 | data 배열 추가 |
+| `No valid numeric data found` | 유효한 숫자 없음 | 숫자 배열 확인 |
+| `Invalid purpose` | 잘못된 purpose 값 | `"chart"` 또는 `"table"` 사용 |
+| `'xxx' type does not support chart` | 차트 미지원 테이블 타입 | `tableType: "frequency"`만 차트 지원 |
