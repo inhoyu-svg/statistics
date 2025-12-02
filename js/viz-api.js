@@ -378,7 +378,13 @@ export async function renderTable(element, config) {
 
     // Process options
     const options = config.options || {};
-    const tableConfig = options.tableConfig || null;
+    const baseTableConfig = options.tableConfig || {};
+    // canvasWidth/canvasHeight를 tableConfig에 포함 (사용자 설정 우선)
+    const tableConfig = {
+      ...baseTableConfig,
+      canvasWidth: config.canvasWidth,
+      canvasHeight: config.canvasHeight
+    };
     const animationConfig = config.animation !== undefined ? config.animation : options.animation;
     const animation = typeof animationConfig === 'object'
       ? animationConfig.enabled !== false
