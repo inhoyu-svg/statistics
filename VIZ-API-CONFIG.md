@@ -6,6 +6,8 @@
 
 ## 용어 설명
 
+### 통계 용어
+
 | 용어 | 영문 | 설명 |
 |:-----|:-----|:-----|
 | **계급** | class | 데이터를 나누는 구간 (예: 60이상~70미만) |
@@ -16,6 +18,80 @@
 | **히스토그램** | histogram | 도수를 막대 높이로 표현한 차트 |
 | **도수다각형** | frequency polygon | 각 계급의 중앙값에 점을 찍고 선으로 연결한 그래프 |
 | **도수분포표** | frequency table | 계급별 도수를 정리한 표 |
+
+### 설정 객체 용어
+
+| 용어 | 설명 | 위치 | 적용 대상 |
+|:-----|:-----|:-----|:----------|
+| **options** | 차트/테이블 세부 설정을 담는 객체 | 최상위 | 전체 |
+| **tableConfig** | 도수분포표 컬럼 설정 (표시/순서/라벨) | `options` 하위 | 도수분포표 |
+| **crossTable** | 이원분류표 전용 설정 (합계/병합헤더) | `options` 하위 | 이원분류표 |
+| **cellAnimations** | 셀 하이라이트 애니메이션 배열 | 최상위 | 모든 테이블 |
+| **cellAnimationOptions** | 애니메이션 재생 옵션 | 최상위 | 모든 테이블 |
+| **cellVariables** | 셀 값 커스터마이징 배열 | `tableConfig` 하위 | 도수분포표 |
+| **axisLabels** | 축 라벨 커스터마이징 | `options` 하위 | 차트 |
+
+---
+
+## JSON 구조 개요
+
+> 전체 설정의 계층 구조입니다. 한눈에 어떤 옵션이 어디에 위치하는지 확인하세요.
+
+```
+config (최상위)
+│
+├── data                    (필수) 숫자 배열 또는 특수 문자열
+├── purpose                 "chart" | "table"
+├── tableType               "frequency" | "cross-table" | "category-matrix" | "stem-leaf"
+├── classCount              계급 개수 (기본: 5)
+├── classWidth              계급 간격 (자동 계산)
+├── canvasSize              차트 캔버스 크기 (정사각형)
+├── canvasWidth             테이블 캔버스 너비
+├── canvasHeight            테이블 캔버스 높이
+├── animation               true | false
+│
+├── options                 ─────────────────────────────────
+│   │
+│   │  [차트 전용]
+│   ├── showHistogram       히스토그램 표시 여부
+│   ├── showPolygon         도수다각형 표시 여부
+│   ├── dataType            "frequency" | "relativeFrequency"
+│   ├── histogramColorPreset / histogramColor   막대 색상
+│   ├── polygonColorPreset / polygonColor       다각형 색상
+│   ├── axisLabels          { xAxis, yAxis }
+│   │
+│   │  [도수분포표 전용]
+│   ├── tableConfig         ─────────────────────────
+│   │   ├── visibleColumns  [true, false, ...] 7개
+│   │   ├── columnOrder     [0, 1, 2, ...] 순서
+│   │   ├── labels          { class, frequency, ... }
+│   │   ├── showSuperscript "이상/미만" 표시
+│   │   ├── showSummaryRow  합계 행 표시
+│   │   └── cellVariables   [{ class, column, value }, ...]
+│   │
+│   │  [이원분류표 전용]
+│   └── crossTable          ─────────────────────────
+│       ├── showTotal       합계 행 표시
+│       └── showMergedHeader 병합 헤더 표시
+│
+├── cellAnimations          [{ rowIndex, colIndex, duration, repeat }, ...]
+│
+└── cellAnimationOptions    { blinkEnabled: true/false }
+```
+
+---
+
+## 설정 객체 요약
+
+| 객체 | 위치 | 적용 대상 | 용도 |
+|:-----|:-----|:----------|:-----|
+| `options` | 최상위 | 차트/테이블 | 세부 설정 컨테이너 |
+| `options.tableConfig` | options 하위 | 도수분포표 | 컬럼 표시/순서/라벨 설정 |
+| `options.tableConfig.cellVariables` | tableConfig 하위 | 도수분포표 | 특정 셀 값 커스터마이징 |
+| `options.crossTable` | options 하위 | 이원분류표 | 합계/병합헤더 설정 |
+| `options.axisLabels` | options 하위 | 차트 | 축 끝 라벨 커스터마이징 |
+| `cellAnimations` | 최상위 | 모든 테이블 | 셀 하이라이트 애니메이션 |
+| `cellAnimationOptions` | 최상위 | 모든 테이블 | 애니메이션 재생 옵션 |
 
 ---
 
