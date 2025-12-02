@@ -721,7 +721,8 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 |:--------|:-----|
 | `purpose` | `"chart"` (기본값) |
 | `classCount` | `5` (기본값) |
-| `canvasSize` | `700` (기본값) |
+| `canvasWidth` | `700` (기본값) |
+| `canvasHeight` | `450` (기본값) |
 | `dataType` | `"relativeFrequency"` (기본값) |
 
 ---
@@ -2331,7 +2332,8 @@ colIndex: 0         1
 | `purpose` | `"chart"` | 차트 렌더링 |
 | `classCount` | `5` | 5개 계급 |
 | `classWidth` | 자동 계산 | `Math.ceil(범위/classCount)` |
-| `canvasSize` | `700` | 700x700px |
+| `canvasWidth` | `700` | 700px |
+| `canvasHeight` | `450` | 450px |
 | `animation` | `true` | 애니메이션 활성화 |
 | `options.showHistogram` | `true` | 히스토그램 표시 |
 | `options.showPolygon` | `true` | 도수다각형 표시 |
