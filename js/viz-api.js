@@ -16,6 +16,157 @@ let chartInstanceCounter = 0;
 let tableInstanceCounter = 0;
 
 /**
+ * Parse CSS linear-gradient string to color stops
+ * @param {string} gradientStr - CSS linear-gradient string
+ * @returns {Object|null} { colors: [startColor, endColor], angle: number } or null if invalid
+ * @example
+ * parseLinearGradient('linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)')
+ * // returns { colors: ['#AEFF7E', '#68994C'], angle: 180 }
+ */
+function parseLinearGradient(gradientStr) {
+  if (!gradientStr || typeof gradientStr !== 'string') return null;
+
+  // Match linear-gradient pattern
+  const match = gradientStr.match(/linear-gradient\s*\(\s*([^,]+)\s*,\s*(.+)\s*\)/i);
+  if (!match) return null;
+
+  const [, angleOrDirection, colorStops] = match;
+
+  // Parse angle (180deg, to bottom, etc.)
+  let angle = 180; // default: top to bottom
+  if (angleOrDirection.includes('deg')) {
+    angle = parseFloat(angleOrDirection);
+  } else if (angleOrDirection.includes('to bottom')) {
+    angle = 180;
+  } else if (angleOrDirection.includes('to top')) {
+    angle = 0;
+  } else if (angleOrDirection.includes('to right')) {
+    angle = 90;
+  } else if (angleOrDirection.includes('to left')) {
+    angle = 270;
+  }
+
+  // Parse color stops
+  // Match: #hex, rgb(), rgba(), color names with optional percentage
+  const colorPattern = /(#[0-9A-Fa-f]{3,8}|rgba?\s*\([^)]+\)|[a-zA-Z]+)\s*(\d+%)?/g;
+  const colors = [];
+  let colorMatch;
+
+  while ((colorMatch = colorPattern.exec(colorStops)) !== null) {
+    colors.push(colorMatch[1].trim());
+  }
+
+  if (colors.length < 2) return null;
+
+  return {
+    colors: [colors[0], colors[colors.length - 1]], // start and end colors
+    angle
+  };
+}
+
+/**
+ * Apply custom colors from config to CONFIG object
+ * @param {Object} options - Options object from config
+ */
+function applyCustomColors(options) {
+  // Histogram colors
+  if (options.histogramColor) {
+    const hc = options.histogramColor;
+
+    // Create custom preset
+    const customHistogram = { ...CONFIG.HISTOGRAM_COLOR_PRESETS.default };
+
+    if (typeof hc === 'string') {
+      // Single color or gradient string
+      const parsed = parseLinearGradient(hc);
+      if (parsed) {
+        customHistogram.fillStart = parsed.colors[0];
+        customHistogram.fillEnd = parsed.colors[1];
+        customHistogram.strokeStart = parsed.colors[0];
+        customHistogram.strokeEnd = parsed.colors[1];
+      } else {
+        // Single color
+        customHistogram.fillStart = hc;
+        customHistogram.fillEnd = hc;
+        customHistogram.strokeStart = hc;
+        customHistogram.strokeEnd = hc;
+      }
+    } else if (typeof hc === 'object') {
+      // Object with fill, stroke, and alpha
+      if (hc.fill) {
+        const parsed = parseLinearGradient(hc.fill);
+        if (parsed) {
+          customHistogram.fillStart = parsed.colors[0];
+          customHistogram.fillEnd = parsed.colors[1];
+        } else if (typeof hc.fill === 'string') {
+          customHistogram.fillStart = hc.fill;
+          customHistogram.fillEnd = hc.fill;
+        }
+      }
+      if (hc.stroke) {
+        const parsed = parseLinearGradient(hc.stroke);
+        if (parsed) {
+          customHistogram.strokeStart = parsed.colors[0];
+          customHistogram.strokeEnd = parsed.colors[1];
+        } else if (typeof hc.stroke === 'string') {
+          customHistogram.strokeStart = hc.stroke;
+          customHistogram.strokeEnd = hc.stroke;
+        }
+      }
+      // Alpha (opacity) support
+      if (hc.alpha !== undefined) {
+        customHistogram.alpha = hc.alpha;
+      }
+    }
+
+    // Register custom preset and use it
+    CONFIG.HISTOGRAM_COLOR_PRESETS.custom = customHistogram;
+    CONFIG.HISTOGRAM_COLOR_PRESET = 'custom';
+  }
+
+  // Polygon colors
+  if (options.polygonColor) {
+    const pc = options.polygonColor;
+
+    // Create custom preset
+    const customPolygon = { ...CONFIG.POLYGON_COLOR_PRESETS.default };
+
+    if (typeof pc === 'string') {
+      // Single color or gradient string
+      const parsed = parseLinearGradient(pc);
+      if (parsed) {
+        customPolygon.gradientStart = parsed.colors[0];
+        customPolygon.gradientEnd = parsed.colors[1];
+        customPolygon.pointColor = parsed.colors[0];
+      } else {
+        customPolygon.gradientStart = pc;
+        customPolygon.gradientEnd = pc;
+        customPolygon.pointColor = pc;
+      }
+    } else if (typeof pc === 'object') {
+      // Object with line and point
+      if (pc.line) {
+        const parsed = parseLinearGradient(pc.line);
+        if (parsed) {
+          customPolygon.gradientStart = parsed.colors[0];
+          customPolygon.gradientEnd = parsed.colors[1];
+        } else if (typeof pc.line === 'string') {
+          customPolygon.gradientStart = pc.line;
+          customPolygon.gradientEnd = pc.line;
+        }
+      }
+      if (pc.point) {
+        customPolygon.pointColor = pc.point;
+      }
+    }
+
+    // Register custom preset and use it
+    CONFIG.POLYGON_COLOR_PRESETS.custom = customPolygon;
+    CONFIG.POLYGON_COLOR_PRESET = 'custom';
+  }
+}
+
+/**
  * Main Rendering API
  * @param {HTMLElement} element - Container element to append canvas
  * @param {Object} config - Configuration object
@@ -118,7 +269,8 @@ export async function renderChart(element, config) {
     // Process options (support both config.animation object and options.animation boolean)
     const options = config.options || {};
     const axisLabels = options.axisLabels || null;
-    const dataType = options.dataType || 'relativeFrequency';
+    // Support both camelCase and lowercase for dataType
+    const dataType = options.dataType || options.datatype || 'relativeFrequency';
     const animationConfig = config.animation !== undefined ? config.animation : options.animation;
     const animation = typeof animationConfig === 'object'
       ? animationConfig.enabled !== false
@@ -129,6 +281,15 @@ export async function renderChart(element, config) {
     const showPolygon = options.showPolygon !== false;
     CONFIG.SHOW_HISTOGRAM = showHistogram;
     CONFIG.SHOW_POLYGON = showPolygon;
+
+    // Color presets (support both camelCase and lowercase)
+    const histogramColorPreset = options.histogramColorPreset || options.histogramcolorpreset || 'default';
+    const polygonColorPreset = options.polygonColorPreset || options.polygoncolorpreset || 'default';
+    CONFIG.HISTOGRAM_COLOR_PRESET = histogramColorPreset;
+    CONFIG.POLYGON_COLOR_PRESET = polygonColorPreset;
+
+    // Apply custom colors (overrides presets if specified)
+    applyCustomColors(options);
 
     if (!animation) {
       chartRenderer.disableAnimation();
@@ -176,7 +337,6 @@ export async function renderChart(element, config) {
  * @returns {Promise<Object>} { tableRenderer, canvas, classes?, stats?, parsedData? } or { error }
  */
 export async function renderTable(element, config) {
-  console.log('[viz-api] renderTable called with config:', config);
   try {
     // Wait for KaTeX fonts to load
     await waitForFonts();
@@ -299,14 +459,10 @@ export async function renderTable(element, config) {
  * @param {Object} config - Configuration object
  */
 function applyCellAnimationsFromConfig(tableRenderer, config) {
-  console.log('[viz-api] applyCellAnimationsFromConfig called', config.cellAnimations);
-
   if (!config.cellAnimations || !Array.isArray(config.cellAnimations)) {
-    console.log('[viz-api] No cellAnimations found');
     return;
   }
 
-  console.log('[viz-api] Adding', config.cellAnimations.length, 'animations');
   config.cellAnimations.forEach(anim => {
     tableRenderer.addAnimation({
       rowIndex: anim.rowIndex,
@@ -319,10 +475,7 @@ function applyCellAnimationsFromConfig(tableRenderer, config) {
   // Auto play if animations were added
   if (config.cellAnimations.length > 0) {
     const playOptions = config.cellAnimationOptions || {};
-    console.log('[viz-api] Playing animations with options:', playOptions);
-    console.log('[viz-api] Saved animations:', tableRenderer.getSavedAnimations());
     tableRenderer.playAllAnimations(playOptions);
-    console.log('[viz-api] playAllAnimations called');
   }
 }
 
