@@ -67,7 +67,7 @@ config (최상위)
 │   │   ├── labels          { class, frequency, ... }
 │   │   ├── showSuperscript "이상/미만" 표시
 │   │   ├── showSummaryRow  합계 행 표시
-│   │   └── cellVariables   [{ class, column, value }, ...]
+│   │   └── cellVariables   [{ class, column, value }, ...]  (도수분포표 전용)
 │   │
 │   │  [이원분류표 전용]
 │   └── crossTable          ─────────────────────────
@@ -76,7 +76,9 @@ config (최상위)
 │
 ├── cellAnimations          [{ rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, duration, repeat }, ...]
 │
-└── cellAnimationOptions    { blinkEnabled: true/false }
+├── cellAnimationOptions    { blinkEnabled: true/false }
+│
+└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (줄기-잎, 이원분류표, 카테고리 매트릭스용)
 ```
 
 ---
