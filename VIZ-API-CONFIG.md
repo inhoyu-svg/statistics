@@ -955,11 +955,11 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
   "tableType": "stem-leaf",
   "data": "162 178 175 174",
   "cellVariables": [
-    { "rowIndex": 2, "colIndex": 1, "value": "?" }
+    { "rowIndex": 2, "colIndex": 1, "value": "x" }
   ]
 }
 ```
-→ 줄기 17 행(rowIndex 2)의 잎을 `?`로 표시
+→ 줄기 17 행(rowIndex 2)의 잎을 `x`로 표시
 
 **예시 (비교 모드):**
 ```json
@@ -968,12 +968,12 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
   "tableType": "stem-leaf",
   "data": "남: 162 178 175\n여: 160 170",
   "cellVariables": [
-    { "rowIndex": 1, "colIndex": 0, "value": "?" },
+    { "rowIndex": 1, "colIndex": 0, "value": "x" },
     { "rowIndex": 2, "colIndex": 2, "value": "_" }
   ]
 }
 ```
-→ rowIndex 1의 왼쪽 잎을 `?`로, rowIndex 2의 오른쪽 잎을 빈칸으로 표시
+→ rowIndex 1의 왼쪽 잎을 `x`로, rowIndex 2의 오른쪽 잎을 빈칸으로 표시
 
 ---
 
@@ -1233,7 +1233,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
       "showSuperscript": true,
       "showSummaryRow": true,
       "cellVariables": [
-        { "class": "60~70", "column": "frequency", "value": "?" }
+        { "class": "60~70", "column": "frequency", "value": "A" }
       ]
     }
   },
@@ -1338,7 +1338,7 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
   "tableType": "category-matrix",
   "data": "헤더: A, B, C\n전체: 200, 250, 300\nO형: 50, 60, 70",
   "cellVariables": [
-    { "rowIndex": 1, "colIndex": 2, "value": "?" },
+    { "rowIndex": 1, "colIndex": 2, "value": "x" },
     { "rowIndex": 2, "colIndex": 3, "value": "_" }
   ]
 }
@@ -1346,7 +1346,7 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
 
 | 설정 | 결과 |
 |:-----|:-----|
-| `{ "rowIndex": 1, "colIndex": 2, "value": "?" }` | "전체" 행의 "B" 열 값을 `?`로 표시 |
+| `{ "rowIndex": 1, "colIndex": 2, "value": "x" }` | "전체" 행의 "B" 열 값을 `x`로 표시 |
 | `{ "rowIndex": 2, "colIndex": 3, "value": "_" }` | "O형" 행의 "C" 열 값을 빈칸으로 표시 |
 
 ---
@@ -1674,7 +1674,7 @@ O: 0.26, 0.24
   "tableType": "cross-table",
   "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2",
   "cellVariables": [
-    { "rowIndex": 1, "colIndex": 2, "value": "?" },
+    { "rowIndex": 1, "colIndex": 2, "value": "x" },
     { "rowIndex": 2, "colIndex": 1, "value": "_" }
   ]
 }
@@ -1682,7 +1682,7 @@ O: 0.26, 0.24
 
 | 설정 | 결과 |
 |:-----|:-----|
-| `{ "rowIndex": 1, "colIndex": 2, "value": "?" }` | A형 여학생 값을 `?`로 표시 |
+| `{ "rowIndex": 1, "colIndex": 2, "value": "x" }` | A형 여학생 값을 `x`로 표시 |
 | `{ "rowIndex": 2, "colIndex": 1, "value": "_" }` | B형 남학생 값을 빈칸으로 표시 |
 
 > **Note**: `showMergedHeader: true`일 때는 rowIndex가 1 증가합니다 (병합헤더가 row 0).
@@ -1774,14 +1774,14 @@ colIndex: 0         1
   "tableType": "stem-leaf",
   "data": "162 178 175 174",
   "cellVariables": [
-    { "rowIndex": 2, "colIndex": 1, "value": "?" }
+    { "rowIndex": 2, "colIndex": 1, "value": "x" }
   ]
 }
 ```
 
 | 설정 | 결과 |
 |:-----|:-----|
-| `{ "rowIndex": 2, "colIndex": 1, "value": "?" }` | 줄기 17의 잎을 `?`로 표시 |
+| `{ "rowIndex": 2, "colIndex": 1, "value": "x" }` | 줄기 17의 잎을 `x`로 표시 |
 
 > **열 인덱스 (단일 모드)**: colIndex 0 = 줄기, colIndex 1 = 잎
 
@@ -1867,7 +1867,7 @@ colIndex: 0         1
   "tableType": "stem-leaf",
   "data": "남: 162 178 175\n여: 160 170",
   "cellVariables": [
-    { "rowIndex": 1, "colIndex": 0, "value": "?" },
+    { "rowIndex": 1, "colIndex": 0, "value": "x" },
     { "rowIndex": 2, "colIndex": 2, "value": "_" }
   ]
 }
@@ -1875,7 +1875,7 @@ colIndex: 0         1
 
 | 설정 | 결과 |
 |:-----|:-----|
-| `{ "rowIndex": 1, "colIndex": 0, "value": "?" }` | 줄기 16의 남학생 잎을 `?`로 표시 |
+| `{ "rowIndex": 1, "colIndex": 0, "value": "x" }` | 줄기 16의 남학생 잎을 `x`로 표시 |
 | `{ "rowIndex": 2, "colIndex": 2, "value": "_" }` | 줄기 17의 여학생 잎을 빈칸으로 표시 |
 
 > **열 인덱스 (비교 모드)**: colIndex 0 = 왼쪽 잎, colIndex 1 = 줄기, colIndex 2 = 오른쪽 잎
@@ -2205,7 +2205,7 @@ colIndex: 0         1
     "tableConfig": {
       "cellVariables": [
         { "class": "60~70", "column": "frequency", "value": "_" },
-        { "class": "60~70", "column": "relativeFrequency", "value": "?" }
+        { "class": "60~70", "column": "relativeFrequency", "value": "A" }
       ]
     }
   }
@@ -2214,7 +2214,7 @@ colIndex: 0         1
 
 **결과:**
 - `"_"` → 완전한 빈칸
-- `"?"` → 물음표 표시
+- `"A"` → 문자 A 표시
 
 ---
 
