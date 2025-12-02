@@ -4,6 +4,31 @@
 
 ---
 
+## Quick Start (최소 설정)
+
+> 이것만 있으면 동작합니다.
+
+### 차트 (최소)
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75]
+}
+```
+
+### 테이블 (최소)
+
+```json
+{
+  "purpose": "table",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75]
+}
+```
+
+> **주의**: 테이블은 반드시 `"purpose": "table"` 명시 필요
+
+---
+
 ## 용어 설명
 
 ### 통계 용어
@@ -797,6 +822,15 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 | `"cross-table"` | 이원 분류표 | 두 변수의 교차 분류 | 특수 문자열 |
 | `"stem-leaf"` | 줄기-잎 그림 | 데이터 분포 시각화 | 숫자 또는 특수 문자열 |
 
+#### data 형식 비교표
+
+| tableType | data 타입 | 형식 예시 |
+|:----------|:----------|:----------|
+| `frequency` | `number[]` | `[62, 87, 97, 73, 59]` |
+| `category-matrix` | `string` | `"헤더: A, B, C\n행1: 10, 20, 30"` |
+| `cross-table` | `string` | `"제목\n헤더: 라벨명, 열1, 열2\n행1: 값1, 값2"` |
+| `stem-leaf` | `string` | `"162 178 175"` 또는 `"남: 162 178\n여: 160 165"` |
+
 ---
 
 ### canvasWidth / canvasHeight
@@ -1271,14 +1305,32 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 }
 ```
 
-| 필드 | 설명 |
-|:-----|:-----|
-| `tableType` | `"frequency"` - 도수분포표 |
-| `data` | 숫자 배열 |
-| `classCount` | 계급 개수 |
-| `classWidth` | 계급 간격 |
-| `tableConfig` | 컬럼 표시/라벨 설정 |
-| `cellAnimations` | 셀 하이라이트 설정 |
+| 필드 | 타입 | 필수 | 설명 |
+|:-----|:-----|:----:|:-----|
+| `purpose` | `string` | **O** | `"table"` |
+| `tableType` | `string` | **O** | `"frequency"` |
+| `data` | `number[]` | **O** | 원본 데이터 배열 |
+| `classCount` | `number` | X | 계급 개수 |
+| `classWidth` | `number` | X | 계급 간격 |
+| `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
+| `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
+| `animation` | `boolean` | X | 애니메이션 활성화 |
+| **options.tableConfig** |  |  |  |
+| `visibleColumns` | `boolean[]` | X | 컬럼별 표시 여부 (7개) |
+| `columnOrder` | `number[]` | X | 컬럼 표시 순서 |
+| `labels.class` | `string` | X | "계급" 컬럼 라벨 |
+| `labels.frequency` | `string` | X | "도수" 컬럼 라벨 |
+| `labels.relativeFrequency` | `string` | X | "상대도수" 컬럼 라벨 |
+| `showSuperscript` | `boolean` | X | 윗첨자 표시 |
+| `showSummaryRow` | `boolean` | X | 합계 행 표시 |
+| `cellVariables` | `array` | X | 셀 값 대체 설정 |
+| **cellAnimations** |  |  |  |
+| `rowIndex` | `number` | **O** | 행 인덱스 |
+| `colIndex` | `number` | **O** | 열 인덱스 |
+| `duration` | `number` | X | 애니메이션 시간(ms) |
+| `repeat` | `number` | X | 반복 횟수 |
+| **cellAnimationOptions** |  |  |  |
+| `blinkEnabled` | `boolean` | X | 깜빡임 효과 사용 |
 
 ---
 
@@ -1304,13 +1356,14 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 | 필드 | 타입 | 필수 | 설명 |
 |:-----|:-----|:----:|:-----|
+| `purpose` | `string` | **O** | `"table"` |
 | `tableType` | `string` | **O** | `"category-matrix"` |
 | `data` | `string` | **O** | `"헤더: 열이름들\n라벨: 값들"` 형식 |
 | `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
 | `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
-| `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
-| `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
+| `cellAnimations` | `array` | X | 셀 하이라이트 (상세: frequency 섹션 참조) |
+| `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (상세: frequency 섹션 참조) |
 | `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 
 #### data 형식 상세
@@ -1373,14 +1426,15 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
 
 | 필드 | 타입 | 필수 | 설명 |
 |:-----|:-----|:----:|:-----|
+| `purpose` | `string` | **O** | `"table"` |
 | `tableType` | `string` | **O** | `"cross-table"` |
 | `data` | `string` | **O** | `"병합헤더\n헤더: 행라벨명, 열들\n행: 값들"` 형식 |
 | `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
 | `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
 | `options.crossTable` | `object` | X | 이원분류표 전용 옵션 |
-| `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
-| `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
+| `cellAnimations` | `array` | X | 셀 하이라이트 (상세: frequency 섹션 참조) |
+| `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (상세: frequency 섹션 참조) |
 | `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 
 #### options.crossTable 상세
@@ -1490,13 +1544,14 @@ O: 0.26, 0.24
 
 | 필드 | 타입 | 필수 | 설명 |
 |:-----|:-----|:----:|:-----|
+| `purpose` | `string` | **O** | `"table"` |
 | `tableType` | `string` | **O** | `"stem-leaf"` |
 | `data` | `string` | **O** | 공백으로 구분된 숫자들 |
 | `canvasWidth` | `number` | X | 캔버스 너비 (기본: 400) |
 | `canvasHeight` | `number` | X | 캔버스 높이 (기본: 350) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
-| `cellAnimations` | `array` | X | 셀 하이라이트 설정 |
-| `cellAnimationOptions` | `object` | X | 애니메이션 재생 옵션 |
+| `cellAnimations` | `array` | X | 셀 하이라이트 (상세: frequency 섹션 참조) |
+| `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (상세: frequency 섹션 참조) |
 | `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 
 > **참고**: 줄기-잎은 숫자만 파싱되므로, `?`나 `_` 같은 특수문자는 `cellVariables`로 지정해야 합니다.
@@ -2027,6 +2082,18 @@ O: 0.26, 0.24
 
 ---
 
+# 자주 하는 실수 (Common Mistakes)
+
+| 실수 | 증상 | 해결 방법 |
+|:-----|:-----|:----------|
+| `purpose: "table"` 누락 | 테이블 대신 차트가 렌더링됨 | 테이블은 반드시 `"purpose": "table"` 명시 |
+| `animation: true`만 설정 | 애니메이션 효과 없음 | `cellAnimations` 배열도 함께 설정 필요 |
+| cross-table에서 `헤더:` 누락 | 파싱 오류 또는 잘못된 테이블 | 두 번째 줄은 반드시 `헤더: 라벨명, 열1, 열2` 형식 |
+| `blinkEnabled: true`만 설정 | 깜빡임 없이 정적 하이라이트 | `duration`, `repeat` 값도 함께 설정 권장 |
+| JSON 문법 오류 | 테이블/차트 렌더링 안 됨 | trailing comma 제거, 객체 사이 comma 확인 |
+
+---
+
 # 오류 메시지
 
 | 오류 | 원인 | 해결 방법 |
@@ -2036,302 +2103,3 @@ O: 0.26, 0.24
 | `No valid numeric data found` | 유효한 숫자 없음 | 숫자 배열 확인 |
 | `Invalid purpose` | 잘못된 purpose 값 | `"chart"` 또는 `"table"` 사용 |
 | `'xxx' type does not support chart` | 차트 미지원 테이블 타입 | `tableType: "frequency"`만 차트 지원 |
-
----
-
-# 종합 예시 (Complete Examples)
-
-> 각 테이블 타입별로 실제 사용 가능한 완전한 JSON 설정 예시입니다.
-
-## 1. 도수분포표 (Frequency Table)
-
-### 기본 도수분포표
-
-```json
-{
-  "purpose": "table",
-  "tableType": "frequency",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 82, 91, 68, 72, 88],
-  "classCount": 5,
-  "canvasWidth": 700,
-  "canvasHeight": 450,
-  "animation": true
-}
-```
-
-### 도수분포표 + cellVariables + cellAnimations
-
-```json
-{
-  "purpose": "table",
-  "tableType": "frequency",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 82, 91, 68, 72, 88],
-  "classCount": 5,
-  "canvasWidth": 700,
-  "canvasHeight": 450,
-  "animation": true,
-  "options": {
-    "tableConfig": {
-      "visibleColumns": [true, false, true, true, false, false, false],
-      "labels": {
-        "class": "점수",
-        "frequency": "학생 수"
-      },
-      "showSuperscript": true,
-      "showSummaryRow": true,
-      "cellVariables": [
-        { "class": "60~70", "column": "frequency", "value": "x" },
-        { "class": "70~80", "column": "frequency", "value": "_" }
-      ]
-    }
-  },
-  "cellAnimations": [
-    { "rowIndex": 1, "colIndex": 1, "duration": 1500, "repeat": 3 },
-    { "rowIndex": 2, "colIndex": 1, "duration": 1500, "repeat": 3 }
-  ],
-  "cellAnimationOptions": {
-    "blinkEnabled": true
-  }
-}
-```
-
-**설명:**
-- `visibleColumns`: 계급, 도수, 상대도수만 표시
-- `cellVariables`: 60~70 도수를 `x`로, 70~80 도수를 빈칸으로
-- `cellAnimations`: 두 셀에 블링크 하이라이트 적용
-
----
-
-## 2. 이원분류표 (Cross Table)
-
-### 기본 이원분류표
-
-```json
-{
-  "purpose": "table",
-  "tableType": "cross-table",
-  "data": "헤더: 혈액형, 남학생, 여학생\nA: 12, 15\nB: 8, 10\nO: 14, 12\nAB: 6, 8",
-  "canvasWidth": 500,
-  "canvasHeight": 350,
-  "animation": true
-}
-```
-
-### 이원분류표 + 합계 + 병합헤더 + cellAnimations
-
-```json
-{
-  "purpose": "table",
-  "tableType": "cross-table",
-  "data": "상대도수\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nO: 0.26, _\nAB: ?, 0.16",
-  "canvasWidth": 600,
-  "canvasHeight": 400,
-  "animation": true,
-  "options": {
-    "crossTable": {
-      "showTotal": true,
-      "showMergedHeader": true
-    }
-  },
-  "cellAnimations": [
-    { "rowIndex": 4, "colStart": 1, "colEnd": 2, "duration": 1500, "repeat": 3 },
-    { "colIndex": 2, "rowStart": 2, "rowEnd": 5, "duration": 1500, "repeat": 3 }
-  ],
-  "cellAnimationOptions": {
-    "blinkEnabled": true
-  }
-}
-```
-
-**설명:**
-- 병합헤더: 첫 줄 "상대도수"로 표시
-- data에서 직접 `_`, `?` 사용 (cellVariables 불필요)
-- `cellAnimations`: O행 전체 + 여학생열 범위 하이라이트
-
----
-
-## 3. 카테고리 매트릭스 (Category Matrix)
-
-### 기본 카테고리 매트릭스
-
-```json
-{
-  "purpose": "table",
-  "tableType": "category-matrix",
-  "data": "헤더: A, B, C, D\n전체 학생 수: 200, 250, 300, 350\nO형인 학생 수: 50, 60, 70, 80\nO형인 비율: 0.25, 0.24, 0.23, 0.23",
-  "canvasWidth": 700,
-  "canvasHeight": 350,
-  "animation": true
-}
-```
-
-### 카테고리 매트릭스 + cellAnimations
-
-```json
-{
-  "purpose": "table",
-  "tableType": "category-matrix",
-  "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, x, 70, _, 90\nO형인 학생의 비율: 0.25, ?, 0.23, 0.23, 0.23",
-  "canvasWidth": 800,
-  "canvasHeight": 400,
-  "animation": true,
-  "cellAnimations": [
-    { "rowIndex": 2, "colIndex": 2, "duration": 1500, "repeat": 3 },
-    { "rowIndex": 2, "colIndex": 4, "duration": 1500, "repeat": 3 },
-    { "rowIndex": 3, "colIndex": 2, "duration": 1500, "repeat": 3 }
-  ],
-  "cellAnimationOptions": {
-    "blinkEnabled": true
-  }
-}
-```
-
-**설명:**
-- data 문자열에서 직접 `x`, `_`, `?` 사용 (cellVariables 불필요)
-- `cellAnimations`: 커스텀 값이 있는 셀들에 블링크 하이라이트
-- JSON 경량화: data에서 직접 편집 권장
-
----
-
-## 4. 줄기-잎 그림 단일 (Stem-Leaf Single)
-
-### 기본 줄기-잎 그림
-
-```json
-{
-  "purpose": "table",
-  "tableType": "stem-leaf",
-  "data": "162 165 171 175 178 182 185 189 191 195 198 203 207",
-  "canvasWidth": 400,
-  "canvasHeight": 350,
-  "animation": true
-}
-```
-
-### 줄기-잎 + cellVariables + cellAnimations (문제 풀이용)
-
-```json
-{
-  "purpose": "table",
-  "tableType": "stem-leaf",
-  "data": "162 165 171 175 178 182 185 189 191 195 198 203 207",
-  "canvasWidth": 450,
-  "canvasHeight": 400,
-  "animation": true,
-  "cellVariables": [
-    { "rowIndex": 2, "colIndex": 1, "value": ["x", 5, 8] },
-    { "rowIndex": 3, "colIndex": 1, "value": ["_", 5, 9] }
-  ],
-  "cellAnimations": [
-    { "rowIndex": 2, "colIndex": 1, "duration": 2000, "repeat": 5 },
-    { "rowIndex": 3, "colIndex": 1, "duration": 1500, "repeat": 3 }
-  ],
-  "cellAnimationOptions": {
-    "blinkEnabled": true
-  }
-}
-```
-
-**설명:**
-- `cellVariables`: 줄기 17의 잎을 `x 5 8`로, 줄기 18의 첫 잎을 빈칸으로
-- `cellAnimations`: 해당 셀들에 블링크 하이라이트
-- `x`는 KaTeX_Math 이탤릭 폰트로 렌더링
-
----
-
-## 5. 줄기-잎 그림 비교 (Stem-Leaf Compare)
-
-### 기본 비교 줄기-잎 그림
-
-```json
-{
-  "purpose": "table",
-  "tableType": "stem-leaf",
-  "data": "남학생: 162 165 171 175 178 182 185 189\n여학생: 160 168 172 176 181 184 187 193",
-  "canvasWidth": 550,
-  "canvasHeight": 400,
-  "animation": true
-}
-```
-
-### 비교 줄기-잎 + 모든 기능 조합
-
-```json
-{
-  "purpose": "table",
-  "tableType": "stem-leaf",
-  "data": "A반: 162 165 171 175 178 182 185 189 191 195\nB반: 160 168 172 176 181 184 187 193 196 201",
-  "canvasWidth": 600,
-  "canvasHeight": 450,
-  "animation": true,
-  "cellVariables": [
-    { "rowIndex": 2, "colIndex": 0, "value": ["x", 5] },
-    { "rowIndex": 3, "colIndex": 2, "value": ["_", 4, 7] }
-  ],
-  "cellAnimations": [
-    { "rowIndex": 2, "colIndex": 0, "duration": 1500, "repeat": 3 },
-    { "rowIndex": 2, "colIndex": 2, "duration": 1500, "repeat": 3 },
-    { "rowIndex": 3, "colIndex": 1, "duration": 1500, "repeat": 3 }
-  ],
-  "cellAnimationOptions": {
-    "blinkEnabled": true
-  }
-}
-```
-
-**설명:**
-- `cellVariables`: A반 줄기17 잎을 `x 5`로, B반 줄기18 첫 잎을 빈칸으로
-- `cellAnimations`: 세 셀에 블링크 하이라이트 (인접 셀 자동 그룹화)
-- 비교 모드: colIndex 0=왼쪽 잎, 1=줄기, 2=오른쪽 잎
-
----
-
-## 6. 차트 (Histogram + Polygon)
-
-### 기본 차트
-
-```json
-{
-  "purpose": "chart",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 82, 91, 68, 72, 88],
-  "classCount": 5,
-  "canvasWidth": 700,
-  "canvasHeight": 450,
-  "animation": true
-}
-```
-
-### 차트 + 모든 옵션
-
-```json
-{
-  "purpose": "chart",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 82, 91, 68, 72, 88],
-  "classCount": 5,
-  "classWidth": 10,
-  "canvasWidth": 800,
-  "canvasHeight": 500,
-  "animation": true,
-  "options": {
-    "showHistogram": true,
-    "showPolygon": true,
-    "dataType": "relativeFrequency",
-    "axisLabels": {
-      "xAxis": "점수",
-      "yAxis": "비율"
-    },
-    "histogramColorPreset": "default",
-    "polygonColorPreset": "primary",
-    "histogramColor": {
-      "fill": "linear-gradient(180deg, #4141A3 0%, #2CA0E8 100%)",
-      "stroke": "linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%)",
-      "alpha": 0.5
-    }
-  }
-}
-```
-
-**설명:**
-- `axisLabels`: 축 끝에 "(점수)", "(비율)" 표시
-- `histogramColor`: 커스텀 그라데이션 색상
-- `polygonColorPreset`: 파란색 계열 다각형
