@@ -130,8 +130,8 @@ class TableRenderer {
     const dynamicConfig = this._calculateFrequencyTableDynamicWidth(visibleClasses, total, config, showSummaryRow);
 
     // 사용자 설정값 우선, 없으면 자동 계산값 사용
-    this.canvas.width = config.canvasWidth || dynamicConfig.canvasWidth;
-    this.canvas.height = config.canvasHeight || autoHeight;
+    this.canvas.width = config?.canvasWidth || dynamicConfig.canvasWidth;
+    this.canvas.height = config?.canvasHeight || autoHeight;
     this.clear();
 
     // 레이어 생성
@@ -270,8 +270,8 @@ class TableRenderer {
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
 
     // 사용자 설정값 우선, 없으면 자동 계산값 사용
-    this.canvas.width = config.canvasWidth || dynamicConfig.canvasWidth;
-    this.canvas.height = config.canvasHeight || autoHeight;
+    this.canvas.width = config?.canvasWidth || dynamicConfig.canvasWidth;
+    this.canvas.height = config?.canvasHeight || autoHeight;
     this.clear();
 
     // 레이어 생성 (TableFactoryRouter 사용)
