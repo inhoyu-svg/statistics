@@ -100,7 +100,7 @@
                             <div class="focus-area-scene0-viz1 text-animate-in" id="focusScene2_0viz1">
                                 <div class="visualization-container" id="visualizationContainer2_0_1" data-viz-mode="chart" data-viz-type="graph_library" data-viz-config="{
 &quot;purpose&quot;: &quot;chart&quot;,
-  &quot;data&quot;: [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11],
+  &quot;data&quot;: [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11, 11, 11],
   &quot;classRange&quot;: {
     &quot;firstEnd&quot;: 1,
     &quot;secondEnd&quot;: 3,
@@ -108,24 +108,26 @@
   },
   &quot;classCount&quot;: 5,
   &quot;classWidth&quot;: 10,
-  &quot;canvasSize&quot;: 600,
+  &quot;canvasSize&quot;: 800,
   &quot;animation&quot;: true,
   &quot;options&quot;: {
-    &quot;congruentTriangles&quot;: {
-        &quot;enabled&quot;: true,
-        &quot;boundary&quot;: 7
+    &quot;axis&quot;: {
+        &quot;showYLabels&quot;: false,
+        &quot;showXLabels&quot;: true
     },
+    &quot;grid&quot;: {
+        &quot;showHorizontal&quot;: false,
+        &quot;showVertical&quot;: false
+    },
+    &quot;showDashedLines&quot;: true,
     &quot;callout&quot;: {
         &quot;enabled&quot;: true,
         &quot;template&quot;: &quot;남학생&quot;
     },
-    &quot;showHistogram&quot;: false,
-    &quot;showPolygon&quot;: true,
+    &quot;showHistogram&quot;: true,
+    &quot;showPolygon&quot;: false,
     &quot;dataType&quot;: &quot;frequency&quot;,
-    &quot;polygonColor&quot;: {
-        &quot;line&quot;: &quot;linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)&quot;,
-        &quot;point&quot;: &quot;#8DCF66&quot;
-        },
+    &quot;histogramColorPreset&quot;: &quot;green&quot;,
     &quot;axisLabels&quot;: {
       &quot;xAxis&quot;: &quot;점수 구간&quot;,
       &quot;yAxis&quot;: &quot;학생 수(명)&quot;

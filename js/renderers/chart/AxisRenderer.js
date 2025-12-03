@@ -66,11 +66,11 @@ class AxisRenderer {
 
       // 마지막 라벨은 축 제목으로 대체 (4글자 초과 시 폰트 축소)
       if (i === gridDivisions && yLabel) {
-        const fontSize = yLabel.length > 4 ? 11 : 14;
+        const baseFontSize = yLabel.length > 4 ? 11 : 14;
         KatexUtils.renderMixedText(this.ctx, yLabel,
           this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
           toY(value) + CONFIG.CHART_LABEL_OFFSET,
-          { fontSize, color, align: 'right', baseline: 'middle' }
+          { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
         );
         continue;
       }
@@ -93,7 +93,7 @@ class AxisRenderer {
       KatexUtils.render(this.ctx, formattedValue,
         this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
         toY(value) + CONFIG.CHART_LABEL_OFFSET,
-        { fontSize: 18, color: color, align: 'right', baseline: 'middle' }
+        { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'right', baseline: 'middle' }
       );
     }
   }
@@ -135,14 +135,14 @@ class AxisRenderer {
       // 데이터 구간 라벨 (KaTeX 폰트)
       for (let i = firstDataIdx; i < classes.length; i++) {
         KatexUtils.render(this.ctx, String(classes[i].min), toX(i), labelY,
-          { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
+          { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
         );
       }
 
       // 마지막 라벨: 축 제목으로 대체
       KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
         toX(classes.length - 1) + xScale, labelY,
-        { fontSize: 14, color, align: 'center', baseline: 'middle' }
+        { fontSize: CONFIG.getScaledFontSize(14), color, align: 'center', baseline: 'middle' }
       );
     } else {
       // 중략 없이 전체 표시 (KaTeX 폰트)
@@ -150,7 +150,7 @@ class AxisRenderer {
       classes.forEach((c, i) => {
         if (i === 0 && c.min === 0) return; // 0은 Y축에서 이미 표시됨
         KatexUtils.render(this.ctx, String(c.min), toX(i), labelY,
-          { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
+          { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
         );
       });
 
@@ -158,7 +158,7 @@ class AxisRenderer {
       if (classes.length > 0) {
         KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
           toX(classes.length), labelY,
-          { fontSize: 14, color, align: 'center', baseline: 'middle' }
+          { fontSize: CONFIG.getScaledFontSize(14), color, align: 'center', baseline: 'middle' }
         );
       }
     }

@@ -146,7 +146,7 @@ class CalloutRenderer {
       const lineY = textY + i * lineHeight;
       // KaTeX 규칙 적용 렌더링 (소문자 이탤릭 등)
       KatexUtils.renderMixedText(this.ctx, line, textX, lineY, {
-        fontSize: 20,
+        fontSize: CONFIG.getScaledFontSize(20),
         color: textColor,
         align: 'center',
         baseline: 'top'

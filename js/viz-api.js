@@ -410,6 +410,10 @@ export async function renderChart(element, config) {
         canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
         canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
       }
+
+      // 차트 폰트 스케일링을 위한 캔버스 크기 설정
+      CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
+
       canvas.setAttribute('role', 'img');
       canvas.setAttribute('aria-label', 'Frequency histogram and relative frequency polygon');
       element.appendChild(canvas);
@@ -444,6 +448,9 @@ export async function renderChart(element, config) {
     const showPolygon = options.showPolygon !== false;
     CONFIG.SHOW_HISTOGRAM = showHistogram;
     CONFIG.SHOW_POLYGON = showPolygon;
+
+    // Dashed lines (vertical lines from polygon points to x-axis)
+    CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
 
     // Grid settings
     const gridOptions = options.grid || {};

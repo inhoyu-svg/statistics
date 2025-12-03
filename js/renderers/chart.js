@@ -395,20 +395,29 @@ class ChartRenderer {
         });
       }
 
-      // 파선 애니메이션 (점과 동일한 타이밍, 우→좌 그리기)
-      const dashedLine = dashedLinesGroup?.children.find(d => d.data?.index === i);
-      if (dashedLine && dashedLine.visible) {
-        this.timeline.addAnimation(dashedLine.id, {
-          startTime: currentTime,
-          duration: pointDuration,
-          effect: 'draw',
-          effectOptions: { direction: 'right-to-left' },
-          easing: 'easeOut'
-        });
-      }
-
       // 다음 계급으로
       currentTime += Math.max(barDuration, pointDuration) + classDelay;
+    }
+
+    // 파선 애니메이션 (히스토그램 완료 후, 순차적으로 그리기)
+    if (dashedLinesGroup && dashedLinesGroup.children && dashedLinesGroup.children.length > 0) {
+      const dashedLineDelay = CONFIG.ANIMATION_CLASS_DELAY || 150;
+      const dashedLineDuration = CONFIG.ANIMATION_LINE_DURATION || 400;
+
+      dashedLinesGroup.children.forEach((dashedLine, idx) => {
+        if (dashedLine && dashedLine.visible) {
+          this.timeline.addAnimation(dashedLine.id, {
+            startTime: currentTime + (idx * dashedLineDelay),
+            duration: dashedLineDuration,
+            effect: 'draw',
+            effectOptions: { direction: 'right-to-left' },
+            easing: 'easeOut'
+          });
+        }
+      });
+
+      // 파선 완료 후 시간 업데이트
+      currentTime += (dashedLinesGroup.children.length * dashedLineDelay) + dashedLineDuration;
     }
 
     // 연결선 그룹 애니메이션 (모든 계급 완료 후)

@@ -143,7 +143,7 @@ class HistogramRenderer {
     KatexUtils.render(this.ctx, labelValue,
       CoordinateSystem.getBarCenterX(index, toX, xScale),
       y - CONFIG.CHART_LABEL_OFFSET - 5,
-      { fontSize: 12, color: CONFIG.getColor('--color-text'), align: 'center', baseline: 'middle' }
+      { fontSize: CONFIG.getScaledFontSize(12), color: CONFIG.getColor('--color-text'), align: 'center', baseline: 'middle' }
     );
     this.ctx.restore();
   }

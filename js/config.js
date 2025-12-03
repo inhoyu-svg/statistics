@@ -62,6 +62,10 @@ const CONFIG = {
   CANVAS_WIDTH: 700,
   CANVAS_HEIGHT: 450,
 
+  // 차트 폰트 스케일링 설정
+  BASE_CANVAS_SIZE: 600,              // 기준 캔버스 크기 (이 크기에서 폰트가 기본 크기)
+  _currentCanvasSize: 600,            // 현재 캔버스 크기 (동적으로 업데이트됨)
+
   // 테이블 타입 설정
   TABLE_TYPES: {
     FREQUENCY: 'frequency',              // 도수분포표
@@ -410,6 +414,24 @@ const CONFIG = {
       this.initializeColors();
     }
     return this._colorCache[varName] || getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  },
+
+  /**
+   * 캔버스 크기 설정 (폰트 스케일링용)
+   * @param {number} size - 캔버스 크기 (width 또는 height 중 큰 값)
+   */
+  setCanvasSize(size) {
+    this._currentCanvasSize = size || this.BASE_CANVAS_SIZE;
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 폰트 크기 반환
+   * @param {number} baseSize - 기준 폰트 크기 (BASE_CANVAS_SIZE 기준)
+   * @returns {number} 스케일된 폰트 크기
+   */
+  getScaledFontSize(baseSize) {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return Math.round(baseSize * scale);
   },
 
   /**

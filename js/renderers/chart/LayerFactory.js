@@ -165,7 +165,9 @@ class LayerFactory {
           data: {
             index,
             relativeFreq: value,
-            coords
+            coords,
+            dataType,
+            histogramPreset: CONFIG.HISTOGRAM_COLOR_PRESET
           }
         });
 

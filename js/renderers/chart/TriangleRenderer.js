@@ -83,7 +83,7 @@ class TriangleRenderer {
 
     // KaTeX_Main 폰트로 아래첨자 렌더링
     KatexUtils.renderWithScript(ctx, text, null, subscript, x, y, {
-      fontSize: 30,
+      fontSize: CONFIG.getScaledFontSize(30),
       color: color,
       align: 'center',
       baseline: 'middle'
