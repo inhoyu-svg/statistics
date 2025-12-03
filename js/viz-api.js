@@ -177,7 +177,7 @@ function applyCustomColors(options) {
  * @param {Object} [config.options] - Additional options
  * @returns {Promise<Object>} Renderer result or { error }
  */
-export async function render(element, config) {
+export async function render(element, config) {  
   // Wait for KaTeX fonts to load
   await waitForFonts();
 
@@ -263,6 +263,7 @@ export async function renderChart(element, config) {
     // 7. Create canvas element (support custom canvasWidth/canvasHeight or canvasSize)
     const canvasId = `viz-chart-${++chartInstanceCounter}`;
     const canvas = document.createElement('canvas');
+    
     canvas.id = canvasId;
     // canvasSize는 정사각형 단축 옵션, canvasWidth/canvasHeight는 개별 설정
     if (config.canvasSize) {

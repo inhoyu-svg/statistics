@@ -445,23 +445,25 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 ---
 
 ## 마지막 업데이트
-- **날짜**: 2025-12-01
+- **날짜**: 2025-12-03
 - **주요 작업**:
-  - 🚧 **셀 애니메이션 JSON 설정 지원 추가** (진행 중)
-    - **목표**: `renderTable` config에 `cellAnimations` 옵션 추가하여 JSON만으로 셀 하이라이트 설정 가능하게 함
-    - **완료된 작업**:
-      - `viz-api.js`에 `applyCellAnimationsFromConfig` 함수 추가
-      - `renderTable`에서 `cellAnimations`, `cellAnimationOptions` 처리
-      - `VIZ-API-CONFIG.md` 문서 업데이트 (JSON 스타일 예시 추가)
-      - `frame-test/lecture_example.html`에 테스트 설정 추가
-      - `extractTableId` 함수 수정 (`viz-table-*` 형식 지원)
-    - **현재 문제**: 애니메이션 루프는 실행되지만 하이라이트가 화면에 표시되지 않음
-    - **디버깅 로그 추가됨**:
-      - `_getCellBounds`: 셀 좌표 조회 로그
-      - `_groupAdjacentCellsWithOverlap`: 그룹화 과정 로그
-      - `_getTableRowStructure`: 행 구조 파악 로그
-    - **다음 단계**: 브라우저 콘솔 로그 확인하여 문제 원인 파악
-    - **수정 파일**: `js/viz-api.js`, `js/renderers/table.js`, `VIZ-API-CONFIG.md`
+  - ✅ **viz-api.js 기능 추가** (2025-12-03)
+    - **계급 범위 수동 편집** (`classRange` 파라미터)
+      - `renderChart()`, `renderTable()`에 `config.classRange` 옵션 추가
+      - `{ firstEnd, secondEnd, lastStart }` 형식으로 계급 직접 지정 가능
+      - `classCount`, `classWidth`보다 우선 적용
+    - **말풍선 기능** (`options.callout`)
+      - `{ enabled, template, preset }` 형식으로 말풍선 설정
+      - 템플릿: `{min}`, `{max}`, `{frequency}`, `{relativeFreq}` 등 지원
+      - 프리셋: `'default'`, `'primary'`, `'secondary'`, `'tertiary'`
+    - **수정 파일**: `js/viz-api.js` (+22줄)
+  - ✅ **SCDream 폰트 전역 적용** (2025-12-03)
+    - `sans-serif`만 사용하던 곳에 SCDream 폰트 추가
+    - 말풍선 한글 텍스트에 SCDream 폰트 적용
+    - **수정 파일**: `js/utils/katex.js`, `js/renderers/table/TableCellRenderer.js`
+  - ✅ **셀 애니메이션 JSON 설정 지원** (완료)
+    - `renderTable` config에 `cellAnimations` 옵션으로 셀 하이라이트 설정
+    - **수정 파일**: `js/viz-api.js`, `js/renderers/table.js`
     - **테스트 방법**: `frame-test/lecture_example.html` 열고 콘솔(F12) 확인
 
 - **이전 작업**:
