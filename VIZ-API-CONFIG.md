@@ -86,6 +86,11 @@ config (최상위)
 │   ├── polygonColorPreset / polygonColor       다각형 색상
 │   ├── axisLabels          { xAxis, yAxis }
 │   ├── callout             { enabled, template, preset } 말풍선 설정
+│   ├── showDashedLines     수직 파선 표시 (다각형 점 → Y축)
+│   ├── grid                { showHorizontal, showVertical } 격자선 설정
+│   ├── axis                { showYLabels, showXLabels, yLabelFormat } 축 라벨 설정
+│   ├── congruentTriangles  { enabled, boundary } 합동 삼각형 설정
+│   ├── customYInterval     Y축 간격 커스텀
 │   │
 │   │  [도수분포표 전용]
 │   ├── tableConfig         ─────────────────────────
@@ -328,6 +333,11 @@ config (최상위)
 | `options.histogramColor` | `string` \| `object` | X | - | 히스토그램 커스텀 색상 |
 | `options.polygonColor` | `string` \| `object` | X | - | 다각형 커스텀 색상 |
 | `options.callout` | `object` | X | - | 말풍선(콜아웃) 설정 |
+| `options.showDashedLines` | `boolean` | X | `false` | 수직 파선 표시 |
+| `options.grid` | `object` | X | `{ showHorizontal: true, showVertical: true }` | 격자선 설정 |
+| `options.axis` | `object` | X | `{ showYLabels: true, showXLabels: true }` | 축 라벨 표시 설정 |
+| `options.congruentTriangles` | `object` | X | - | 합동 삼각형 설정 |
+| `options.customYInterval` | `number` | X | `null` | Y축 간격 커스텀 |
 
 ---
 
@@ -838,6 +848,163 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 ---
 
+### options.showDashedLines
+
+다각형의 각 점에서 Y축까지 수직 파선을 표시합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `boolean` |
+| **필수 여부** | 선택 |
+| **기본값** | `false` |
+| **파선 색상** | 히스토그램 색상 프리셋에 따라 자동 설정 |
+| **애니메이션** | 히스토그램 완료 후 순차적으로 그려지며, 완료 시 Y축에 값 라벨 표시 |
+
+> **권장**: 파선 활성화 시 Y축 끝점에 값 라벨이 자동 생성되므로, 기존 Y축 라벨과 중복을 피하려면 `options.axis.showYLabels: false`를 함께 설정하세요.
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "showDashedLines": true,
+    "axis": {
+      "showYLabels": false
+    }
+  }
+}
+```
+
+**결과**: 도수다각형의 각 점에서 Y축까지 수직 파선이 그려지고, 파선 끝점에 값 라벨이 표시됩니다.
+
+---
+
+### options.grid
+
+격자선 표시 설정입니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **하위 속성** | `showHorizontal`, `showVertical` |
+
+#### 하위 속성
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:------:|:-----|
+| `showHorizontal` | `boolean` | `true` | 가로 격자선 표시 |
+| `showVertical` | `boolean` | `true` | 세로 격자선 표시 |
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "grid": {
+      "showHorizontal": true,
+      "showVertical": false
+    }
+  }
+}
+```
+
+**결과**: 가로 격자선만 표시됩니다.
+
+---
+
+### options.axis
+
+축 라벨 표시 설정입니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **하위 속성** | `showYLabels`, `showXLabels`, `yLabelFormat` |
+
+#### 하위 속성
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:------:|:-----|
+| `showYLabels` | `boolean` | `true` | Y축 값 라벨 표시 |
+| `showXLabels` | `boolean` | `true` | X축 값 라벨 표시 |
+| `yLabelFormat` | `string` | `"decimal"` | `"decimal"` (0.03) 또는 `"percent"` (3%) |
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "axis": {
+      "showYLabels": true,
+      "showXLabels": true,
+      "yLabelFormat": "percent"
+    }
+  }
+}
+```
+
+**결과**: Y축 라벨이 백분율(%)로 표시됩니다.
+
+---
+
+### options.congruentTriangles
+
+합동 삼각형 표시 설정입니다. 히스토그램과 도수다각형 사이의 넓이가 같은 삼각형을 시각화합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **하위 속성** | `enabled`, `boundary` |
+
+#### 하위 속성
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:------:|:-----|
+| `enabled` | `boolean` | `false` | 합동 삼각형 표시 여부 |
+| `boundary` | `number` | - | 삼각형이 표시될 계급의 max 값 |
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "classWidth": 10,
+  "options": {
+    "congruentTriangles": {
+      "enabled": true,
+      "boundary": 70
+    }
+  }
+}
+```
+
+**결과**: 60~70 계급과 70~80 계급 사이에 합동 삼각형(S₁, S₂)이 표시됩니다.
+
+---
+
+### options.customYInterval
+
+Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정된 간격을 사용합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number` |
+| **필수 여부** | 선택 |
+| **기본값** | `null` (자동 계산) |
+| **권장 값** | 도수 모드: 정수 (1, 2, 5, 10), 상대도수 모드: 소수 (0.05, 0.1) |
+
+```json
+{
+  "data": [1, 3, 5, 7, 9, 11],
+  "options": {
+    "dataType": "frequency",
+    "customYInterval": 2
+  }
+}
+```
+
+**결과**: Y축이 0, 2, 4, 6, 8... 간격으로 표시됩니다.
+
+---
+
 ## 차트 전체 옵션 예시
 
 ### 최소 설정
@@ -889,7 +1056,22 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
       "enabled": true,
       "template": "남학생",
       "preset": "primary"
-    }
+    },
+    "showDashedLines": true,
+    "grid": {
+      "showHorizontal": true,
+      "showVertical": false
+    },
+    "axis": {
+      "showYLabels": true,
+      "showXLabels": true,
+      "yLabelFormat": "percent"
+    },
+    "congruentTriangles": {
+      "enabled": true,
+      "boundary": 70
+    },
+    "customYInterval": 2
   }
 }
 ```
@@ -2154,6 +2336,13 @@ O: 0.26, 0.24
 | `options.axisLabels` | `null` | 기본 축 라벨 |
 | `options.histogramColorPreset` | `"default"` | 기본 색상 |
 | `options.polygonColorPreset` | `"default"` | 기본 색상 |
+| `options.showDashedLines` | `false` | 파선 숨김 |
+| `options.grid.showHorizontal` | `true` | 가로 격자선 표시 |
+| `options.grid.showVertical` | `true` | 세로 격자선 표시 |
+| `options.axis.showYLabels` | `true` | Y축 라벨 표시 |
+| `options.axis.showXLabels` | `true` | X축 라벨 표시 |
+| `options.axis.yLabelFormat` | `"decimal"` | 소수점 형식 |
+| `options.customYInterval` | `null` | 자동 계산 |
 
 ## 테이블 기본값
 
