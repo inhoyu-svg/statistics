@@ -838,6 +838,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 | `"tertiary"` | 주황색 계열 | 흰색 |
 
 > **팁**: `callout.preset`은 `polygonColorPreset`과 동일한 값을 사용하면 색상이 일관됩니다.
+> **권장**: `callout.preset`은 따로 넣지 않아도 도수다각형의 색상 규칙에 따라 동일한 색상으로 출력되어 굳이 넣지 않아도 됩니다.
 
 ---
 
@@ -849,9 +850,11 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 |:-----|:-----|
 | **타입** | `number` |
 | **필수 여부** | 선택 |
-| **기본값** | - (자동 계산) |
+| **기본값** | 자동 계산 |
 | **동작** | 지정된 값으로 Y축 최대값 고정 |
 | **용도** | 복수 도수다각형 비교 시 동일한 스케일 사용 |
+
+> **자동 계산**: `data-viz-canvas`로 연결된 복수 도수다각형이 감지되면, 모든 데이터의 최대 도수를 분석하여 자동으로 계산됩니다. 수동 지정은 선택사항입니다.
 
 ```json
 {
@@ -863,7 +866,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 }
 ```
 
-**결과**: Y축이 0~8 범위로 고정됨 (실제 최대 도수가 4여도 8까지 표시)
+**결과**: Y축이 0~8 범위로 고정됨 (자동 계산 시에도 유사한 결과)
 
 ---
 
@@ -875,9 +878,11 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 |:-----|:-----|
 | **타입** | `number` |
 | **필수 여부** | 선택 |
-| **기본값** | - (자동 계산) |
+| **기본값** | 자동 계산 |
 | **동작** | 지정된 값으로 X축 계급 개수 고정 |
 | **용도** | 복수 도수다각형 비교 시 동일한 X축 범위 사용 |
+
+> **자동 계산**: `data-viz-canvas`로 연결된 복수 도수다각형이 감지되면, 모든 데이터의 계급 개수를 분석하여 자동으로 계산됩니다. 수동 지정은 선택사항입니다.
 
 ```json
 {
@@ -893,7 +898,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 **결과**: X축이 8개 계급으로 고정됨
 
-> **중요**: `unifiedMaxY`와 `unifiedClassCount`는 복수 도수다각형 기능과 함께 사용됩니다. 자세한 사용법은 [복수 도수다각형](#복수-도수다각형-표시) 섹션을 참조하세요.
+> **참고**: `unifiedMaxY`와 `unifiedClassCount`는 복수 도수다각형 기능에서 자동 계산됩니다. 수동 지정이 필요한 경우에만 설정하세요. 자세한 사용법은 [복수 도수다각형](#복수-도수다각형-표시) 섹션을 참조하세요.
 
 ---
 
@@ -943,6 +948,11 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
     "polygonColor": {
       "line": "linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%)",
       "point": "#61C1F9"
+    },
+    "callout": {
+      "enabled": true,
+      "template": "남학생",
+      "preset": "primary"
     }
   }
 }
@@ -952,7 +962,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 ## 복수 도수다각형 표시
 
-하나의 캔버스에 여러 도수다각형을 순차적으로 표시하는 기능입니다. 남학생/여학생 데이터 비교 등에 사용됩니다.
+하나의 캔버스에 여러 도수다각형을 순차적으로 표시하는 기능입니다. 남학생/여학생 데이터 비교, A반/B반 데이터 비교, A중학교/B중학교 데이터 비교 등에 사용됩니다.
 
 ### 개념
 
@@ -961,6 +971,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 | **첫 번째 컨테이너** | 새 캔버스를 생성하고 첫 번째 도수다각형을 그립니다 |
 | **추가 컨테이너** | 기존 캔버스에 새 도수다각형을 추가합니다 (캔버스 생성 안 함) |
 | **data-viz-canvas** | 추가 컨테이너가 참조할 첫 번째 컨테이너의 ID |
+| **자동 좌표 계산** | `unifiedMaxY`, `unifiedClassCount` 자동 계산 (수동 지정 불필요) |
 
 ### HTML 속성
 
@@ -981,8 +992,6 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
        &quot;purpose&quot;: &quot;chart&quot;,
        &quot;data&quot;: [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11],
        &quot;classRange&quot;: { &quot;firstEnd&quot;: 2, &quot;secondEnd&quot;: 4, &quot;lastStart&quot;: 14 },
-       &quot;unifiedMaxY&quot;: 8,
-       &quot;unifiedClassCount&quot;: 8,
        &quot;options&quot;: {
          &quot;showHistogram&quot;: false,
          &quot;showPolygon&quot;: true,
@@ -1003,29 +1012,28 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
        &quot;purpose&quot;: &quot;chart&quot;,
        &quot;data&quot;: [1, 3, 3, 5, 5, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11, 12, 12],
        &quot;classRange&quot;: { &quot;firstEnd&quot;: 2, &quot;secondEnd&quot;: 4, &quot;lastStart&quot;: 14 },
-       &quot;unifiedMaxY&quot;: 8,
-       &quot;unifiedClassCount&quot;: 8,
        &quot;options&quot;: {
          &quot;showHistogram&quot;: false,
          &quot;showPolygon&quot;: true,
          &quot;dataType&quot;: &quot;frequency&quot;,
          &quot;polygonColorPreset&quot;: &quot;primary&quot;,
-         &quot;callout&quot;: { &quot;enabled&quot;: true, &quot;template&quot;: &quot;여학생&quot;, &quot;preset&quot;: &quot;primary&quot; }
+         &quot;callout&quot;: { &quot;enabled&quot;: true, &quot;template&quot;: &quot;여학생&quot; }
        }
      }">
 </div>
 ```
+
+> **자동 계산**: `unifiedMaxY`와 `unifiedClassCount`는 첫 번째 렌더링 시 모든 연결된 config를 분석하여 자동 계산됩니다. 수동 지정 불필요!
 
 ### 핵심 포인트
 
 | 항목 | 설명 |
 |:-----|:-----|
 | `data-viz-canvas` | 추가 컨테이너에서 첫 번째 컨테이너 ID를 지정 |
-| `unifiedMaxY` | 두 config에서 동일한 값 사용 → 같은 Y축 스케일 |
-| `unifiedClassCount` | 두 config에서 동일한 값 사용 → 같은 X축 범위 |
 | `classRange` | 두 config에서 동일한 값 사용 → 같은 계급 구간 |
 | `polygonColorPreset` | 두 번째 도수다각형에 다른 색상 적용 |
 | `callout` | 각 도수다각형에 별도 말풍선 표시 |
+| 좌표 시스템 | `unifiedMaxY`, `unifiedClassCount` 자동 계산 |
 
 ### 애니메이션 동작
 
@@ -1037,10 +1045,10 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 ### 주의사항
 
-1. **동일한 좌표 시스템**: 두 config에서 `unifiedMaxY`, `unifiedClassCount`, `classRange`가 동일해야 정확한 비교가 가능합니다.
+1. **계급 범위 일치**: 두 config에서 `classRange`가 동일해야 정확한 비교가 가능합니다.
 2. **색상 구분**: 두 번째 도수다각형에는 반드시 다른 `polygonColorPreset` 또는 `polygonColor`를 지정하세요.
-3. **말풍선 색상 일치**: `callout.preset`은 `polygonColorPreset`과 동일하게 설정하면 색상이 일관됩니다.
-4. **컨테이너 ID 정확성**: `data-viz-canvas` 값은 정확한 첫 번째 컨테이너 ID여야 합니다.
+3. **컨테이너 ID 정확성**: `data-viz-canvas` 값은 정확한 첫 번째 컨테이너 ID여야 합니다.
+4. **수동 지정 (선택)**: 필요한 경우 `unifiedMaxY`, `unifiedClassCount`를 직접 지정할 수 있습니다.
 
 ---
 

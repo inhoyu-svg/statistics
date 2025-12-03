@@ -16,6 +16,105 @@ let chartInstanceCounter = 0;
 let tableInstanceCounter = 0;
 
 /**
+ * Collect all configs that will render to the same canvas
+ * (current element + all elements with data-viz-canvas pointing to current)
+ * @param {string} containerId - Current container ID
+ * @param {Object} currentConfig - Current config object
+ * @returns {Array} Array of { config, classes, maxFrequency }
+ */
+function collectRelatedConfigs(containerId, currentConfig) {
+  const results = [];
+
+  // 1. Add current config
+  const currentResult = analyzeConfig(currentConfig);
+  if (currentResult) {
+    results.push(currentResult);
+  }
+
+  // 2. Find all elements with data-viz-canvas pointing to this container
+  const relatedElements = document.querySelectorAll(`[data-viz-canvas="${containerId}"]`);
+
+  relatedElements.forEach(el => {
+    const configStr = el.getAttribute('data-viz-config');
+    if (!configStr) return;
+
+    try {
+      const config = JSON.parse(configStr);
+      const result = analyzeConfig(config);
+      if (result) {
+        results.push(result);
+      }
+    } catch (e) {
+      console.warn(`[viz-api] Failed to parse config for ${el.id}:`, e);
+    }
+  });
+
+  return results;
+}
+
+/**
+ * Analyze config to extract class count and max frequency
+ * @param {Object} config - Configuration object
+ * @returns {Object|null} { classCount, maxFrequency } or null
+ */
+function analyzeConfig(config) {
+  if (!config || !config.data) return null;
+
+  try {
+    // Parse data
+    const dataString = Array.isArray(config.data)
+      ? config.data.join(', ')
+      : config.data;
+    const rawData = DataProcessor.parseInput(dataString);
+    if (rawData.length === 0) return null;
+
+    // Calculate stats and classes
+    const stats = DataProcessor.calculateBasicStats(rawData);
+    const classCount = config.classCount || 5;
+    const classWidth = config.classWidth || null;
+    const customRange = config.classRange || null;
+    const { classes } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
+
+    // Calculate frequencies
+    DataProcessor.calculateFrequencies(rawData, classes);
+
+    // Find max frequency
+    const maxFrequency = Math.max(...classes.map(c => c.frequency));
+
+    return {
+      classCount: classes.length,
+      maxFrequency,
+      classes
+    };
+  } catch (e) {
+    console.warn('[viz-api] Failed to analyze config:', e);
+    return null;
+  }
+}
+
+/**
+ * Calculate unified values from all related configs
+ * @param {Array} configs - Array from collectRelatedConfigs
+ * @returns {Object} { unifiedMaxY, unifiedClassCount }
+ */
+function calculateUnifiedValues(configs) {
+  if (!configs || configs.length === 0) {
+    return { unifiedMaxY: null, unifiedClassCount: null };
+  }
+
+  const maxFrequency = Math.max(...configs.map(c => c.maxFrequency));
+  const maxClassCount = Math.max(...configs.map(c => c.classCount));
+
+  // Add some padding to maxY (round up to next integer + 1)
+  const unifiedMaxY = Math.ceil(maxFrequency) + 1;
+  const unifiedClassCount = maxClassCount;
+
+  console.log(`[viz-api] Unified values calculated: maxY=${unifiedMaxY}, classCount=${unifiedClassCount}`);
+
+  return { unifiedMaxY, unifiedClassCount };
+}
+
+/**
  * Parse CSS linear-gradient string to color stops
  * @param {string} gradientStr - CSS linear-gradient string
  * @returns {Object|null} { colors: [startColor, endColor], angle: number } or null if invalid
@@ -318,6 +417,16 @@ export async function renderChart(element, config) {
 
       // ChartRenderer 인스턴스를 캔버스에 저장 (추가 렌더링 시 재사용)
       canvas.__chartRenderer = chartRenderer;
+
+      // 통합 좌표 시스템 자동 계산 (복수 도수다각형 지원)
+      // 현재 컨테이너를 참조하는 모든 config 수집 및 분석
+      const relatedConfigs = collectRelatedConfigs(element.id, config);
+      if (relatedConfigs.length > 1) {
+        const { unifiedMaxY, unifiedClassCount } = calculateUnifiedValues(relatedConfigs);
+        canvas.__unifiedMaxY = unifiedMaxY;
+        canvas.__unifiedClassCount = unifiedClassCount;
+        console.log(`[viz-api] 복수 도수다각형 감지: ${relatedConfigs.length}개, 통합 값 저장됨`);
+      }
     }
 
     // Process options (support both config.animation object and options.animation boolean)
@@ -363,9 +472,9 @@ export async function renderChart(element, config) {
     }
 
     // 9. Draw chart
-    // 통합 좌표 시스템 값
-    const unifiedMaxY = config.unifiedMaxY || null;
-    const unifiedClassCount = config.unifiedClassCount || null;
+    // 통합 좌표 시스템 값 (config 지정 > 캔버스 저장 값 > null)
+    const unifiedMaxY = config.unifiedMaxY || canvas.__unifiedMaxY || null;
+    const unifiedClassCount = config.unifiedClassCount || canvas.__unifiedClassCount || null;
     const clearCanvas = !isAdditionalRender;  // 추가 렌더링이면 캔버스 지우지 않음
 
     // 추가 렌더링 시: 기존 타임라인 끝 시점 저장 (새 애니메이션 시작 시점)
