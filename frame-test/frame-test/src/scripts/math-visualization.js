@@ -204,7 +204,7 @@ class MathVisualization {
    */
   static #renderGraph(element, config) {
     console.log(element, config);
-    
+
     renderStatistics(element, config);
   }
 
