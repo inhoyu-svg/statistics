@@ -216,6 +216,53 @@ export async function render(element, config) {
  * @param {string} [config.options.callout.preset='default'] - Color preset ('default'|'primary'|'secondary'|'tertiary')
  * @returns {Promise<Object>} { chartRenderer, canvas, classes } or { error }
  */
+
+/**
+ * 같은 캔버스를 공유하는 모든 viz 요소의 config 수집
+ * @param {HTMLElement} currentVizElement - 현재 viz 요소
+ * @param {HTMLElement} targetElement - 캔버스 타겟 요소
+ * @param {Object} currentConfig - 현재 config
+ * @returns {Array<Object>} config 배열
+ */
+function collectAllCanvasConfigs(currentVizElement, targetElement, currentConfig) {
+    const configs = [currentConfig];
+    const targetId = targetElement.id;
+
+    if (!targetId) {
+        // targetElement에 id가 없으면 현재 config만 반환
+        return configs;
+    }
+
+    // 같은 캔버스를 참조하는 모든 요소 찾기
+    const allVizElements = document.querySelectorAll('[data-viz-canvas]');
+
+    allVizElements.forEach(element => {
+        // 현재 요소는 이미 포함했으므로 스킵
+        if (element === currentVizElement) {
+            return;
+        }
+
+        // 같은 캔버스를 참조하는지 확인
+        const canvasId = element.getAttribute('data-viz-canvas');
+        if (canvasId === targetId) {
+            // data-viz-config 속성에서 config 추출
+            const configStr = element.getAttribute('data-viz-config');
+            if (configStr) {
+                try {
+                    const parsedConfig = JSON.parse(configStr);
+                    configs.push(parsedConfig);
+                    console.log(`[CollectConfigs] ${element.id || 'unnamed'} config 추가:`, parsedConfig);
+                } catch (e) {
+                    console.warn(`[CollectConfigs] ${element.id || 'unnamed'} config 파싱 실패:`, e);
+                }
+            }
+        }
+    });
+
+    console.log(`[CollectConfigs] 총 ${configs.length}개 config 수집 완료`);
+    return configs;
+}
+
 export async function renderChart(element, config) {
   try {
     // Wait for KaTeX fonts to load
@@ -247,6 +294,24 @@ export async function renderChart(element, config) {
 
     // 3. Calculate statistics
     const stats = DataProcessor.calculateBasicStats(rawData);
+
+
+    const canvasContainerId = vizElement.getAttribute('data-viz-canvas');
+    let targetElement = vizElement;
+
+      if (canvasContainerId) {
+          const canvasContainer = document.getElementById(canvasContainerId);
+          if (canvasContainer) {
+              targetElement = canvasContainer;
+              console.log(`[VisualizationAPI] data-viz-canvas 발견: ${vizElement.id} → ${canvasContainerId}`);
+          } else {
+              console.warn(`[VisualizationAPI] data-viz-canvas 대상을 찾을 수 없음: ${canvasContainerId}, 기본 컨테이너 사용`);
+          }
+      }
+
+      // 같은 캔버스를 공유하는 모든 viz 요소들의 config 수집
+      const allConfigs = collectAllCanvasConfigs(vizElement, targetElement, config);
+
 
     // 4. Create classes (support custom range)
     const classCount = config.classCount || 5;
