@@ -70,10 +70,13 @@ config (최상위)
 ├── tableType               "frequency" | "cross-table" | "category-matrix" | "stem-leaf"
 ├── classCount              계급 개수 (기본: 5)
 ├── classWidth              계급 간격 (자동 계산)
+├── classRange              계급 범위 커스터마이징 { firstEnd, secondEnd, lastStart }
 ├── canvasSize              정사각형 캔버스 크기 (차트 전용, 우선 적용)
 ├── canvasWidth             캔버스 너비
 ├── canvasHeight            캔버스 높이
 ├── animation               true | false
+├── unifiedMaxY             통합 Y축 최대값 (복수 도수다각형용)
+├── unifiedClassCount       통합 계급 개수 (복수 도수다각형용)
 │
 ├── options                 ─────────────────────────────────
 │   │
@@ -84,6 +87,7 @@ config (최상위)
 │   ├── histogramColorPreset / histogramColor   막대 색상
 │   ├── polygonColorPreset / polygonColor       다각형 색상
 │   ├── axisLabels          { xAxis, yAxis }
+│   ├── callout             { enabled, template, preset } 말풍선 설정
 │   │
 │   │  [도수분포표 전용]
 │   ├── tableConfig         ─────────────────────────
@@ -135,6 +139,7 @@ config (최상위)
 | `purpose` | `string` | X | `"chart"` | 렌더링 목적 |
 | `classCount` | `number` | X | `5` | 계급 개수 |
 | `classWidth` | `number` | X | 자동 | 계급 간격 |
+| `classRange` | `object` | X | - | 계급 범위 수동 설정 (classCount/classWidth 무시) |
 | `animation` | `boolean` \| `object` | X | `true` | 애니메이션 활성화 |
 
 ---
@@ -227,6 +232,39 @@ config (최상위)
 
 ---
 
+### classRange
+
+계급 범위를 직접 지정합니다. `classCount`, `classWidth`보다 우선 적용됩니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **기본값** | - |
+| **동작** | 지정된 범위로 계급 생성 |
+| **우선순위** | `classRange` > `classWidth` > `classCount` |
+
+| 하위 필드 | 타입 | 설명 | 예시 |
+|:----------|:-----|:-----|:-----|
+| `firstEnd` | `number` | 첫 번째 계급의 끝값 | `2` → 0이상~2미만 |
+| `secondEnd` | `number` | 두 번째 계급의 끝값 (간격 결정) | `4` → 간격 2 |
+| `lastStart` | `number` | 마지막 계급의 시작값 | `12` → 12이상~14미만 |
+
+```json
+{
+  "data": [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 9, 9, 9, 11, 11],
+  "classRange": {
+    "firstEnd": 2,
+    "secondEnd": 4,
+    "lastStart": 12
+  }
+}
+```
+
+**결과**: 0~2, 2~4, 4~6, 6~8, 8~10, 10~12, 12~14 (간격 2, 7개 계급)
+
+---
+
 ### animation
 
 애니메이션 활성화 여부를 지정합니다.
@@ -291,6 +329,9 @@ config (최상위)
 | `options.polygonColorPreset` | `string` | X | `"default"` | 다각형 색상 프리셋 |
 | `options.histogramColor` | `string` \| `object` | X | - | 히스토그램 커스텀 색상 |
 | `options.polygonColor` | `string` \| `object` | X | - | 다각형 커스텀 색상 |
+| `options.callout` | `object` | X | - | 말풍선(콜아웃) 설정 |
+| `unifiedMaxY` | `number` | X | - | 통합 Y축 최대값 (복수 도수다각형) |
+| `unifiedClassCount` | `number` | X | - | 통합 계급 개수 (복수 도수다각형) |
 
 ---
 
@@ -732,6 +773,130 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 ---
 
+### options.callout
+
+차트에 말풍선(콜아웃)을 표시합니다. 도수다각형의 라벨을 표시할 때 사용합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **기본값** | - (표시 안 함) |
+| **적용 대상** | 도수다각형 |
+
+#### 하위 필드
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:----:|:------:|:-----|
+| `enabled` | `boolean` | X | `false` | 말풍선 표시 여부 |
+| `template` | `string` | X | - | 말풍선에 표시할 텍스트 |
+| `preset` | `string` | X | `"default"` | 색상 프리셋 (polygonColorPreset과 동일) |
+
+#### 예시: 기본 말풍선
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "showPolygon": true,
+    "callout": {
+      "enabled": true,
+      "template": "남학생"
+    }
+  }
+}
+```
+
+**결과**: 도수다각형 위에 "남학생" 말풍선 표시
+
+#### 예시: 색상 프리셋 적용
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "showPolygon": true,
+    "polygonColorPreset": "primary",
+    "callout": {
+      "enabled": true,
+      "template": "여학생",
+      "preset": "primary"
+    }
+  }
+}
+```
+
+**결과**: 파란색 도수다각형 + 파란색 "여학생" 말풍선
+
+#### 프리셋 목록
+
+| 값 | 배경색 | 텍스트색 |
+|:---|:-------|:---------|
+| `"default"` | 녹색 계열 | 흰색 |
+| `"primary"` | 파란색 계열 | 흰색 |
+| `"secondary"` | 분홍색 계열 | 흰색 |
+| `"tertiary"` | 주황색 계열 | 흰색 |
+
+> **팁**: `callout.preset`은 `polygonColorPreset`과 동일한 값을 사용하면 색상이 일관됩니다.
+
+---
+
+### unifiedMaxY
+
+복수의 도수다각형을 같은 캔버스에 표시할 때 Y축 최대값을 통합합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number` |
+| **필수 여부** | 선택 |
+| **기본값** | - (자동 계산) |
+| **동작** | 지정된 값으로 Y축 최대값 고정 |
+| **용도** | 복수 도수다각형 비교 시 동일한 스케일 사용 |
+
+```json
+{
+  "data": [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 9, 9, 11, 11],
+  "unifiedMaxY": 8,
+  "options": {
+    "dataType": "frequency"
+  }
+}
+```
+
+**결과**: Y축이 0~8 범위로 고정됨 (실제 최대 도수가 4여도 8까지 표시)
+
+---
+
+### unifiedClassCount
+
+복수의 도수다각형을 같은 캔버스에 표시할 때 계급 개수를 통합합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `number` |
+| **필수 여부** | 선택 |
+| **기본값** | - (자동 계산) |
+| **동작** | 지정된 값으로 X축 계급 개수 고정 |
+| **용도** | 복수 도수다각형 비교 시 동일한 X축 범위 사용 |
+
+```json
+{
+  "data": [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 9, 9, 11, 11],
+  "unifiedClassCount": 8,
+  "classRange": {
+    "firstEnd": 2,
+    "secondEnd": 4,
+    "lastStart": 14
+  }
+}
+```
+
+**결과**: X축이 8개 계급으로 고정됨
+
+> **중요**: `unifiedMaxY`와 `unifiedClassCount`는 복수 도수다각형 기능과 함께 사용됩니다. 자세한 사용법은 [복수 도수다각형](#복수-도수다각형-표시) 섹션을 참조하세요.
+
+---
+
 ## 차트 전체 옵션 예시
 
 ### 최소 설정
@@ -782,6 +947,100 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
   }
 }
 ```
+
+---
+
+## 복수 도수다각형 표시
+
+하나의 캔버스에 여러 도수다각형을 순차적으로 표시하는 기능입니다. 남학생/여학생 데이터 비교 등에 사용됩니다.
+
+### 개념
+
+| 용어 | 설명 |
+|:-----|:-----|
+| **첫 번째 컨테이너** | 새 캔버스를 생성하고 첫 번째 도수다각형을 그립니다 |
+| **추가 컨테이너** | 기존 캔버스에 새 도수다각형을 추가합니다 (캔버스 생성 안 함) |
+| **data-viz-canvas** | 추가 컨테이너가 참조할 첫 번째 컨테이너의 ID |
+
+### HTML 속성
+
+`data-viz-canvas` 속성으로 기존 캔버스에 도수다각형을 추가합니다.
+
+| 속성 | 위치 | 설명 |
+|:-----|:-----|:-----|
+| `data-viz-canvas` | 추가 컨테이너 | 첫 번째 컨테이너의 ID 값 |
+
+### 사용 예시
+
+#### 컷 1: 첫 번째 도수다각형 (새 캔버스 생성)
+
+```html
+<div id="visualizationContainer2_0_1"
+     data-viz-type="graph_library"
+     data-viz-config="{
+       &quot;purpose&quot;: &quot;chart&quot;,
+       &quot;data&quot;: [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11],
+       &quot;classRange&quot;: { &quot;firstEnd&quot;: 2, &quot;secondEnd&quot;: 4, &quot;lastStart&quot;: 14 },
+       &quot;unifiedMaxY&quot;: 8,
+       &quot;unifiedClassCount&quot;: 8,
+       &quot;options&quot;: {
+         &quot;showHistogram&quot;: false,
+         &quot;showPolygon&quot;: true,
+         &quot;dataType&quot;: &quot;frequency&quot;,
+         &quot;callout&quot;: { &quot;enabled&quot;: true, &quot;template&quot;: &quot;남학생&quot; }
+       }
+     }">
+</div>
+```
+
+#### 컷 2: 두 번째 도수다각형 (기존 캔버스에 추가)
+
+```html
+<div id="visualizationContainer2_0_2"
+     data-viz-canvas="visualizationContainer2_0_1"
+     data-viz-type="graph_library"
+     data-viz-config="{
+       &quot;purpose&quot;: &quot;chart&quot;,
+       &quot;data&quot;: [1, 3, 3, 5, 5, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11, 12, 12],
+       &quot;classRange&quot;: { &quot;firstEnd&quot;: 2, &quot;secondEnd&quot;: 4, &quot;lastStart&quot;: 14 },
+       &quot;unifiedMaxY&quot;: 8,
+       &quot;unifiedClassCount&quot;: 8,
+       &quot;options&quot;: {
+         &quot;showHistogram&quot;: false,
+         &quot;showPolygon&quot;: true,
+         &quot;dataType&quot;: &quot;frequency&quot;,
+         &quot;polygonColorPreset&quot;: &quot;primary&quot;,
+         &quot;callout&quot;: { &quot;enabled&quot;: true, &quot;template&quot;: &quot;여학생&quot;, &quot;preset&quot;: &quot;primary&quot; }
+       }
+     }">
+</div>
+```
+
+### 핵심 포인트
+
+| 항목 | 설명 |
+|:-----|:-----|
+| `data-viz-canvas` | 추가 컨테이너에서 첫 번째 컨테이너 ID를 지정 |
+| `unifiedMaxY` | 두 config에서 동일한 값 사용 → 같은 Y축 스케일 |
+| `unifiedClassCount` | 두 config에서 동일한 값 사용 → 같은 X축 범위 |
+| `classRange` | 두 config에서 동일한 값 사용 → 같은 계급 구간 |
+| `polygonColorPreset` | 두 번째 도수다각형에 다른 색상 적용 |
+| `callout` | 각 도수다각형에 별도 말풍선 표시 |
+
+### 애니메이션 동작
+
+| 단계 | 동작 |
+|:-----|:-----|
+| 컷 1 → 컷 2 전환 | 첫 번째 도수다각형은 완료 상태 유지 |
+| 컷 2 진입 | 두 번째 도수다각형만 애니메이션 시작 |
+| 결과 | 두 도수다각형이 같은 캔버스에 비교 표시 |
+
+### 주의사항
+
+1. **동일한 좌표 시스템**: 두 config에서 `unifiedMaxY`, `unifiedClassCount`, `classRange`가 동일해야 정확한 비교가 가능합니다.
+2. **색상 구분**: 두 번째 도수다각형에는 반드시 다른 `polygonColorPreset` 또는 `polygonColor`를 지정하세요.
+3. **말풍선 색상 일치**: `callout.preset`은 `polygonColorPreset`과 동일하게 설정하면 색상이 일관됩니다.
+4. **컨테이너 ID 정확성**: `data-viz-canvas` 값은 정확한 첫 번째 컨테이너 ID여야 합니다.
 
 ---
 
