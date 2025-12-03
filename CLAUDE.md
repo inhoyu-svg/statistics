@@ -553,3 +553,31 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 
 ### ✅ Common Mistakes 섹션 (2085~2093줄)
 - 자주 하는 실수 5가지와 해결법
+
+---
+
+## viz-api.js 미반영 기능 목록 (향후 추가 예정)
+
+> app.js에는 있지만 viz-api.js에는 아직 추가되지 않은 기능들
+
+### 차트 애니메이션 제어
+- `playAnimation()` / `pauseAnimation()` / `stopAnimation()` - 재생 제어
+- `setAnimationSpeed(speed)` - 속도 조절 (0.1x ~ 3x)
+- `timeline.seekToProgress()` - 진행도 탐색 (0~1)
+
+### 차트 설정 옵션
+- `customYInterval` - Y축 간격 커스터마이징
+- `GRID_SHOW_HORIZONTAL` / `GRID_SHOW_VERTICAL` - 격자선 토글
+- `AXIS_SHOW_Y_LABELS` / `AXIS_SHOW_X_LABELS` - 축 라벨 표시 토글
+- `AXIS_Y_LABEL_FORMAT` - Y축 백분율 형식 ('percent' | 'decimal')
+- `SHOW_DASHED_LINES` - 파선 표시 토글
+- `SHOW_BAR_LABELS` - 막대 위 값 표시 토글
+
+### 레이어 관리
+- 레이어 목록 조회 (`getAllLayers()`)
+- 레이어 가시성 토글 (`layer.visible`)
+- 레이어 순서 변경 (드래그앤드롭)
+- JSON 미리보기/내보내기
+
+### 기타
+- JSON 설정 내보내기/불러오기 (`exportJson()` / `importJson()`)

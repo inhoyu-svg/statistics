@@ -361,8 +361,8 @@ export function getFontForCharType(type, fontSize) {
     return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
   }
   if (type === 'korean') {
-    // 한글: sans-serif (기존 폰트 유지)
-    return `${fontSize}px sans-serif`;
+    // 한글: SCDream 폰트 사용
+    return `500 ${fontSize}px 'SCDream', sans-serif`;
   }
   // 대문자, 숫자, 기호 등: KaTeX_Main
   return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;

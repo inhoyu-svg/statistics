@@ -748,7 +748,7 @@ class TableCellRenderer {
     this.ctx.fillStyle = color;
     this.ctx.textBaseline = 'middle';
 
-    const smallFont = bold ? 'bold 12px sans-serif' : '12px sans-serif';
+    const smallFont = bold ? "bold 12px 'SCDream', sans-serif" : "300 12px 'SCDream', sans-serif";
     const koreanFontSize = 18;
 
     // 메인 텍스트 너비 계산
@@ -918,9 +918,9 @@ class TableCellRenderer {
    */
   _getFontForCharType(type, fontSize, bold = false) {
     if (type === 'korean') {
-      // 한글만 볼드 적용
-      const fontWeight = bold ? 'bold ' : '';
-      return `${fontWeight}${fontSize}px sans-serif`;
+      // 한글: SCDream 폰트 사용
+      const fontWeight = bold ? '500 ' : '300 ';
+      return `${fontWeight}${fontSize}px 'SCDream', sans-serif`;
     } else if (type === 'lowercase') {
       return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
     } else {

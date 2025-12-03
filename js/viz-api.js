@@ -200,12 +200,20 @@ export async function render(element, config) {
  * @param {string} config.data - Raw data string (comma/space separated)
  * @param {number} [config.classCount=5] - Number of classes (for frequency table)
  * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
+ * @param {Object} [config.classRange] - Custom class range (overrides classCount/classWidth)
+ * @param {number} config.classRange.firstEnd - First class end value (e.g., 10 for 0~10)
+ * @param {number} config.classRange.secondEnd - Second class end value (determines interval)
+ * @param {number} config.classRange.lastStart - Last class start value
  * @param {Object} [config.options] - Additional options
  * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
  * @param {string} [config.options.dataType='relativeFrequency'] - Data type ('frequency' | 'relativeFrequency')
  * @param {boolean} [config.options.showHistogram=true] - Show histogram bars
  * @param {boolean} [config.options.showPolygon=true] - Show frequency polygon
  * @param {boolean} [config.options.animation=true] - Enable animation
+ * @param {Object} [config.options.callout] - Callout (label) settings
+ * @param {boolean} [config.options.callout.enabled=false] - Enable callout on highest point
+ * @param {string} [config.options.callout.template] - Template string (e.g., '{min}~{max}\n{frequency}')
+ * @param {string} [config.options.callout.preset='default'] - Color preset ('default'|'primary'|'secondary'|'tertiary')
  * @returns {Promise<Object>} { chartRenderer, canvas, classes } or { error }
  */
 export async function renderChart(element, config) {
@@ -240,10 +248,11 @@ export async function renderChart(element, config) {
     // 3. Calculate statistics
     const stats = DataProcessor.calculateBasicStats(rawData);
 
-    // 4. Create classes
+    // 4. Create classes (support custom range)
     const classCount = config.classCount || 5;
     const classWidth = config.classWidth || null;
-    const { classes, classInterval } = DataProcessor.createClasses(stats, classCount, classWidth);
+    const customRange = config.classRange || null;
+    const { classes, classInterval } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
 
     // 5. Calculate frequencies
     DataProcessor.calculateFrequencies(rawData, classes);
@@ -296,12 +305,25 @@ export async function renderChart(element, config) {
     // Apply custom colors (overrides presets if specified)
     applyCustomColors(options);
 
+    // Callout options
+    const calloutOptions = options.callout || {};
+    const calloutEnabled = calloutOptions.enabled || false;
+    const calloutTemplate = calloutEnabled
+      ? (calloutOptions.template || CONFIG.CALLOUT_TEMPLATE)
+      : null;
+    const calloutPreset = calloutOptions.preset || 'default';
+
+    // Apply callout preset to polygon color (callout uses polygon preset colors)
+    if (calloutEnabled && calloutPreset !== 'default') {
+      CONFIG.POLYGON_COLOR_PRESET = calloutPreset;
+    }
+
     if (!animation) {
       chartRenderer.disableAnimation();
     }
 
     // 9. Draw chart
-    chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType);
+    chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, null, calloutTemplate);
 
     // 10. Play animation (draw() sets currentTime to 100%, so reset and play)
     if (animation) {
@@ -333,6 +355,10 @@ export async function renderChart(element, config) {
  * @param {string} config.data - Raw data string (format depends on tableType)
  * @param {number} [config.classCount=5] - Number of classes (for frequency table)
  * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
+ * @param {Object} [config.classRange] - Custom class range (for frequency table, overrides classCount/classWidth)
+ * @param {number} config.classRange.firstEnd - First class end value
+ * @param {number} config.classRange.secondEnd - Second class end value (determines interval)
+ * @param {number} config.classRange.lastStart - Last class start value
  * @param {Object} [config.options] - Additional options
  * @param {Object} [config.options.tableConfig] - Table configuration
  * @param {boolean} [config.options.animation=true] - Enable animation
@@ -405,7 +431,8 @@ export async function renderTable(element, config) {
       const stats = DataProcessor.calculateBasicStats(rawData);
       const classCount = config.classCount || 5;
       const classWidth = config.classWidth || null;
-      const { classes } = DataProcessor.createClasses(stats, classCount, classWidth);
+      const customRange = config.classRange || null;
+      const { classes } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
 
       DataProcessor.calculateFrequencies(rawData, classes);
       DataProcessor.calculateRelativeAndCumulative(classes, rawData.length);
