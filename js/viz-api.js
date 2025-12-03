@@ -217,52 +217,6 @@ export async function render(element, config) {
  * @returns {Promise<Object>} { chartRenderer, canvas, classes } or { error }
  */
 
-/**
- * 같은 캔버스를 공유하는 모든 viz 요소의 config 수집
- * @param {HTMLElement} currentVizElement - 현재 viz 요소
- * @param {HTMLElement} targetElement - 캔버스 타겟 요소
- * @param {Object} currentConfig - 현재 config
- * @returns {Array<Object>} config 배열
- */
-function collectAllCanvasConfigs(currentVizElement, targetElement, currentConfig) {
-    const configs = [currentConfig];
-    const targetId = targetElement.id;
-
-    if (!targetId) {
-        // targetElement에 id가 없으면 현재 config만 반환
-        return configs;
-    }
-
-    // 같은 캔버스를 참조하는 모든 요소 찾기
-    const allVizElements = document.querySelectorAll('[data-viz-canvas]');
-
-    allVizElements.forEach(element => {
-        // 현재 요소는 이미 포함했으므로 스킵
-        if (element === currentVizElement) {
-            return;
-        }
-
-        // 같은 캔버스를 참조하는지 확인
-        const canvasId = element.getAttribute('data-viz-canvas');
-        if (canvasId === targetId) {
-            // data-viz-config 속성에서 config 추출
-            const configStr = element.getAttribute('data-viz-config');
-            if (configStr) {
-                try {
-                    const parsedConfig = JSON.parse(configStr);
-                    configs.push(parsedConfig);
-                    console.log(`[CollectConfigs] ${element.id || 'unnamed'} config 추가:`, parsedConfig);
-                } catch (e) {
-                    console.warn(`[CollectConfigs] ${element.id || 'unnamed'} config 파싱 실패:`, e);
-                }
-            }
-        }
-    });
-
-    console.log(`[CollectConfigs] 총 ${configs.length}개 config 수집 완료`);
-    return configs;
-}
-
 export async function renderChart(element, config) {
   try {
     // Wait for KaTeX fonts to load
@@ -295,24 +249,6 @@ export async function renderChart(element, config) {
     // 3. Calculate statistics
     const stats = DataProcessor.calculateBasicStats(rawData);
 
-
-    const canvasContainerId = vizElement.getAttribute('data-viz-canvas');
-    let targetElement = vizElement;
-
-      if (canvasContainerId) {
-          const canvasContainer = document.getElementById(canvasContainerId);
-          if (canvasContainer) {
-              targetElement = canvasContainer;
-              console.log(`[VisualizationAPI] data-viz-canvas 발견: ${vizElement.id} → ${canvasContainerId}`);
-          } else {
-              console.warn(`[VisualizationAPI] data-viz-canvas 대상을 찾을 수 없음: ${canvasContainerId}, 기본 컨테이너 사용`);
-          }
-      }
-
-      // 같은 캔버스를 공유하는 모든 viz 요소들의 config 수집
-      const allConfigs = collectAllCanvasConfigs(vizElement, targetElement, config);
-
-
     // 4. Create classes (support custom range)
     const classCount = config.classCount || 5;
     const classWidth = config.classWidth || null;
@@ -325,26 +261,64 @@ export async function renderChart(element, config) {
     // 6. Generate ellipsis info
     const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
 
-    // 7. Create canvas element (support custom canvasWidth/canvasHeight or canvasSize)
-    const canvasId = `viz-chart-${++chartInstanceCounter}`;
-    const canvas = document.createElement('canvas');
-    
-    canvas.id = canvasId;
-    // canvasSize는 정사각형 단축 옵션, canvasWidth/canvasHeight는 개별 설정
-    if (config.canvasSize) {
-      canvas.width = config.canvasSize;
-      canvas.height = config.canvasSize;
-    } else {
-      canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
-      canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
+    // 7. data-viz-canvas 속성으로 타겟 캔버스 확인
+    const canvasContainerId = element.getAttribute('data-viz-canvas');
+    let targetContainer = element;
+    let isAdditionalRender = false;
+
+    if (canvasContainerId) {
+      const existingContainer = document.getElementById(canvasContainerId);
+      if (existingContainer) {
+        targetContainer = existingContainer;
+        isAdditionalRender = true;
+        console.log(`[viz-api] data-viz-canvas 발견: ${element.id} → ${canvasContainerId}`);
+      } else {
+        console.warn(`[viz-api] data-viz-canvas 대상을 찾을 수 없음: ${canvasContainerId}, 기본 컨테이너 사용`);
+      }
     }
-    canvas.setAttribute('role', 'img');
-    canvas.setAttribute('aria-label', 'Frequency histogram and relative frequency polygon');
 
-    element.appendChild(canvas);
+    // 8. 캔버스 생성 또는 재사용
+    let canvas, canvasId, chartRenderer;
 
-    // 8. Create ChartRenderer and render
-    const chartRenderer = new ChartRenderer(canvasId);
+    if (isAdditionalRender) {
+      // 기존 캔버스 및 ChartRenderer 인스턴스 재사용
+      canvas = targetContainer.querySelector('canvas');
+      if (!canvas) {
+        return { error: `No canvas found in target container: ${canvasContainerId}` };
+      }
+      canvasId = canvas.id;
+
+      // 기존 ChartRenderer 인스턴스 재사용 (레이어/애니메이션 유지)
+      if (canvas.__chartRenderer) {
+        chartRenderer = canvas.__chartRenderer;
+        console.log(`[viz-api] 기존 ChartRenderer 재사용: ${canvasId}`);
+      } else {
+        // 인스턴스가 없으면 새로 생성 (fallback)
+        chartRenderer = new ChartRenderer(canvasId);
+        canvas.__chartRenderer = chartRenderer;
+        console.warn(`[viz-api] ChartRenderer 인스턴스가 없어 새로 생성: ${canvasId}`);
+      }
+    } else {
+      // 새 캔버스 생성
+      canvasId = `viz-chart-${++chartInstanceCounter}`;
+      canvas = document.createElement('canvas');
+      canvas.id = canvasId;
+      // canvasSize는 정사각형 단축 옵션, canvasWidth/canvasHeight는 개별 설정
+      if (config.canvasSize) {
+        canvas.width = config.canvasSize;
+        canvas.height = config.canvasSize;
+      } else {
+        canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
+        canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
+      }
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', 'Frequency histogram and relative frequency polygon');
+      element.appendChild(canvas);
+      chartRenderer = new ChartRenderer(canvasId);
+
+      // ChartRenderer 인스턴스를 캔버스에 저장 (추가 렌더링 시 재사용)
+      canvas.__chartRenderer = chartRenderer;
+    }
 
     // Process options (support both config.animation object and options.animation boolean)
     const options = config.options || {};
@@ -389,11 +363,32 @@ export async function renderChart(element, config) {
     }
 
     // 9. Draw chart
-    chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType, null, calloutTemplate);
+    // 통합 좌표 시스템 값
+    const unifiedMaxY = config.unifiedMaxY || null;
+    const unifiedClassCount = config.unifiedClassCount || null;
+    const clearCanvas = !isAdditionalRender;  // 추가 렌더링이면 캔버스 지우지 않음
 
-    // 10. Play animation (draw() sets currentTime to 100%, so reset and play)
+    // 추가 렌더링 시: 기존 타임라인 끝 시점 저장 (새 애니메이션 시작 시점)
+    const previousDuration = isAdditionalRender ? chartRenderer.timeline.duration : 0;
+
+    chartRenderer.draw(
+      classes,
+      axisLabels,
+      ellipsisInfo,
+      dataType,
+      null,
+      calloutTemplate,
+      clearCanvas,
+      unifiedMaxY,
+      unifiedClassCount,
+      null
+    );
+
+    // 10. Play animation
     if (animation) {
-      chartRenderer.timeline.seekTo(0);
+      // 추가 렌더링: 새 애니메이션 시작 시점으로 seek (기존 레이어는 완료 상태 유지)
+      // 첫 렌더링: 처음부터 재생
+      chartRenderer.timeline.seekTo(previousDuration);
       chartRenderer.playAnimation();
     }
 
