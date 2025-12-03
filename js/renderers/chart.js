@@ -174,17 +174,27 @@ class ChartRenderer {
       this.renderFrame(); // 최종 상태 렌더링
     } else {
       // 정적 렌더링 모드
-      this.axisRenderer.drawGrid(
-        coords.toX,
-        coords.toY,
-        coords.adjustedMaxY,
-        classes.length,
-        ellipsisInfo,
-        coords.gridDivisions
-      );
-      this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
-      this.polygonRenderer.draw(values, coords, ellipsisInfo);
-      this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
+      // 추가 렌더링(clearCanvas=false)일 때는 배경/축을 다시 그리지 않음 (기존 내용 유지)
+      if (clearCanvas) {
+        this.axisRenderer.drawGrid(
+          coords.toX,
+          coords.toY,
+          coords.adjustedMaxY,
+          classes.length,
+          ellipsisInfo,
+          coords.gridDivisions
+        );
+      }
+      // CONFIG 설정에 따라 조건부 렌더링
+      if (CONFIG.SHOW_HISTOGRAM) {
+        this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
+      }
+      if (CONFIG.SHOW_POLYGON) {
+        this.polygonRenderer.draw(values, coords, ellipsisInfo);
+      }
+      if (clearCanvas) {
+        this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
+      }
     }
   }
 
@@ -555,10 +565,12 @@ class ChartRenderer {
 
   /**
    * 애니메이션 모드 비활성화
+   * 주의: stopAnimation()을 호출하지 않음 (정적 렌더링된 내용 보존)
    */
   disableAnimation() {
     this.animationMode = false;
-    this.stopAnimation();
+    // stopAnimation() 호출 제거: renderFrame()이 캔버스를 지워서
+    // 정적 모드로 그려진 기존 내용(다각형 등)이 사라지는 문제 방지
   }
 
   /**
