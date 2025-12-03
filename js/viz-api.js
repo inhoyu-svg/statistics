@@ -458,6 +458,19 @@ export async function renderChart(element, config) {
       CONFIG.AXIS_Y_LABEL_FORMAT = axisOptions.yLabelFormat;
     }
 
+    // Congruent triangles settings
+    const triangleOptions = options.congruentTriangles || {};
+    CONFIG.SHOW_CONGRUENT_TRIANGLES = triangleOptions.enabled || false;
+    if (triangleOptions.boundary !== undefined && triangleOptions.boundary !== null) {
+      // 경계값 → 인덱스 변환
+      for (let j = 0; j < classes.length; j++) {
+        if (classes[j].max === triangleOptions.boundary) {
+          CONFIG.CONGRUENT_TRIANGLE_INDEX = j;
+          break;
+        }
+      }
+    }
+
     // Color presets (support both camelCase and lowercase)
     const histogramColorPreset = options.histogramColorPreset || options.histogramcolorpreset || 'default';
     const polygonColorPreset = options.polygonColorPreset || options.polygoncolorpreset || 'default';
