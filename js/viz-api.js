@@ -500,6 +500,9 @@ export async function renderChart(element, config) {
       CONFIG.POLYGON_COLOR_PRESET = calloutPreset;
     }
 
+    // Y축 간격 커스텀 설정
+    const customYInterval = options.customYInterval || null;
+
     if (!animation) {
       chartRenderer.disableAnimation();
     }
@@ -523,7 +526,7 @@ export async function renderChart(element, config) {
       clearCanvas,
       unifiedMaxY,
       unifiedClassCount,
-      null
+      customYInterval
     );
 
     // 10. Play animation
