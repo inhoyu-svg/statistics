@@ -445,6 +445,19 @@ export async function renderChart(element, config) {
     CONFIG.SHOW_HISTOGRAM = showHistogram;
     CONFIG.SHOW_POLYGON = showPolygon;
 
+    // Grid settings
+    const gridOptions = options.grid || {};
+    CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;
+    CONFIG.GRID_SHOW_VERTICAL = gridOptions.showVertical !== false;
+
+    // Axis label visibility settings
+    const axisOptions = options.axis || {};
+    CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
+    CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
+    if (axisOptions.yLabelFormat) {
+      CONFIG.AXIS_Y_LABEL_FORMAT = axisOptions.yLabelFormat;
+    }
+
     // Color presets (support both camelCase and lowercase)
     const histogramColorPreset = options.histogramColorPreset || options.histogramcolorpreset || 'default';
     const polygonColorPreset = options.polygonColorPreset || options.polygoncolorpreset || 'default';

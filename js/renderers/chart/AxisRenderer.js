@@ -83,10 +83,9 @@ class AxisRenderer {
         // 상대도수: decimal (0.03) 또는 percent (3%)
         if (CONFIG.AXIS_Y_LABEL_FORMAT === 'percent') {
           const percentage = value * 100;
-          const formatted = Utils.formatNumber(percentage);
-          formattedValue = formatted.replace(/\.00$/, '') + '%';
+          formattedValue = value === 0 ? '0' : Utils.formatNumberClean(percentage) + '%';
         } else {
-          formattedValue = Utils.formatNumber(value);
+          formattedValue = Utils.formatNumberClean(value);
         }
       }
 

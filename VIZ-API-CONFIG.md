@@ -75,8 +75,6 @@ config (최상위)
 ├── canvasWidth             캔버스 너비
 ├── canvasHeight            캔버스 높이
 ├── animation               true | false
-├── unifiedMaxY             통합 Y축 최대값 (복수 도수다각형용)
-├── unifiedClassCount       통합 계급 개수 (복수 도수다각형용)
 │
 ├── options                 ─────────────────────────────────
 │   │
@@ -330,8 +328,6 @@ config (최상위)
 | `options.histogramColor` | `string` \| `object` | X | - | 히스토그램 커스텀 색상 |
 | `options.polygonColor` | `string` \| `object` | X | - | 다각형 커스텀 색상 |
 | `options.callout` | `object` | X | - | 말풍선(콜아웃) 설정 |
-| `unifiedMaxY` | `number` | X | - | 통합 Y축 최대값 (복수 도수다각형) |
-| `unifiedClassCount` | `number` | X | - | 통합 계급 개수 (복수 도수다각형) |
 
 ---
 
@@ -842,66 +838,6 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 ---
 
-### unifiedMaxY
-
-복수의 도수다각형을 같은 캔버스에 표시할 때 Y축 최대값을 통합합니다.
-
-| 항목 | 설명 |
-|:-----|:-----|
-| **타입** | `number` |
-| **필수 여부** | 선택 |
-| **기본값** | 자동 계산 |
-| **동작** | 지정된 값으로 Y축 최대값 고정 |
-| **용도** | 복수 도수다각형 비교 시 동일한 스케일 사용 |
-
-> **자동 계산**: `data-viz-canvas`로 연결된 복수 도수다각형이 감지되면, 모든 데이터의 최대 도수를 분석하여 자동으로 계산됩니다. 수동 지정은 선택사항입니다.
-
-```json
-{
-  "data": [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 9, 9, 11, 11],
-  "unifiedMaxY": 8,
-  "options": {
-    "dataType": "frequency"
-  }
-}
-```
-
-**결과**: Y축이 0~8 범위로 고정됨 (자동 계산 시에도 유사한 결과)
-
----
-
-### unifiedClassCount
-
-복수의 도수다각형을 같은 캔버스에 표시할 때 계급 개수를 통합합니다.
-
-| 항목 | 설명 |
-|:-----|:-----|
-| **타입** | `number` |
-| **필수 여부** | 선택 |
-| **기본값** | 자동 계산 |
-| **동작** | 지정된 값으로 X축 계급 개수 고정 |
-| **용도** | 복수 도수다각형 비교 시 동일한 X축 범위 사용 |
-
-> **자동 계산**: `data-viz-canvas`로 연결된 복수 도수다각형이 감지되면, 모든 데이터의 계급 개수를 분석하여 자동으로 계산됩니다. 수동 지정은 선택사항입니다.
-
-```json
-{
-  "data": [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 9, 9, 11, 11],
-  "unifiedClassCount": 8,
-  "classRange": {
-    "firstEnd": 2,
-    "secondEnd": 4,
-    "lastStart": 14
-  }
-}
-```
-
-**결과**: X축이 8개 계급으로 고정됨
-
-> **참고**: `unifiedMaxY`와 `unifiedClassCount`는 복수 도수다각형 기능에서 자동 계산됩니다. 수동 지정이 필요한 경우에만 설정하세요. 자세한 사용법은 [복수 도수다각형](#복수-도수다각형-표시) 섹션을 참조하세요.
-
----
-
 ## 차트 전체 옵션 예시
 
 ### 최소 설정
@@ -957,98 +893,6 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
   }
 }
 ```
-
----
-
-## 복수 도수다각형 표시
-
-하나의 캔버스에 여러 도수다각형을 순차적으로 표시하는 기능입니다. 남학생/여학생 데이터 비교, A반/B반 데이터 비교, A중학교/B중학교 데이터 비교 등에 사용됩니다.
-
-### 개념
-
-| 용어 | 설명 |
-|:-----|:-----|
-| **첫 번째 컨테이너** | 새 캔버스를 생성하고 첫 번째 도수다각형을 그립니다 |
-| **추가 컨테이너** | 기존 캔버스에 새 도수다각형을 추가합니다 (캔버스 생성 안 함) |
-| **data-viz-canvas** | 추가 컨테이너가 참조할 첫 번째 컨테이너의 ID |
-| **자동 좌표 계산** | `unifiedMaxY`, `unifiedClassCount` 자동 계산 (수동 지정 불필요) |
-
-### HTML 속성
-
-`data-viz-canvas` 속성으로 기존 캔버스에 도수다각형을 추가합니다.
-
-| 속성 | 위치 | 설명 |
-|:-----|:-----|:-----|
-| `data-viz-canvas` | 추가 컨테이너 | 첫 번째 컨테이너의 ID 값 |
-
-### 사용 예시
-
-#### 컷 1: 첫 번째 도수다각형 (새 캔버스 생성)
-
-```html
-<div id="visualizationContainer2_0_1"
-     data-viz-type="graph_library"
-     data-viz-config="{
-       &quot;purpose&quot;: &quot;chart&quot;,
-       &quot;data&quot;: [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11],
-       &quot;classRange&quot;: { &quot;firstEnd&quot;: 2, &quot;secondEnd&quot;: 4, &quot;lastStart&quot;: 14 },
-       &quot;options&quot;: {
-         &quot;showHistogram&quot;: false,
-         &quot;showPolygon&quot;: true,
-         &quot;dataType&quot;: &quot;frequency&quot;,
-         &quot;callout&quot;: { &quot;enabled&quot;: true, &quot;template&quot;: &quot;남학생&quot; }
-       }
-     }">
-</div>
-```
-
-#### 컷 2: 두 번째 도수다각형 (기존 캔버스에 추가)
-
-```html
-<div id="visualizationContainer2_0_2"
-     data-viz-canvas="visualizationContainer2_0_1"
-     data-viz-type="graph_library"
-     data-viz-config="{
-       &quot;purpose&quot;: &quot;chart&quot;,
-       &quot;data&quot;: [1, 3, 3, 5, 5, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11, 12, 12],
-       &quot;classRange&quot;: { &quot;firstEnd&quot;: 2, &quot;secondEnd&quot;: 4, &quot;lastStart&quot;: 14 },
-       &quot;options&quot;: {
-         &quot;showHistogram&quot;: false,
-         &quot;showPolygon&quot;: true,
-         &quot;dataType&quot;: &quot;frequency&quot;,
-         &quot;polygonColorPreset&quot;: &quot;primary&quot;,
-         &quot;callout&quot;: { &quot;enabled&quot;: true, &quot;template&quot;: &quot;여학생&quot; }
-       }
-     }">
-</div>
-```
-
-> **자동 계산**: `unifiedMaxY`와 `unifiedClassCount`는 첫 번째 렌더링 시 모든 연결된 config를 분석하여 자동 계산됩니다. 수동 지정 불필요!
-
-### 핵심 포인트
-
-| 항목 | 설명 |
-|:-----|:-----|
-| `data-viz-canvas` | 추가 컨테이너에서 첫 번째 컨테이너 ID를 지정 |
-| `classRange` | 두 config에서 동일한 값 사용 → 같은 계급 구간 |
-| `polygonColorPreset` | 두 번째 도수다각형에 다른 색상 적용 |
-| `callout` | 각 도수다각형에 별도 말풍선 표시 |
-| 좌표 시스템 | `unifiedMaxY`, `unifiedClassCount` 자동 계산 |
-
-### 애니메이션 동작
-
-| 단계 | 동작 |
-|:-----|:-----|
-| 컷 1 → 컷 2 전환 | 첫 번째 도수다각형은 완료 상태 유지 |
-| 컷 2 진입 | 두 번째 도수다각형만 애니메이션 시작 |
-| 결과 | 두 도수다각형이 같은 캔버스에 비교 표시 |
-
-### 주의사항
-
-1. **계급 범위 일치**: 두 config에서 `classRange`가 동일해야 정확한 비교가 가능합니다.
-2. **색상 구분**: 두 번째 도수다각형에는 반드시 다른 `polygonColorPreset` 또는 `polygonColor`를 지정하세요.
-3. **컨테이너 ID 정확성**: `data-viz-canvas` 값은 정확한 첫 번째 컨테이너 ID여야 합니다.
-4. **수동 지정 (선택)**: 필요한 경우 `unifiedMaxY`, `unifiedClassCount`를 직접 지정할 수 있습니다.
 
 ---
 
