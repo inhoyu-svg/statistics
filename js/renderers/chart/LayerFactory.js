@@ -179,13 +179,13 @@ class LayerFactory {
     polygonGroup.addChild(linesGroup);
     polygonGroup.addChild(pointsGroup);
 
-    // 렌더링 순서: 히스토그램 → 파선 → 다각형 → 라벨(조건부) → 말풍선
-    // CONFIG에 따라 조건부 추가
-    if (CONFIG.SHOW_HISTOGRAM) {
-      layerManager.addLayer(histogramGroup);
-    }
+    // 렌더링 순서: 파선 → 히스토그램 → 다각형 → 라벨(조건부) → 말풍선
+    // (파선이 히스토그램 뒤에 그려지도록 먼저 추가)
     if (CONFIG.SHOW_DASHED_LINES) {
       layerManager.addLayer(dashedLinesGroup);
+    }
+    if (CONFIG.SHOW_HISTOGRAM) {
+      layerManager.addLayer(histogramGroup);
     }
     if (CONFIG.SHOW_POLYGON) {
       layerManager.addLayer(polygonGroup);
