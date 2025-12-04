@@ -693,14 +693,15 @@ export async function renderTable(element, config) {
         const showSummaryRow = tableConfig?.showSummaryRow ?? true;
         const totalRows = classes.length + 1 + (showSummaryRow ? 1 : 0); // header + data + summary
         const totalCols = visibleCols;
+        const scale = tableRenderer.scaleRatio || 1;
         const tableInfo = {
-          startX: CONFIG.TABLE_PADDING,
-          startY: CONFIG.TABLE_PADDING,
-          cellWidth: (canvas.width - CONFIG.TABLE_PADDING * 2) / totalCols,
-          cellHeight: CONFIG.TABLE_ROW_HEIGHT,
+          startX: CONFIG.TABLE_PADDING * scale,
+          startY: CONFIG.TABLE_PADDING * scale,
+          cellWidth: (canvas.width - CONFIG.TABLE_PADDING * scale * 2) / totalCols,
+          cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
           totalRows,
           totalCols,
-          inset: 3
+          inset: 3 * scale
         };
         applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
       }
@@ -742,7 +743,8 @@ export async function renderTable(element, config) {
 
       // Apply corruption effect (if enabled)
       if (options.corruption?.enabled) {
-        const tableInfo = calculateCustomTableInfo(tableType, finalParseResult.data, canvas, tableConfig);
+        const scale = tableRenderer.scaleRatio || 1;
+        const tableInfo = calculateCustomTableInfo(tableType, finalParseResult.data, canvas, tableConfig, scale);
         if (tableInfo) {
           applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
         }
@@ -933,9 +935,10 @@ function applyCellVariableToCrossTable(data, dataRowIndex, colIndex, value) {
  * @param {Object} data - Parsed table data
  * @param {HTMLCanvasElement} canvas - Canvas element
  * @param {Object} tableConfig - Table configuration
+ * @param {number} scale - Scale ratio from table renderer
  * @returns {Object|null} tableInfo for corruption
  */
-function calculateCustomTableInfo(tableType, data, canvas, tableConfig) {
+function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 1) {
   let totalRows, totalCols;
 
   if (tableType === 'stem-leaf') {
@@ -958,13 +961,13 @@ function calculateCustomTableInfo(tableType, data, canvas, tableConfig) {
   if (totalRows === 0 || totalCols === 0) return null;
 
   return {
-    startX: CONFIG.TABLE_PADDING,
-    startY: CONFIG.TABLE_PADDING,
-    cellWidth: (canvas.width - CONFIG.TABLE_PADDING * 2) / totalCols,
-    cellHeight: CONFIG.TABLE_ROW_HEIGHT,
+    startX: CONFIG.TABLE_PADDING * scale,
+    startY: CONFIG.TABLE_PADDING * scale,
+    cellWidth: (canvas.width - CONFIG.TABLE_PADDING * scale * 2) / totalCols,
+    cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
     totalRows,
     totalCols,
-    inset: 3
+    inset: 3 * scale
   };
 }
 
