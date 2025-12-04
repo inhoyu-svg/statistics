@@ -57,12 +57,14 @@ class AxisRenderer {
    * @param {string} yLabel - Y축 제목 (마지막 라벨 대체용)
    */
   drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS, yLabel = '') {
-    if (!CONFIG.AXIS_SHOW_Y_LABELS) return;
-
     const color = CONFIG.getColor('--color-text');
 
     for (let i = 0; i <= gridDivisions; i++) {
       const value = maxY * i / gridDivisions;
+
+      // 0과 최댓값(축제목)은 항상 표시, 나머지는 AXIS_SHOW_Y_LABELS에 따라
+      const isEndpoint = (i === 0 || i === gridDivisions);
+      if (!CONFIG.AXIS_SHOW_Y_LABELS && !isEndpoint) continue;
 
       // 마지막 라벨은 축 제목으로 대체 (4글자 초과 시 폰트 축소)
       if (i === gridDivisions && yLabel) {
@@ -108,8 +110,6 @@ class AxisRenderer {
    * @param {string} xLabel - X축 제목 (마지막 라벨 대체용)
    */
   drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel = '') {
-    if (!CONFIG.AXIS_SHOW_X_LABELS) return;
-
     const color = CONFIG.getColor('--color-text');
     const labelY = this.canvas.height - this.padding + CONFIG.CHART_X_LABEL_Y_OFFSET;
 
@@ -118,7 +118,7 @@ class AxisRenderer {
 
       // X축 0은 Y축 0과 중복되므로 렌더링하지 않음
 
-      // 중략 기호 (이중 물결, X축 위에 세로로)
+      // 중략 기호 (이중 물결, X축 위에 세로로) - 항상 표시
       const ellipsisX = toX(0) + (toX(1) - toX(0)) * CONFIG.ELLIPSIS_POSITION_RATIO;
       const ellipsisY = toY(0);
 
@@ -132,29 +132,33 @@ class AxisRenderer {
       this.ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
       this.ctx.restore();
 
-      // 데이터 구간 라벨 (KaTeX 폰트)
-      for (let i = firstDataIdx; i < classes.length; i++) {
-        KatexUtils.render(this.ctx, String(classes[i].min), toX(i), labelY,
-          { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
-        );
+      // 데이터 구간 라벨 (AXIS_SHOW_X_LABELS에 따라)
+      if (CONFIG.AXIS_SHOW_X_LABELS) {
+        for (let i = firstDataIdx; i < classes.length; i++) {
+          KatexUtils.render(this.ctx, String(classes[i].min), toX(i), labelY,
+            { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
+          );
+        }
       }
 
-      // 마지막 라벨: 축 제목으로 대체
+      // 마지막 라벨(축제목): 항상 표시
       KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
         toX(classes.length - 1) + xScale, labelY,
         { fontSize: CONFIG.getScaledFontSize(14), color, align: 'center', baseline: 'middle' }
       );
     } else {
       // 중략 없이 전체 표시 (KaTeX 폰트)
-      // 첫 번째 라벨(0)은 Y축과 중복되므로 건너뛰기
-      classes.forEach((c, i) => {
-        if (i === 0 && c.min === 0) return; // 0은 Y축에서 이미 표시됨
-        KatexUtils.render(this.ctx, String(c.min), toX(i), labelY,
-          { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
-        );
-      });
+      if (CONFIG.AXIS_SHOW_X_LABELS) {
+        // 첫 번째 라벨(0)은 Y축과 중복되므로 건너뛰기
+        classes.forEach((c, i) => {
+          if (i === 0 && c.min === 0) return; // 0은 Y축에서 이미 표시됨
+          KatexUtils.render(this.ctx, String(c.min), toX(i), labelY,
+            { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
+          );
+        });
+      }
 
-      // 마지막 라벨: 축 제목으로 대체
+      // 마지막 라벨(축제목): 항상 표시
       if (classes.length > 0) {
         KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
           toX(classes.length), labelY,
