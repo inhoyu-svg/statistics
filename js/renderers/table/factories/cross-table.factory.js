@@ -6,7 +6,7 @@
 
 import CONFIG from '../../../config.js';
 import { Layer } from '../../../animation/index.js';
-import BaseTableFactory from './BaseTableFactory.js';
+import BaseTableFactory from './base.table.factory.js';
 
 // 이원분류표 전용 상수
 const CROSS_TABLE_CONFIG = {

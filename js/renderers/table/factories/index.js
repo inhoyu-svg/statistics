@@ -3,10 +3,10 @@
  */
 
 import CONFIG from '../../../config.js';
-import BaseTableFactory from './BaseTableFactory.js';
-import CategoryMatrixFactory from './CategoryMatrixFactory.js';
-import CrossTableFactory from './CrossTableFactory.js';
-import StemLeafFactory from './StemLeafFactory.js';
+import BaseTableFactory from './base.table.factory.js';
+import CategoryMatrixFactory from './category-matrix.factory.js';
+import CrossTableFactory from './cross-table.factory.js';
+import StemLeafFactory from './stem-leaf.factory.js';
 
 /**
  * 테이블 팩토리 라우터

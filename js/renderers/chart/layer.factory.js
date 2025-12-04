@@ -6,8 +6,8 @@
 import CONFIG from '../../config.js';
 import Utils from '../../utils/utils.js';
 import { Layer } from '../../animation/index.js';
-import CoordinateSystem from './CoordinateSystem.js';
-import CalloutRenderer from './CalloutRenderer.js';
+import CoordinateSystem from './coordinate.system.js';
+import CalloutRenderer from './callout.renderer.js';
 
 class LayerFactory {
   /**

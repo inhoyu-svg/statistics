@@ -9,14 +9,14 @@ import CONFIG from '../config.js';
 import { LayerManager, LayerTimeline, LayerAnimationEffects } from '../animation/index.js';
 
 // 분할된 렌더러 모듈들
-import CoordinateSystem from './chart/CoordinateSystem.js';
-import LayerFactory from './chart/LayerFactory.js';
-import HistogramRenderer from './chart/HistogramRenderer.js';
-import PolygonRenderer from './chart/PolygonRenderer.js';
-import AxisRenderer from './chart/AxisRenderer.js';
-import CalloutRenderer from './chart/CalloutRenderer.js';
-import DashedLineRenderer from './chart/DashedLineRenderer.js';
-import TriangleRenderer from './chart/TriangleRenderer.js';
+import CoordinateSystem from './chart/coordinate.system.js';
+import LayerFactory from './chart/layer.factory.js';
+import HistogramRenderer from './chart/histogram.renderer.js';
+import PolygonRenderer from './chart/polygon.renderer.js';
+import AxisRenderer from './chart/axis.renderer.js';
+import CalloutRenderer from './chart/callout.renderer.js';
+import DashedLineRenderer from './chart/dashed-line.renderer.js';
+import TriangleRenderer from './chart/triangle.renderer.js';
 
 /**
  * @class ChartRenderer

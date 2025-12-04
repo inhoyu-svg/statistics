@@ -6,12 +6,11 @@
 
 import CONFIG from '../config.js';
 import { LayerManager, LayerTimeline } from '../animation/index.js';
-import TableLayerFactory from './table/TableLayerFactory.js';
-import TableCellRenderer from './table/TableCellRenderer.js';
+import TableLayerFactory from './table/table-layer.factory.js';
+import TableCellRenderer from './table/table-cell.renderer.js';
 import { TableFactoryRouter } from './table/factories/index.js';
-import BaseTableFactory from './table/factories/BaseTableFactory.js';
+import BaseTableFactory from './table/factories/base.table.factory.js';
 import tableStore from '../core/tableStore.js';
-import TableEditModal from './table/TableEditModal.js';
 
 /**
  * @class TableRenderer
@@ -69,11 +68,6 @@ class TableRenderer {
     this.savedAnimations = []; // [{rowIndex, colIndex, duration, repeat}, ...]
     this.activeAnimations = []; // 현재 재생 중인 애니메이션들
 
-    // 편집 모달 관리자
-    this.editModal = new TableEditModal(this);
-
-    // 셀 클릭 이벤트 (변수 치환용) - TableEditModal로 위임
-    this.canvas.addEventListener('click', (e) => this.editModal.handleCanvasClick(e));
   }
 
   /**
@@ -1612,41 +1606,6 @@ class TableRenderer {
     );
   }
 
-  // =============================================
-  // 셀 변수 편집 모달 관련 메서드 (TableEditModal로 위임)
-  // =============================================
-
-  /**
-   * 편집 모달 열기
-   * @deprecated editModal.openEditModal() 사용
-   */
-  openEditModal() {
-    this.editModal.openEditModal();
-  }
-
-  /**
-   * 편집 모달 닫기
-   * @deprecated editModal.closeEditModal() 사용
-   */
-  closeEditModal() {
-    this.editModal.closeEditModal();
-  }
-
-  /**
-   * 변경사항 저장
-   * @deprecated editModal.saveChanges() 사용
-   */
-  saveChanges() {
-    this.editModal.saveChanges();
-  }
-
-  /**
-   * 모든 변수 초기화
-   * @deprecated editModal.clearAllVariables() 사용
-   */
-  clearAllVariables() {
-    this.editModal.clearAllVariables();
-  }
 }
 
 export default TableRenderer;

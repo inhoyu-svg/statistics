@@ -5,7 +5,7 @@
 
 import CONFIG from '../../config.js';
 import Utils from '../../utils/utils.js';
-import CoordinateSystem from './CoordinateSystem.js';
+import CoordinateSystem from './coordinate.system.js';
 
 class PolygonRenderer {
   /**

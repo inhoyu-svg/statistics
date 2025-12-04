@@ -5,7 +5,7 @@
 
 import CONFIG from '../../../config.js';
 import { Layer } from '../../../animation/index.js';
-import BaseTableFactory from './BaseTableFactory.js';
+import BaseTableFactory from './base.table.factory.js';
 
 class CategoryMatrixFactory {
   /**
