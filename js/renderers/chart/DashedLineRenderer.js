@@ -96,7 +96,7 @@ class DashedLineRenderer {
     KatexUtils.render(this.ctx, formattedValue,
       x - labelOffset,
       y,
-      { fontSize: CONFIG.getScaledFontSize(16), color: color, align: 'right', baseline: 'middle' }
+      { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'right', baseline: 'middle' }
     );
   }
 }
