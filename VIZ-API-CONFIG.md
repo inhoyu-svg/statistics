@@ -38,23 +38,85 @@
 | **계급** | class | 데이터를 나누는 구간 (예: 60이상~70미만) |
 | **계급 개수** | classCount | 데이터를 몇 개의 구간으로 나눌지 |
 | **계급 간격** | classWidth | 각 구간의 너비 (예: 10이면 60~70, 70~80, ...) |
+| **계급값** | midpoint | 각 계급의 중앙값 (예: 60~70이면 65) |
 | **도수** | frequency | 각 계급에 속하는 데이터의 개수 |
 | **상대도수** | relativeFrequency | 전체 대비 해당 계급의 비율 (0~1 소수) |
+| **누적도수** | cumulativeFrequency | 해당 계급까지의 도수 합계 |
+| **누적상대도수** | cumulativeRelativeFrequency | 해당 계급까지의 상대도수 합계 |
+| **탈리** | tally | 도수를 막대기 표시로 나타낸 것 (//// 형태) |
 | **히스토그램** | histogram | 도수를 막대 높이로 표현한 차트 |
 | **도수다각형** | frequency polygon | 각 계급의 중앙값에 점을 찍고 선으로 연결한 그래프 |
 | **도수분포표** | frequency table | 계급별 도수를 정리한 표 |
+| **줄기와 잎 그림** | stem-and-leaf plot | 줄기(십의 자리)와 잎(일의 자리)으로 데이터 분포를 표현 |
+| **이원분류표** | cross table | 두 가지 기준으로 데이터를 분류한 표 |
+| **카테고리 행렬** | category matrix | 행/열 카테고리와 값을 가진 표 형태
 
 ### 설정 객체 용어
 
-| 용어 | 설명 | 위치 | 적용 대상 |
-|:-----|:-----|:-----|:----------|
-| **options** | 차트/테이블 세부 설정을 담는 객체 | 최상위 | 전체 |
-| **tableConfig** | 도수분포표 컬럼 설정 (표시/순서/라벨) | `options` 하위 | 도수분포표 |
-| **crossTable** | 이원분류표 전용 설정 (합계/병합헤더) | `options` 하위 | 이원분류표 |
-| **cellAnimations** | 셀 하이라이트 애니메이션 배열 | 최상위 | 모든 테이블 |
-| **cellAnimationOptions** | 애니메이션 재생 옵션 | 최상위 | 모든 테이블 |
-| **cellVariables** | 셀 값 커스터마이징 배열 | `tableConfig` 하위 | 도수분포표 |
-| **axisLabels** | 축 라벨 커스터마이징 | `options` 하위 | 차트 |
+#### 최상위 객체
+
+| 용어 | JSON 경로 | 설명 | 적용 대상 |
+|:-----|:----------|:-----|:----------|
+| **data** | `data` | 렌더링할 숫자 데이터 배열 (필수) | 전체 |
+| **purpose** | `purpose` | 렌더링 목적 (`"chart"` / `"table"`) | 전체 |
+| **tableType** | `tableType` | 테이블 유형 (`"frequency"` / `"cross-table"` / `"category-matrix"` / `"stem-leaf"`) | 테이블 |
+| **config** | `config` | 계급 설정 (개수, 간격, 범위) | 차트/테이블 |
+| **classCount** | `classCount` | 계급 개수 (기본: 5) | 차트/테이블 |
+| **classWidth** | `classWidth` | 계급 간격 (자동 계산) | 차트/테이블 |
+| **classRange** | `classRange` | 계급 범위 수동 설정 (`{ firstEnd, secondEnd, lastStart }`) | 차트/테이블 |
+| **canvasSize** | `canvasSize` | 정사각형 캔버스 크기 (우선 적용) | 차트 |
+| **canvasWidth** | `canvasWidth` | 캔버스 너비 (기본: 700) | 차트 |
+| **canvasHeight** | `canvasHeight` | 캔버스 높이 (기본: 450) | 차트 |
+| **options** | `options` | 차트/테이블 세부 설정을 담는 객체 | 전체 |
+| **animation** | `animation` | 애니메이션 활성화 여부 | 차트/테이블 |
+| **cellAnimations** | `cellAnimations` | 셀 하이라이트 애니메이션 배열 | 모든 테이블 |
+| **cellVariables** | `cellVariables` | 셀 값 커스터마이징 (rowIndex/colIndex 기반) | 줄기-잎 |
+
+#### options 하위 객체 (차트)
+
+| 용어 | JSON 경로 | 설명 |
+|:-----|:----------|:-----|
+| **showHistogram** | `options.showHistogram` | 히스토그램 표시 여부 (기본: true) |
+| **showPolygon** | `options.showPolygon` | 도수다각형 표시 여부 (기본: true) |
+| **dataType** | `options.dataType` | Y축 데이터 타입 (`"frequency"` / `"relativeFrequency"`) |
+| **axisLabels** | `options.axisLabels` | X축/Y축 라벨 커스터마이징 (`{ xAxis, yAxis }`) |
+| **grid** | `options.grid` | 격자선 설정 (`{ showHorizontal, showVertical }`) |
+| **axis** | `options.axis` | 축 라벨 표시 설정 (`{ showYLabels, showXLabels, yLabelFormat }`) |
+| **callout** | `options.callout` | 말풍선 설정 (`{ enabled, template, preset }`) |
+| **showDashedLines** | `options.showDashedLines` | 수직 파선 표시 (다각형 점 → X축) |
+| **congruentTriangles** | `options.congruentTriangles` | 합동 삼각형 설정 (`{ enabled, boundary }`) |
+| **triangleLabels** | `options.triangleLabels` | 합동삼각형 라벨 (`["S₁", "S₂"]`) |
+| **customBarLabels** | `options.customBarLabels` | 막대 내부 커스텀 라벨 배열 |
+| **customYInterval** | `options.customYInterval` | Y축 간격 커스텀 |
+| **histogramColorPreset** | `options.histogramColorPreset` | 히스토그램 색상 프리셋 |
+| **histogramColor** | `options.histogramColor` | 히스토그램 커스텀 색상 |
+| **polygonColorPreset** | `options.polygonColorPreset` | 다각형 색상 프리셋 |
+| **polygonColor** | `options.polygonColor` | 다각형 커스텀 색상 |
+
+#### options 하위 객체 (테이블)
+
+| 용어 | JSON 경로 | 설명 |
+|:-----|:----------|:-----|
+| **tableConfig** | `options.tableConfig` | 도수분포표 컬럼 설정 (표시/순서/라벨) |
+| **crossTable** | `options.crossTable` | 이원분류표 전용 설정 (합계/병합헤더) |
+
+#### tableConfig 하위 객체
+
+| 용어 | JSON 경로 | 설명 |
+|:-----|:----------|:-----|
+| **visibleColumns** | `options.tableConfig.visibleColumns` | 컬럼 표시 여부 배열 (`[true, false, ...]`) |
+| **columnOrder** | `options.tableConfig.columnOrder` | 컬럼 순서 배열 (`[0, 1, 2, ...]`) |
+| **labels** | `options.tableConfig.labels` | 컬럼 라벨 설정 (`{ class, frequency, ... }`) |
+| **showSuperscript** | `options.tableConfig.showSuperscript` | "이상/미만" 표시 여부 |
+| **showSummaryRow** | `options.tableConfig.showSummaryRow` | 합계 행 표시 여부 |
+| **cellVariables** | `options.tableConfig.cellVariables` | 셀 값 커스터마이징 배열 |
+
+#### crossTable 하위 객체
+
+| 용어 | JSON 경로 | 설명 |
+|:-----|:----------|:-----|
+| **showTotal** | `options.crossTable.showTotal` | 합계 행 표시 여부 |
+| **showMergedHeader** | `options.crossTable.showMergedHeader` | 병합 헤더 표시 여부 |
 
 ---
 
@@ -90,6 +152,7 @@ config (최상위)
 │   ├── grid                { showHorizontal, showVertical } 격자선 설정
 │   ├── axis                { showYLabels, showXLabels, yLabelFormat } 축 라벨 설정
 │   ├── congruentTriangles  { enabled, boundary } 합동 삼각형 설정
+│   ├── triangleLabels      ["S₁", "S₂"] 합동삼각형 라벨 배열
 │   ├── customYInterval     Y축 간격 커스텀
 │   ├── customBarLabels     ["A", null, "B"] 막대 내부 라벨 배열
 │   │
@@ -106,28 +169,13 @@ config (최상위)
 │   └── crossTable          ─────────────────────────
 │       ├── showTotal       합계 행 표시
 │       └── showMergedHeader 병합 헤더 표시
-│
+│   
 ├── cellAnimations          [{ rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, duration, repeat }, ...]
 │
 ├── cellAnimationOptions    { blinkEnabled: true/false }
 │
 └── cellVariables           [{ rowIndex, colIndex, value }, ...]  (줄기-잎 전용)
 ```
-
----
-
-## 설정 객체 요약
-
-| 객체 | 위치 | 적용 대상 | 용도 |
-|:-----|:-----|:----------|:-----|
-| `options` | 최상위 | 차트/테이블 | 세부 설정 컨테이너 |
-| `options.tableConfig` | options 하위 | 도수분포표 | 컬럼 표시/순서/라벨 설정 |
-| `options.tableConfig.cellVariables` | tableConfig 하위 | 도수분포표 | 특정 셀 값 커스터마이징 (컬럼명 기반) |
-| `cellVariables` | 최상위 | 줄기-잎 | 특정 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
-| `options.crossTable` | options 하위 | 이원분류표 | 합계/병합헤더 설정 |
-| `options.axisLabels` | options 하위 | 차트 | 축 끝 라벨 커스터마이징 |
-| `cellAnimations` | 최상위 | 모든 테이블 | 셀 하이라이트 애니메이션 |
-| `cellAnimationOptions` | 최상위 | 모든 테이블 | 애니메이션 재생 옵션 |
 
 ---
 
