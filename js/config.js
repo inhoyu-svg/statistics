@@ -259,6 +259,12 @@ const CONFIG = {
   // 막대 라벨 설정
   SHOW_BAR_LABELS: false,                   // 막대 위 값 표시 여부 (기본값)
 
+  // 막대 내부 커스텀 라벨 설정
+  SHOW_BAR_CUSTOM_LABELS: false,            // 막대 내부 커스텀 라벨 표시 여부
+  BAR_CUSTOM_LABELS: {},                    // 인덱스별 라벨 (예: {0: 'A', 2: 'B'})
+  BAR_CUSTOM_LABEL_FONT_SIZE: 20,           // 라벨 폰트 크기 (기본: 20)
+  BAR_CUSTOM_LABEL_COLOR: '#FFFFFF',        // 라벨 색상 (기본: 흰색)
+
   // 합동 삼각형 설정
   SHOW_CONGRUENT_TRIANGLES: false,          // 합동 삼각형 표시 여부 (기본값)
   CONGRUENT_TRIANGLE_INDEX: 0,              // 표시할 구간 인덱스 (0부터 시작)

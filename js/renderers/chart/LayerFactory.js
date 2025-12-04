@@ -226,6 +226,37 @@ class LayerFactory {
       layerManager.addLayer(labelsGroup);
     }
 
+    // 막대 커스텀 라벨 그룹 (SHOW_BAR_CUSTOM_LABELS가 true이고 라벨이 있을 때만)
+    if (CONFIG.SHOW_BAR_CUSTOM_LABELS && Object.keys(CONFIG.BAR_CUSTOM_LABELS).length > 0) {
+      const customLabelsGroup = new Layer({
+        id: `bar-custom-labels-${timestamp}`,
+        name: '막대 커스텀 라벨',
+        type: 'group',
+        visible: true
+      });
+
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+        const customLabel = CONFIG.BAR_CUSTOM_LABELS[index];
+        if (!customLabel) return;  // 해당 인덱스에 라벨 없으면 스킵
+
+        const className = Utils.getClassName(classes[index]);
+
+        const customLabelLayer = new Layer({
+          id: `bar-custom-label-${timestamp}-${index}`,
+          name: `커스텀라벨(${className}): ${customLabel}`,
+          type: 'bar-custom-label',
+          visible: true,
+          data: { index, relativeFreq: value, customLabel, dataType }
+        });
+
+        customLabelsGroup.addChild(customLabelLayer);
+      });
+
+      layerManager.addLayer(customLabelsGroup);
+    }
+
     // 합동 삼각형 레이어 생성 (SHOW_CONGRUENT_TRIANGLES가 true일 때만)
     if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
       this._createCongruentTriangleLayers(layerManager, values, coords, timestamp);

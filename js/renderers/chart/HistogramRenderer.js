@@ -166,6 +166,40 @@ class HistogramRenderer {
       return formatted.replace(/\.00$/, '');
     }
   }
+
+  /**
+   * 막대 내부 커스텀 라벨 렌더링
+   * @param {Layer} layer - 커스텀 라벨 레이어
+   */
+  renderBarCustomLabel(layer) {
+    const { index, relativeFreq, customLabel, coords } = layer.data;
+    const { toX, toY, xScale } = coords;
+
+    const progress = layer.data.animationProgress !== undefined ? layer.data.animationProgress : 1;
+    if (progress < 0.5) return;  // 막대가 어느 정도 그려진 후 표시
+
+    const fadeProgress = (progress - 0.5) * 2;
+
+    // 막대 중앙 좌표 계산
+    const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
+    const x = toX(index) + barWidth / 2;  // 가로 중앙
+
+    // 세로 중앙 (애니메이션 progress 반영)
+    const baseY = toY(0);
+    const fullY = toY(relativeFreq);
+    const animatedH = (baseY - fullY) * progress;
+    const y = baseY - animatedH / 2;  // 세로 중앙
+
+    this.ctx.save();
+    this.ctx.globalAlpha = fadeProgress;
+    KatexUtils.render(this.ctx, customLabel, x, y, {
+      fontSize: CONFIG.getScaledFontSize(CONFIG.BAR_CUSTOM_LABEL_FONT_SIZE),
+      color: CONFIG.BAR_CUSTOM_LABEL_COLOR,
+      align: 'center',
+      baseline: 'middle'
+    });
+    this.ctx.restore();
+  }
 }
 
 export default HistogramRenderer;

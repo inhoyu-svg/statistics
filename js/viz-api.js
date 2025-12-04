@@ -500,6 +500,30 @@ export async function renderChart(element, config) {
       CONFIG.POLYGON_COLOR_PRESET = calloutPreset;
     }
 
+    // Custom bar labels (막대 내부 커스텀 라벨)
+    const customBarLabels = options.customBarLabels || {};
+    if (customBarLabels.enabled && customBarLabels.labels) {
+      CONFIG.SHOW_BAR_CUSTOM_LABELS = true;
+
+      // 배열 형식 → 객체로 변환
+      if (Array.isArray(customBarLabels.labels)) {
+        CONFIG.BAR_CUSTOM_LABELS = {};
+        customBarLabels.labels.forEach((label, idx) => {
+          if (label !== null && label !== undefined) {
+            CONFIG.BAR_CUSTOM_LABELS[idx] = label;
+          }
+        });
+      } else {
+        CONFIG.BAR_CUSTOM_LABELS = customBarLabels.labels;
+      }
+
+      if (customBarLabels.fontSize) CONFIG.BAR_CUSTOM_LABEL_FONT_SIZE = customBarLabels.fontSize;
+      if (customBarLabels.color) CONFIG.BAR_CUSTOM_LABEL_COLOR = customBarLabels.color;
+    } else {
+      CONFIG.SHOW_BAR_CUSTOM_LABELS = false;
+      CONFIG.BAR_CUSTOM_LABELS = {};
+    }
+
     // Y축 간격 커스텀 설정
     const customYInterval = options.customYInterval || null;
 

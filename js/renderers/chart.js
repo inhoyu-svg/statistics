@@ -239,6 +239,9 @@ class ChartRenderer {
       case 'bar-label':
         this.histogramRenderer.renderBarLabel(layer);
         break;
+      case 'bar-custom-label':
+        this.histogramRenderer.renderBarCustomLabel(layer);
+        break;
       case 'triangle':
         this.triangleRenderer.renderTriangle(layer);
         break;
