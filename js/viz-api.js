@@ -10,6 +10,7 @@ import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
 import tableStore from './core/tableStore.js';
 import { waitForFonts } from './utils/katex.js';
+import { renderTearMask, parseChartCells, cellRangeToPixel, parseTableCells, tableCellRangeToPixel } from './utils/corruption.js';
 
 // Counter for unique ID generation
 let chartInstanceCounter = 0;
@@ -545,7 +546,21 @@ export async function renderChart(element, config) {
       customYInterval
     );
 
-    // 10. Play animation
+    // 10. Apply corruption effect (if enabled)
+    if (options.corruption?.enabled) {
+      const coords = chartRenderer.currentCoords;
+      const chartInfo = {
+        padding: chartRenderer.padding,
+        barWidth: coords.xScale,
+        gap: 0,
+        chartHeight: coords.chartH,
+        gridDivisions: coords.gridDivisions,
+        canvasHeight: canvas.height
+      };
+      applyChartCorruption(chartRenderer.ctx, options.corruption, chartInfo);
+    }
+
+    // 11. Play animation
     if (animation) {
       // 추가 렌더링: 새 애니메이션 시작 시점으로 seek (기존 레이어는 완료 상태 유지)
       // 첫 렌더링: 처음부터 재생
@@ -671,6 +686,25 @@ export async function renderTable(element, config) {
       // Apply cell animations if specified
       applyCellAnimationsFromConfig(tableRenderer, config);
 
+      // Apply corruption effect (if enabled)
+      if (options.corruption?.enabled) {
+        const visibleCols = (tableConfig?.visibleColumns || CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS)
+          .filter(v => v).length;
+        const showSummaryRow = tableConfig?.showSummaryRow ?? true;
+        const totalRows = classes.length + 1 + (showSummaryRow ? 1 : 0); // header + data + summary
+        const totalCols = visibleCols;
+        const tableInfo = {
+          startX: CONFIG.TABLE_PADDING,
+          startY: CONFIG.TABLE_PADDING,
+          cellWidth: (canvas.width - CONFIG.TABLE_PADDING * 2) / totalCols,
+          cellHeight: CONFIG.TABLE_ROW_HEIGHT,
+          totalRows,
+          totalCols,
+          inset: 3
+        };
+        applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
+      }
+
       return {
         tableRenderer,
         canvas,
@@ -705,6 +739,14 @@ export async function renderTable(element, config) {
 
       // Apply cell animations if specified
       applyCellAnimationsFromConfig(tableRenderer, config);
+
+      // Apply corruption effect (if enabled)
+      if (options.corruption?.enabled) {
+        const tableInfo = calculateCustomTableInfo(tableType, finalParseResult.data, canvas, tableConfig);
+        if (tableInfo) {
+          applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
+        }
+      }
 
       return {
         tableRenderer,
@@ -885,6 +927,47 @@ function applyCellVariableToCrossTable(data, dataRowIndex, colIndex, value) {
   }
 }
 
+/**
+ * Calculate tableInfo for custom table types (corruption용)
+ * @param {string} tableType - Table type
+ * @param {Object} data - Parsed table data
+ * @param {HTMLCanvasElement} canvas - Canvas element
+ * @param {Object} tableConfig - Table configuration
+ * @returns {Object|null} tableInfo for corruption
+ */
+function calculateCustomTableInfo(tableType, data, canvas, tableConfig) {
+  let totalRows, totalCols;
+
+  if (tableType === 'stem-leaf') {
+    // stem-leaf: stems 배열 + header
+    totalRows = (data.stems?.length || 0) + 1;
+    totalCols = data.isSingleMode === false ? 3 : 2; // compare: 3, single: 2
+  } else if (tableType === 'category-matrix') {
+    // category-matrix: rows + header
+    totalRows = (data.rows?.length || 0) + 1;
+    totalCols = (data.headers?.length || 0) + 1; // label column + value columns
+  } else if (tableType === 'cross-table') {
+    // cross-table: rows + header + (total row if shown)
+    const showTotal = data.showTotal !== false;
+    totalRows = (data.rows?.length || 0) + 1 + (showTotal ? 1 : 0);
+    totalCols = (data.columns?.length || 0) + 1 + (showTotal ? 1 : 0); // label col + data cols + total col
+  } else {
+    return null;
+  }
+
+  if (totalRows === 0 || totalCols === 0) return null;
+
+  return {
+    startX: CONFIG.TABLE_PADDING,
+    startY: CONFIG.TABLE_PADDING,
+    cellWidth: (canvas.width - CONFIG.TABLE_PADDING * 2) / totalCols,
+    cellHeight: CONFIG.TABLE_ROW_HEIGHT,
+    totalRows,
+    totalCols,
+    inset: 3
+  };
+}
+
 // ============================================
 // Cell Animation API
 // ============================================
@@ -952,6 +1035,80 @@ export function clearCellAnimations(tableRenderer) {
   if (!tableRenderer) return;
   tableRenderer.stopCellAnimation();
   tableRenderer.clearSavedAnimations();
+}
+
+// ============================================
+// Corruption (찢김 효과) API
+// ============================================
+
+/**
+ * 차트에 corruption 효과 적용
+ * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+ * @param {Object} corruptionOptions - corruption 설정
+ * @param {Object} chartInfo - 차트 정보 (좌표 변환용)
+ */
+function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
+  if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
+
+  const cellsInput = Array.isArray(corruptionOptions.cells)
+    ? corruptionOptions.cells.join(', ')
+    : corruptionOptions.cells;
+
+  const ranges = parseChartCells(cellsInput);
+  if (ranges.length === 0) return;
+
+  const style = corruptionOptions.style || {};
+  const maskAxisLabels = corruptionOptions.maskAxisLabels !== false;
+
+  ranges.forEach(range => {
+    let region = cellRangeToPixel(range, chartInfo);
+
+    // 축 라벨 마스킹 확장 (축에 닿는 셀 범위일 때)
+    if (maskAxisLabels) {
+      const touchesXAxis = (range.y1 === 0 && range.y2 === 0);
+      const touchesYAxis = (range.x1 === 0 && range.x2 === 0);
+
+      if (touchesXAxis) {
+        // X축 라벨까지 확장 (아래로)
+        const extendDown = 30;
+        region.height += extendDown;
+      }
+
+      if (touchesYAxis) {
+        // Y축 라벨까지 확장 (왼쪽으로)
+        const extendLeft = region.x - 5;
+        region.width += extendLeft;
+        region.x = 5;
+      }
+    }
+
+    renderTearMask(ctx, region, style);
+  });
+}
+
+/**
+ * 테이블에 corruption 효과 적용
+ * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+ * @param {Object} corruptionOptions - corruption 설정
+ * @param {Object} tableInfo - 테이블 정보 (좌표 변환용)
+ */
+function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
+  if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
+
+  const cellsInput = Array.isArray(corruptionOptions.cells)
+    ? corruptionOptions.cells.join(', ')
+    : corruptionOptions.cells;
+
+  const { totalRows, totalCols } = tableInfo;
+  const ranges = parseTableCells(cellsInput, totalRows, totalCols);
+  if (ranges.length === 0) return;
+
+  const style = corruptionOptions.style || {};
+
+  ranges.forEach(range => {
+    const region = tableCellRangeToPixel(range, tableInfo);
+    renderTearMask(ctx, region, style);
+  });
 }
 
 export default {
