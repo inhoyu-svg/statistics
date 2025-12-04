@@ -198,7 +198,7 @@ export function renderWithScript(ctx, base, superscript, subscript, x, y, option
   // 아래 첨자 그리기
   if (subscript) {
     ctx.font = getFont('number', scriptFontSize);
-    const subOffset = fontSize * 0.2;
+    const subOffset = fontSize * 0.1;
     ctx.fillText(subscript, startX, y + subOffset);
   }
 

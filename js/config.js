@@ -30,17 +30,6 @@ const CONFIG = {
   CHART_ELLIPSIS_Y_OFFSET: 10,
   CHART_X_TITLE_Y_OFFSET: 10,
   CHART_Y_TITLE_X_OFFSET: 15,
-  CHART_LEGEND_X_OFFSET: 180,
-
-  // 범례 레이아웃
-  CHART_LEGEND_Y_START: 20,           // 첫 번째 범례 항목 Y 위치
-  CHART_LEGEND_BAR_HEIGHT: 15,        // 범례 막대 높이
-  CHART_LEGEND_ITEM_WIDTH: 20,        // 범례 아이템 너비 (박스/선)
-  CHART_LEGEND_TEXT_X_OFFSET: 25,     // 범례 텍스트 X 오프셋
-  CHART_LEGEND_TEXT_Y_OFFSET: 12,     // 범례 텍스트 Y 오프셋 (아이템 상단 기준)
-  CHART_LEGEND_ITEM_SPACING: 30,      // 범례 항목 간 Y 간격
-  CHART_LEGEND_POINT_RADIUS: 4,       // 범례 점 반지름
-  CHART_LEGEND_POINT_CENTER_X: 10,    // 범례 점 중심 X 오프셋 (아이템 시작점 기준)
 
   // 중략 판단 기준
   ELLIPSIS_THRESHOLD: 2,
@@ -152,9 +141,8 @@ const CONFIG = {
   CHART_LINE_WIDTH_DASHED: 1.5,           // 파선 너비
   CHART_DASHED_PATTERN: [5, 5],           // 파선 패턴 [선, 간격]
 
-  // 축/범례 문자열 상수
+  // 축 문자열 상수
   AXIS_ELLIPSIS_SYMBOL: '≈',              // 이중물결 기호
-  LEGEND_LABEL_HISTOGRAM: '히스토그램',    // 범례 히스토그램 라벨
 
   // 기본 라벨 (고급 설정) - 축 끝 라벨링용 괄호 포함
   DEFAULT_LABELS: {
