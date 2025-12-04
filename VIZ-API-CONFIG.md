@@ -100,6 +100,7 @@
 |:-----|:----------|:-----|
 | **tableConfig** | `options.tableConfig` | 도수분포표 컬럼 설정 (표시/순서/라벨) |
 | **crossTable** | `options.crossTable` | 이원분류표 전용 설정 (합계/병합헤더) |
+| **corruption** | `options.corruption` | 찢김 효과 설정 (`{ enabled, cells, style }`) |
 
 #### tableConfig 하위 객체
 
@@ -156,6 +157,8 @@ config (최상위)
 │   ├── triangleLabels      ["S₁", "S₂"] 합동삼각형 라벨 배열
 │   ├── customYInterval     Y축 간격 커스텀
 │   ├── customBarLabels     ["A", null, "B"] 막대 내부 라벨 배열
+│   │
+│   │  [차트/테이블 공통]
 │   ├── corruption          { enabled, cells, maskAxisLabels, style } 찢김 효과
 │   │
 │   │  [도수분포표 전용]
