@@ -2,40 +2,483 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>커스텀 라벨 테스트</title>
+  <title>VIZ-API 테스트 케이스</title>
   <style>
-    body { padding: 40px; background: #1a1a2e; color: white; font-family: sans-serif; }
-    h1 { margin-bottom: 20px; }
-    .chart-container { margin: 20px 0; }
+    * { box-sizing: border-box; }
+    body {
+      padding: 20px;
+      background: #1a1a2e;
+      color: white;
+      font-family: 'Pretendard', sans-serif;
+      line-height: 1.6;
+    }
+    h1 { margin-bottom: 10px; color: #8DCF66; }
+    h2 { margin: 30px 0 15px; color: #aaa; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px;
+      margin-top: 20px;
+    }
+    .test-case {
+      background: #252540;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .test-case h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #8DCF66;
+    }
+    .test-case p {
+      margin: 0 0 15px;
+      font-size: 12px;
+      color: #888;
+    }
+    .chart-container, .table-container {
+      background: #1a1a2e;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #666;
+    }
+    .status.success { color: #8DCF66; }
+    .status.error { color: #ff6b6b; }
   </style>
 </head>
 <body>
-  <h1>막대 내부 커스텀 라벨 테스트</h1>
+  <h1>VIZ-API 테스트 케이스</h1>
+  <p style="color: #888; margin-bottom: 20px;">viz-api.js의 다양한 사용 패턴을 테스트합니다.</p>
 
-  <div class="chart-container" id="chart1"></div>
+  <!-- ===== 차트 테스트 ===== -->
+  <h2>📊 차트 (Chart) 테스트</h2>
+  <div class="test-grid">
+
+    <!-- 1. 기본 차트 -->
+    <div class="test-case">
+      <h3>1. 기본 차트</h3>
+      <p>최소 설정으로 차트 렌더링</p>
+      <div class="chart-container" id="chart-basic"></div>
+      <div class="status" id="status-chart-basic"></div>
+    </div>
+
+    <!-- 2. 커스텀 라벨 -->
+    <div class="test-case">
+      <h3>2. 커스텀 막대 라벨</h3>
+      <p>customBarLabels로 막대 내부에 A, B, C 표시</p>
+      <div class="chart-container" id="chart-custom-labels"></div>
+      <div class="status" id="status-chart-custom-labels"></div>
+    </div>
+
+    <!-- 3. 색상 프리셋 -->
+    <div class="test-case">
+      <h3>3. 색상 프리셋 (Primary)</h3>
+      <p>histogramColorPreset, polygonColorPreset 사용</p>
+      <div class="chart-container" id="chart-color-preset"></div>
+      <div class="status" id="status-chart-color-preset"></div>
+    </div>
+
+    <!-- 4. 커스텀 색상 -->
+    <div class="test-case">
+      <h3>4. 커스텀 색상</h3>
+      <p>histogramColor, polygonColor로 직접 색상 지정</p>
+      <div class="chart-container" id="chart-custom-color"></div>
+      <div class="status" id="status-chart-custom-color"></div>
+    </div>
+
+    <!-- 5. 말풍선 (Callout) -->
+    <div class="test-case">
+      <h3>5. 말풍선 (Callout)</h3>
+      <p>최대 도수 막대에 말풍선 표시</p>
+      <div class="chart-container" id="chart-callout"></div>
+      <div class="status" id="status-chart-callout"></div>
+    </div>
+
+    <!-- 6. 히스토그램만 -->
+    <div class="test-case">
+      <h3>6. 히스토그램만</h3>
+      <p>showPolygon: false로 다각형 숨김</p>
+      <div class="chart-container" id="chart-histogram-only"></div>
+      <div class="status" id="status-chart-histogram-only"></div>
+    </div>
+
+    <!-- 7. 다각형만 -->
+    <div class="test-case">
+      <h3>7. 다각형만</h3>
+      <p>showHistogram: false로 막대 숨김</p>
+      <div class="chart-container" id="chart-polygon-only"></div>
+      <div class="status" id="status-chart-polygon-only"></div>
+    </div>
+
+    <!-- 8. 파선 표시 -->
+    <div class="test-case">
+      <h3>8. 파선 표시</h3>
+      <p>showDashedLines: true로 파선 표시</p>
+      <div class="chart-container" id="chart-dashed-lines"></div>
+      <div class="status" id="status-chart-dashed-lines"></div>
+    </div>
+
+    <!-- 9. 격자 설정 -->
+    <div class="test-case">
+      <h3>9. 격자 설정</h3>
+      <p>수평 격자만 표시 (showVertical: false)</p>
+      <div class="chart-container" id="chart-grid"></div>
+      <div class="status" id="status-chart-grid"></div>
+    </div>
+
+    <!-- 10. 애니메이션 비활성화 -->
+    <div class="test-case">
+      <h3>10. 애니메이션 비활성화</h3>
+      <p>animation: false로 즉시 렌더링</p>
+      <div class="chart-container" id="chart-no-animation"></div>
+      <div class="status" id="status-chart-no-animation"></div>
+    </div>
+
+    <!-- 11. 계급 범위 수동 지정 -->
+    <div class="test-case">
+      <h3>11. 계급 범위 수동 지정</h3>
+      <p>classRange로 50~90 범위 지정</p>
+      <div class="chart-container" id="chart-class-range"></div>
+      <div class="status" id="status-chart-class-range"></div>
+    </div>
+
+    <!-- 12. 도수 모드 -->
+    <div class="test-case">
+      <h3>12. 도수 모드</h3>
+      <p>dataType: 'frequency'로 Y축을 도수로 표시</p>
+      <div class="chart-container" id="chart-frequency-mode"></div>
+      <div class="status" id="status-chart-frequency-mode"></div>
+    </div>
+
+  </div>
+
+  <!-- ===== 테이블 테스트 ===== -->
+  <h2>📋 테이블 (Table) 테스트</h2>
+  <div class="test-grid">
+
+    <!-- 13. 기본 도수분포표 -->
+    <div class="test-case">
+      <h3>13. 기본 도수분포표</h3>
+      <p>tableType: 'frequency' (기본값)</p>
+      <div class="table-container" id="table-frequency"></div>
+      <div class="status" id="status-table-frequency"></div>
+    </div>
+
+    <!-- 14. 줄기-잎 그림 -->
+    <div class="test-case">
+      <h3>14. 줄기-잎 그림</h3>
+      <p>tableType: 'stem-leaf'</p>
+      <div class="table-container" id="table-stem-leaf"></div>
+      <div class="status" id="status-table-stem-leaf"></div>
+    </div>
+
+    <!-- 15. 이원분류표 -->
+    <div class="test-case">
+      <h3>15. 이원분류표</h3>
+      <p>tableType: 'cross-table'</p>
+      <div class="table-container" id="table-cross"></div>
+      <div class="status" id="status-table-cross"></div>
+    </div>
+
+    <!-- 16. 카테고리 행렬 -->
+    <div class="test-case">
+      <h3>16. 카테고리 행렬</h3>
+      <p>tableType: 'category-matrix'</p>
+      <div class="table-container" id="table-category"></div>
+      <div class="status" id="status-table-category"></div>
+    </div>
+
+    <!-- 17. 셀 변수 치환 -->
+    <div class="test-case">
+      <h3>17. 셀 변수 치환</h3>
+      <p>cellVariables로 특정 셀에 변수 표시</p>
+      <div class="table-container" id="table-cell-variables"></div>
+      <div class="status" id="status-table-cell-variables"></div>
+    </div>
+
+    <!-- 18. 셀 애니메이션 -->
+    <div class="test-case">
+      <h3>18. 셀 애니메이션</h3>
+      <p>cellAnimations로 특정 셀 하이라이트</p>
+      <div class="table-container" id="table-cell-animation"></div>
+      <div class="status" id="status-table-cell-animation"></div>
+    </div>
+
+  </div>
+
+  <!-- ===== 통합 테스트 ===== -->
+  <h2>🔗 통합 테스트</h2>
+  <div class="test-grid">
+
+    <!-- 19. render() 함수 사용 -->
+    <div class="test-case">
+      <h3>19. render() 함수 (purpose: 'chart')</h3>
+      <p>통합 render() 함수로 차트 렌더링</p>
+      <div class="chart-container" id="unified-chart"></div>
+      <div class="status" id="status-unified-chart"></div>
+    </div>
+
+    <!-- 20. render() 함수 테이블 -->
+    <div class="test-case">
+      <h3>20. render() 함수 (purpose: 'table')</h3>
+      <p>통합 render() 함수로 테이블 렌더링</p>
+      <div class="table-container" id="unified-table"></div>
+      <div class="status" id="status-unified-table"></div>
+    </div>
+
+  </div>
 
   <script type="module">
     import * as VizAPI from './js/viz-api.js';
 
-    // 커스텀 라벨 테스트
-    VizAPI.renderChart(document.getElementById('chart1'), {
-      data: '62, 87, 97, 73, 59, 85, 80, 79, 65, 75',
+    // 테스트 데이터
+    const sampleData = '62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 68, 91, 83, 72, 78';
+    const stemLeafData = '12, 15, 18, 21, 23, 25, 27, 31, 33, 35, 38, 41, 45, 48';
+    const crossTableData = `헤더: 혈액형, 남학생, 여학생
+A: 0.4, 0.4
+B: 0.22, 0.2
+O: 0.25, 0.27
+AB: 0.13, 0.13`;
+    const categoryData = `헤더: 1반, 2반, 3반
+수학: 85, 90, 78
+영어: 92, 88, 95
+과학: 78, 85, 82`;
+
+    // 결과 표시 헬퍼
+    function showStatus(id, result) {
+      const el = document.getElementById(id);
+      if (result.error) {
+        el.textContent = '❌ Error: ' + result.error;
+        el.className = 'status error';
+      } else {
+        el.textContent = '✅ 렌더링 성공';
+        el.className = 'status success';
+      }
+    }
+
+    // ===== 차트 테스트 =====
+
+    // 1. 기본 차트
+    VizAPI.renderChart(document.getElementById('chart-basic'), {
+      data: sampleData,
+      canvasSize: 380
+    }).then(r => showStatus('status-chart-basic', r));
+
+    // 2. 커스텀 라벨
+    VizAPI.renderChart(document.getElementById('chart-custom-labels'), {
+      data: sampleData,
       classCount: 5,
-      canvasSize: 500,
+      canvasSize: 380,
       options: {
-        customBarLabels: ['A', null, 'B', null, 'C'],
-        axisLabels: {
-          xAxis: '(점)',
-          yAxis: '(상대도수)'
+        customBarLabels: ['A', null, 'B', null, 'C']
+      }
+    }).then(r => showStatus('status-chart-custom-labels', r));
+
+    // 3. 색상 프리셋
+    VizAPI.renderChart(document.getElementById('chart-color-preset'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        histogramColorPreset: 'primary',
+        polygonColorPreset: 'primary'
+      }
+    }).then(r => showStatus('status-chart-color-preset', r));
+
+    // 4. 커스텀 색상
+    VizAPI.renderChart(document.getElementById('chart-custom-color'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        histogramColor: {
+          fill: 'linear-gradient(180deg, #FF9A9E 0%, #FECFEF 100%)',
+          stroke: '#FF6B6B'
+        },
+        polygonColor: {
+          line: '#FFD93D',
+          point: '#FF6B6B'
         }
       }
-    }).then(result => {
-      if (result.error) {
-        console.error('Error:', result.error);
-      } else {
-        console.log('Chart rendered successfully!', result);
+    }).then(r => showStatus('status-chart-custom-color', r));
+
+    // 5. 말풍선
+    VizAPI.renderChart(document.getElementById('chart-callout'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        callout: {
+          enabled: true,
+          template: '{min}~{max}\n도수: {frequency}',
+          preset: 'primary'
+        }
       }
-    });
+    }).then(r => showStatus('status-chart-callout', r));
+
+    // 6. 히스토그램만
+    VizAPI.renderChart(document.getElementById('chart-histogram-only'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        showHistogram: true,
+        showPolygon: false
+      }
+    }).then(r => showStatus('status-chart-histogram-only', r));
+
+    // 7. 다각형만
+    VizAPI.renderChart(document.getElementById('chart-polygon-only'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        showHistogram: false,
+        showPolygon: true
+      }
+    }).then(r => showStatus('status-chart-polygon-only', r));
+
+    // 8. 파선 표시
+    VizAPI.renderChart(document.getElementById('chart-dashed-lines'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        showDashedLines: true
+      }
+    }).then(r => showStatus('status-chart-dashed-lines', r));
+
+    // 9. 격자 설정
+    VizAPI.renderChart(document.getElementById('chart-grid'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        grid: {
+          showHorizontal: true,
+          showVertical: false
+        }
+      }
+    }).then(r => showStatus('status-chart-grid', r));
+
+    // 10. 애니메이션 비활성화
+    VizAPI.renderChart(document.getElementById('chart-no-animation'), {
+      data: sampleData,
+      canvasSize: 380,
+      animation: false
+    }).then(r => showStatus('status-chart-no-animation', r));
+
+    // 11. 계급 범위 수동 지정
+    VizAPI.renderChart(document.getElementById('chart-class-range'), {
+      data: sampleData,
+      canvasSize: 380,
+      classRange: {
+        firstEnd: 60,
+        secondEnd: 70,
+        lastStart: 90
+      }
+    }).then(r => showStatus('status-chart-class-range', r));
+
+    // 12. 도수 모드
+    VizAPI.renderChart(document.getElementById('chart-frequency-mode'), {
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        dataType: 'frequency',
+        axisLabels: {
+          xAxis: '(점)',
+          yAxis: '(도수)'
+        }
+      }
+    }).then(r => showStatus('status-chart-frequency-mode', r));
+
+    // ===== 테이블 테스트 =====
+
+    // 13. 기본 도수분포표
+    VizAPI.renderTable(document.getElementById('table-frequency'), {
+      tableType: 'frequency',
+      data: sampleData,
+      classCount: 5,
+      canvasWidth: 500,
+      canvasHeight: 300
+    }).then(r => showStatus('status-table-frequency', r));
+
+    // 14. 줄기-잎 그림
+    VizAPI.renderTable(document.getElementById('table-stem-leaf'), {
+      tableType: 'stem-leaf',
+      data: stemLeafData,
+      canvasWidth: 300,
+      canvasHeight: 250
+    }).then(r => showStatus('status-table-stem-leaf', r));
+
+    // 15. 이원분류표
+    VizAPI.renderTable(document.getElementById('table-cross'), {
+      tableType: 'cross-table',
+      data: crossTableData,
+      canvasWidth: 400,
+      canvasHeight: 280,
+      options: {
+        crossTable: {
+          showTotal: true,
+          showMergedHeader: true
+        }
+      }
+    }).then(r => showStatus('status-table-cross', r));
+
+    // 16. 카테고리 행렬
+    VizAPI.renderTable(document.getElementById('table-category'), {
+      tableType: 'category-matrix',
+      data: categoryData,
+      canvasWidth: 400,
+      canvasHeight: 200
+    }).then(r => showStatus('status-table-category', r));
+
+    // 17. 셀 변수 치환
+    VizAPI.renderTable(document.getElementById('table-cell-variables'), {
+      tableType: 'stem-leaf',
+      data: stemLeafData,
+      canvasWidth: 300,
+      canvasHeight: 250,
+      cellVariables: [
+        { rowIndex: 1, colIndex: 1, value: 'x' },
+        { rowIndex: 2, colIndex: 1, value: 'y' }
+      ]
+    }).then(r => showStatus('status-table-cell-variables', r));
+
+    // 18. 셀 애니메이션
+    VizAPI.renderTable(document.getElementById('table-cell-animation'), {
+      tableType: 'frequency',
+      data: sampleData,
+      classCount: 5,
+      canvasWidth: 500,
+      canvasHeight: 300,
+      cellAnimations: [
+        { rowIndex: 1, colIndex: 3, duration: 1500, repeat: 5 },
+        { rowIndex: 2, colIndex: 3, duration: 1500, repeat: 5 }
+      ]
+    }).then(r => showStatus('status-table-cell-animation', r));
+
+    // ===== 통합 테스트 =====
+
+    // 19. render() 함수 - 차트
+    VizAPI.render(document.getElementById('unified-chart'), {
+      purpose: 'chart',
+      data: sampleData,
+      canvasSize: 380,
+      options: {
+        callout: { enabled: true }
+      }
+    }).then(r => showStatus('status-unified-chart', r));
+
+    // 20. render() 함수 - 테이블
+    VizAPI.render(document.getElementById('unified-table'), {
+      purpose: 'table',
+      tableType: 'frequency',
+      data: sampleData,
+      classCount: 5,
+      canvasWidth: 500,
+      canvasHeight: 300
+    }).then(r => showStatus('status-unified-table', r));
+
+    console.log('🎯 VIZ-API 테스트 케이스 로드 완료');
   </script>
 </body>
 </html>
