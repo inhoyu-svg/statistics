@@ -248,7 +248,7 @@ class LayerFactory {
           name: `커스텀라벨(${className}): ${customLabel}`,
           type: 'bar-custom-label',
           visible: true,
-          data: { index, relativeFreq: value, customLabel, dataType }
+          data: { index, relativeFreq: value, customLabel, dataType, coords }
         });
 
         customLabelsGroup.addChild(customLabelLayer);
