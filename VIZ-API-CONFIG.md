@@ -91,6 +91,7 @@ config (최상위)
 │   ├── axis                { showYLabels, showXLabels, yLabelFormat } 축 라벨 설정
 │   ├── congruentTriangles  { enabled, boundary } 합동 삼각형 설정
 │   ├── customYInterval     Y축 간격 커스텀
+│   ├── customBarLabels     { enabled, labels, fontSize, color } 막대 내부 라벨
 │   │
 │   │  [도수분포표 전용]
 │   ├── tableConfig         ─────────────────────────
@@ -338,6 +339,7 @@ config (최상위)
 | `options.axis` | `object` | X | `{ showYLabels: true, showXLabels: true }` | 축 라벨 표시 설정 |
 | `options.congruentTriangles` | `object` | X | - | 합동 삼각형 설정 |
 | `options.customYInterval` | `number` | X | `null` | Y축 간격 커스텀 |
+| `options.customBarLabels` | `object` | X | - | 막대 내부 커스텀 라벨 설정 |
 
 ---
 
@@ -909,6 +911,71 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 
 > **팁**: `callout.preset`은 `polygonColorPreset`과 동일한 값을 사용하면 색상이 일관됩니다.
 > **권장**: `callout.preset`은 따로 넣지 않아도 도수다각형의 색상 규칙에 따라 동일한 색상으로 출력되어 굳이 넣지 않아도 됩니다.
+
+---
+
+### options.customBarLabels
+
+막대 내부에 커스텀 라벨을 표시합니다. 넓이비, 비율, 문자 등을 막대 안에 표시할 때 사용합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **기본값** | `{ enabled: false }` |
+
+#### 하위 속성
+
+| 속성 | 타입 | 필수 | 기본값 | 설명 |
+|:-----|:-----|:-----|:-------|:-----|
+| `enabled` | `boolean` | O | `false` | 커스텀 라벨 표시 활성화 |
+| `labels` | `array` \| `object` | O | - | 막대별 라벨 (배열 또는 인덱스 객체) |
+| `fontSize` | `number` | X | `20` | 라벨 폰트 크기 (px) |
+| `color` | `string` | X | `"#FFFFFF"` | 라벨 색상 |
+
+#### labels 형식
+
+**배열 형식** (권장): 인덱스 순서대로 라벨 지정. `null`은 해당 막대에 라벨 없음.
+```json
+"labels": ["1", null, "2", null, "3"]
+```
+
+**객체 형식**: 특정 인덱스에만 라벨 지정.
+```json
+"labels": { "0": "1", "2": "2", "4": "3" }
+```
+
+#### 예시: 넓이비 표시
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "customBarLabels": {
+      "enabled": true,
+      "labels": ["1", "2", "3", "2", "1"],
+      "fontSize": 24,
+      "color": "#FFFFFF"
+    }
+  }
+}
+```
+
+#### 예시: 특정 막대에만 라벨
+
+```json
+{
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+  "options": {
+    "customBarLabels": {
+      "enabled": true,
+      "labels": { "1": "A", "3": "B" }
+    }
+  }
+}
+```
+
+> **팁**: 라벨은 KaTeX 수식을 지원합니다. 예: `"\\frac{1}{2}"` → ½ 분수 표시
 
 ---
 
