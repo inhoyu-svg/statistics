@@ -501,24 +501,16 @@ export async function renderChart(element, config) {
     }
 
     // Custom bar labels (막대 내부 커스텀 라벨)
-    const customBarLabels = options.customBarLabels || {};
-    if (customBarLabels.enabled && customBarLabels.labels) {
+    // 배열 형식: ["A", null, "B"] - null은 해당 막대 스킵
+    const customBarLabels = options.customBarLabels;
+    if (Array.isArray(customBarLabels) && customBarLabels.length > 0) {
       CONFIG.SHOW_BAR_CUSTOM_LABELS = true;
-
-      // 배열 형식 → 객체로 변환
-      if (Array.isArray(customBarLabels.labels)) {
-        CONFIG.BAR_CUSTOM_LABELS = {};
-        customBarLabels.labels.forEach((label, idx) => {
-          if (label !== null && label !== undefined) {
-            CONFIG.BAR_CUSTOM_LABELS[idx] = label;
-          }
-        });
-      } else {
-        CONFIG.BAR_CUSTOM_LABELS = customBarLabels.labels;
-      }
-
-      if (customBarLabels.fontSize) CONFIG.BAR_CUSTOM_LABEL_FONT_SIZE = customBarLabels.fontSize;
-      if (customBarLabels.color) CONFIG.BAR_CUSTOM_LABEL_COLOR = customBarLabels.color;
+      CONFIG.BAR_CUSTOM_LABELS = {};
+      customBarLabels.forEach((label, idx) => {
+        if (label !== null && label !== undefined) {
+          CONFIG.BAR_CUSTOM_LABELS[idx] = label;
+        }
+      });
     } else {
       CONFIG.SHOW_BAR_CUSTOM_LABELS = false;
       CONFIG.BAR_CUSTOM_LABELS = {};
