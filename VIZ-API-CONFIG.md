@@ -930,7 +930,7 @@ CSS `linear-gradient()` 문법을 파싱하여 적용합니다.
 |:-----|:-----|:-----|:-------|:-----|
 | `enabled` | `boolean` | O | `false` | 커스텀 라벨 표시 활성화 |
 | `labels` | `array` \| `object` | O | - | 막대별 라벨 (배열 또는 인덱스 객체) |
-| `fontSize` | `number` | X | `20` | 라벨 폰트 크기 (px) |
+| `fontSize` | `number` | X | `28` | 라벨 폰트 크기 (px) |
 | `color` | `string` | X | `"#FFFFFF"` | 라벨 색상 |
 
 #### labels 형식
