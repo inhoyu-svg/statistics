@@ -182,8 +182,8 @@ class TableCellRenderer {
     // 커스텀 색상이 있으면 사용, 없으면 헤더 색상 사용
     const color = textColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
 
-    // 숫자/알파벳이면 KaTeX 폰트 적용
-    this._renderCellText(cellText, cellX, cellY, alignment, color);
+    // 숫자/알파벳이면 KaTeX 폰트 적용, 한글은 TABLE_FONT_HEADER (Medium) 사용
+    this._renderCellText(cellText, cellX, cellY, alignment, color, false, true);
   }
 
   /**
@@ -652,7 +652,7 @@ class TableCellRenderer {
       });
     } else if (this._containsMixedKoreanAndNumeric(str)) {
       // 한글+숫자/알파벳 혼합인 경우 분리 렌더링 (예: "1반", "2반")
-      this._renderMixedText(str, x, y, alignment, color, bold, fontSize);
+      this._renderMixedText(str, x, y, alignment, color, bold, fontSize, isHeader);
     } else {
       // 한글 등은 기본 폰트 사용 (괄호 처리는 상단에서 이미 완료됨)
       this.ctx.fillStyle = color;
@@ -695,8 +695,9 @@ class TableCellRenderer {
    * @param {string} color - 텍스트 색상
    * @param {boolean} bold - 볼드 여부
    * @param {number} fontSize - 폰트 크기 (숫자/알파벳용)
+   * @param {boolean} isHeader - 헤더 여부
    */
-  _renderMixedText(text, x, y, alignment, color, bold, fontSize) {
+  _renderMixedText(text, x, y, alignment, color, bold, fontSize, isHeader = false) {
     const segments = this._splitByCharType(text);
     // 한글은 기존 테이블 폰트 크기(18px) 유지
     const koreanFontSize = 18;
@@ -709,7 +710,7 @@ class TableCellRenderer {
     let totalWidth = 0;
     segments.forEach(seg => {
       const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-      this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+      this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
       totalWidth += this.ctx.measureText(seg.text).width;
     });
 
@@ -722,7 +723,7 @@ class TableCellRenderer {
     this.ctx.textAlign = 'left';
     segments.forEach(seg => {
       const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-      this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+      this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
       this.ctx.fillText(seg.text, currentX, y);
       currentX += this.ctx.measureText(seg.text).width;
     });
@@ -760,7 +761,7 @@ class TableCellRenderer {
       const segments = this._splitByCharType(mainText);
       segments.forEach(seg => {
         const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
         mainWidth += this.ctx.measureText(seg.text).width;
       });
     } else {
@@ -812,7 +813,7 @@ class TableCellRenderer {
       let currentX = startX;
       segments.forEach(seg => {
         const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
+        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
         this.ctx.fillText(seg.text, currentX, y);
         currentX += this.ctx.measureText(seg.text).width;
       });
@@ -914,12 +915,13 @@ class TableCellRenderer {
    * @param {string} type - 문자 유형 ('korean', 'lowercase', 'other')
    * @param {number} fontSize - 폰트 크기
    * @param {boolean} bold - 볼드 여부
+   * @param {boolean} isHeader - 헤더 여부 (헤더는 Medium 사용)
    * @returns {string} CSS 폰트 문자열
    */
-  _getFontForCharType(type, fontSize, bold = false) {
+  _getFontForCharType(type, fontSize, bold = false, isHeader = false) {
     if (type === 'korean') {
-      // 한글: SCDream 폰트 사용
-      const fontWeight = bold ? '500 ' : '300 ';
+      // 한글: SCDream 폰트 사용 (헤더 또는 볼드면 Medium)
+      const fontWeight = (bold || isHeader) ? '500 ' : '300 ';
       return `${fontWeight}${fontSize}px 'SCDream', sans-serif`;
     } else if (type === 'lowercase') {
       return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
