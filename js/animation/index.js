@@ -26,11 +26,7 @@ export {
   rebuildTimeline,
   calculateProgress,
   getActiveAnimations,
-  getProgress,
-  getInfo,
-  notifyUpdate,
-  serializeTimeline,
-  deserializeTimeline
+  getProgress
 } from './timeline/timeline.service.js';
 export { applyEasing } from './timeline/timeline.utils.js';
 
