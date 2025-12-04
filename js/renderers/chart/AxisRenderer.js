@@ -68,7 +68,7 @@ class AxisRenderer {
 
       // 마지막 라벨은 축 제목으로 대체 (4글자 초과 시 폰트 축소)
       if (i === gridDivisions && yLabel) {
-        const baseFontSize = yLabel.length > 4 ? 11 : 14;
+        const baseFontSize = yLabel.length > 4 ? 18 : 22;
         KatexUtils.renderMixedText(this.ctx, yLabel,
           this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
           toY(value) + CONFIG.CHART_LABEL_OFFSET,
@@ -95,7 +95,7 @@ class AxisRenderer {
       KatexUtils.render(this.ctx, formattedValue,
         this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
         toY(value) + CONFIG.CHART_LABEL_OFFSET,
-        { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'right', baseline: 'middle' }
+        { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'right', baseline: 'middle' }
       );
     }
   }
@@ -136,7 +136,7 @@ class AxisRenderer {
       if (CONFIG.AXIS_SHOW_X_LABELS) {
         for (let i = firstDataIdx; i < classes.length; i++) {
           KatexUtils.render(this.ctx, String(classes[i].min), toX(i), labelY,
-            { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
+            { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'center', baseline: 'middle' }
           );
         }
       }
@@ -144,7 +144,7 @@ class AxisRenderer {
       // 마지막 라벨(축제목): 항상 표시
       KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
         toX(classes.length - 1) + xScale, labelY,
-        { fontSize: CONFIG.getScaledFontSize(14), color, align: 'center', baseline: 'middle' }
+        { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
       );
     } else {
       // 중략 없이 전체 표시 (KaTeX 폰트)
@@ -153,7 +153,7 @@ class AxisRenderer {
         classes.forEach((c, i) => {
           if (i === 0 && c.min === 0) return; // 0은 Y축에서 이미 표시됨
           KatexUtils.render(this.ctx, String(c.min), toX(i), labelY,
-            { fontSize: CONFIG.getScaledFontSize(18), color: color, align: 'center', baseline: 'middle' }
+            { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'center', baseline: 'middle' }
           );
         });
       }
@@ -162,7 +162,7 @@ class AxisRenderer {
       if (classes.length > 0) {
         KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
           toX(classes.length), labelY,
-          { fontSize: CONFIG.getScaledFontSize(14), color, align: 'center', baseline: 'middle' }
+          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
         );
       }
     }
