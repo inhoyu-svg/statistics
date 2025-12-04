@@ -172,6 +172,7 @@ class HistogramRenderer {
    * @param {Layer} layer - 커스텀 라벨 레이어
    */
   renderBarCustomLabel(layer) {
+    console.log('[HistogramRenderer] renderBarCustomLabel called:', layer.data);
     const { index, relativeFreq, customLabel, coords } = layer.data;
     const { toX, toY, xScale } = coords;
 

@@ -235,11 +235,21 @@ class LayerFactory {
         visible: true
       });
 
+      // 실제 표시되는 막대 기준 인덱스로 라벨 적용
+      let visibleBarIndex = 0;
+      console.log('[LayerFactory] Starting custom label creation, BAR_CUSTOM_LABELS:', CONFIG.BAR_CUSTOM_LABELS);
       values.forEach((value, index) => {
+        // 막대 생성 조건과 동일하게 체크
         if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+        if (classes[index].frequency === 0) return;
 
-        const customLabel = CONFIG.BAR_CUSTOM_LABELS[index];
+        // 표시되는 막대 인덱스 기준으로 라벨 조회
+        const customLabel = CONFIG.BAR_CUSTOM_LABELS[visibleBarIndex];
+        console.log('[LayerFactory] visibleBarIndex:', visibleBarIndex, 'customLabel:', customLabel);
+        visibleBarIndex++;
+
         if (!customLabel) return;  // 해당 인덱스에 라벨 없으면 스킵
+        console.log('[LayerFactory] Creating layer for label:', customLabel);
 
         const className = Utils.getClassName(classes[index]);
 

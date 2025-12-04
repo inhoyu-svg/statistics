@@ -328,6 +328,7 @@ class ChartRenderer {
     const histogramGroup = reversedLayers.find(l => l.id.startsWith('histogram'));
     const polygonGroup = reversedLayers.find(l => l.id.startsWith('polygon'));
     const labelsGroup = reversedLayers.find(l => l.id.startsWith('bar-labels'));
+    const customLabelsGroup = reversedLayers.find(l => l.id.startsWith('bar-custom-labels'));
     const dashedLinesGroup = reversedLayers.find(l => l.id.startsWith('dashed-lines'));
 
     const pointsGroup = polygonGroup?.children.find(c => c.id.startsWith('points'));
@@ -338,6 +339,7 @@ class ChartRenderer {
     const bars = histogramGroup?.children || [];
     const points = pointsGroup?.children || [];
     const labels = labelsGroup?.children || [];
+    const customLabels = customLabelsGroup?.children || [];
 
     // 계급별로 묶어서 순차 애니메이션
     // 기준: 막대와 점 중 더 많은 쪽 (보통 같지만 안전하게)
@@ -361,6 +363,12 @@ class ChartRenderer {
       pointIndexMap.set(point.data.index, idx);
     });
 
+    // 커스텀 라벨 인덱스 매핑 (customLabel.data.index → customLabels 배열 인덱스)
+    const customLabelIndexMap = new Map();
+    customLabels.forEach((customLabel, idx) => {
+      customLabelIndexMap.set(customLabel.data.index, idx);
+    });
+
     for (let i = 0; i < classCount; i++) {
       // ellipsis 범위 건너뛰기 (빈 계급에 대한 타이밍 낭비 방지)
       if (CoordinateSystem.shouldSkipEllipsis(i, this.currentEllipsisInfo)) continue;
@@ -374,6 +382,9 @@ class ChartRenderer {
 
       const labelIdx = labelIndexMap.get(i);
       const label = labelIdx !== undefined ? labels[labelIdx] : null;
+
+      const customLabelIdx = customLabelIndexMap.get(i);
+      const customLabel = customLabelIdx !== undefined ? customLabels[customLabelIdx] : null;
 
       // 막대 애니메이션 (있으면)
       if (bar) {
@@ -392,6 +403,17 @@ class ChartRenderer {
           startTime: currentTime,
           duration: barDuration,
           effect: 'none', // renderBarLabel에서 progress 체크
+          effectOptions: {},
+          easing: 'easeOut'
+        });
+      }
+
+      // 막대 커스텀 라벨 애니메이션 (막대와 동일한 타이밍)
+      if (customLabel) {
+        this.timeline.addAnimation(customLabel.id, {
+          startTime: currentTime,
+          duration: barDuration,
+          effect: 'none', // renderBarCustomLabel에서 progress 체크
           effectOptions: {},
           easing: 'easeOut'
         });
