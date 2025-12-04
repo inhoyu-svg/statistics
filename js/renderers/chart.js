@@ -640,8 +640,9 @@ class ChartRenderer {
       return { anim, layer, isActive, isCompleted };
     }).filter(item => item !== null);
 
-    // 렌더링 순서: bar → triangle → triangle-label-line → triangle-label → line → dashed-line → point (타입 기준 정렬)
-    const renderOrder = { 'bar': 0, 'triangle': 1, 'triangle-label-line': 2, 'triangle-label': 3, 'line': 4, 'dashed-line': 5, 'point': 6, 'bar-label': 7, 'callout': 8 };
+    // 렌더링 순서: dashed-line → bar → triangle → ... (타입 기준 정렬)
+    // 파선이 막대 뒤에 그려지도록 먼저 렌더링
+    const renderOrder = { 'dashed-line': 0, 'bar': 1, 'bar-custom-label': 2, 'triangle': 3, 'triangle-label-line': 4, 'triangle-label': 5, 'line': 6, 'point': 7, 'bar-label': 8, 'callout': 9 };
     allAnimations.sort((a, b) => {
       const orderA = renderOrder[a.layer.type] ?? 999;
       const orderB = renderOrder[b.layer.type] ?? 999;
