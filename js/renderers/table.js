@@ -10,6 +10,7 @@ import TableLayerFactory from './table/TableLayerFactory.js';
 import TableCellRenderer from './table/TableCellRenderer.js';
 import { TableFactoryRouter } from './table/factories/index.js';
 import BaseTableFactory from './table/factories/BaseTableFactory.js';
+import StemLeafFactory from './table/factories/StemLeafFactory.js';
 import tableStore from '../core/tableStore.js';
 import TableEditModal from './table/TableEditModal.js';
 
@@ -434,12 +435,9 @@ class TableRenderer {
    * @returns {Object} { columnWidths, canvasWidth }
    */
   _calculateCustomTableDynamicWidth(type, data, config) {
-    // 줄기-잎은 기존 고정 너비 사용
+    // 줄기-잎 동적 너비 계산
     if (type === CONFIG.TABLE_TYPES.STEM_LEAF) {
-      return {
-        columnWidths: null,
-        canvasWidth: CONFIG.TABLE_CANVAS_WIDTH
-      };
+      return StemLeafFactory.calculateDynamicWidths(data);
     }
 
     let headers = [];

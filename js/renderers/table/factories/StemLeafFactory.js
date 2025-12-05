@@ -25,9 +25,78 @@ class StemLeafFactory {
     }
   }
 
+  /**
+   * 동적 너비 계산 (외부 호출용)
+   * @param {Object} data - 파싱된 데이터 { isSingleMode, stems, leftLabel, rightLabel }
+   * @returns {Object} { canvasWidth, columnWidths }
+   */
+  static calculateDynamicWidths(data) {
+    if (data.isSingleMode) {
+      return this._calculateSingleModeDynamicWidths(data.stems);
+    } else {
+      return this._calculateCompareModeDynamicWidths(data.stems, data.leftLabel, data.rightLabel);
+    }
+  }
+
+  /**
+   * 텍스트 측정용 임시 캔버스 컨텍스트 생성
+   * @returns {CanvasRenderingContext2D}
+   */
+  static _createMeasureContext() {
+    const tempCanvas = document.createElement('canvas');
+    return tempCanvas.getContext('2d');
+  }
+
   // =============================================
   // 단일 모드 (줄기 | 잎) - 2열
   // =============================================
+
+  /**
+   * 단일 모드 동적 너비 계산
+   * @param {Array} stems - 줄기 데이터 배열
+   * @returns {Object} { canvasWidth, columnWidths }
+   */
+  static _calculateSingleModeDynamicWidths(stems) {
+    const ctx = this._createMeasureContext();
+    const padding = CONFIG.TABLE_PADDING;
+    const cellPadding = 32;
+    const headerExtraPadding = 16;
+
+    // 줄기 컬럼 너비 계산
+    ctx.font = CONFIG.TABLE_FONT_HEADER;
+    const stemHeaderWidth = ctx.measureText('줄기').width + cellPadding + headerExtraPadding;
+
+    ctx.font = '24px KaTeX_Main, Times New Roman, serif';
+    let maxStemDataWidth = 0;
+    stems.forEach(s => {
+      const width = ctx.measureText(String(s.stem)).width + cellPadding;
+      maxStemDataWidth = Math.max(maxStemDataWidth, width);
+    });
+    const stemColWidth = Math.max(stemHeaderWidth, maxStemDataWidth);
+
+    // 잎 컬럼 너비 계산
+    ctx.font = CONFIG.TABLE_FONT_HEADER;
+    const leafHeaderWidth = ctx.measureText('잎').width + cellPadding + headerExtraPadding;
+
+    ctx.font = '24px KaTeX_Main, Times New Roman, serif';
+    let maxLeafDataWidth = 0;
+    stems.forEach(s => {
+      // 잎 데이터는 공백으로 구분 (6칸 간격)
+      const leafStr = s.leaves.join('      ');
+      const width = ctx.measureText(leafStr).width + cellPadding;
+      maxLeafDataWidth = Math.max(maxLeafDataWidth, width);
+    });
+    const leafColWidth = Math.max(leafHeaderWidth, maxLeafDataWidth);
+
+    // 총 너비 계산 (제한 없음)
+    const contentWidth = stemColWidth + leafColWidth;
+    const canvasWidth = contentWidth + padding * 2;
+
+    return {
+      canvasWidth,
+      columnWidths: [stemColWidth, leafColWidth]
+    };
+  }
 
   /**
    * 단일 모드 테이블 레이어 생성
@@ -39,14 +108,13 @@ class StemLeafFactory {
     const rowCount = stems.length;
 
     const padding = CONFIG.TABLE_PADDING;
-    const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
+
+    // 동적 너비 계산
+    const { canvasWidth, columnWidths } = this._calculateSingleModeDynamicWidths(stems);
     const canvasHeight = BaseTableFactory.calculateCanvasHeight(rowCount, padding);
 
     // 전체 잎 중 최대 개수 계산 (폰트 크기 일관성용)
     const maxLeafCount = Math.max(...stems.map(s => s.leaves.length));
-
-    // 열 너비 계산 (줄기 30% | 잎 70%)
-    const columnWidths = this._calculateSingleModeColumnWidths(canvasWidth, padding);
 
     // 루트 레이어 생성
     const rootLayer = BaseTableFactory.createRootLayer({
@@ -76,17 +144,6 @@ class StemLeafFactory {
 
     // LayerManager에 추가
     layerManager.addLayer(rootLayer, 'root');
-  }
-
-  /**
-   * 단일 모드 열 너비 계산 (줄기 30% | 잎 70%)
-   */
-  static _calculateSingleModeColumnWidths(canvasWidth, padding) {
-    const totalWidth = canvasWidth - padding * 2;
-    return [
-      totalWidth * 0.3,  // 줄기
-      totalWidth * 0.7   // 잎
-    ];
   }
 
   /**
@@ -252,6 +309,70 @@ class StemLeafFactory {
   // =============================================
 
   /**
+   * 비교 모드 동적 너비 계산
+   * @param {Array} stems - 줄기 데이터 배열 (leftLeaves, stem, rightLeaves)
+   * @param {string} leftLabel - 왼쪽 라벨
+   * @param {string} rightLabel - 오른쪽 라벨
+   * @returns {Object} { canvasWidth, columnWidths }
+   */
+  static _calculateCompareModeDynamicWidths(stems, leftLabel, rightLabel) {
+    const ctx = this._createMeasureContext();
+    const padding = CONFIG.TABLE_PADDING;
+    const cellPadding = 32;
+    const headerExtraPadding = 16;
+
+    // 왼쪽 잎 컬럼 너비 계산
+    ctx.font = CONFIG.TABLE_FONT_HEADER;
+    const leftHeaderWidth = ctx.measureText(`잎(${leftLabel})`).width + cellPadding + headerExtraPadding;
+
+    ctx.font = '24px KaTeX_Main, Times New Roman, serif';
+    let maxLeftLeafWidth = 0;
+    stems.forEach(s => {
+      const leafStr = s.leftLeaves.join('      ');
+      const width = ctx.measureText(leafStr).width + cellPadding;
+      maxLeftLeafWidth = Math.max(maxLeftLeafWidth, width);
+    });
+    const leftColWidth = Math.max(leftHeaderWidth, maxLeftLeafWidth);
+
+    // 줄기 컬럼 너비 계산
+    ctx.font = CONFIG.TABLE_FONT_HEADER;
+    const stemHeaderWidth = ctx.measureText('줄기').width + cellPadding + headerExtraPadding;
+
+    ctx.font = '24px KaTeX_Main, Times New Roman, serif';
+    let maxStemDataWidth = 0;
+    stems.forEach(s => {
+      const width = ctx.measureText(String(s.stem)).width + cellPadding;
+      maxStemDataWidth = Math.max(maxStemDataWidth, width);
+    });
+    const stemColWidth = Math.max(stemHeaderWidth, maxStemDataWidth);
+
+    // 오른쪽 잎 컬럼 너비 계산
+    ctx.font = CONFIG.TABLE_FONT_HEADER;
+    const rightHeaderWidth = ctx.measureText(`잎(${rightLabel})`).width + cellPadding + headerExtraPadding;
+
+    ctx.font = '24px KaTeX_Main, Times New Roman, serif';
+    let maxRightLeafWidth = 0;
+    stems.forEach(s => {
+      const leafStr = s.rightLeaves.join('      ');
+      const width = ctx.measureText(leafStr).width + cellPadding;
+      maxRightLeafWidth = Math.max(maxRightLeafWidth, width);
+    });
+    const rightColWidth = Math.max(rightHeaderWidth, maxRightLeafWidth);
+
+    // 왼쪽/오른쪽 잎 컬럼 너비를 동일하게 맞춤 (대칭)
+    const leafColWidth = Math.max(leftColWidth, rightColWidth);
+
+    // 총 너비 계산 (제한 없음)
+    const contentWidth = leafColWidth + stemColWidth + leafColWidth;
+    const canvasWidth = contentWidth + padding * 2;
+
+    return {
+      canvasWidth,
+      columnWidths: [leafColWidth, stemColWidth, leafColWidth]
+    };
+  }
+
+  /**
    * 비교 모드 테이블 레이어 생성
    */
   static _createCompareModeTableLayers(layerManager, data, config, tableId) {
@@ -263,7 +384,9 @@ class StemLeafFactory {
     const rowCount = stems.length;
 
     const padding = CONFIG.TABLE_PADDING;
-    const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
+
+    // 동적 너비 계산
+    const { canvasWidth, columnWidths } = this._calculateCompareModeDynamicWidths(stems, leftLabel, rightLabel);
     const canvasHeight = BaseTableFactory.calculateCanvasHeight(rowCount, padding);
 
     // 전체 잎 중 최대 개수 계산 (왼쪽/오른쪽 모두 고려, 폰트 크기 일관성용)
@@ -271,9 +394,6 @@ class StemLeafFactory {
       ...stems.map(s => s.leftLeaves.length),
       ...stems.map(s => s.rightLeaves.length)
     );
-
-    // 열 너비 계산 (왼쪽 잎 | 줄기 | 오른쪽 잎)
-    const columnWidths = this._calculateCompareModeColumnWidths(canvasWidth, padding);
 
     // 루트 레이어 생성
     const rootLayer = BaseTableFactory.createRootLayer({
@@ -310,18 +430,6 @@ class StemLeafFactory {
 
     // LayerManager에 추가
     layerManager.addLayer(rootLayer, 'root');
-  }
-
-  /**
-   * 비교 모드 열 너비 계산 (왼쪽 40% | 줄기 20% | 오른쪽 40%)
-   */
-  static _calculateCompareModeColumnWidths(canvasWidth, padding) {
-    const totalWidth = canvasWidth - padding * 2;
-    return [
-      totalWidth * 0.4,  // 왼쪽 잎
-      totalWidth * 0.2,  // 줄기
-      totalWidth * 0.4   // 오른쪽 잎
-    ];
   }
 
   /**

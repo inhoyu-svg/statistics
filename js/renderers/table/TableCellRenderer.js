@@ -420,15 +420,12 @@ class TableCellRenderer {
     }
     const cellY = y + height / 2;
 
-    // 전체 최대 잎 개수에 따라 폰트 크기 조정 (일관성 유지)
-    // 단일 모드: 11개 이상, 비교 모드: 7개 이상일 때 폰트 축소
-    const { maxLeafCount = 0, isSingleMode = false } = layer.data;
-    const threshold = isSingleMode ? 11 : 7;
-    const fontSize = maxLeafCount >= threshold ? 20 : 24;
+    // 고정 폰트 크기 (동적 너비로 조절되므로 폰트 축소 불필요)
+    const fontSize = 24;
 
     // 변수인 경우와 일반 잎 데이터 분기
     if (isVariable) {
-      // 변수인 경우: 동적 폰트 크기 + 이탤릭 강제
+      // 변수인 경우: 이탤릭 강제
       this._renderStemLeafText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'), fontSize, true);
     } else {
       // 잎 데이터인 경우: 기존 렌더링
