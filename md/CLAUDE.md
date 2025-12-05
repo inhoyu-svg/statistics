@@ -151,6 +151,7 @@ statistics/
 │   ├── CLAUDE.md           # Claude Code 가이드
 │   ├── SCHEMA.md           # 데이터 구조 스키마 문서
 │   ├── VIZ-API-CONFIG.md   # viz-api 설정 가이드
+│   ├── REFACTORING-PLAN.md # 리팩토링 계획
 │   ├── README.md           # 프로젝트 소개
 │   └── USAGE.md            # 사용법 가이드
 └── schema/                 # JSON Schema
