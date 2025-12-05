@@ -586,16 +586,18 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
   const cellSet = chartRangesToCellSet(ranges);
 
   // 축에 닿는 셀 확인 (maskAxisLabels용)
-  let minX = Infinity, minY = Infinity, maxY = -Infinity;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   cellSet.forEach(key => {
     const [x, y] = key.split('-').map(Number);
     if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
     if (y < minY) minY = y;
     if (y > maxY) maxY = y;
   });
   const touchesYAxis = minX === 0;
   const touchesXAxis = minY === 0;
   const touchesTop = maxY >= (chartInfo.gridDivisions - 1);  // 차트 상단에 닿는지
+  const touchesRight = chartInfo.barCount && maxX >= (chartInfo.barCount - 1);  // 차트 오른쪽 끝에 닿는지
 
   // 인접 여부 확인 헬퍼 (차트는 Y=0이 하단)
   const getAdjacency = (x, y) => ({
@@ -635,6 +637,11 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
     // 차트 상단 찢김: maskAxisLabels와 관계없이 항상 차트 상단 테두리까지 확장
     if (touchesTop && y === maxY && !adj.hasTop) {
       topY = cell.y - 15;
+    }
+
+    // 차트 오른쪽 끝 찢김: maskAxisLabels와 관계없이 항상 차트 오른쪽 테두리까지 확장
+    if (touchesRight && x === maxX && !adj.hasRight) {
+      rightX = cell.x + cell.width + 15;
     }
 
     // 각 변의 경로 생성 (외곽은 찢김, 인접은 직선)

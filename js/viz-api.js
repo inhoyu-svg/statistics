@@ -555,7 +555,8 @@ export async function renderChart(element, config) {
         gap: 0,
         chartHeight: coords.chartH,
         gridDivisions: coords.gridDivisions,
-        canvasHeight: canvas.height
+        canvasHeight: canvas.height,
+        barCount: classes.length
       };
       applyChartCorruption(chartRenderer.ctx, options.corruption, chartInfo);
     }
