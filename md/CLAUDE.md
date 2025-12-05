@@ -410,6 +410,13 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
     - 인접 셀 병합: 연결된 영역은 하나의 찢김으로 렌더링
     - 차트 상단/오른쪽 테두리 자동 확장
     - **수정 파일**: `js/utils/corruption.js` (신규), `js/viz-api.js`
+  - ✅ **SCHEMA.md 문서 추가** (2025-12-05)
+    - viz-api 데이터 구조 스키마 문서화
+    - 최상위 Config 객체, tableType별 data 형식
+    - 내부 변환 데이터 구조 (frequency, stem-leaf, cross-table, category-matrix)
+    - options 객체 구조, cellVariables 형식
+    - 데이터 흐름 다이어그램
+    - **신규 파일**: `md/SCHEMA.md`
   - ✅ **정적 모드 합동 삼각형 렌더링** (2025-12-05)
     - `animation: false`일 때도 합동 삼각형 표시
     - `TriangleRenderer.drawStatic()` 메서드 추가
