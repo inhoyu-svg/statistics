@@ -1,0 +1,436 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/inhoyu-svg/statistics/schema/viz-api.schema.json",
+  "title": "viz-api Config",
+  "description": "viz-api.js 시각화 설정 스키마",
+  "type": "object",
+  "required": ["data"],
+  "properties": {
+    "data": {
+      "description": "변량 데이터 (필수)",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 1
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ]
+    },
+    "purpose": {
+      "description": "렌더링 목적",
+      "type": "string",
+      "enum": ["chart", "table"],
+      "default": "chart"
+    },
+    "tableType": {
+      "description": "테이블 유형 (purpose가 table일 때)",
+      "type": "string",
+      "enum": ["frequency", "cross-table", "category-matrix", "stem-leaf"],
+      "default": "frequency"
+    },
+    "canvasSize": {
+      "description": "정사각형 캔버스 크기 (canvasWidth/Height보다 우선)",
+      "type": "number",
+      "minimum": 100
+    },
+    "canvasWidth": {
+      "description": "캔버스 너비",
+      "type": "number",
+      "minimum": 100,
+      "default": 700
+    },
+    "canvasHeight": {
+      "description": "캔버스 높이",
+      "type": "number",
+      "minimum": 100,
+      "default": 450
+    },
+    "classCount": {
+      "description": "계급 개수 (도수분포표/차트)",
+      "type": "integer",
+      "minimum": 3,
+      "maximum": 20,
+      "default": 5
+    },
+    "classWidth": {
+      "description": "계급 간격 (자동 계산)",
+      "type": "number",
+      "minimum": 0.1
+    },
+    "classRange": {
+      "description": "계급 범위 수동 지정",
+      "$ref": "#/definitions/classRange"
+    },
+    "animation": {
+      "description": "애니메이션 설정",
+      "oneOf": [
+        { "type": "boolean" },
+        {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" }
+          }
+        }
+      ],
+      "default": true
+    },
+    "cellAnimations": {
+      "description": "셀 하이라이트 애니메이션",
+      "type": "array",
+      "items": { "$ref": "#/definitions/cellAnimation" }
+    },
+    "cellAnimationOptions": {
+      "description": "셀 애니메이션 옵션",
+      "type": "object",
+      "properties": {
+        "blinkEnabled": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "cellVariables": {
+      "description": "셀 값 오버라이드 (줄기-잎)",
+      "type": "array",
+      "items": { "$ref": "#/definitions/cellVariable" }
+    },
+    "options": {
+      "description": "세부 옵션",
+      "$ref": "#/definitions/options"
+    }
+  },
+  "definitions": {
+    "classRange": {
+      "type": "object",
+      "description": "계급 범위 수동 지정",
+      "required": ["firstEnd", "secondEnd", "lastStart"],
+      "properties": {
+        "firstEnd": {
+          "description": "첫 계급 끝값 (0~firstEnd)",
+          "type": "number"
+        },
+        "secondEnd": {
+          "description": "두 번째 계급 끝값 (간격 결정)",
+          "type": "number"
+        },
+        "lastStart": {
+          "description": "마지막 계급 시작값",
+          "type": "number"
+        }
+      }
+    },
+    "cellAnimation": {
+      "type": "object",
+      "description": "셀 애니메이션 설정",
+      "properties": {
+        "rowIndex": { "type": "integer", "minimum": 0 },
+        "colIndex": { "type": "integer", "minimum": 0 },
+        "rowStart": { "type": "integer", "minimum": 0 },
+        "rowEnd": { "type": "integer", "minimum": 0 },
+        "colStart": { "type": "integer", "minimum": 0 },
+        "colEnd": { "type": "integer", "minimum": 0 },
+        "duration": {
+          "type": "number",
+          "minimum": 0,
+          "default": 1500
+        },
+        "repeat": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        }
+      }
+    },
+    "cellVariable": {
+      "type": "object",
+      "description": "셀 값 오버라이드",
+      "required": ["rowIndex", "colIndex", "value"],
+      "properties": {
+        "rowIndex": { "type": "integer", "minimum": 0 },
+        "colIndex": { "type": "integer", "minimum": 0 },
+        "value": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "array" }
+          ]
+        }
+      }
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "showHistogram": {
+          "description": "히스토그램 표시",
+          "type": "boolean",
+          "default": true
+        },
+        "showPolygon": {
+          "description": "도수다각형 표시",
+          "type": "boolean",
+          "default": true
+        },
+        "dataType": {
+          "description": "Y축 데이터 타입",
+          "type": "string",
+          "enum": ["frequency", "relativeFrequency"],
+          "default": "relativeFrequency"
+        },
+        "showDashedLines": {
+          "description": "수직 파선 표시",
+          "type": "boolean",
+          "default": false
+        },
+        "axisLabels": {
+          "$ref": "#/definitions/axisLabels"
+        },
+        "grid": {
+          "$ref": "#/definitions/grid"
+        },
+        "axis": {
+          "$ref": "#/definitions/axis"
+        },
+        "callout": {
+          "$ref": "#/definitions/callout"
+        },
+        "congruentTriangles": {
+          "$ref": "#/definitions/congruentTriangles"
+        },
+        "triangleLabels": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 2
+        },
+        "customBarLabels": {
+          "description": "막대 내부 커스텀 라벨",
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "null" }
+            ]
+          }
+        },
+        "customYInterval": {
+          "description": "Y축 간격 커스텀",
+          "type": "number",
+          "minimum": 0
+        },
+        "histogramColorPreset": {
+          "type": "string",
+          "enum": ["default", "green"]
+        },
+        "histogramColor": {
+          "$ref": "#/definitions/colorConfig"
+        },
+        "polygonColorPreset": {
+          "type": "string",
+          "enum": ["default", "primary", "secondary", "tertiary"]
+        },
+        "polygonColor": {
+          "$ref": "#/definitions/colorConfig"
+        },
+        "corruption": {
+          "$ref": "#/definitions/corruption"
+        },
+        "tableConfig": {
+          "$ref": "#/definitions/tableConfig"
+        },
+        "crossTable": {
+          "$ref": "#/definitions/crossTable"
+        }
+      }
+    },
+    "axisLabels": {
+      "type": "object",
+      "description": "축 라벨 커스터마이징",
+      "properties": {
+        "xAxis": { "type": "string" },
+        "yAxis": { "type": "string" }
+      }
+    },
+    "grid": {
+      "type": "object",
+      "description": "격자선 설정",
+      "properties": {
+        "showHorizontal": {
+          "type": "boolean",
+          "default": true
+        },
+        "showVertical": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "axis": {
+      "type": "object",
+      "description": "축 라벨 표시 설정",
+      "properties": {
+        "showYLabels": {
+          "type": "boolean",
+          "default": true
+        },
+        "showXLabels": {
+          "type": "boolean",
+          "default": true
+        },
+        "yLabelFormat": {
+          "type": "string",
+          "enum": ["decimal", "percent"],
+          "default": "decimal"
+        }
+      }
+    },
+    "callout": {
+      "type": "object",
+      "description": "말풍선 설정",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "template": { "type": "string" },
+        "preset": {
+          "type": "string",
+          "enum": ["default", "primary", "secondary", "tertiary"]
+        }
+      }
+    },
+    "congruentTriangles": {
+      "type": "object",
+      "description": "합동 삼각형 설정",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "boundary": {
+          "description": "경계값",
+          "type": "number"
+        }
+      }
+    },
+    "colorConfig": {
+      "description": "색상 설정",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "fill": { "type": "string" },
+            "stroke": { "type": "string" },
+            "line": { "type": "string" },
+            "point": { "type": "string" },
+            "alpha": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      ]
+    },
+    "corruption": {
+      "type": "object",
+      "description": "찢김 효과 설정",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "cells": {
+          "description": "셀 범위 (예: \"0-0:2-3\")",
+          "type": "string",
+          "pattern": "^\\d+-\\d+(:\\d+-\\d+)?$"
+        },
+        "maskAxisLabels": {
+          "type": "boolean",
+          "default": false
+        },
+        "style": {
+          "type": "object",
+          "properties": {
+            "edgeColor": {
+              "type": "string",
+              "default": "#FF0000"
+            },
+            "fiberCount": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 50
+            }
+          }
+        }
+      }
+    },
+    "tableConfig": {
+      "type": "object",
+      "description": "도수분포표 설정",
+      "properties": {
+        "visibleColumns": {
+          "description": "7개 컬럼 표시 여부",
+          "type": "array",
+          "items": { "type": "boolean" },
+          "minItems": 7,
+          "maxItems": 7
+        },
+        "columnOrder": {
+          "description": "컬럼 순서",
+          "type": "array",
+          "items": { "type": "integer" }
+        },
+        "labels": {
+          "type": "object",
+          "properties": {
+            "class": { "type": "string" },
+            "midpoint": { "type": "string" },
+            "tally": { "type": "string" },
+            "frequency": { "type": "string" },
+            "relativeFrequency": { "type": "string" },
+            "cumulativeFrequency": { "type": "string" },
+            "cumulativeRelativeFrequency": { "type": "string" }
+          }
+        },
+        "showSuperscript": {
+          "description": "이상/미만 표시",
+          "type": "boolean"
+        },
+        "showSummaryRow": {
+          "description": "합계 행 표시",
+          "type": "boolean",
+          "default": true
+        },
+        "cellVariables": {
+          "description": "도수분포표 셀 오버라이드",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["class", "column", "value"],
+            "properties": {
+              "class": {
+                "description": "계급명 (예: \"60~70\")",
+                "type": "string"
+              },
+              "column": {
+                "description": "컬럼명",
+                "type": "string",
+                "enum": ["class", "midpoint", "tally", "frequency", "relativeFrequency", "cumulativeFrequency", "cumulativeRelativeFrequency"]
+              },
+              "value": {}
+            }
+          }
+        }
+      }
+    },
+    "crossTable": {
+      "type": "object",
+      "description": "이원분류표 설정",
+      "properties": {
+        "showTotal": {
+          "type": "boolean",
+          "default": true
+        },
+        "showMergedHeader": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}

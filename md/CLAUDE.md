@@ -147,7 +147,14 @@ statistics/
 │       ├── validator.js    # 입력 검증 (131줄)
 │       ├── message.js      # 메시지 관리 (37줄)
 │       └── corruption.js   # 찢김 효과 유틸 (950줄)
-└── *.md                    # 문서 파일들 (CLAUDE.md, README.md, USAGE.md)
+├── md/                     # 문서 파일들
+│   ├── CLAUDE.md           # Claude Code 가이드
+│   ├── SCHEMA.md           # 데이터 구조 스키마 문서
+│   ├── VIZ-API-CONFIG.md   # viz-api 설정 가이드
+│   ├── README.md           # 프로젝트 소개
+│   └── USAGE.md            # 사용법 가이드
+└── schema/                 # JSON Schema
+    └── viz-api.schema.json # viz-api 설정 검증 스키마
 ```
 
 ---
@@ -410,6 +417,10 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
     - 인접 셀 병합: 연결된 영역은 하나의 찢김으로 렌더링
     - 차트 상단/오른쪽 테두리 자동 확장
     - **수정 파일**: `js/utils/corruption.js` (신규), `js/viz-api.js`
+  - ✅ **JSON Schema 추가** (2025-12-05)
+    - viz-api 설정 검증용 JSON Schema 생성
+    - 런타임 검증 가능, 다른 언어에서도 사용 가능
+    - **신규 파일**: `schema/viz-api.schema.json`
   - ✅ **SCHEMA.md 문서 추가** (2025-12-05)
     - viz-api 데이터 구조 스키마 문서화
     - 최상위 Config 객체, tableType별 data 형식
