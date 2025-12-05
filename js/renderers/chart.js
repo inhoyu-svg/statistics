@@ -192,6 +192,10 @@ class ChartRenderer {
       if (CONFIG.SHOW_POLYGON) {
         this.polygonRenderer.draw(values, coords, ellipsisInfo);
       }
+      // 합동 삼각형 렌더링 (정적 모드)
+      if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
+        this.triangleRenderer.drawStatic(values, coords);
+      }
       if (clearCanvas) {
         this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
       }
