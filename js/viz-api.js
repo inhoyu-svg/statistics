@@ -10,7 +10,7 @@ import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
 import tableStore from './core/tableStore.js';
 import { waitForFonts } from './utils/katex.js';
-import { renderTearMask, parseChartCells, cellRangeToPixel, parseTableCells, tableCellRangeToPixel } from './utils/corruption.js';
+import { applyChartCorruption, applyTableCorruption } from './utils/corruption.js';
 
 // Counter for unique ID generation
 let chartInstanceCounter = 0;
@@ -1044,80 +1044,6 @@ export function clearCellAnimations(tableRenderer) {
   if (!tableRenderer) return;
   tableRenderer.stopCellAnimation();
   tableRenderer.clearSavedAnimations();
-}
-
-// ============================================
-// Corruption (찢김 효과) API
-// ============================================
-
-/**
- * 차트에 corruption 효과 적용
- * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
- * @param {Object} corruptionOptions - corruption 설정
- * @param {Object} chartInfo - 차트 정보 (좌표 변환용)
- */
-function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
-  if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
-
-  const cellsInput = Array.isArray(corruptionOptions.cells)
-    ? corruptionOptions.cells.join(', ')
-    : corruptionOptions.cells;
-
-  const ranges = parseChartCells(cellsInput);
-  if (ranges.length === 0) return;
-
-  const style = corruptionOptions.style || {};
-  const maskAxisLabels = corruptionOptions.maskAxisLabels !== false;
-
-  ranges.forEach(range => {
-    let region = cellRangeToPixel(range, chartInfo);
-
-    // 축 라벨 마스킹 확장 (축에 닿는 셀 범위일 때)
-    if (maskAxisLabels) {
-      const touchesXAxis = (range.y1 === 0 && range.y2 === 0);
-      const touchesYAxis = (range.x1 === 0 && range.x2 === 0);
-
-      if (touchesXAxis) {
-        // X축 라벨까지 확장 (아래로)
-        const extendDown = 30;
-        region.height += extendDown;
-      }
-
-      if (touchesYAxis) {
-        // Y축 라벨까지 확장 (왼쪽으로)
-        const extendLeft = region.x - 5;
-        region.width += extendLeft;
-        region.x = 5;
-      }
-    }
-
-    renderTearMask(ctx, region, style);
-  });
-}
-
-/**
- * 테이블에 corruption 효과 적용
- * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
- * @param {Object} corruptionOptions - corruption 설정
- * @param {Object} tableInfo - 테이블 정보 (좌표 변환용)
- */
-function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
-  if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
-
-  const cellsInput = Array.isArray(corruptionOptions.cells)
-    ? corruptionOptions.cells.join(', ')
-    : corruptionOptions.cells;
-
-  const { totalRows, totalCols } = tableInfo;
-  const ranges = parseTableCells(cellsInput, totalRows, totalCols);
-  if (ranges.length === 0) return;
-
-  const style = corruptionOptions.style || {};
-
-  ranges.forEach(range => {
-    const region = tableCellRangeToPixel(range, tableInfo);
-    renderTearMask(ctx, region, style);
-  });
 }
 
 export default {

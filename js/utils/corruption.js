@@ -87,7 +87,7 @@ export function generateTearPath(startX, startY, endX, endY, complexity = 0.7, s
 /**
  * 종이 섬유 효과 렌더링
  */
-function renderFibers(ctx, allEdges, options = {}) {
+export function renderFibers(ctx, allEdges, options = {}) {
   const {
     fiberCount = 20,
     fiberLength = 10,
@@ -158,8 +158,9 @@ function renderEdgeColor(ctx, allEdges, options = {}) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {Object} region - 영역 {x, y, width, height}
  * @param {Object} style - 스타일 설정
+ * @param {Object} skipEdges - 생략할 면 {top, right, bottom, left}
  */
-export function renderTearMask(ctx, region, style = {}) {
+export function renderTearMask(ctx, region, style = {}, skipEdges = {}) {
   const { x, y, width, height } = region;
   const {
     edgeComplexity = 0.7,
@@ -190,15 +191,29 @@ export function renderTearMask(ctx, region, style = {}) {
       height: height + layerOffset * 2
     };
 
-    // 4변의 찢김 경로 생성
-    const topEdge = generateTearPath(layerRegion.x, layerRegion.y, layerRegion.x + layerRegion.width, layerRegion.y, edgeComplexity, layerSeed);
-    const rightEdge = generateTearPath(layerRegion.x + layerRegion.width, layerRegion.y, layerRegion.x + layerRegion.width, layerRegion.y + layerRegion.height, edgeComplexity, layerSeed + 10);
-    const bottomEdge = generateTearPath(layerRegion.x + layerRegion.width, layerRegion.y + layerRegion.height, layerRegion.x, layerRegion.y + layerRegion.height, edgeComplexity, layerSeed + 20);
-    const leftEdge = generateTearPath(layerRegion.x, layerRegion.y + layerRegion.height, layerRegion.x, layerRegion.y, edgeComplexity, layerSeed + 30);
+    // 4변의 찢김 경로 생성 (skipEdges가 true인 면은 직선)
+    const topEdge = skipEdges.top
+      ? [{ x: layerRegion.x, y: layerRegion.y }, { x: layerRegion.x + layerRegion.width, y: layerRegion.y }]
+      : generateTearPath(layerRegion.x, layerRegion.y, layerRegion.x + layerRegion.width, layerRegion.y, edgeComplexity, layerSeed);
+    const rightEdge = skipEdges.right
+      ? [{ x: layerRegion.x + layerRegion.width, y: layerRegion.y }, { x: layerRegion.x + layerRegion.width, y: layerRegion.y + layerRegion.height }]
+      : generateTearPath(layerRegion.x + layerRegion.width, layerRegion.y, layerRegion.x + layerRegion.width, layerRegion.y + layerRegion.height, edgeComplexity, layerSeed + 10);
+    const bottomEdge = skipEdges.bottom
+      ? [{ x: layerRegion.x + layerRegion.width, y: layerRegion.y + layerRegion.height }, { x: layerRegion.x, y: layerRegion.y + layerRegion.height }]
+      : generateTearPath(layerRegion.x + layerRegion.width, layerRegion.y + layerRegion.height, layerRegion.x, layerRegion.y + layerRegion.height, edgeComplexity, layerSeed + 20);
+    const leftEdge = skipEdges.left
+      ? [{ x: layerRegion.x, y: layerRegion.y + layerRegion.height }, { x: layerRegion.x, y: layerRegion.y }]
+      : generateTearPath(layerRegion.x, layerRegion.y + layerRegion.height, layerRegion.x, layerRegion.y, edgeComplexity, layerSeed + 30);
 
-    const allEdges = { top: topEdge, right: rightEdge, bottom: bottomEdge, left: leftEdge };
+    // 외곽 면만 포함 (인접한 면은 빈 배열로 - edge color/fiber 제외)
+    const allEdges = {
+      top: skipEdges.top ? [] : topEdge,
+      right: skipEdges.right ? [] : rightEdge,
+      bottom: skipEdges.bottom ? [] : bottomEdge,
+      left: skipEdges.left ? [] : leftEdge
+    };
 
-    // 경로 생성 함수
+    // 경로 생성 함수 (path는 모든 면 포함 - 마스킹용)
     function createTearPath() {
       ctx.beginPath();
       ctx.moveTo(topEdge[0].x, topEdge[0].y);
@@ -415,30 +430,501 @@ export function parseTableCells(input, totalRows, totalCols) {
 }
 
 /**
+ * 범위들을 셀 집합으로 변환
+ * @param {Array} ranges - [{rowStart, rowEnd, colStart, colEnd}, ...]
+ * @returns {Set} "row-col" 형태의 셀 키 집합
+ */
+export function rangesToCellSet(ranges) {
+  const cells = new Set();
+  ranges.forEach(range => {
+    for (let row = range.rowStart; row <= range.rowEnd; row++) {
+      for (let col = range.colStart; col <= range.colEnd; col++) {
+        cells.add(`${row}-${col}`);
+      }
+    }
+  });
+  return cells;
+}
+
+/**
+ * 셀 집합의 외곽 경계를 픽셀 좌표 path로 변환
+ * @param {Set} cellSet - 셀 키 집합
+ * @param {Object} tableInfo - 테이블 정보
+ * @param {number} edgeComplexity - 찢김 복잡도
+ * @param {number} seed - 랜덤 시드
+ * @returns {Array} 연결된 path 점 배열
+ */
+export function buildOuterPath(cellSet, tableInfo, edgeComplexity = 0.7, seed = 42) {
+  const { startX, startY, cellHeight, columnWidths, cellWidth, inset = 3 } = tableInfo;
+
+  // 각 셀의 외곽 세그먼트 수집
+  const segments = [];
+
+  cellSet.forEach(key => {
+    const [row, col] = key.split('-').map(Number);
+
+    // 셀의 픽셀 좌표 계산
+    let x, w;
+    if (columnWidths && Array.isArray(columnWidths)) {
+      x = startX + columnWidths.slice(0, col).reduce((sum, cw) => sum + cw, 0);
+      w = columnWidths[col] || cellWidth;
+    } else {
+      x = startX + col * cellWidth;
+      w = cellWidth;
+    }
+    const y = startY + row * cellHeight;
+    const h = cellHeight;
+
+    // 외곽 면 확인 및 세그먼트 추가
+    if (!cellSet.has(`${row - 1}-${col}`)) {
+      // top
+      segments.push({ x1: x + inset, y1: y + inset, x2: x + w - inset, y2: y + inset, side: 'top' });
+    }
+    if (!cellSet.has(`${row + 1}-${col}`)) {
+      // bottom
+      segments.push({ x1: x + w - inset, y1: y + h - inset, x2: x + inset, y2: y + h - inset, side: 'bottom' });
+    }
+    if (!cellSet.has(`${row}-${col - 1}`)) {
+      // left
+      segments.push({ x1: x + inset, y1: y + h - inset, x2: x + inset, y2: y + inset, side: 'left' });
+    }
+    if (!cellSet.has(`${row}-${col + 1}`)) {
+      // right
+      segments.push({ x1: x + w - inset, y1: y + inset, x2: x + w - inset, y2: y + h - inset, side: 'right' });
+    }
+  });
+
+  // 세그먼트를 찢김 경로로 변환
+  const allPoints = [];
+  segments.forEach((seg, i) => {
+    const tearPath = generateTearPath(seg.x1, seg.y1, seg.x2, seg.y2, edgeComplexity, seed + i * 10);
+    allPoints.push(...tearPath);
+  });
+
+  return { segments, allPoints };
+}
+
+/**
  * 테이블 셀 범위 → 픽셀 영역 변환
  * @param {Object} range - {rowStart, rowEnd, colStart, colEnd}
  * @param {Object} tableInfo - 테이블 정보 {startX, startY, cellWidth, cellHeight}
+ * @param {Object} skipEdges - 인접한 면 정보 (inset 조정용)
  * @returns {{x, y, width, height}} 픽셀 영역
  */
-export function tableCellRangeToPixel(range, tableInfo) {
+export function tableCellRangeToPixel(range, tableInfo, skipEdges = {}) {
   const { startX, startY, cellWidth, cellHeight, columnWidths, inset = 3 } = tableInfo;
+
+  // 인접한 면에서는 inset 제거
+  const topInset = skipEdges.top ? 0 : inset;
+  const rightInset = skipEdges.right ? 0 : inset;
+  const bottomInset = skipEdges.bottom ? 0 : inset;
+  const leftInset = skipEdges.left ? 0 : inset;
 
   let x, width;
 
   if (columnWidths && Array.isArray(columnWidths)) {
     // columnWidths 배열 사용 (각 열의 실제 너비)
-    x = startX + columnWidths.slice(0, range.colStart).reduce((sum, w) => sum + w, 0) + inset;
-    width = columnWidths.slice(range.colStart, range.colEnd + 1).reduce((sum, w) => sum + w, 0) - inset * 2;
+    x = startX + columnWidths.slice(0, range.colStart).reduce((sum, w) => sum + w, 0) + leftInset;
+    width = columnWidths.slice(range.colStart, range.colEnd + 1).reduce((sum, w) => sum + w, 0) - leftInset - rightInset;
   } else {
     // 균등 너비 사용 (fallback)
-    x = startX + range.colStart * cellWidth + inset;
-    width = (range.colEnd - range.colStart + 1) * cellWidth - inset * 2;
+    x = startX + range.colStart * cellWidth + leftInset;
+    width = (range.colEnd - range.colStart + 1) * cellWidth - leftInset - rightInset;
   }
 
-  const y = startY + range.rowStart * cellHeight + inset;
-  const height = (range.rowEnd - range.rowStart + 1) * cellHeight - inset * 2;
+  const y = startY + range.rowStart * cellHeight + topInset;
+  const height = (range.rowEnd - range.rowStart + 1) * cellHeight - topInset - bottomInset;
 
   return { x, y, width, height };
+}
+
+// ==========================================
+// 차트 Corruption 효과
+// ==========================================
+
+/**
+ * 차트 범위를 셀 집합으로 변환
+ * @param {Array} ranges - [{x1, y1, x2, y2}, ...]
+ * @returns {Set} "x-y" 형식의 셀 집합
+ */
+function chartRangesToCellSet(ranges) {
+  const cells = new Set();
+  ranges.forEach(range => {
+    for (let x = range.x1; x <= range.x2; x++) {
+      for (let y = range.y1; y <= range.y2; y++) {
+        cells.add(`${x}-${y}`);
+      }
+    }
+  });
+  return cells;
+}
+
+/**
+ * 차트에 corruption 효과 적용 (인접 셀 병합 지원)
+ * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+ * @param {Object} corruptionOptions - corruption 설정
+ * @param {Object} chartInfo - 차트 정보 (좌표 변환용)
+ */
+export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
+  if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
+
+  const cellsInput = Array.isArray(corruptionOptions.cells)
+    ? corruptionOptions.cells.join(', ')
+    : corruptionOptions.cells;
+
+  const ranges = parseChartCells(cellsInput);
+  if (ranges.length === 0) return;
+
+  const style = corruptionOptions.style || {};
+  const edgeComplexity = style.edgeComplexity || 0.7;
+  const seed = style.seed || 42;
+  const inset = 10;
+  const overlap = 2;
+  const maskAxisLabels = corruptionOptions.maskAxisLabels !== false;
+
+  // 범위를 셀 집합으로 변환
+  const cellSet = chartRangesToCellSet(ranges);
+
+  // 축에 닿는 셀 확인 (maskAxisLabels용)
+  let minX = Infinity, minY = Infinity, maxY = -Infinity;
+  cellSet.forEach(key => {
+    const [x, y] = key.split('-').map(Number);
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  });
+  const touchesYAxis = minX === 0;
+  const touchesXAxis = minY === 0;
+  const touchesTop = maxY >= (chartInfo.gridDivisions - 1);  // 차트 상단에 닿는지
+
+  // 인접 여부 확인 헬퍼 (차트는 Y=0이 하단)
+  const getAdjacency = (x, y) => ({
+    hasTop: cellSet.has(`${x}-${y + 1}`),     // Y가 클수록 위
+    hasBottom: cellSet.has(`${x}-${y - 1}`),  // Y가 작을수록 아래
+    hasLeft: cellSet.has(`${x - 1}-${y}`),
+    hasRight: cellSet.has(`${x + 1}-${y}`)
+  });
+
+  // 각 셀의 4변 경로를 미리 생성 (외곽은 찢김, 인접은 직선+오버랩)
+  const cellEdges = new Map();
+  const allEdgePoints = { top: [], right: [], bottom: [], left: [] };
+
+  cellSet.forEach(key => {
+    const [x, y] = key.split('-').map(Number);
+    const cell = cellToPixel(x, y, chartInfo);
+    const adj = getAdjacency(x, y);
+
+    // 외곽: inset 적용, 인접: 오버랩 (셀 경계를 넘어감)
+    let topY = adj.hasTop ? cell.y - overlap : cell.y + inset;
+    let bottomY = adj.hasBottom ? cell.y + cell.height + overlap : cell.y + cell.height - inset;
+    let leftX = adj.hasLeft ? cell.x - overlap : cell.x + inset;
+    let rightX = adj.hasRight ? cell.x + cell.width + overlap : cell.x + cell.width - inset;
+
+    // maskAxisLabels: 축 라벨까지 확장 (X축, Y축)
+    if (maskAxisLabels) {
+      if (touchesXAxis && y === minY && !adj.hasBottom) {
+        // X축 라벨까지 확장 (아래로 30px)
+        bottomY = cell.y + cell.height + 30;
+      }
+      if (touchesYAxis && x === minX && !adj.hasLeft) {
+        // Y축 라벨까지 확장 (왼쪽으로)
+        leftX = 5;
+      }
+    }
+
+    // 차트 상단 찢김: maskAxisLabels와 관계없이 항상 차트 상단 테두리까지 확장
+    if (touchesTop && y === maxY && !adj.hasTop) {
+      topY = cell.y - 15;
+    }
+
+    // 각 변의 경로 생성 (외곽은 찢김, 인접은 직선)
+    const edges = {
+      top: adj.hasTop
+        ? [{ x: leftX, y: topY }, { x: rightX, y: topY }]
+        : generateTearPath(leftX, topY, rightX, topY, edgeComplexity, seed + x * 100 + y),
+      bottom: adj.hasBottom
+        ? [{ x: rightX, y: bottomY }, { x: leftX, y: bottomY }]
+        : generateTearPath(rightX, bottomY, leftX, bottomY, edgeComplexity, seed + x * 100 + y + 10),
+      left: adj.hasLeft
+        ? [{ x: leftX, y: bottomY }, { x: leftX, y: topY }]
+        : generateTearPath(leftX, bottomY, leftX, topY, edgeComplexity, seed + x * 100 + y + 20),
+      right: adj.hasRight
+        ? [{ x: rightX, y: topY }, { x: rightX, y: bottomY }]
+        : generateTearPath(rightX, topY, rightX, bottomY, edgeComplexity, seed + x * 100 + y + 30)
+    };
+
+    cellEdges.set(key, { cell, adj, edges });
+
+    // 외곽 엣지 포인트 수집 (fiber용)
+    if (!adj.hasTop) allEdgePoints.top.push(...edges.top);
+    if (!adj.hasBottom) allEdgePoints.bottom.push(...edges.bottom);
+    if (!adj.hasLeft) allEdgePoints.left.push(...edges.left);
+    if (!adj.hasRight) allEdgePoints.right.push(...edges.right);
+  });
+
+  // 1단계: 마스킹 (각 셀을 찢김 경로로 마스킹)
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+
+  cellSet.forEach(key => {
+    const { edges } = cellEdges.get(key);
+
+    ctx.beginPath();
+    // top → right → bottom → left 순서로 경로 연결
+    ctx.moveTo(edges.top[0].x, edges.top[0].y);
+    edges.top.forEach(p => ctx.lineTo(p.x, p.y));
+    edges.right.forEach(p => ctx.lineTo(p.x, p.y));
+    edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
+    edges.left.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+
+  // 2단계: 가장자리 색상 (외곽 면에만)
+  if (style.edgeColorEnabled) {
+    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+
+    ctx.save();
+    ctx.strokeStyle = edgeColor;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    cellSet.forEach(key => {
+      const { adj, edges } = cellEdges.get(key);
+
+      if (!adj.hasTop && edges.top.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.top[0].x, edges.top[0].y);
+        edges.top.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+      if (!adj.hasBottom && edges.bottom.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.bottom[0].x, edges.bottom[0].y);
+        edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+      if (!adj.hasLeft && edges.left.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.left[0].x, edges.left[0].y);
+        edges.left.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+      if (!adj.hasRight && edges.right.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.right[0].x, edges.right[0].y);
+        edges.right.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+    });
+
+    ctx.restore();
+  }
+
+  // 3단계: 종이 섬유 효과
+  if (style.fiberEnabled) {
+    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    const fiberCount = style.fiberCount || 20;
+    renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+  }
+}
+
+// ==========================================
+// 테이블 Corruption 효과 (셀 기반)
+// ==========================================
+
+/**
+ * 테이블에 corruption 효과 적용
+ * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+ * @param {Object} corruptionOptions - corruption 설정 { enabled, cells, style }
+ * @param {Object} tableInfo - 테이블 정보 { startX, startY, cellHeight, columnWidths, totalRows, totalCols, inset }
+ */
+export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
+  if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
+
+  const cellsInput = Array.isArray(corruptionOptions.cells)
+    ? corruptionOptions.cells.join(', ')
+    : corruptionOptions.cells;
+
+  const { totalRows, totalCols } = tableInfo;
+  const ranges = parseTableCells(cellsInput, totalRows, totalCols);
+  if (ranges.length === 0) return;
+
+  // 범위를 셀 집합으로 변환
+  const cellSet = rangesToCellSet(ranges);
+
+  const style = corruptionOptions.style || {};
+  const { startX, startY, cellHeight, columnWidths, cellWidth, inset = 3 } = tableInfo;
+  const edgeComplexity = style.edgeComplexity || 0.7;
+  const seed = style.seed || 42;
+
+  // 셀 좌표 계산 헬퍼
+  const getCellCoords = (row, col) => {
+    let x, w;
+    if (columnWidths && Array.isArray(columnWidths)) {
+      x = startX + columnWidths.slice(0, col).reduce((sum, cw) => sum + cw, 0);
+      w = columnWidths[col] || cellWidth;
+    } else {
+      x = startX + col * cellWidth;
+      w = cellWidth;
+    }
+    const y = startY + row * cellHeight;
+    const h = cellHeight;
+    return { x, y, w, h };
+  };
+
+  // 인접 여부 확인 헬퍼
+  const getAdjacency = (row, col) => ({
+    hasTop: cellSet.has(`${row - 1}-${col}`),
+    hasBottom: cellSet.has(`${row + 1}-${col}`),
+    hasLeft: cellSet.has(`${row}-${col - 1}`),
+    hasRight: cellSet.has(`${row}-${col + 1}`)
+  });
+
+  // 1단계: 마스킹 (destination-out)
+  // 인접한 셀 사이의 경계선(grid line)도 마스킹하기 위해 약간 오버랩
+  const overlap = 2;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+
+  cellSet.forEach(key => {
+    const [row, col] = key.split('-').map(Number);
+    const { x, y, w, h } = getCellCoords(row, col);
+    const adj = getAdjacency(row, col);
+
+    // 외곽은 inset, 인접한 면은 오버랩 (음수 inset)
+    const topInset = adj.hasTop ? -overlap : inset;
+    const bottomInset = adj.hasBottom ? -overlap : inset;
+    const leftInset = adj.hasLeft ? -overlap : inset;
+    const rightInset = adj.hasRight ? -overlap : inset;
+
+    ctx.fillRect(
+      x + leftInset,
+      y + topInset,
+      w - leftInset - rightInset,
+      h - topInset - bottomInset
+    );
+  });
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+
+  // 2단계: 가장자리 색상 및 섬유 효과 (각 셀별로 개별 처리)
+  const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+  const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+  const fiberCount = style.fiberCount || 20;
+
+  // 모든 외곽 엣지 포인트 수집 (fiber용)
+  const allEdgePoints = { top: [], right: [], bottom: [], left: [] };
+
+  cellSet.forEach(key => {
+    const [row, col] = key.split('-').map(Number);
+    const { x, y, w, h } = getCellCoords(row, col);
+    const adj = getAdjacency(row, col);
+
+    const topInset = adj.hasTop ? 0 : inset;
+    const bottomInset = adj.hasBottom ? 0 : inset;
+    const leftInset = adj.hasLeft ? 0 : inset;
+    const rightInset = adj.hasRight ? 0 : inset;
+
+    // 각 셀의 외곽 면에 대해 개별적으로 경로 생성 및 그리기
+    if (!adj.hasTop) {
+      const path = generateTearPath(
+        x + leftInset, y + topInset,
+        x + w - rightInset, y + topInset,
+        edgeComplexity, seed + row * 100 + col
+      );
+      allEdgePoints.top.push(...path);
+
+      if (style.edgeColorEnabled) {
+        ctx.save();
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        path.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    if (!adj.hasBottom) {
+      const path = generateTearPath(
+        x + w - rightInset, y + h - bottomInset,
+        x + leftInset, y + h - bottomInset,
+        edgeComplexity, seed + row * 100 + col + 10
+      );
+      allEdgePoints.bottom.push(...path);
+
+      if (style.edgeColorEnabled) {
+        ctx.save();
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        path.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    if (!adj.hasLeft) {
+      const path = generateTearPath(
+        x + leftInset, y + h - bottomInset,
+        x + leftInset, y + topInset,
+        edgeComplexity, seed + row * 100 + col + 20
+      );
+      allEdgePoints.left.push(...path);
+
+      if (style.edgeColorEnabled) {
+        ctx.save();
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        path.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    if (!adj.hasRight) {
+      const path = generateTearPath(
+        x + w - rightInset, y + topInset,
+        x + w - rightInset, y + h - bottomInset,
+        edgeComplexity, seed + row * 100 + col + 30
+      );
+      allEdgePoints.right.push(...path);
+
+      if (style.edgeColorEnabled) {
+        ctx.save();
+        ctx.strokeStyle = edgeColor;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        path.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  });
+
+  // 3단계: 종이 섬유 효과 (fiberEnabled)
+  if (style.fiberEnabled) {
+    renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+  }
 }
 
 export default {
@@ -446,9 +932,12 @@ export default {
   smoothNoise,
   generateTearPath,
   renderTearMask,
+  renderFibers,
   parseChartCells,
   cellToPixel,
   cellRangeToPixel,
   parseTableCells,
-  tableCellRangeToPixel
+  rangesToCellSet,
+  applyChartCorruption,
+  applyTableCorruption
 };
