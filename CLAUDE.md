@@ -64,22 +64,22 @@ Claude: [바로 코드 수정 시작] ← 프로토콜 위반!
 ### 폴더 구조
 ```
 statistics/
-├── index.html              # 메인 HTML (443줄)
-├── styles.css              # 전역 스타일 (2430줄)
+├── index.html              # 메인 HTML (455줄)
+├── styles.css              # 전역 스타일 (2579줄)
 ├── js/
 │   ├── app.js              # 앱 초기화 및 이벤트 바인딩 (334줄)
-│   ├── config.js           # 전역 설정 상수 (440줄)
-│   ├── viz-api.js          # 시각화 API 인터페이스 (114줄)
+│   ├── config.js           # 전역 설정 상수 (472줄)
+│   ├── viz-api.js          # 시각화 API 인터페이스 (1061줄)
 │   ├── controllers/        # UI 컨트롤러
 │   │   ├── index.js                   # 컨트롤러 export (10줄)
 │   │   ├── AnimationController.js     # 애니메이션 UI 제어 (130줄)
 │   │   ├── ChartSettingsController.js # 차트 설정 제어 (308줄)
-│   │   ├── DatasetController.js       # 데이터셋 관리 (264줄)
-│   │   ├── GenerationController.js    # 도수분포표 생성 (904줄)
-│   │   ├── LayerPanelController.js    # 레이어 패널 제어 (656줄)
+│   │   ├── DatasetController.js       # 데이터셋 관리 (275줄)
+│   │   ├── GenerationController.js    # 도수분포표 생성 (918줄)
+│   │   ├── LayerPanelController.js    # 레이어 패널 제어 (721줄)
 │   │   └── TableConfigController.js   # 테이블 설정 제어 (338줄)
 │   ├── core/               # 데이터 처리 및 상태 관리
-│   │   ├── processor.js    # 통계 계산 및 계급 생성 (302줄)
+│   │   ├── processor.js    # 통계 계산 및 계급 생성 (317줄)
 │   │   ├── chartStore.js   # 차트 상태 저장소 (98줄)
 │   │   ├── dataStore.js    # 데이터 상태 저장소 (130줄)
 │   │   ├── datasetStore.js # 데이터셋 저장소 (203줄)
@@ -96,19 +96,19 @@ statistics/
 │   │       └── DataImporter.js        # 데이터 가져오기 (139줄)
 │   ├── renderers/          # UI 렌더링 모듈
 │   │   ├── ui.js           # 통계 카드 렌더링 (77줄)
-│   │   ├── chart.js        # 메인 차트 컨트롤러 (736줄)
-│   │   ├── table.js        # 테이블 렌더링 컨트롤러 (674줄)
+│   │   ├── chart.js        # 메인 차트 컨트롤러 (785줄)
+│   │   ├── table.js        # 테이블 렌더링 컨트롤러 (1652줄)
 │   │   ├── chart/          # 차트 렌더링 서브모듈
 │   │   │   ├── CoordinateSystem.js    # 좌표 변환 (92줄)
-│   │   │   ├── LayerFactory.js        # 레이어 생성 (500줄)
-│   │   │   ├── HistogramRenderer.js   # 막대 차트 (163줄)
+│   │   │   ├── LayerFactory.js        # 레이어 생성 (540줄)
+│   │   │   ├── HistogramRenderer.js   # 막대 차트 (205줄)
 │   │   │   ├── PolygonRenderer.js     # 다각형 (133줄)
-│   │   │   ├── AxisRenderer.js        # 축, 그리드, 범례 (337줄)
+│   │   │   ├── AxisRenderer.js        # 축, 그리드 (267줄)
 │   │   │   ├── CalloutRenderer.js     # 말풍선 (233줄)
-│   │   │   ├── DashedLineRenderer.js  # 점선 렌더러 (59줄)
-│   │   │   └── TriangleRenderer.js    # 삼각형 렌더러 (139줄)
+│   │   │   ├── DashedLineRenderer.js  # 점선 렌더러 (104줄)
+│   │   │   └── TriangleRenderer.js    # 삼각형 렌더러 (321줄)
 │   │   └── table/          # 테이블 렌더링 서브모듈
-│   │       ├── TableCellRenderer.js   # 셀 렌더링 (1052줄)
+│   │       ├── TableCellRenderer.js   # 셀 렌더링 (1106줄)
 │   │       ├── TableEditModal.js      # 편집 모달 (400줄)
 │   │       ├── TableLayerFactory.js   # 테이블 레이어 생성 (486줄)
 │   │       └── factories/             # 테이블 팩토리
@@ -116,7 +116,7 @@ statistics/
 │   │           ├── BaseTableFactory.js    # 기본 팩토리 (304줄)
 │   │           ├── CrossTableFactory.js   # 이원분류표 팩토리 (429줄)
 │   │           ├── CategoryMatrixFactory.js # 카테고리 매트릭스 (192줄)
-│   │           └── StemLeafFactory.js     # 줄기와 잎 팩토리 (507줄)
+│   │           └── StemLeafFactory.js     # 줄기와 잎 팩토리 (522줄)
 │   ├── animation/          # 애니메이션 시스템
 │   │   ├── index.js        # 통합 export (49줄)
 │   │   ├── effects/        # 애니메이션 효과
@@ -138,14 +138,15 @@ statistics/
 │   │   └── timeline/       # 타임라인 관리
 │   │       ├── timeline.controller.js  # 타임라인 컨트롤러 (194줄)
 │   │       ├── timeline.dto.js         # 타임라인 데이터 객체 (19줄)
-│   │       ├── timeline.service.js     # 타임라인 서비스 (145줄)
+│   │       ├── timeline.service.js     # 타임라인 서비스 (144줄)
 │   │       ├── timeline.utils.js       # 타임라인 유틸리티 (28줄)
 │   │       └── index.js    # 타임라인 export (22줄)
 │   └── utils/              # 유틸리티 함수
-│       ├── utils.js        # 공통 유틸리티 (161줄)
-│       ├── katex.js        # KaTeX 렌더링 유틸 (325줄)
+│       ├── utils.js        # 공통 유틸리티 (159줄)
+│       ├── katex.js        # KaTeX 렌더링 유틸 (426줄)
 │       ├── validator.js    # 입력 검증 (131줄)
-│       └── message.js      # 메시지 관리 (37줄)
+│       ├── message.js      # 메시지 관리 (37줄)
+│       └── corruption.js   # 찢김 효과 유틸 (950줄)
 └── *.md                    # 문서 파일들 (CLAUDE.md, README.md, USAGE.md)
 ```
 
@@ -153,38 +154,37 @@ statistics/
 
 ## 주요 기능
 
-### 1. 도수분포표 생성
-- 데이터 입력 (쉼표 또는 공백 구분)
-- 자동 계급 생성 (0부터 시작)
-- 계급 개수 및 계급 간격 커스터마이징
-- 도수, 상대도수, 누적도수 자동 계산
+### 1. 다양한 테이블 타입
+- **도수분포표**: 계급, 도수, 상대도수, 누적도수 자동 계산
+- **이원분류표**: 행/열 카테고리 교차 분류
+- **줄기-잎 그림**: 데이터 분포 시각화
+- **카테고리 매트릭스**: 다중 카테고리 데이터
 
-### 2. 통계 요약 카드
-- 데이터 개수, 최솟값, 최댓값, 범위, 평균, 중앙값
-- 각 통계량에 대한 툴팁 설명
-
-### 3. 히스토그램 & 상대도수 다각형
-- Canvas 기반 차트 렌더링
-- 히스토그램 (그라데이션 막대)
+### 2. 차트 시각화
+- Canvas 기반 히스토그램 (그라데이션 막대)
 - 상대도수 다각형 (선 + 점)
-- 범례 표시
+- 말풍선 (Callout) - 특정 막대에 텍스트 표시
+- 수직 파선 (Dashed lines) - 기준선 표시
+- 막대 위 값 표시 (Bar labels)
+- 합동 삼각형 - 경계값 기준 S₁, S₂ 시각화
+- 빈 구간 압축 - 이중물결표(≈) 자동 표시
 
-### 4. 빈 구간 압축 기능 ⭐ (최근 추가)
-- 데이터가 0에서 멀리 떨어진 경우 (예: 140~160 범위)
-- 0부터 첫 데이터까지 빈 구간이 3개 이상이면 자동 압축
-- 압축된 구간에 이중물결표(≈) 표시
-- 차트 가독성 대폭 향상
+### 3. viz-api.js (외부 연동 API)
+- JSON 설정으로 차트/테이블 렌더링
+- iframe 임베딩 지원
+- Corruption 효과 (찢김/마스킹)
+- 셀 애니메이션 설정
 
-### 5. 고급 설정
+### 4. 고급 설정
 - X축/Y축 라벨 커스터마이징
-- 테이블 컬럼 라벨 커스터마이징
-- X축 라벨 = 테이블 "계급" 컬럼 (통합)
-- Y축 라벨 = 테이블 "상대도수(%)" 컬럼 (통합)
+- 격자선 토글 (가로/세로 개별)
+- Y축 간격 커스터마이징
+- 테이블 컬럼 표시/숨김, 순서 변경
 
-### 6. 애니메이션 시스템 ⭐
+### 5. 애니메이션 시스템
 **아키텍처**: Layer → Timeline → Effects 3단 구조
 
-#### 6.1 레이어 시스템 (animation/layer/)
+#### 5.1 레이어 시스템 (animation/layer/)
 - **Layer**: 차트의 각 요소를 계층적으로 관리 (막대, 점, 선, 라벨 등)
 - **LayerController**: 레이어 추가/제거/순서 변경
 - **LayerService**: 레이어 검색, 필터링, 상태 관리
@@ -205,7 +205,7 @@ statistics/
       └── 점-2
   ```
 
-#### 6.2 타임라인 시스템 (animation/timeline/)
+#### 5.2 타임라인 시스템 (animation/timeline/)
 - **Timeline**: 애니메이션 시퀀스 관리
 - **TimelineController**: 재생/일시정지/정지 제어
 - **TimelineService**: 애니메이션 큐 관리
@@ -214,7 +214,7 @@ statistics/
   - 순차/병렬 실행 제어
   - 애니메이션 재생 속도 조절
 
-#### 6.3 애니메이션 효과 (animation/effects/)
+#### 5.3 애니메이션 효과 (animation/effects/)
 - **fade**: 투명도 조절 (0 → 1 또는 1 → 0)
 - **scale**: 크기 변화 (작게 → 크게)
 - **slide**: 위치 이동 (아래 → 위, 왼쪽 → 오른쪽)
@@ -223,7 +223,7 @@ statistics/
 - **AnimationController**: 효과 조합 및 실행
 - **AnimationService**: 이징 함수, 보간
 
-#### 6.4 사용 예시
+#### 5.4 사용 예시
 ```javascript
 // 1. 레이어에 애니메이션 적용
 layer.addAnimation('fade', { from: 0, to: 1, duration: 500 });
@@ -239,67 +239,21 @@ layer.visible = false; // fade-out 애니메이션 자동 실행
 
 ---
 
-## 최근 업데이트 (2025-11-21)
-
-### 빈 구간 압축 기능 구현 (2025-11-19)
-**문제**: 데이터가 142~163 범위인데 계급이 0부터 시작하여 0~140 사이에 28개의 빈 막대가 생성되어 차트가 지나치게 길어짐
-
-**해결**:
-1. `processor.js`에 `shouldShowEllipsis()` 메서드 추가
-   - 첫 데이터가 있는 계급 이전에 빈 계급이 3개 이상이면 압축 필요 판단
-
-2. `CoordinateSystem.js`의 좌표 변환 로직 구현
-   - 압축 모드: 0~firstDataIdx 사이를 1칸으로 압축
-   - toX() 함수가 압축된 좌표 반환
-   - toY() 함수는 maxY 매개변수 받아서 생성
-
-3. `AxisRenderer.js`의 X축 라벨 렌더링
-   - 이중물결표(≈) 표시
-   - 이중물결 패턴 렌더링 (0과 압축된 칸 사이)
-   - 데이터 구간만 라벨 표시
-
-4. 모든 렌더링 모듈이 압축 좌표 시스템 사용
-   - `HistogramRenderer`, `PolygonRenderer`, `AxisRenderer` 등
-
-### Chart 렌더러 대규모 리팩토링 (2025-11-20)
-**목적**: CLAUDE.md 기준 충족 (600줄 이하), 유지보수성 향상
-
-**분할 전:**
-- chart.js: 950줄 ❌
-
-**분할 후:**
-- chart.js: 593줄 ✅ (메인 컨트롤러)
-- chart/CoordinateSystem.js: 79줄 (좌표 변환)
-- chart/LayerFactory.js: 248줄 (레이어 생성)
-- chart/HistogramRenderer.js: 165줄 (막대 차트)
-- chart/PolygonRenderer.js: 116줄 (다각형)
-- chart/AxisRenderer.js: 268줄 (축, 그리드, 범례)
-- chart/CalloutRenderer.js: 154줄 (말풍선)
-
-**개선 사항**:
-- ✅ 메인 파일: 950줄 → 593줄 (-38%)
-- ✅ 모든 파일 600줄 이하 유지
-- ✅ 단일 책임 원칙 준수
-- ✅ 기존 API 완벽 호환
-- ✅ 종합적인 JSDoc 주석 추가
-- ✅ 코드 중복 제거
-- ✅ XSS 방어 강화 (Utils.escapeHtml 추가)
-
----
-
 ## 리팩토링 가이드
 
-### 현재 상태 (2025-11-28)
+### 현재 상태 (2025-12-05)
 **⚠️ 리팩토링 필요 파일:**
-- **TableCellRenderer.js**: 1052줄 ❌ (600줄 초과)
-- **GenerationController.js**: 904줄 ❌ (600줄 초과)
-- **chart.js**: 736줄 ❌ (600줄 초과)
-- **table.js**: 674줄 ❌ (600줄 초과)
-- **LayerPanelController.js**: 656줄 ❌ (600줄 초과)
+- **table.js**: 1652줄 ❌ (600줄 초과)
+- **TableCellRenderer.js**: 1106줄 ❌ (600줄 초과)
+- **viz-api.js**: 1061줄 ❌ (600줄 초과)
+- **corruption.js**: 950줄 ❌ (600줄 초과)
+- **GenerationController.js**: 918줄 ❌ (600줄 초과)
+- **chart.js**: 785줄 ❌ (600줄 초과)
+- **LayerPanelController.js**: 721줄 ❌ (600줄 초과)
 
 **✅ 정상 파일:**
-- **chart/ 서브모듈들**: 59~500줄
-- **table/factories/**: 79~507줄
+- **chart/ 서브모듈들**: 92~540줄
+- **table/factories/**: 79~522줄
 - **controllers/**: 대부분 338줄 이하
 
 ### 리팩토링이 필요한 신호
@@ -333,15 +287,17 @@ layer.visible = false; // fade-out 애니메이션 자동 실행
 
 ### 향후 개선 방향 (필요)
 **우선순위 높음:**
-- TableCellRenderer.js 분할 필요 (1052줄 → 렌더링/측정/파싱 분리)
-- GenerationController.js 분할 필요 (904줄 → 기능별 분리)
+- table.js 분할 필요 (1652줄 → 렌더링/레이어/유틸 분리)
+- TableCellRenderer.js 분할 필요 (1106줄 → 렌더링/측정/파싱 분리)
+- viz-api.js 분할 필요 (1061줄 → 차트API/테이블API 분리)
+- corruption.js 분할 검토 (950줄 → 차트/테이블 분리)
 
 **중간 우선순위:**
-- chart.js 추가 분할 검토 (736줄)
-- table.js 추가 분할 검토 (674줄)
+- GenerationController.js 분할 필요 (918줄 → 기능별 분리)
+- chart.js 추가 분할 검토 (785줄)
 
 **낮은 우선순위:**
-- LayerPanelController.js 정리 (656줄)
+- LayerPanelController.js 정리 (721줄)
 
 ---
 
@@ -445,28 +401,36 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 ---
 
 ## 마지막 업데이트
-- **날짜**: 2025-12-03
+- **날짜**: 2025-12-05
 - **주요 작업**:
-  - ✅ **viz-api.js 기능 추가** (2025-12-03)
-    - **계급 범위 수동 편집** (`classRange` 파라미터)
-      - `renderChart()`, `renderTable()`에 `config.classRange` 옵션 추가
-      - `{ firstEnd, secondEnd, lastStart }` 형식으로 계급 직접 지정 가능
-      - `classCount`, `classWidth`보다 우선 적용
-    - **말풍선 기능** (`options.callout`)
-      - `{ enabled, template, preset }` 형식으로 말풍선 설정
-      - 템플릿: `{min}`, `{max}`, `{frequency}`, `{relativeFreq}` 등 지원
-      - 프리셋: `'default'`, `'primary'`, `'secondary'`, `'tertiary'`
-    - **수정 파일**: `js/viz-api.js` (+22줄)
-  - ✅ **SCDream 폰트 전역 적용** (2025-12-03)
-    - `sans-serif`만 사용하던 곳에 SCDream 폰트 추가
-    - 말풍선 한글 텍스트에 SCDream 폰트 적용
-    - **수정 파일**: `js/utils/katex.js`, `js/renderers/table/TableCellRenderer.js`
-  - ✅ **셀 애니메이션 JSON 설정 지원** (완료)
-    - `renderTable` config에 `cellAnimations` 옵션으로 셀 하이라이트 설정
-    - **수정 파일**: `js/viz-api.js`, `js/renderers/table.js`
-    - **테스트 방법**: `frame-test/lecture_example.html` 열고 콘솔(F12) 확인
+  - ✅ **Corruption (찢김 효과) 기능 추가** (2025-12-04~05)
+    - 차트/테이블에 종이 찢김 효과 적용
+    - `corruption` 옵션: `{ cells, edgeColor, fiberCount, maskAxisLabels }`
+    - 셀 범위 지정: `"0-0:2-3"` 형식 (콜론으로 시작~끝 셀)
+    - 인접 셀 병합: 연결된 영역은 하나의 찢김으로 렌더링
+    - 차트 상단/오른쪽 테두리 자동 확장
+    - **수정 파일**: `js/utils/corruption.js` (신규), `js/viz-api.js`
+  - ✅ **정적 모드 합동 삼각형 렌더링** (2025-12-05)
+    - `animation: false`일 때도 합동 삼각형 표시
+    - `TriangleRenderer.drawStatic()` 메서드 추가
+    - S₁, S₂ 라벨 및 점선 렌더링 포함
+    - **수정 파일**: `js/renderers/chart/TriangleRenderer.js`, `js/renderers/chart.js`
+  - ✅ **테이블 스케일 비율 적용** (2025-12-04)
+    - 테이블 렌더링 시 CONFIG.SCALE_RATIO 적용
+    - **수정 파일**: `js/renderers/table.js`, `js/renderers/table/TableCellRenderer.js`
+  - ✅ **차트 설정 개선** (2025-12-04)
+    - 그리드 옵션 추가 (`grid.horizontal`, `grid.vertical`)
+    - `customBarLabels` API 단순화
+    - 파선 라벨 폰트 크기 16px → 22px
+    - 축 라벨 끄기 시 0과 최댓값 라벨은 유지
+    - **수정 파일**: `js/renderers/chart/AxisRenderer.js`, `js/renderers/chart/DashedLineRenderer.js`
 
 - **이전 작업**:
+  - ✅ **viz-api.js 기능 추가** (2025-12-03)
+    - 계급 범위 수동 편집 (`classRange` 파라미터)
+    - 말풍선 기능 (`options.callout`)
+  - ✅ **SCDream 폰트 전역 적용** (2025-12-03)
+  - ✅ **셀 애니메이션 JSON 설정 지원** (2025-12-03)
   - ✅ **CLAUDE.md 폴더 구조 전면 수정** (2025-11-28)
     - 57개 JS 파일 구조 전체 재작성
     - 누락된 폴더 추가: controllers/, parsers/, serializer/, factories/
@@ -535,8 +499,6 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
     - README.md: 막대 위 값 표시 기능 추가, 중략 기호 수정
     - USAGE.md: 고급 기능 섹션에 막대 위 값 표시 설명 추가, 중략 기호 수정
     - CLAUDE.md: 폴더 구조 재작성, 애니메이션 시스템 설명 추가, 모든 오류 수정
-- **코드 품질**: 85/100점 (우수한 상태)
-- **문서 정확도**: 100/100점 (완벽) ✅
 - **현재 상태**: 정상 작동 ✅
 
 ---
@@ -545,15 +507,15 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 
 > AI가 JSON 생성 프롬프트를 작성할 때 활용도를 높이기 위한 개선 완료
 
-### ✅ Quick Start 섹션 추가 (7~30줄)
+### ✅ Quick Start 섹션 추가
 - 문서 최상단에 최소 예시 배치
 - 차트 최소 JSON, 테이블 최소 JSON
 - "이것만 있으면 동작한다" 명시
 
-### ✅ data 형식 비교표 (825~832줄)
+### ✅ data 형식 비교표
 - 4가지 tableType의 data 형식 한눈에 비교
 
-### ✅ Common Mistakes 섹션 (2085~2093줄)
+### ✅ Common Mistakes 섹션
 - 자주 하는 실수 5가지와 해결법
 
 ---
@@ -563,23 +525,25 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 > app.js에는 있지만 viz-api.js에는 아직 추가되지 않은 기능들
 
 ### 차트 애니메이션 제어
-- `playAnimation()` / `pauseAnimation()` / `stopAnimation()` - 재생 제어
+- `pauseAnimation()` / `stopAnimation()` - 일시정지/정지 제어
 - `setAnimationSpeed(speed)` - 속도 조절 (0.1x ~ 3x)
 - `timeline.seekToProgress()` - 진행도 탐색 (0~1)
 
 ### 차트 설정 옵션
-- `customYInterval` - Y축 간격 커스터마이징
-- `GRID_SHOW_HORIZONTAL` / `GRID_SHOW_VERTICAL` - 격자선 토글
-- `AXIS_SHOW_Y_LABELS` / `AXIS_SHOW_X_LABELS` - 축 라벨 표시 토글
-- `AXIS_Y_LABEL_FORMAT` - Y축 백분율 형식 ('percent' | 'decimal')
-- `SHOW_DASHED_LINES` - 파선 표시 토글
 - `SHOW_BAR_LABELS` - 막대 위 값 표시 토글
 
 ### 레이어 관리
 - 레이어 목록 조회 (`getAllLayers()`)
 - 레이어 가시성 토글 (`layer.visible`)
 - 레이어 순서 변경 (드래그앤드롭)
-- JSON 미리보기/내보내기
 
 ### 기타
 - JSON 설정 내보내기/불러오기 (`exportJson()` / `importJson()`)
+
+### ✅ 이미 구현된 기능 (2025-12-04)
+- `options.customYInterval` - Y축 간격 커스터마이징
+- `options.grid.showHorizontal/showVertical` - 격자선 토글
+- `options.axis.showYLabels/showXLabels` - 축 라벨 표시 토글
+- `options.axis.yLabelFormat` - Y축 백분율 형식
+- `options.showDashedLines` - 파선 표시 토글
+- `playAnimation()` - 애니메이션 재생
