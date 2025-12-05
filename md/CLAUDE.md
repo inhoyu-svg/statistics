@@ -116,7 +116,7 @@ statistics/
 │   │           ├── BaseTableFactory.js    # 기본 팩토리 (304줄)
 │   │           ├── CrossTableFactory.js   # 이원분류표 팩토리 (429줄)
 │   │           ├── CategoryMatrixFactory.js # 카테고리 매트릭스 (192줄)
-│   │           └── StemLeafFactory.js     # 줄기와 잎 팩토리 (522줄)
+│   │           └── StemLeafFactory.js     # 줄기와 잎 팩토리 (630줄)
 │   ├── animation/          # 애니메이션 시스템
 │   │   ├── index.js        # 통합 export (49줄)
 │   │   ├── effects/        # 애니메이션 효과
