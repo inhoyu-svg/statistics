@@ -54,7 +54,7 @@ export function generateTearPath(startX, startY, endX, endY, complexity = 0.7, s
 
   // 수직선인지 수평선인지 판단
   const isVertical = Math.abs(dx) < Math.abs(dy);
-  const amplitude = complexity * 12; // 최대 12px 변위
+  const amplitude = complexity * 8; // 최대 8px 변위 (inset보다 작게)
 
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
@@ -421,11 +421,21 @@ export function parseTableCells(input, totalRows, totalCols) {
  * @returns {{x, y, width, height}} 픽셀 영역
  */
 export function tableCellRangeToPixel(range, tableInfo) {
-  const { startX, startY, cellWidth, cellHeight, inset = 3 } = tableInfo;
+  const { startX, startY, cellWidth, cellHeight, columnWidths, inset = 3 } = tableInfo;
 
-  const x = startX + range.colStart * cellWidth + inset;
+  let x, width;
+
+  if (columnWidths && Array.isArray(columnWidths)) {
+    // columnWidths 배열 사용 (각 열의 실제 너비)
+    x = startX + columnWidths.slice(0, range.colStart).reduce((sum, w) => sum + w, 0) + inset;
+    width = columnWidths.slice(range.colStart, range.colEnd + 1).reduce((sum, w) => sum + w, 0) - inset * 2;
+  } else {
+    // 균등 너비 사용 (fallback)
+    x = startX + range.colStart * cellWidth + inset;
+    width = (range.colEnd - range.colStart + 1) * cellWidth - inset * 2;
+  }
+
   const y = startY + range.rowStart * cellHeight + inset;
-  const width = (range.colEnd - range.colStart + 1) * cellWidth - inset * 2;
   const height = (range.rowEnd - range.rowStart + 1) * cellHeight - inset * 2;
 
   return { x, y, width, height };

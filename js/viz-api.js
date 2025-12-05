@@ -688,22 +688,28 @@ export async function renderTable(element, config) {
 
       // Apply corruption effect (if enabled)
       if (options.corruption?.enabled) {
-        const visibleCols = (tableConfig?.visibleColumns || CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS)
-          .filter(v => v).length;
         const showSummaryRow = tableConfig?.showSummaryRow ?? true;
         const totalRows = classes.length + 1 + (showSummaryRow ? 1 : 0); // header + data + summary
-        const totalCols = visibleCols;
         const scale = tableRenderer.scaleRatio || 1;
-        const tableInfo = {
-          startX: CONFIG.TABLE_PADDING * scale,
-          startY: CONFIG.TABLE_PADDING * scale,
-          cellWidth: (canvas.width - CONFIG.TABLE_PADDING * scale * 2) / totalCols,
-          cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
-          totalRows,
-          totalCols,
-          inset: 3 * scale
-        };
-        applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
+
+        // grid 레이어에서 실제 columnWidths 가져오기
+        const gridLayers = tableRenderer.layerManager.getLayersByType('grid');
+        const gridLayer = gridLayers[0];
+        if (gridLayer && gridLayer.data && gridLayer.data.columnWidths) {
+          const { x, y, columnWidths } = gridLayer.data;
+          const totalCols = columnWidths.length;
+
+          const tableInfo = {
+            startX: x * scale,
+            startY: y * scale,
+            columnWidths: columnWidths.map(w => w * scale),
+            cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
+            totalRows,
+            totalCols,
+            inset: 3 * scale
+          };
+          applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
+        }
       }
 
       return {
