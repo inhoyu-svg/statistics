@@ -346,3 +346,40 @@ cellVariables: [
 | 2025-12-08 | ✅ 리팩토링 2: cellVariables rowIndex/colIndex 통일 완료 |
 | 2025-12-08 | ✅ 리팩토링 3: ParserAdapter 패턴 구현 완료 |
 | 2025-12-08 | 🔜 리팩토링 4: cellVariables 위치 통일 계획 추가 (향후 작업) |
+
+---
+
+## 데이터 구조 위험 요소 분석
+
+> LLM/AI가 viz-api JSON 생성 시 주의해야 할 구조적 위험 요소
+
+### 🔴 높음 (오류 가능성 높음)
+
+| # | 위험 요소 | 문제 | 영향 |
+|:-:|:---------|:-----|:-----|
+| 1 | `data` 타입 다형성 | `number[]` 또는 `string` - tableType별로 다른 형식 필요 | 잘못된 형식 생성 |
+| 2 | `purpose` 누락 시 기본값 | `"chart"`가 기본 → 테이블 원하면 반드시 명시 필요 | 테이블 의도했는데 차트 생성 |
+| 3 | `tableType` 기본값 혼란 | `"frequency"` 기본 → 다른 타입 원하면 반드시 명시 | 잘못된 테이블 타입 |
+| 4 | `options` 깊은 중첩 | `options.tableConfig.cellVariables` 등 3단계 중첩 | 경로 오류 빈번 |
+
+### 🟡 중간 (혼동 가능)
+
+| # | 위험 요소 | 문제 |
+|:-:|:---------|:-----|
+| 5 | 유사 필드명 | `cellAnimations` vs `cellVariables` vs `cellAnimationOptions` |
+| 6 | `animation` 다형성 | `boolean` 또는 `{ enabled: boolean }` 둘 다 허용 |
+| 7 | 계급 설정 3종 | `classCount` vs `classWidth` vs `classRange` 중 어떤 걸 써야 하는지 |
+| 8 | 인덱스 기반 참조 | `visibleColumns[0]`이 뭔지, `columnOrder`가 뭔지 암기 필요 |
+
+### 🟢 낮음 (개선 권장)
+
+| # | 위험 요소 | 문제 |
+|:-:|:---------|:-----|
+| 9 | `corruption.cells` 문법 | `"0-0:2-3"` 특수 문법 이해 어려움 |
+| 10 | Preset vs Custom | `histogramColorPreset` vs `histogramColor` 우선순위 불명확 |
+
+### 향후 개선 방향
+
+- **#1~4 (높음)**: 리팩토링 4번(cellVariables 위치 통일)으로 #4 해결 예정
+- **#5~8 (중간)**: 문서 개선으로 대응 (VIZ-API-CONFIG.md Common Mistakes 섹션)
+- **#9~10 (낮음)**: 필요시 개선
