@@ -2654,13 +2654,72 @@ O: 0.26, 0.24
 
 # 자주 하는 실수 (Common Mistakes)
 
+## ⚠️ 핵심 실수 3가지
+
+### 1. purpose 누락 (가장 흔함)
+
+```json
+// ❌ 잘못됨 - 차트로 렌더링됨
+{ "tableType": "stem-leaf", "data": "162 178 175" }
+
+// ✅ 올바름
+{ "purpose": "table", "tableType": "stem-leaf", "data": "162 178 175" }
+```
+
+### 2. cellVariables 위치 오류
+
+| tableType | cellVariables 위치 |
+|:----------|:-------------------|
+| `frequency` | `options.tableConfig.cellVariables` |
+| `stem-leaf`, `cross-table`, `category-matrix` | 최상위 `cellVariables` |
+
+```json
+// ❌ frequency에서 최상위 cellVariables 사용 (무시됨)
+{
+  "purpose": "table",
+  "tableType": "frequency",
+  "cellVariables": [{ "rowIndex": 0, "colIndex": 2, "value": "?" }]
+}
+
+// ✅ frequency는 options.tableConfig 안에
+{
+  "purpose": "table",
+  "tableType": "frequency",
+  "options": {
+    "tableConfig": {
+      "cellVariables": [{ "rowIndex": 0, "colIndex": 2, "value": "?" }]
+    }
+  }
+}
+```
+
+### 3. data 형식 오류
+
+| tableType | data 형식 | 예시 |
+|:----------|:---------|:-----|
+| `frequency` | 숫자 배열 | `[62, 87, 97, 73]` |
+| `stem-leaf` | 공백 구분 숫자 문자열 | `"162 178 175"` |
+| `cross-table` | 줄바꿈 구분 행 | `"헤더: 혈액형, 남, 여\nA: 5, 3"` |
+| `category-matrix` | 줄바꿈 구분 행 | `"헤더: A, B\n행1: 1, 2"` |
+
+```json
+// ❌ frequency에 문자열 data (파싱 오류)
+{ "purpose": "table", "tableType": "frequency", "data": "62 87 97" }
+
+// ✅ frequency는 숫자 배열
+{ "purpose": "table", "tableType": "frequency", "data": [62, 87, 97] }
+```
+
+---
+
+## 기타 실수
+
 | 실수 | 증상 | 해결 방법 |
 |:-----|:-----|:----------|
-| `purpose: "table"` 누락 | 테이블 대신 차트가 렌더링됨 | 테이블은 반드시 `"purpose": "table"` 명시 |
 | `animation: true`만 설정 | 애니메이션 효과 없음 | `cellAnimations` 배열도 함께 설정 필요 |
-| cross-table에서 `헤더:` 누락 | 파싱 오류 또는 잘못된 테이블 | 두 번째 줄은 반드시 `헤더: 라벨명, 열1, 열2` 형식 |
+| cross-table에서 `헤더:` 누락 | 파싱 오류 | 첫 줄은 반드시 `헤더: 라벨명, 열1, 열2` 형식 |
 | `blinkEnabled: true`만 설정 | 깜빡임 없이 정적 하이라이트 | `duration`, `repeat` 값도 함께 설정 권장 |
-| JSON 문법 오류 | 테이블/차트 렌더링 안 됨 | trailing comma 제거, 객체 사이 comma 확인 |
+| JSON 문법 오류 | 렌더링 안 됨 | trailing comma 제거, 객체 사이 comma 확인 |
 
 ---
 

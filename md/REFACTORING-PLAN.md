@@ -172,13 +172,70 @@ interface ParsedTableData {
 
 ---
 
+## 4. cellVariables 위치 통일 🔜 향후
+
+### 현재 문제
+- `frequency` 테이블: `options.tableConfig.cellVariables`
+- 기타 테이블: 최상위 `cellVariables`
+- LLM이 위치 혼동으로 잘못된 JSON 생성
+
+### 목표
+모든 tableType에서 두 위치 모두 동작하도록 통일
+
+### 구현 계획
+
+**파일**: `js/viz-api.js`
+
+**변경 1**: frequency에서 최상위 cellVariables도 지원 (라인 687 근처)
+```javascript
+// Before
+if (tableConfig?.cellVariables && Array.isArray(tableConfig.cellVariables)) {
+  applyCellVariables(classes, tableConfig.cellVariables, tableRenderer.tableId);
+}
+
+// After
+const cellVars = config.cellVariables || tableConfig?.cellVariables;
+if (cellVars && Array.isArray(cellVars)) {
+  applyCellVariables(classes, cellVars, tableRenderer.tableId);
+}
+```
+
+**변경 2**: 기타 테이블에서 options.tableConfig.cellVariables도 지원 (라인 748 근처)
+```javascript
+// Before
+if (config.cellVariables && Array.isArray(config.cellVariables)) {
+  finalParseResult = applyCellVariablesGeneric(config.cellVariables, parseResult, tableType);
+}
+
+// After
+const cellVars = config.cellVariables || tableConfig?.cellVariables;
+if (cellVars && Array.isArray(cellVars)) {
+  finalParseResult = applyCellVariablesGeneric(cellVars, parseResult, tableType);
+}
+```
+
+### 테스트 계획
+- [ ] frequency + 최상위 cellVariables
+- [ ] frequency + options.tableConfig.cellVariables
+- [ ] stem-leaf + 양쪽 위치
+- [ ] cross-table + 양쪽 위치
+- [ ] category-matrix + 양쪽 위치
+
+### 예상 효과
+- ⭐⭐ 중간
+- LLM 오류 감소
+- API 일관성 향상
+
+---
+
 ## 우선순위 요약
 
 | 순서 | 작업 | 효과 | 작업량 | 비고 |
 |------|------|------|--------|------|
 | 1 | 입력 검증 강화 | ⭐⭐⭐ | 중간 | ✅ 완료 |
-| 2 | cellVariables 통일 | ⭐⭐ | 작음 | ✅ 완료 |
+| 2 | cellVariables 형식 통일 | ⭐⭐ | 작음 | ✅ 완료 |
 | 3 | 파서 출력 통일 | ⭐⭐ | 큼 | ✅ 완료 |
+| 4 | cellVariables 위치 통일 | ⭐⭐ | 작음 | 🔜 향후 |
 
 ---
 
@@ -288,3 +345,4 @@ cellVariables: [
 | 2025-12-08 | ✅ 리팩토링 1: ConfigValidator 클래스 구현 완료 |
 | 2025-12-08 | ✅ 리팩토링 2: cellVariables rowIndex/colIndex 통일 완료 |
 | 2025-12-08 | ✅ 리팩토링 3: ParserAdapter 패턴 구현 완료 |
+| 2025-12-08 | 🔜 리팩토링 4: cellVariables 위치 통일 계획 추가 (향후 작업) |
