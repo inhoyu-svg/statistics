@@ -1,63 +1,12 @@
-# viz-api 데이터 스키마
+# viz-api 내부 데이터 스키마
 
-viz-api.js의 입력/출력 데이터 구조 정의
-
-> 상세 설정 옵션은 [VIZ-API-CONFIG.md](./VIZ-API-CONFIG.md) 참조
-
----
-
-## 1. 최상위 Config 객체
-
-```typescript
-interface Config {
-  // 필수
-  data: number[] | string;              // 변량 데이터
-
-  // 렌더링 타입 (선택)
-  purpose?: 'chart' | 'table';          // 기본: 'chart'
-  tableType?: TableType;                // 기본: 'frequency'
-
-  // 캔버스 크기 (선택)
-  canvasSize?: number;                  // 정사각형 (canvasWidth/Height 우선)
-  canvasWidth?: number;                 // 기본: 700
-  canvasHeight?: number;                // 기본: 450
-
-  // 계급 설정 (선택, 차트/도수분포표만)
-  classCount?: number;                  // 기본: 5
-  classWidth?: number;                  // 자동 계산
-  classRange?: ClassRange;              // 수동 범위 지정
-
-  // 애니메이션 (선택)
-  animation?: boolean | { enabled: boolean };  // 기본: true
-
-  // 셀 커스터마이징 (선택)
-  cellAnimations?: CellAnimation[];     // 셀 하이라이트
-  cellAnimationOptions?: { blinkEnabled: boolean };
-  cellVariables?: CellVariable[];       // 셀 값 오버라이드
-
-  // 세부 옵션 (선택)
-  options?: Options;
-}
-
-type TableType = 'frequency' | 'cross-table' | 'category-matrix' | 'stem-leaf';
-```
-
-### 필수/선택 요약
-
-| 필드 | 필수 | 타입 | 기본값 |
-|:-----|:----:|:-----|:-------|
-| `data` | O | `number[]` \| `string` | - |
-| `purpose` | X | `string` | `"chart"` |
-| `tableType` | X | `string` | `"frequency"` |
-| `canvasWidth` | X | `number` | `700` |
-| `canvasHeight` | X | `number` | `450` |
-| `classCount` | X | `number` | `5` |
-| `animation` | X | `boolean` | `true` |
-| `options` | X | `object` | `{}` |
+> ⚠️ 이 문서는 **파싱 후 내부 데이터 구조**를 정의합니다.
+>
+> **입력 JSON 설정**은 [VIZ-API-CONFIG.md](./VIZ-API-CONFIG.md) 참조
 
 ---
 
-## 2. tableType별 data 형식
+## 1. tableType별 data 형식
 
 | tableType | data 형식 | 예시 |
 |:----------|:----------|:-----|
@@ -77,9 +26,11 @@ type TableType = 'frequency' | 'cross-table' | 'category-matrix' | 'stem-leaf';
 
 ---
 
-## 3. 내부 데이터 구조
+## 2. 내부 데이터 구조
 
-### 3.1 도수분포표 (frequency)
+> 파싱 후 생성되는 내부 데이터 구조입니다.
+
+### 2.1 도수분포표 (frequency)
 
 **파싱 후 계급 구조:**
 ```typescript
@@ -115,7 +66,7 @@ interface Stats {
 }
 ```
 
-### 3.2 줄기-잎 그림 (stem-leaf)
+### 2.2 줄기-잎 그림 (stem-leaf)
 
 **단일 모드:**
 ```typescript
@@ -169,7 +120,7 @@ interface StemLeafCompare {
 }
 ```
 
-### 3.3 이원분류표 (cross-table)
+### 2.3 이원분류표 (cross-table)
 
 ```typescript
 interface CrossTableData {
@@ -197,7 +148,7 @@ interface CrossTableData {
 }
 ```
 
-### 3.4 카테고리 행렬 (category-matrix)
+### 2.4 카테고리 행렬 (category-matrix)
 
 ```typescript
 interface CategoryMatrixData {
@@ -219,151 +170,7 @@ interface CategoryMatrixData {
 
 ---
 
-## 4. options 객체 구조
-
-### 4.1 차트 전용
-
-```typescript
-interface ChartOptions {
-  showHistogram?: boolean;              // 기본: true
-  showPolygon?: boolean;                // 기본: true
-  dataType?: 'frequency' | 'relativeFrequency';  // 기본: 'relativeFrequency'
-  showDashedLines?: boolean;            // 기본: false
-
-  axisLabels?: {
-    xAxis?: string;
-    yAxis?: string;
-  };
-
-  grid?: {
-    showHorizontal?: boolean;           // 기본: true
-    showVertical?: boolean;             // 기본: true
-  };
-
-  axis?: {
-    showYLabels?: boolean;              // 기본: true
-    showXLabels?: boolean;              // 기본: true
-    yLabelFormat?: 'decimal' | 'percent';
-  };
-
-  callout?: {
-    enabled: boolean;
-    template?: string;
-    preset?: 'default' | 'primary' | 'secondary' | 'tertiary';
-  };
-
-  congruentTriangles?: {
-    enabled: boolean;
-    boundary?: number;                  // 경계값
-  };
-  triangleLabels?: string[];            // 예: ["S₁", "S₂"]
-
-  customBarLabels?: string[];           // 막대 내부 라벨
-  customYInterval?: number;             // Y축 간격
-
-  histogramColorPreset?: 'default' | 'green';
-  histogramColor?: ColorConfig;
-  polygonColorPreset?: 'default' | 'primary' | 'secondary' | 'tertiary';
-  polygonColor?: ColorConfig;
-}
-```
-
-### 4.2 테이블 전용
-
-```typescript
-interface TableOptions {
-  // 도수분포표
-  tableConfig?: {
-    visibleColumns?: boolean[];         // 7개 컬럼 표시 여부
-    columnOrder?: number[];             // 컬럼 순서
-    labels?: {
-      class?: string;
-      midpoint?: string;
-      tally?: string;
-      frequency?: string;
-      relativeFrequency?: string;
-      cumulativeFrequency?: string;
-      cumulativeRelativeFrequency?: string;
-    };
-    showSuperscript?: boolean;          // "이상/미만" 표시
-    showSummaryRow?: boolean;           // 합계 행 표시
-    cellVariables?: CellVariable[];     // rowIndex/colIndex 방식
-  };
-
-  // 이원분류표
-  crossTable?: {
-    showTotal?: boolean;                // 기본: true
-    showMergedHeader?: boolean;         // 기본: true
-  };
-}
-```
-
-### 4.3 공통
-
-```typescript
-interface CommonOptions {
-  corruption?: {
-    enabled: boolean;
-    cells?: string;                     // 셀 범위: "0-0:2-3"
-    maskAxisLabels?: boolean;
-    style?: {
-      edgeColor?: string;               // 기본: '#FF0000'
-      fiberCount?: number;              // 기본: 50
-    };
-  };
-}
-```
-
----
-
-## 5. cellVariables 형식
-
-모든 테이블 타입에서 통일된 `rowIndex/colIndex` 방식을 사용합니다.
-
-```typescript
-interface CellVariable {
-  rowIndex: number;     // 0-based 행 인덱스
-  colIndex: number;     // 0-based 열 인덱스
-  value: string | number | any[];
-}
-```
-
-### 예시
-
-```typescript
-// 줄기-잎, 카테고리 매트릭스, 이원분류표
-cellVariables: [
-  { rowIndex: 1, colIndex: 0, value: "?" },
-  { rowIndex: 2, colIndex: 1, value: ["ㄱ", "ㄴ"] }
-]
-
-// 도수분포표 (tableConfig 내부)
-tableConfig: {
-  cellVariables: [
-    { rowIndex: 0, colIndex: 2, value: "?" },
-    { rowIndex: 4, colIndex: 3, value: 1 }
-  ]
-}
-```
-
----
-
-## 6. classRange 구조
-
-```typescript
-interface ClassRange {
-  firstEnd: number;     // 첫 계급 끝값 (0~firstEnd)
-  secondEnd: number;    // 두 번째 계급 끝값 (간격 결정)
-  lastStart: number;    // 마지막 계급 시작값
-}
-
-// 예시: { firstEnd: 10, secondEnd: 20, lastStart: 50 }
-// 생성되는 계급: 0~10, 10~20, 20~30, 30~40, 40~50, 50~60
-```
-
----
-
-## 7. 데이터 흐름
+## 3. 데이터 흐름
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -415,7 +222,7 @@ interface ClassRange {
 
 ---
 
-## 8. 타입 정의 파일 (참고용)
+## 4. 타입 정의 (참고용)
 
 > 실제 프로젝트는 순수 JavaScript이며, 아래는 참조용 TypeScript 정의입니다.
 

@@ -30,20 +30,7 @@ class PolygonRenderer {
     const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
     const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
 
-    // 점 그리기
-    relativeFreqs.forEach((relativeFreq, index) => {
-      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-      const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
-      const centerY = toY(relativeFreq);
-
-      this.ctx.beginPath();
-      this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
-      this.ctx.fillStyle = pointColor;
-      this.ctx.fill();
-    });
-
-    // 선 그리기
+    // 선 그리기 (먼저 그려서 점 아래에 위치)
     let prevIndex = null;
     relativeFreqs.forEach((relativeFreq, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
@@ -70,6 +57,19 @@ class PolygonRenderer {
       }
 
       prevIndex = index;
+    });
+
+    // 점 그리기 (나중에 그려서 선 위에 위치)
+    relativeFreqs.forEach((relativeFreq, index) => {
+      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+      const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
+      const centerY = toY(relativeFreq);
+
+      this.ctx.beginPath();
+      this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
+      this.ctx.fillStyle = pointColor;
+      this.ctx.fill();
     });
   }
 
