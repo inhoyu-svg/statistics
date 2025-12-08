@@ -60,6 +60,7 @@ class ChartRenderer {
     this.currentAxisLabels = null;
     this.currentDataType = null;
     this.currentTableConfig = null;
+    this.currentEffectiveClassCount = null;
 
     // 테이블 렌더러 참조
     this.tableRenderer = null;
@@ -154,6 +155,7 @@ class ChartRenderer {
     this.currentDataType = dataType;
     this.currentGridDivisions = coords.gridDivisions;
     this.currentTableConfig = tableConfig;
+    this.currentEffectiveClassCount = effectiveClassCount;
 
     // 애니메이션 모드 분기
     if (this.animationMode) {
@@ -180,7 +182,7 @@ class ChartRenderer {
           coords.toX,
           coords.toY,
           coords.adjustedMaxY,
-          classes.length,
+          effectiveClassCount,
           ellipsisInfo,
           coords.gridDivisions
         );
@@ -616,7 +618,7 @@ class ChartRenderer {
       this.currentCoords.toX,
       this.currentCoords.toY,
       this.currentMaxY,
-      this.currentClasses.length,
+      this.currentEffectiveClassCount || this.currentClasses.length,
       this.currentEllipsisInfo,
       this.currentGridDivisions
     );

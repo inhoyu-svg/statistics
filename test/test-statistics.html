@@ -163,6 +163,15 @@
       <div class="status" id="status-chart-frequency-mode"></div>
     </div>
 
+    <!-- 12-2. 복수의 도수 다각형 -->
+    <div class="test-case">
+      <h3>12-2. 복수의 도수 다각형</h3>
+      <p>두 개의 다각형을 같은 캔버스에 오버레이 (data-viz-canvas)</p>
+      <div class="chart-container" id="chart-multi-polygon-1"></div>
+      <div class="chart-container" id="chart-multi-polygon-2" data-viz-canvas="chart-multi-polygon-1" style="display:none;"></div>
+      <div class="status" id="status-chart-multi-polygon"></div>
+    </div>
+
   </div>
 
   <!-- ===== 테이블 테스트 ===== -->
@@ -424,6 +433,40 @@ AB: 0.13, 0.13`;
       }
     }).then(r => showStatus('status-chart-frequency-mode', r));
 
+    // 12-2. 복수의 도수 다각형
+    const multiPolygon1 = document.getElementById('chart-multi-polygon-1');
+    const multiPolygon2 = document.getElementById('chart-multi-polygon-2');
+    const multiPolygonSharedConfig = {
+      classRange: { firstEnd: 50, secondEnd: 55, lastStart: 85 },
+      unifiedMaxY: 0.5,
+      canvasSize: 380
+    };
+
+    // 첫 번째 다각형 (primary)
+    VizAPI.renderChart(multiPolygon1, {
+      ...multiPolygonSharedConfig,
+      data: '56, 61, 72, 61, 75, 55, 60, 58, 70, 62',
+      options: {
+        showHistogram: false,
+        showPolygon: true,
+        polygonColorPreset: 'primary'
+      }
+    }).then(r => {
+      showStatus('status-chart-multi-polygon', r);
+      // 두 번째 다각형 (secondary) - 첫 번째 애니메이션 완료 후 시작
+      setTimeout(() => {
+        VizAPI.renderChart(multiPolygon2, {
+          ...multiPolygonSharedConfig,
+          data: '63, 71, 65, 62, 77, 59, 67, 65, 72, 70',
+          options: {
+            showHistogram: false,
+            showPolygon: true,
+            polygonColorPreset: 'secondary'
+          }
+        });
+      }, 5000); // 첫 번째 애니메이션 시간 대기
+    });
+
     // ===== 테이블 테스트 =====
 
     // 13. 기본 도수분포표
@@ -486,8 +529,8 @@ AB: 0.13, 0.13`;
       classCount: 5,
       canvasWidth: 500,
       cellAnimations: [
-        { rowIndex: 1, colIndex: 3, duration: 1500, repeat: 5 },
-        { rowIndex: 2, colIndex: 3, duration: 1500, repeat: 5 }
+        { rowIndex: 1, colIndex: 1, duration: 1500, repeat: 5 },
+        { rowIndex: 2, colIndex: 2, duration: 1500, repeat: 5 }
       ]
     }).then(r => showStatus('status-table-cell-animation', r));
 

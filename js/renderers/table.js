@@ -913,9 +913,22 @@ class TableRenderer {
     const prefix = this._getLayerIdPrefix();
     const rowStructure = this._getTableRowStructure(tableLayer, prefix);
 
+    // 디버그: 첫 프레임에서만 로그
+    if (!this._debugLogged) {
+      console.log('[DEBUG] _applyAnimationToTargetCells - rowStructure:', rowStructure);
+      console.log('[DEBUG] targets:', this.cellAnimationTargets);
+      this._debugLogged = true;
+    }
+
     this.cellAnimationTargets.forEach(target => {
       const rowInfo = rowStructure[target.row];
-      if (!rowInfo) return;
+      if (!rowInfo) {
+        if (!this._debugLogged2) {
+          console.log('[DEBUG] rowInfo not found for row:', target.row);
+          this._debugLogged2 = true;
+        }
+        return;
+      }
 
       // 행 타입에 따른 셀 ID 생성
       let layerId;
@@ -930,14 +943,9 @@ class TableRenderer {
         layerId = `${prefix}-table-row-${dataRowIdx}-col${target.col}`;
       }
 
-      const cellLayer = this.layerManager.findLayer(layerId);
-      if (cellLayer) {
-        cellLayer.data.animating = true;
-        cellLayer.data.animationProgress = progress;
-        if (this.cellAnimationColor) {
-          cellLayer.data.animationColor = this.cellAnimationColor;
-        }
-      }
+      // _renderMergedAnimations가 그룹 규칙에 따라 색상을 적용하므로
+      // 여기서는 개별 셀의 animating 플래그를 설정하지 않음
+      // (설정하면 _renderAnimationBackground가 초록색을 중복 렌더링함)
     });
   }
 
@@ -1046,6 +1054,13 @@ class TableRenderer {
 
     // 기존 애니메이션 중지
     this.stopCellAnimation();
+
+    // savedAnimations에서 대상 셀 목록 생성
+    this.cellAnimationTargets = [];
+    this.savedAnimations.forEach(anim => {
+      const targets = this._resolveAnimationTargets(anim);
+      this.cellAnimationTargets.push(...targets);
+    });
 
     // 최대 duration과 repeat 계산
     const maxDuration = Math.max(...this.savedAnimations.map(a => a.duration));
