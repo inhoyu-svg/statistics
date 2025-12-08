@@ -120,7 +120,7 @@ class AxisRenderer {
 
       // 중략 기호 (이중 물결, X축 위에 세로로) - 항상 표시
       // 배치 순서: 0 - (중략) - (점) - 첫 데이터 라벨
-      const ellipsisX = toX(0) + xScale * 0.15;
+      const ellipsisX = toX(0) + xScale * 0.08;
       const ellipsisY = toY(0);
 
       this.ctx.save();
