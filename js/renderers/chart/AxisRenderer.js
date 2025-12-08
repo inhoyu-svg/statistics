@@ -126,7 +126,9 @@ class AxisRenderer {
       this.ctx.save();
       this.ctx.translate(ellipsisX, ellipsisY);
       this.ctx.rotate(Math.PI / 2);
-      this.ctx.font = CONFIG.CHART_FONT_LARGE;
+      // 캔버스 크기에 따라 스케일링되는 폰트 사용
+      const scaledFontSize = CONFIG.getScaledFontSize(22);
+      this.ctx.font = `300 ${scaledFontSize}px 'SCDream', sans-serif`;
       this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
       this.ctx.textBaseline = 'bottom';
       this.ctx.textAlign = 'center';

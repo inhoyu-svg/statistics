@@ -96,6 +96,10 @@ class ChartRenderer {
    * @param {number} customYInterval - 커스텀 Y축 간격 (없으면 자동 계산)
    */
   draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null, customYInterval = null) {
+    // 캔버스 크기에 따라 패딩 스케일링
+    this.padding = CONFIG.getScaledPadding();
+    this.axisRenderer.padding = this.padding;
+
     if (clearCanvas) {
       // 캔버스 초기화 (크기는 viz-api에서 설정하므로 여기서 덮어쓰지 않음)
       this.clear();

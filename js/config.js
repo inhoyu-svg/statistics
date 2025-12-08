@@ -426,6 +426,15 @@ const CONFIG = {
   },
 
   /**
+   * 캔버스 크기에 비례하여 스케일된 패딩 반환
+   * @returns {number} 스케일된 패딩
+   */
+  getScaledPadding() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return Math.round(this.CHART_PADDING * scale);
+  },
+
+  /**
    * 그리드 설정 계산 (스마트 격자)
    * @param {number} maxValue - 최대값
    * @param {string} dataType - 데이터 타입
