@@ -435,6 +435,98 @@ const CONFIG = {
   },
 
   /**
+   * 캔버스 크기에 비례하여 스케일된 값 반환 (범용)
+   * @param {number} baseValue - 기준 값 (BASE_CANVAS_SIZE 기준)
+   * @returns {number} 스케일된 값
+   */
+  getScaledValue(baseValue) {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return baseValue * scale;
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 선 너비 반환
+   * @param {string} type - 'thin', 'normal', 'thick', 'dashed'
+   * @returns {number} 스케일된 선 너비
+   */
+  getScaledLineWidth(type = 'normal') {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    const widths = {
+      thin: this.CHART_LINE_WIDTH_THIN,
+      normal: this.CHART_LINE_WIDTH_NORMAL,
+      thick: this.CHART_LINE_WIDTH_THICK,
+      dashed: this.CHART_LINE_WIDTH_DASHED
+    };
+    return (widths[type] || widths.normal) * scale;
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 점 반지름 반환
+   * @returns {number} 스케일된 점 반지름
+   */
+  getScaledPointRadius() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return this.CHART_POINT_RADIUS * scale;
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 파선 패턴 반환
+   * @returns {Array} 스케일된 파선 패턴
+   */
+  getScaledDashPattern() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return this.CHART_DASHED_PATTERN.map(v => v * scale);
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 말풍선 연결선 너비 반환
+   * @returns {number} 스케일된 선 너비
+   */
+  getScaledCalloutLineWidth() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return this.CALLOUT_CONNECTOR_LINE_WIDTH * scale;
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 말풍선 연결선 파선 패턴 반환
+   * @returns {Array} 스케일된 파선 패턴
+   */
+  getScaledCalloutDashPattern() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return this.CALLOUT_CONNECTOR_DASH_PATTERN.map(v => v * scale);
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 말풍선 세로 막대 너비 반환
+   * @returns {number} 스케일된 너비
+   */
+  getScaledCalloutAccentBarWidth() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return this.CALLOUT_ACCENT_BAR_WIDTH * scale;
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 말풍선 줄 높이 반환
+   * @returns {number} 스케일된 줄 높이
+   */
+  getScaledCalloutLineHeight() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return this.CALLOUT_LINE_HEIGHT * scale;
+  },
+
+  /**
+   * 캔버스 크기에 비례하여 스케일된 말풍선 크기 반환
+   * @returns {{width: number, height: number}} 스케일된 말풍선 크기
+   */
+  getScaledCalloutSize() {
+    const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
+    return {
+      width: this.CALLOUT_WIDTH * scale,
+      height: this.CALLOUT_HEIGHT * scale
+    };
+  },
+
+  /**
    * 그리드 설정 계산 (스마트 격자)
    * @param {number} maxValue - 최대값
    * @param {string} dataType - 데이터 타입

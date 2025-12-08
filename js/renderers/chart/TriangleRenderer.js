@@ -60,7 +60,7 @@ class TriangleRenderer {
       strokeGradient.addColorStop(0, strokeColors.start);
       strokeGradient.addColorStop(1, strokeColors.end);
       ctx.strokeStyle = strokeGradient;
-      ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+      ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
       ctx.stroke();
     }
 
@@ -105,8 +105,8 @@ class TriangleRenderer {
     const currentAlpha = ctx.globalAlpha;
     if (currentAlpha <= 0) return;
 
-    // 라벨 반경 (30px 폰트 기준, 라벨과 겹치지 않도록)
-    const labelRadius = 18;
+    // 라벨 반경 (30px 폰트 기준, 라벨과 겹치지 않도록) - 스케일링 적용
+    const labelRadius = CONFIG.getScaledValue(18);
 
     // 방향 벡터 계산 (라벨 → 직각 모서리)
     const dx = toX - fromX;
@@ -124,8 +124,8 @@ class TriangleRenderer {
     ctx.save();
     ctx.globalAlpha = currentAlpha;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 3]); // 점선 패턴
+    ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
+    ctx.setLineDash(CONFIG.getScaledDashPattern()); // 점선 패턴
 
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -265,7 +265,7 @@ class TriangleRenderer {
       strokeGradient.addColorStop(0, colors.stroke.start);
       strokeGradient.addColorStop(1, colors.stroke.end);
       ctx.strokeStyle = strokeGradient;
-      ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+      ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
       ctx.stroke();
     }
     ctx.restore();
@@ -277,7 +277,7 @@ class TriangleRenderer {
    */
   _drawLabelLineStatic(from, to, color) {
     const ctx = this.ctx;
-    const labelRadius = 18;
+    const labelRadius = CONFIG.getScaledValue(18);
 
     const dx = to.x - from.x;
     const dy = to.y - from.y;
@@ -290,8 +290,8 @@ class TriangleRenderer {
 
     ctx.save();
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 3]);
+    ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
+    ctx.setLineDash(CONFIG.getScaledDashPattern());
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(to.x, to.y);

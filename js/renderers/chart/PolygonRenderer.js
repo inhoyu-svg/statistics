@@ -49,7 +49,7 @@ class PolygonRenderer {
         );
 
         this.ctx.strokeStyle = lineGradient;
-        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
+        this.ctx.lineWidth = CONFIG.getScaledLineWidth('thick');
         this.ctx.beginPath();
         this.ctx.moveTo(x1, y1);
         this.ctx.lineTo(x2, y2);
@@ -67,7 +67,7 @@ class PolygonRenderer {
       const centerY = toY(relativeFreq);
 
       this.ctx.beginPath();
-      this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
+      this.ctx.arc(centerX, centerY, CONFIG.getScaledPointRadius(), 0, Math.PI * 2);
       this.ctx.fillStyle = pointColor;
       this.ctx.fill();
     });
@@ -90,7 +90,7 @@ class PolygonRenderer {
     const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
 
     this.ctx.beginPath();
-    this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
+    this.ctx.arc(centerX, centerY, CONFIG.getScaledPointRadius(), 0, Math.PI * 2);
     this.ctx.fillStyle = pointColor;
     this.ctx.fill();
   }
@@ -122,7 +122,7 @@ class PolygonRenderer {
     );
 
     this.ctx.strokeStyle = lineGradient;
-    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
+    this.ctx.lineWidth = CONFIG.getScaledLineWidth('thick');
     this.ctx.beginPath();
     this.ctx.moveTo(x1, y1);
     this.ctx.lineTo(x2, y2);

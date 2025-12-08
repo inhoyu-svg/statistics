@@ -70,8 +70,8 @@ class AxisRenderer {
       if (i === gridDivisions && yLabel) {
         const baseFontSize = yLabel.length > 4 ? 18 : 22;
         KatexUtils.renderMixedText(this.ctx, yLabel,
-          this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
-          toY(value) + CONFIG.CHART_LABEL_OFFSET,
+          this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
+          toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
           { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
         );
         continue;
@@ -93,8 +93,8 @@ class AxisRenderer {
 
       // KaTeX 폰트로 렌더링
       KatexUtils.render(this.ctx, formattedValue,
-        this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
-        toY(value) + CONFIG.CHART_LABEL_OFFSET,
+        this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
+        toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
         { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'right', baseline: 'middle' }
       );
     }
@@ -111,7 +111,7 @@ class AxisRenderer {
    */
   drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel = '') {
     const color = CONFIG.getColor('--color-text');
-    const labelY = this.canvas.height - this.padding + CONFIG.CHART_X_LABEL_Y_OFFSET;
+    const labelY = this.canvas.height - this.padding + CONFIG.getScaledValue(CONFIG.CHART_X_LABEL_Y_OFFSET);
 
     if (ellipsisInfo && ellipsisInfo.show) {
       const firstDataIdx = ellipsisInfo.firstDataIndex;
@@ -201,7 +201,7 @@ class AxisRenderer {
    * @param {number} gridDivisions - 그리드 분할 수
    */
   drawGrid(toX, toY, maxY, classCount, ellipsisInfo, gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
-    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+    this.ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
     this.ctx.globalAlpha = 1.0; // 투명도 제거
 
     // 가로 격자선 (Y축) - Y=0 제외

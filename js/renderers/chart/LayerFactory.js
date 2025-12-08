@@ -314,11 +314,12 @@ class LayerFactory {
     // 기존 말풍선 개수 확인 (세로 배치용)
     const existingCallouts = layerManager.getAllLayers().filter(({ layer }) => layer.type === 'callout');
     const calloutCount = existingCallouts.length;
-    const calloutSpacing = 10; // 말풍선 간격
+    const calloutSpacing = CONFIG.getScaledValue(10); // 말풍선 간격 (스케일링)
+    const scaledCalloutSize = CONFIG.getScaledCalloutSize();
 
     // 말풍선 위치 (차트 왼쪽 상단, 기존 말풍선 아래에 배치)
-    const calloutX = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_X;
-    const calloutY = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_Y + (calloutCount * (CONFIG.CALLOUT_HEIGHT + calloutSpacing));
+    const calloutX = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_X);
+    const calloutY = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_Y) + (calloutCount * (scaledCalloutSize.height + calloutSpacing));
 
     // 포인트 좌표 계산 (애니메이션 참조용)
     const { toX, toY, xScale } = coords;
@@ -333,8 +334,8 @@ class LayerFactory {
       data: {
         x: calloutX,
         y: calloutY,
-        width: calloutWidth,
-        height: CONFIG.CALLOUT_HEIGHT,
+        width: CONFIG.getScaledValue(calloutWidth),
+        height: scaledCalloutSize.height,
         text,
         opacity: 0, // 초기 투명도 (애니메이션용)
         pointX,
@@ -443,8 +444,8 @@ class LayerFactory {
     trianglesGroup.addChild(triangleA);
     trianglesGroup.addChild(triangleB);
 
-    // 라벨 오프셋 (라벨과 직각 모서리 사이 거리)
-    const labelOffset = 30;
+    // 라벨 오프셋 (라벨과 직각 모서리 사이 거리) - 스케일링 적용
+    const labelOffset = CONFIG.getScaledValue(30);
 
     // 라벨 위치 계산 (선 방향에 따라 결정)
     let labelPosBlue, labelPosRed;

@@ -51,8 +51,8 @@ class DashedLineRenderer {
 
     this.ctx.save();
     this.ctx.strokeStyle = dashedLineColor;
-    this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_DASHED;
-    this.ctx.setLineDash(CONFIG.CHART_DASHED_PATTERN);
+    this.ctx.lineWidth = CONFIG.getScaledLineWidth('dashed');
+    this.ctx.setLineDash(CONFIG.getScaledDashPattern());
 
     this.ctx.beginPath();
     this.ctx.moveTo(pointX, pointY);
@@ -76,7 +76,7 @@ class DashedLineRenderer {
    */
   _renderEndpointLabel(x, y, value, dataType) {
     const color = CONFIG.getColor('--color-text');
-    const labelOffset = CONFIG.CHART_Y_LABEL_OFFSET || 10;
+    const labelOffset = CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET || 10);
 
     // 데이터 타입에 따라 포맷팅
     let formattedValue;

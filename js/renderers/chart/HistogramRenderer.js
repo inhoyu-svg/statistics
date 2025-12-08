@@ -57,7 +57,7 @@ class HistogramRenderer {
           preset.strokeEnd
         );
         this.ctx.strokeStyle = strokeGradient;
-        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+        this.ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
         this.ctx.strokeRect(x, y, barWidth, h);
       }
 
@@ -108,7 +108,7 @@ class HistogramRenderer {
         preset.strokeEnd
       );
       this.ctx.strokeStyle = strokeGradient;
-      this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
+      this.ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
       this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
     }
 
@@ -142,7 +142,7 @@ class HistogramRenderer {
     this.ctx.globalAlpha = fadeProgress;
     KatexUtils.render(this.ctx, labelValue,
       CoordinateSystem.getBarCenterX(index, toX, xScale),
-      y - CONFIG.CHART_LABEL_OFFSET - 5,
+      y - CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET) - CONFIG.getScaledValue(5),
       { fontSize: CONFIG.getScaledFontSize(12), color: CONFIG.getColor('--color-text'), align: 'center', baseline: 'middle' }
     );
     this.ctx.restore();

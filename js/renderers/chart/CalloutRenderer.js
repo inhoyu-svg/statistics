@@ -84,8 +84,8 @@ class CalloutRenderer {
 
     // 점선 스타일 설정
     ctx.strokeStyle = lineColor;
-    ctx.lineWidth = CONFIG.CALLOUT_CONNECTOR_LINE_WIDTH;
-    ctx.setLineDash(CONFIG.CALLOUT_CONNECTOR_DASH_PATTERN);
+    ctx.lineWidth = CONFIG.getScaledCalloutLineWidth();
+    ctx.setLineDash(CONFIG.getScaledCalloutDashPattern());
 
     // 점선 그리기
     ctx.beginPath();
@@ -107,7 +107,7 @@ class CalloutRenderer {
    */
   _drawAccentBar(x, y, width, height, polygonPreset) {
     const ctx = this.ctx;
-    const barWidth = CONFIG.CALLOUT_ACCENT_BAR_WIDTH;
+    const barWidth = CONFIG.getScaledCalloutAccentBarWidth();
 
     // 프리셋에 따른 색상 가져오기 (기본값: default)
     const preset = polygonPreset || 'default';
@@ -128,7 +128,7 @@ class CalloutRenderer {
    * @param {string} polygonPreset - 다각형 색상 프리셋
    */
   _drawText(x, y, width, height, text, polygonPreset) {
-    const lineHeight = CONFIG.CALLOUT_LINE_HEIGHT;
+    const lineHeight = CONFIG.getScaledCalloutLineHeight();
 
     // 프리셋에 따른 텍스트 색상
     const preset = polygonPreset || 'default';
