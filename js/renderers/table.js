@@ -268,9 +268,14 @@ class TableRenderer {
     this.currentData = data;
 
     // 이원분류표인 경우 합계 행 및 병합 헤더 표시 여부 적용
+    // config에서 명시적으로 설정된 값이 있으면 유지, 없으면 tableStore 사용
     if (type === CONFIG.TABLE_TYPES.CROSS_TABLE) {
-      data.showTotal = tableStore.getSummaryRowVisible(this.tableId);
-      data.showMergedHeader = tableStore.getMergedHeaderVisible(this.tableId);
+      if (data.showTotal === undefined) {
+        data.showTotal = tableStore.getSummaryRowVisible(this.tableId);
+      }
+      if (data.showMergedHeader === undefined) {
+        data.showMergedHeader = tableStore.getMergedHeaderVisible(this.tableId);
+      }
     }
 
     // 행 수 계산 (adaptedData가 있으면 직접 사용, 없으면 타입별 계산)

@@ -733,8 +733,9 @@ export async function renderTable(element, config) {
       }
 
       // Apply cross-table specific options
+      // 'cross-table' (하이픈) 또는 'crossTable' (camelCase) 모두 지원
       if (tableType === 'cross-table') {
-        const crossTableOptions = options.crossTable || {};
+        const crossTableOptions = options['cross-table'] || options.crossTable || {};
         if (crossTableOptions.showTotal !== undefined) {
           parseResult.data.showTotal = crossTableOptions.showTotal;
         }
@@ -979,9 +980,24 @@ function applyCellVariableToCategoryMatrix(data, dataRowIndex, colIndex, value) 
 
 /**
  * Apply cell variable to cross-table data
+ * 합계 행도 편집 가능 (dataRowIndex === data.rows.length)
  */
 function applyCellVariableToCrossTable(data, dataRowIndex, colIndex, value) {
-  if (!data.rows || dataRowIndex >= data.rows.length) return;
+  if (!data.rows) return;
+
+  // 합계 행 처리 (dataRowIndex === data.rows.length)
+  if (dataRowIndex === data.rows.length) {
+    if (data.totals && colIndex > 0) {
+      const valueIndex = colIndex - 1;
+      if (valueIndex < data.totals.length) {
+        data.totals[valueIndex] = value;
+      }
+    }
+    return;
+  }
+
+  // 일반 데이터 행 처리
+  if (dataRowIndex >= data.rows.length) return;
 
   const row = data.rows[dataRowIndex];
   if (colIndex === 0) {
