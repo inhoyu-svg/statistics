@@ -2,11 +2,11 @@
 
 > 작성일: 2025-12-05
 > 수정일: 2025-12-08
-> 예정: 다음 주부터 진행
+> 상태: ✅ **전체 완료**
 
 ---
 
-## 1. 입력 검증 강화 🔥 추천
+## 1. 입력 검증 강화 ✅ 완료
 
 ### 현재 문제
 - 검증 로직이 viz-api.js, processor.js, 각 파서에 분산
@@ -115,7 +115,7 @@ function classToRowIndex(classes, className) {
 
 ---
 
-## 3. 파서 출력 통일 ⚠️ 나중에
+## 3. 파서 출력 통일 ✅ 완료
 
 ### 현재 문제
 ```javascript
@@ -176,16 +176,17 @@ interface ParsedTableData {
 
 | 순서 | 작업 | 효과 | 작업량 | 비고 |
 |------|------|------|--------|------|
-| 1 | 입력 검증 강화 | ⭐⭐⭐ | 중간 | 🔥 먼저 진행 |
-| 2 | cellVariables 통일 | ⭐⭐ | 작음 | 선택적 |
-| 3 | 파서 출력 통일 | ⭐⭐ | 큼 | 나중에 |
+| 1 | 입력 검증 강화 | ⭐⭐⭐ | 중간 | ✅ 완료 |
+| 2 | cellVariables 통일 | ⭐⭐ | 작음 | ✅ 완료 |
+| 3 | 파서 출력 통일 | ⭐⭐ | 큼 | ✅ 완료 |
 
 ---
 
 ## 참고 파일
 - `md/SCHEMA.md` - 현재 데이터 구조 정의
 - `schema/viz-api.schema.json` - JSON Schema
-- `js/utils/validator.js` - 기존 검증 로직
+- `js/utils/validator.js` - 검증 로직 (ConfigValidator 클래스)
+- `js/core/parsers/ParserAdapter.js` - 파서 출력 통일 어댑터
 
 ---
 
@@ -284,3 +285,6 @@ cellVariables: [
 |------|-----------|
 | 2025-12-05 | 초안 작성 |
 | 2025-12-08 | 테스트 계획, 롤백 계획, 마이그레이션 가이드 추가 |
+| 2025-12-08 | ✅ 리팩토링 1: ConfigValidator 클래스 구현 완료 |
+| 2025-12-08 | ✅ 리팩토링 2: cellVariables rowIndex/colIndex 통일 완료 |
+| 2025-12-08 | ✅ 리팩토링 3: ParserAdapter 패턴 구현 완료 |

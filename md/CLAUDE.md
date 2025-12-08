@@ -69,7 +69,7 @@ statistics/
 ├── js/
 │   ├── app.js              # 앱 초기화 및 이벤트 바인딩 (334줄)
 │   ├── config.js           # 전역 설정 상수 (472줄)
-│   ├── viz-api.js          # 시각화 API 인터페이스 (1061줄)
+│   ├── viz-api.js          # 시각화 API 인터페이스 (1119줄)
 │   ├── controllers/        # UI 컨트롤러
 │   │   ├── index.js                   # 컨트롤러 export (10줄)
 │   │   ├── AnimationController.js     # 애니메이션 UI 제어 (130줄)
@@ -85,7 +85,8 @@ statistics/
 │   │   ├── datasetStore.js # 데이터셋 저장소 (203줄)
 │   │   ├── tableStore.js   # 테이블 상태 저장소 (245줄)
 │   │   ├── parsers/        # 데이터 파서
-│   │   │   ├── index.js               # 파서 export (82줄)
+│   │   │   ├── index.js               # 파서 export (85줄)
+│   │   │   ├── ParserAdapter.js       # 파서 출력 통일 어댑터 (327줄)
 │   │   │   ├── FrequencyParser.js     # 도수분포표 파서 (82줄)
 │   │   │   ├── CrossTableParser.js    # 이원분류표 파서 (194줄)
 │   │   │   ├── CategoryMatrixParser.js # 카테고리 매트릭스 파서 (138줄)
@@ -112,11 +113,11 @@ statistics/
 │   │       ├── TableEditModal.js      # 편집 모달 (400줄)
 │   │       ├── TableLayerFactory.js   # 테이블 레이어 생성 (486줄)
 │   │       └── factories/             # 테이블 팩토리
-│   │           ├── index.js               # 팩토리 export (79줄)
+│   │           ├── index.js               # 팩토리 라우터 (112줄)
 │   │           ├── BaseTableFactory.js    # 기본 팩토리 (304줄)
 │   │           ├── CrossTableFactory.js   # 이원분류표 팩토리 (429줄)
 │   │           ├── CategoryMatrixFactory.js # 카테고리 매트릭스 (192줄)
-│   │           └── StemLeafFactory.js     # 줄기와 잎 팩토리 (630줄)
+│   │           └── StemLeafFactory.js     # 줄기와 잎 팩토리 (671줄)
 │   ├── animation/          # 애니메이션 시스템
 │   │   ├── index.js        # 통합 export (49줄)
 │   │   ├── effects/        # 애니메이션 효과
@@ -144,7 +145,7 @@ statistics/
 │   └── utils/              # 유틸리티 함수
 │       ├── utils.js        # 공통 유틸리티 (159줄)
 │       ├── katex.js        # KaTeX 렌더링 유틸 (426줄)
-│       ├── validator.js    # 입력 검증 (131줄)
+│       ├── validator.js    # 입력 검증 - ConfigValidator 클래스 (425줄)
 │       ├── message.js      # 메시지 관리 (37줄)
 │       └── corruption.js   # 찢김 효과 유틸 (950줄)
 ├── md/                     # 문서 파일들
@@ -409,8 +410,15 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 ---
 
 ## 마지막 업데이트
-- **날짜**: 2025-12-05
+- **날짜**: 2025-12-08
 - **주요 작업**:
+  - ✅ **리팩토링 3단계 완료** (2025-12-08)
+    - 입력 검증 강화: `ConfigValidator` 클래스 생성 (`validator.js` 131줄 → 425줄)
+    - cellVariables 통일: `rowIndex/colIndex` 방식으로 통일, 레거시 지원
+    - 파서 출력 통일: `ParserAdapter` 클래스 생성 (327줄)
+    - 팩토리에 `createFromAdaptedData()` 메서드 추가
+    - **신규 파일**: `js/core/parsers/ParserAdapter.js`
+    - **수정 파일**: `validator.js`, `viz-api.js`, `table.js`, `factories/*.js`
   - ✅ **Corruption (찢김 효과) 기능 추가** (2025-12-04~05)
     - 차트/테이블에 종이 찢김 효과 적용
     - `corruption` 옵션: `{ cells, edgeColor, fiberCount, maskAxisLabels }`
