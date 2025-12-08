@@ -168,7 +168,7 @@ config (최상위)
 │   │   ├── labels          { class, frequency, ... }
 │   │   ├── showSuperscript "이상/미만" 표시
 │   │   ├── showSummaryRow  합계 행 표시
-│   │   └── cellVariables   [{ class, column, value }, ...]  (도수분포표 전용)
+│   │   └── cellVariables   [{ rowIndex, colIndex, value }, ...]  (권장, class/column은 deprecated)
 │   │
 │   │  [이원분류표 전용]
 │   └── crossTable          ─────────────────────────
@@ -1771,7 +1771,33 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 | **기본값** | `null` |
 | **동작** | 지정된 셀의 값을 커스텀 텍스트로 대체 |
 
-#### 배열 항목 구조
+#### 배열 항목 구조 (권장: rowIndex/colIndex 방식)
+
+| 속성 | 타입 | 필수 | 설명 | 예시 |
+|:-----|:-----|:----:|:-----|:-----|
+| `rowIndex` | `number` | **O** | 행 인덱스 (0부터 시작) | `0` |
+| `colIndex` | `number` | **O** | 열 인덱스 (0부터 시작) | `2` |
+| `value` | `string` | **O** | 표시할 값 | `"A"` |
+
+```json
+{
+  "options": {
+    "tableConfig": {
+      "cellVariables": [
+        { "rowIndex": 0, "colIndex": 2, "value": "A" },
+        { "rowIndex": 1, "colIndex": 2, "value": "B" }
+      ]
+    }
+  }
+}
+```
+
+**결과**: 첫 번째 행의 도수가 "A"로, 두 번째 행의 도수가 "B"로 표시됨
+
+#### ⚠️ 레거시 방식 (deprecated)
+
+> **경고**: 아래 `class/column` 방식은 v3.0에서 제거될 예정입니다.
+> 새 프로젝트에서는 `rowIndex/colIndex` 방식을 사용해주세요.
 
 | 속성 | 타입 | 필수 | 설명 | 예시 |
 |:-----|:-----|:----:|:-----|:-----|
@@ -1784,15 +1810,12 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
   "options": {
     "tableConfig": {
       "cellVariables": [
-        { "class": "60~70", "column": "frequency", "value": "A" },
-        { "class": "70~80", "column": "frequency", "value": "B" }
+        { "class": "60~70", "column": "frequency", "value": "A" }
       ]
     }
   }
 }
 ```
-
-**결과**: 60~70 계급의 도수가 "A"로, 70~80 계급의 도수가 "B"로 표시됨
 
 ---
 
@@ -1842,7 +1865,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
       "showSuperscript": true,
       "showSummaryRow": true,
       "cellVariables": [
-        { "class": "60~70", "column": "frequency", "value": "A" }
+        { "rowIndex": 0, "colIndex": 2, "value": "A" }
       ]
     }
   },
@@ -2482,15 +2505,15 @@ O: 0.26, 0.24
   "options": {
     "tableConfig": {
       "cellVariables": [
-        { "class": "60~70", "column": "frequency", "value": "_" },
-        { "class": "70~80", "column": "frequency", "value": "_" }
+        { "rowIndex": 0, "colIndex": 2, "value": "_" },
+        { "rowIndex": 1, "colIndex": 2, "value": "_" }
       ]
     }
   }
 }
 ```
 
-**결과:** 60~70, 70~80 도수 셀이 빈칸으로 표시됨
+**결과:** 첫 번째, 두 번째 행의 도수 셀이 빈칸으로 표시됨
 
 ---
 
@@ -2563,8 +2586,8 @@ O: 0.26, 0.24
   "options": {
     "tableConfig": {
       "cellVariables": [
-        { "class": "60~70", "column": "frequency", "value": "_" },
-        { "class": "60~70", "column": "relativeFrequency", "value": "A" }
+        { "rowIndex": 0, "colIndex": 2, "value": "_" },
+        { "rowIndex": 0, "colIndex": 3, "value": "A" }
       ]
     }
   }
@@ -2574,6 +2597,8 @@ O: 0.26, 0.24
 **결과:**
 - `"_"` → 완전한 빈칸
 - `"A"` → 문자 A 표시
+
+> **참고**: `rowIndex`는 행 인덱스, `colIndex`는 열 인덱스입니다 (0부터 시작)
 
 ---
 
