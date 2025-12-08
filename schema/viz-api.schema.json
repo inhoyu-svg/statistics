@@ -2,175 +2,344 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/inhoyu-svg/statistics/schema/viz-api.schema.json",
   "title": "viz-api Config",
-  "description": "viz-api.js 시각화 설정 스키마",
+  "description": "viz-api.js 시각화 설정 스키마. 도수분포표, 줄기-잎 그림, 이원분류표, 카테고리 매트릭스 등의 통계 시각화를 생성합니다.",
   "type": "object",
   "required": ["data"],
+  "additionalProperties": false,
   "properties": {
     "data": {
-      "description": "변량 데이터 (필수)",
+      "description": "변량 데이터 (필수). tableType에 따라 형식이 다릅니다: frequency는 숫자 배열, 나머지는 문자열",
       "oneOf": [
         {
           "type": "array",
           "items": { "type": "number" },
-          "minItems": 1
+          "minItems": 1,
+          "description": "frequency용 숫자 배열"
         },
         {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "stem-leaf, cross-table, category-matrix용 문자열"
         }
+      ],
+      "examples": [
+        [62, 87, 97, 73, 81],
+        "162 178 175 189",
+        "남학생: 162 178\n여학생: 160 165",
+        "헤더: 혈액형, 남, 여\nA: 0.4, 0.4\nB: 0.22, 0.2"
       ]
     },
     "purpose": {
-      "description": "렌더링 목적",
+      "description": "렌더링 목적. 'table'을 원하면 반드시 명시해야 함 (기본값이 'chart'이므로)",
       "type": "string",
       "enum": ["chart", "table"],
-      "default": "chart"
+      "default": "chart",
+      "examples": ["table"]
     },
     "tableType": {
-      "description": "테이블 유형 (purpose가 table일 때)",
+      "description": "테이블 유형 (purpose가 'table'일 때만 유효). 기본값은 'frequency'",
       "type": "string",
       "enum": ["frequency", "cross-table", "category-matrix", "stem-leaf"],
-      "default": "frequency"
+      "default": "frequency",
+      "examples": ["stem-leaf", "cross-table"]
     },
     "canvasSize": {
-      "description": "정사각형 캔버스 크기 (canvasWidth/Height보다 우선)",
+      "description": "정사각형 캔버스 크기. canvasWidth/canvasHeight보다 우선 적용됨",
       "type": "number",
-      "minimum": 100
+      "minimum": 100,
+      "examples": [500, 700]
     },
     "canvasWidth": {
-      "description": "캔버스 너비",
+      "description": "캔버스 너비 (픽셀)",
       "type": "number",
       "minimum": 100,
-      "default": 700
+      "default": 700,
+      "examples": [800, 1000]
     },
     "canvasHeight": {
-      "description": "캔버스 높이",
+      "description": "캔버스 높이 (픽셀)",
       "type": "number",
       "minimum": 100,
-      "default": 450
+      "default": 450,
+      "examples": [500, 600]
     },
     "classCount": {
-      "description": "계급 개수 (도수분포표/차트)",
+      "description": "계급 개수 (도수분포표/히스토그램에서 사용). 3~20 범위",
       "type": "integer",
       "minimum": 3,
       "maximum": 20,
-      "default": 5
+      "default": 5,
+      "examples": [5, 6, 10]
     },
     "classWidth": {
-      "description": "계급 간격 (자동 계산)",
+      "description": "계급 간격. 지정하지 않으면 자동 계산됨. classCount와 함께 사용 불가",
       "type": "number",
-      "minimum": 0.1
+      "minimum": 0.1,
+      "examples": [10, 5]
     },
     "classRange": {
-      "description": "계급 범위 수동 지정",
+      "description": "계급 범위 수동 지정. classCount, classWidth보다 우선",
       "$ref": "#/definitions/classRange"
     },
     "animation": {
-      "description": "애니메이션 설정",
+      "description": "애니메이션 활성화 여부",
       "oneOf": [
         { "type": "boolean" },
         {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
-            "enabled": { "type": "boolean" }
+            "enabled": {
+              "type": "boolean",
+              "description": "애니메이션 활성화"
+            }
           }
         }
       ],
-      "default": true
+      "default": true,
+      "examples": [true, false, { "enabled": true }]
     },
     "cellAnimations": {
-      "description": "셀 하이라이트 애니메이션",
+      "description": "셀 하이라이트 애니메이션 배열. 특정 셀 또는 셀 범위에 깜빡임 효과 적용",
       "type": "array",
-      "items": { "$ref": "#/definitions/cellAnimation" }
+      "items": { "$ref": "#/definitions/cellAnimation" },
+      "examples": [
+        [{ "rowIndex": 0, "colIndex": 1, "duration": 1500, "repeat": 3 }],
+        [{ "rowStart": 0, "rowEnd": 2, "colStart": 1, "colEnd": 3 }]
+      ]
     },
     "cellAnimationOptions": {
-      "description": "셀 애니메이션 옵션",
+      "description": "셀 애니메이션 전역 옵션",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "blinkEnabled": {
           "type": "boolean",
+          "description": "깜빡임 효과 활성화",
           "default": false
         }
       }
     },
     "cellVariables": {
-      "description": "셀 값 오버라이드 (stem-leaf, cross-table, category-matrix용. frequency는 options.tableConfig.cellVariables 사용)",
+      "description": "셀 값 오버라이드 (stem-leaf, cross-table, category-matrix용). frequency는 options.tableConfig.cellVariables 사용",
       "type": "array",
-      "items": { "$ref": "#/definitions/cellVariable" }
+      "items": { "$ref": "#/definitions/cellVariable" },
+      "examples": [
+        [{ "rowIndex": 0, "colIndex": 1, "value": "?" }],
+        [{ "rowIndex": 1, "colIndex": 2, "value": ["ㄱ", "ㄴ"] }]
+      ]
     },
     "options": {
-      "description": "세부 옵션",
+      "description": "세부 옵션 (차트/테이블 공통)",
       "$ref": "#/definitions/options"
     }
   },
-  "definitions": {
-    "classRange": {
-      "type": "object",
-      "description": "계급 범위 수동 지정",
-      "required": ["firstEnd", "secondEnd", "lastStart"],
-      "properties": {
-        "firstEnd": {
-          "description": "첫 계급 끝값 (0~firstEnd)",
-          "type": "number"
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "purpose": { "const": "table" },
+          "tableType": { "const": "frequency" }
         },
-        "secondEnd": {
-          "description": "두 번째 계급 끝값 (간격 결정)",
-          "type": "number"
-        },
-        "lastStart": {
-          "description": "마지막 계급 시작값",
-          "type": "number"
+        "required": ["purpose"]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 1
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "description": "반복 표기 지원: '16*18' = 16을 18번 반복"
+              }
+            ]
+          }
         }
       }
     },
+    {
+      "if": {
+        "properties": {
+          "purpose": { "const": "table" },
+          "tableType": { "enum": ["stem-leaf", "cross-table", "category-matrix"] }
+        },
+        "required": ["purpose", "tableType"]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "purpose": { "const": "chart" }
+        }
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 1
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "classRange": {
+      "type": "object",
+      "description": "계급 범위 수동 지정. 예: {firstEnd:10, secondEnd:20, lastStart:50} → 0~10, 10~20, 20~30, 30~40, 40~50, 50~60",
+      "required": ["firstEnd", "secondEnd", "lastStart"],
+      "additionalProperties": false,
+      "properties": {
+        "firstEnd": {
+          "description": "첫 계급 끝값 (0~firstEnd가 첫 계급)",
+          "type": "number",
+          "examples": [10, 20]
+        },
+        "secondEnd": {
+          "description": "두 번째 계급 끝값 (간격 = secondEnd - firstEnd)",
+          "type": "number",
+          "examples": [20, 40]
+        },
+        "lastStart": {
+          "description": "마지막 계급 시작값",
+          "type": "number",
+          "examples": [50, 80]
+        }
+      },
+      "examples": [
+        { "firstEnd": 10, "secondEnd": 20, "lastStart": 50 }
+      ]
+    },
     "cellAnimation": {
       "type": "object",
-      "description": "셀 애니메이션 설정",
+      "description": "셀 애니메이션 설정. 단일 셀(rowIndex/colIndex) 또는 범위(rowStart~rowEnd, colStart~colEnd) 지정",
+      "additionalProperties": false,
       "properties": {
-        "rowIndex": { "type": "integer", "minimum": 0 },
-        "colIndex": { "type": "integer", "minimum": 0 },
-        "rowStart": { "type": "integer", "minimum": 0 },
-        "rowEnd": { "type": "integer", "minimum": 0 },
-        "colStart": { "type": "integer", "minimum": 0 },
-        "colEnd": { "type": "integer", "minimum": 0 },
+        "rowIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "대상 행 인덱스 (0-based)"
+        },
+        "colIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "대상 열 인덱스 (0-based)"
+        },
+        "rowStart": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "범위 시작 행 인덱스"
+        },
+        "rowEnd": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "범위 끝 행 인덱스"
+        },
+        "colStart": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "범위 시작 열 인덱스"
+        },
+        "colEnd": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "범위 끝 열 인덱스"
+        },
         "duration": {
           "type": "number",
           "minimum": 0,
-          "default": 1500
+          "default": 1500,
+          "description": "애니메이션 지속 시간 (ms)"
         },
         "repeat": {
           "type": "integer",
           "minimum": 1,
-          "default": 3
+          "default": 3,
+          "description": "반복 횟수"
         }
-      }
+      },
+      "oneOf": [
+        {
+          "required": ["rowIndex", "colIndex"],
+          "description": "단일 셀 지정"
+        },
+        {
+          "required": ["rowStart", "rowEnd", "colStart", "colEnd"],
+          "description": "셀 범위 지정"
+        }
+      ],
+      "examples": [
+        { "rowIndex": 0, "colIndex": 1, "duration": 1500, "repeat": 3 },
+        { "rowStart": 0, "rowEnd": 2, "colStart": 1, "colEnd": 3 }
+      ]
     },
     "cellVariable": {
       "type": "object",
-      "description": "셀 값 오버라이드",
+      "description": "셀 값 오버라이드. rowIndex/colIndex로 위치 지정",
       "required": ["rowIndex", "colIndex", "value"],
+      "additionalProperties": false,
       "properties": {
-        "rowIndex": { "type": "integer", "minimum": 0 },
-        "colIndex": { "type": "integer", "minimum": 0 },
+        "rowIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "대상 행 인덱스 (0-based)"
+        },
+        "colIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "대상 열 인덱스 (0-based)"
+        },
         "value": {
+          "description": "셀에 표시할 값. 문자열, 숫자, 또는 배열(다중 값)",
           "oneOf": [
             { "type": "string" },
             { "type": "number" },
-            { "type": "array" }
+            {
+              "type": "array",
+              "description": "다중 값 (예: ['ㄱ', 'ㄴ'])"
+            }
           ]
         }
-      }
+      },
+      "examples": [
+        { "rowIndex": 0, "colIndex": 1, "value": "?" },
+        { "rowIndex": 1, "colIndex": 2, "value": 42 },
+        { "rowIndex": 2, "colIndex": 0, "value": ["ㄱ", "ㄴ"] }
+      ]
     },
     "options": {
       "type": "object",
+      "description": "차트 및 테이블 세부 설정",
+      "additionalProperties": false,
       "properties": {
         "showHistogram": {
-          "description": "히스토그램 표시",
+          "description": "히스토그램 표시 여부",
           "type": "boolean",
           "default": true
         },
         "showPolygon": {
-          "description": "도수다각형 표시",
+          "description": "도수다각형 표시 여부",
           "type": "boolean",
           "default": true
         },
@@ -181,7 +350,7 @@
           "default": "relativeFrequency"
         },
         "showDashedLines": {
-          "description": "수직 파선 표시",
+          "description": "계급 경계에 수직 파선 표시",
           "type": "boolean",
           "default": false
         },
@@ -201,37 +370,47 @@
           "$ref": "#/definitions/congruentTriangles"
         },
         "triangleLabels": {
+          "description": "합동 삼각형 라벨 (예: ['S₁', 'S₂'])",
           "type": "array",
           "items": { "type": "string" },
-          "maxItems": 2
+          "maxItems": 2,
+          "examples": [["S₁", "S₂"]]
         },
         "customBarLabels": {
-          "description": "막대 내부 커스텀 라벨",
+          "description": "히스토그램 막대 내부에 표시할 커스텀 라벨",
           "type": "array",
           "items": {
             "oneOf": [
               { "type": "string" },
               { "type": "null" }
             ]
-          }
+          },
+          "examples": [["A", "B", null, "D"]]
         },
         "customYInterval": {
-          "description": "Y축 간격 커스텀",
+          "description": "Y축 간격 커스텀 지정",
           "type": "number",
-          "minimum": 0
+          "minimum": 0,
+          "examples": [5, 10, 0.1]
         },
         "histogramColorPreset": {
+          "description": "히스토그램 색상 프리셋",
           "type": "string",
-          "enum": ["default", "green"]
+          "enum": ["default", "green"],
+          "default": "default"
         },
         "histogramColor": {
+          "description": "히스토그램 색상 커스텀 (프리셋보다 우선)",
           "$ref": "#/definitions/colorConfig"
         },
         "polygonColorPreset": {
+          "description": "도수다각형 색상 프리셋",
           "type": "string",
-          "enum": ["default", "primary", "secondary", "tertiary"]
+          "enum": ["default", "primary", "secondary", "tertiary"],
+          "default": "default"
         },
         "polygonColor": {
+          "description": "도수다각형 색상 커스텀 (프리셋보다 우선)",
           "$ref": "#/definitions/colorConfig"
         },
         "corruption": {
@@ -248,21 +427,36 @@
     "axisLabels": {
       "type": "object",
       "description": "축 라벨 커스터마이징",
+      "additionalProperties": false,
       "properties": {
-        "xAxis": { "type": "string" },
-        "yAxis": { "type": "string" }
-      }
+        "xAxis": {
+          "type": "string",
+          "description": "X축 라벨",
+          "examples": ["점수(점)", "키(cm)"]
+        },
+        "yAxis": {
+          "type": "string",
+          "description": "Y축 라벨",
+          "examples": ["상대도수", "도수(명)"]
+        }
+      },
+      "examples": [
+        { "xAxis": "점수(점)", "yAxis": "상대도수" }
+      ]
     },
     "grid": {
       "type": "object",
-      "description": "격자선 설정",
+      "description": "격자선 표시 설정",
+      "additionalProperties": false,
       "properties": {
         "showHorizontal": {
           "type": "boolean",
+          "description": "수평 격자선 표시",
           "default": true
         },
         "showVertical": {
           "type": "boolean",
+          "description": "수직 격자선 표시",
           "default": true
         }
       }
@@ -270,17 +464,21 @@
     "axis": {
       "type": "object",
       "description": "축 라벨 표시 설정",
+      "additionalProperties": false,
       "properties": {
         "showYLabels": {
           "type": "boolean",
+          "description": "Y축 라벨(숫자) 표시",
           "default": true
         },
         "showXLabels": {
           "type": "boolean",
+          "description": "X축 라벨(계급값) 표시",
           "default": true
         },
         "yLabelFormat": {
           "type": "string",
+          "description": "Y축 라벨 형식",
           "enum": ["decimal", "percent"],
           "default": "decimal"
         }
@@ -288,70 +486,119 @@
     },
     "callout": {
       "type": "object",
-      "description": "말풍선 설정",
+      "description": "말풍선(콜아웃) 설정",
+      "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
-        "template": { "type": "string" },
+        "enabled": {
+          "type": "boolean",
+          "description": "말풍선 활성화"
+        },
+        "template": {
+          "type": "string",
+          "description": "말풍선 텍스트 템플릿. {value} 등 변수 사용 가능",
+          "examples": ["{value}%", "도수: {value}"]
+        },
         "preset": {
           "type": "string",
-          "enum": ["default", "primary", "secondary", "tertiary"]
+          "description": "말풍선 스타일 프리셋",
+          "enum": ["default", "primary", "secondary", "tertiary"],
+          "default": "default"
         }
       }
     },
     "congruentTriangles": {
       "type": "object",
-      "description": "합동 삼각형 설정",
+      "description": "합동 삼각형 표시 설정 (도수다각형 아래 영역)",
+      "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
+        "enabled": {
+          "type": "boolean",
+          "description": "합동 삼각형 표시 활성화"
+        },
         "boundary": {
-          "description": "경계값",
-          "type": "number"
+          "description": "삼각형 경계값 (이 값을 기준으로 좌우 분할)",
+          "type": "number",
+          "examples": [75, 80]
         }
       }
     },
     "colorConfig": {
-      "description": "색상 설정",
+      "description": "색상 설정. 문자열(단일 색상) 또는 객체(세부 설정)",
       "oneOf": [
-        { "type": "string" },
+        {
+          "type": "string",
+          "description": "단일 색상 (CSS 색상값)",
+          "examples": ["#FF5733", "rgb(255, 87, 51)", "red"]
+        },
         {
           "type": "object",
+          "description": "세부 색상 설정",
+          "additionalProperties": false,
           "properties": {
-            "fill": { "type": "string" },
-            "stroke": { "type": "string" },
-            "line": { "type": "string" },
-            "point": { "type": "string" },
+            "fill": {
+              "type": "string",
+              "description": "채우기 색상"
+            },
+            "stroke": {
+              "type": "string",
+              "description": "테두리 색상"
+            },
+            "line": {
+              "type": "string",
+              "description": "선 색상"
+            },
+            "point": {
+              "type": "string",
+              "description": "점 색상"
+            },
             "alpha": {
               "type": "number",
+              "description": "투명도 (0~1)",
               "minimum": 0,
-              "maximum": 1
+              "maximum": 1,
+              "default": 1
             }
           }
         }
+      ],
+      "examples": [
+        "#FF5733",
+        { "fill": "#FF5733", "stroke": "#CC4422", "alpha": 0.8 }
       ]
     },
     "corruption": {
       "type": "object",
-      "description": "찢김 효과 설정",
+      "description": "찢김 효과 설정 (히스토그램 일부를 찢어진 것처럼 표시)",
+      "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
+        "enabled": {
+          "type": "boolean",
+          "description": "찢김 효과 활성화"
+        },
         "cells": {
-          "description": "셀 범위 (예: \"0-0:2-3\")",
+          "description": "찢김 효과 적용 셀 범위. 형식: 'row-col' 또는 'row-col:row-col'",
           "type": "string",
-          "pattern": "^\\d+-\\d+(:\\d+-\\d+)?$"
+          "pattern": "^\\d+-\\d+(:\\d+-\\d+)?$",
+          "examples": ["0-0", "0-0:2-3"]
         },
         "maskAxisLabels": {
           "type": "boolean",
+          "description": "찢김 영역의 축 라벨 숨김",
           "default": false
         },
         "style": {
           "type": "object",
+          "description": "찢김 효과 스타일",
+          "additionalProperties": false,
           "properties": {
             "edgeColor": {
               "type": "string",
+              "description": "찢김 가장자리 색상",
               "default": "#FF0000"
             },
             "fiberCount": {
               "type": "integer",
+              "description": "찢김 섬유 개수",
               "minimum": 1,
               "default": 50
             }
@@ -361,35 +608,74 @@
     },
     "tableConfig": {
       "type": "object",
-      "description": "도수분포표 설정",
+      "description": "도수분포표 설정 (tableType='frequency'일 때)",
+      "additionalProperties": false,
       "properties": {
         "visibleColumns": {
-          "description": "7개 컬럼 표시 여부",
+          "description": "7개 컬럼 표시 여부 배열. 순서: [계급, 계급값, 탤리, 도수, 상대도수, 누적도수, 누적상대도수]",
           "type": "array",
           "items": { "type": "boolean" },
           "minItems": 7,
-          "maxItems": 7
+          "maxItems": 7,
+          "examples": [
+            [true, true, false, true, true, false, false]
+          ]
         },
         "columnOrder": {
-          "description": "컬럼 순서",
+          "description": "컬럼 표시 순서 (0-based 인덱스 배열)",
           "type": "array",
-          "items": { "type": "integer" }
+          "items": { "type": "integer", "minimum": 0, "maximum": 6 },
+          "examples": [
+            [0, 3, 4],
+            [0, 1, 2, 3, 4, 5, 6]
+          ]
         },
         "labels": {
           "type": "object",
+          "description": "컬럼 라벨 커스터마이징",
+          "additionalProperties": false,
           "properties": {
-            "class": { "type": "string" },
-            "midpoint": { "type": "string" },
-            "tally": { "type": "string" },
-            "frequency": { "type": "string" },
-            "relativeFrequency": { "type": "string" },
-            "cumulativeFrequency": { "type": "string" },
-            "cumulativeRelativeFrequency": { "type": "string" }
+            "class": {
+              "type": "string",
+              "description": "계급 컬럼 라벨",
+              "default": "계급"
+            },
+            "midpoint": {
+              "type": "string",
+              "description": "계급값 컬럼 라벨",
+              "default": "계급값"
+            },
+            "tally": {
+              "type": "string",
+              "description": "탤리 컬럼 라벨",
+              "default": "탤리"
+            },
+            "frequency": {
+              "type": "string",
+              "description": "도수 컬럼 라벨",
+              "default": "도수"
+            },
+            "relativeFrequency": {
+              "type": "string",
+              "description": "상대도수 컬럼 라벨",
+              "default": "상대도수"
+            },
+            "cumulativeFrequency": {
+              "type": "string",
+              "description": "누적도수 컬럼 라벨",
+              "default": "누적도수"
+            },
+            "cumulativeRelativeFrequency": {
+              "type": "string",
+              "description": "누적상대도수 컬럼 라벨",
+              "default": "누적상대도수"
+            }
           }
         },
         "showSuperscript": {
-          "description": "이상/미만 표시",
-          "type": "boolean"
+          "description": "계급값에 이상/미만 위첨자 표시",
+          "type": "boolean",
+          "default": false
         },
         "showSummaryRow": {
           "description": "합계 행 표시",
@@ -397,22 +683,28 @@
           "default": true
         },
         "cellVariables": {
-          "description": "도수분포표 셀 오버라이드",
+          "description": "도수분포표 셀 값 오버라이드. frequency 테이블은 이 위치에 지정해야 함",
           "type": "array",
-          "items": { "$ref": "#/definitions/cellVariable" }
+          "items": { "$ref": "#/definitions/cellVariable" },
+          "examples": [
+            [{ "rowIndex": 0, "colIndex": 2, "value": "?" }]
+          ]
         }
       }
     },
     "crossTable": {
       "type": "object",
-      "description": "이원분류표 설정",
+      "description": "이원분류표 설정 (tableType='cross-table'일 때)",
+      "additionalProperties": false,
       "properties": {
         "showTotal": {
           "type": "boolean",
+          "description": "합계 행/열 표시",
           "default": true
         },
         "showMergedHeader": {
           "type": "boolean",
+          "description": "병합된 헤더 표시",
           "default": true
         }
       }

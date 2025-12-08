@@ -29,6 +29,30 @@
 
 ---
 
+## JSON Schema
+
+설정 검증을 위한 JSON Schema가 제공됩니다.
+
+- **파일**: `schema/viz-api.schema.json`
+- **스펙**: JSON Schema draft-07
+- **기능**:
+  - 모든 속성에 description, default, examples 포함
+  - tableType별 data 형식 조건부 검증
+  - additionalProperties: false로 오타 방지
+
+```javascript
+// 사용 예시 (AJV 등)
+import Ajv from 'ajv';
+import schema from './schema/viz-api.schema.json';
+
+const ajv = new Ajv();
+const validate = ajv.compile(schema);
+const valid = validate(config);
+if (!valid) console.log(validate.errors);
+```
+
+---
+
 ## 용어 설명
 
 ### 통계 용어

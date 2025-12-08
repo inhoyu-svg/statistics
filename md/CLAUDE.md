@@ -412,6 +412,13 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 ## 마지막 업데이트
 - **날짜**: 2025-12-08
 - **주요 작업**:
+  - ✅ **JSON Schema 개선** (2025-12-08)
+    - 421줄 → 713줄 대폭 확장
+    - 모든 속성에 description, default, examples 추가
+    - tableType별 data 형식 조건부 검증 (allOf + if/then)
+    - additionalProperties: false로 오타 방지
+    - cellAnimation 필수 필드 검증 (oneOf)
+    - **수정 파일**: `schema/viz-api.schema.json`
   - ✅ **리팩토링 3단계 완료** (2025-12-08)
     - 입력 검증 강화: `ConfigValidator` 클래스 생성 (`validator.js` 131줄 → 425줄)
     - cellVariables 통일: `rowIndex/colIndex` 방식으로 통일, 레거시 지원
