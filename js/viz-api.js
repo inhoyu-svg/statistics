@@ -5,7 +5,7 @@
 
 import CONFIG from './config.js';
 import DataProcessor from './core/processor.js';
-import { ParserFactory } from './core/parsers/index.js';
+import { ParserFactory, ParserAdapter } from './core/parsers/index.js';
 import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
 import tableStore from './core/tableStore.js';
@@ -726,7 +726,7 @@ export async function renderTable(element, config) {
         stats
       };
     } else {
-      // Custom table types: use ParserFactory
+      // Custom table types: use ParserFactory + ParserAdapter
       const parseResult = ParserFactory.parse(tableType, dataString);
       if (!parseResult.success) {
         return { error: parseResult.error || 'Failed to parse data' };
@@ -749,7 +749,22 @@ export async function renderTable(element, config) {
         finalParseResult = applyCellVariablesGeneric(config.cellVariables, parseResult, tableType);
       }
 
-      tableRenderer.drawCustomTable(tableType, finalParseResult.data, tableConfig);
+      // ParserAdapter로 통일된 형식 생성 (팩토리에서 활용 가능)
+      let adaptedData = null;
+      try {
+        adaptedData = ParserAdapter.adapt(tableType, finalParseResult);
+      } catch (e) {
+        // ParserAdapter 실패 시 기존 방식으로 fallback
+        console.warn('[viz-api] ParserAdapter 변환 실패, 기존 방식 사용:', e.message);
+      }
+
+      // tableConfig에 adaptedData 포함 (팩토리에서 rowCount, columnCount 등 활용)
+      const enhancedTableConfig = {
+        ...tableConfig,
+        adaptedData
+      };
+
+      tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
 
       // Apply cell animations if specified
       applyCellAnimationsFromConfig(tableRenderer, config);

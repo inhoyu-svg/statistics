@@ -74,6 +74,32 @@ class CategoryMatrixFactory {
   }
 
   /**
+   * ParserAdapter의 통일된 출력 형식으로 테이블 레이어 생성
+   * @param {LayerManager} layerManager - 레이어 매니저
+   * @param {Object} adaptedData - ParserAdapter.adapt() 출력
+   * @param {Object} config - 테이블 설정
+   * @param {string} tableId - 테이블 고유 ID
+   */
+  static createFromAdaptedData(layerManager, adaptedData, config = null, tableId = 'table-1') {
+    const { headers, rows, metadata } = adaptedData;
+    const { originalHeaders } = metadata;
+
+    // adaptedData를 기존 파서 형식으로 변환
+    // adaptedData.headers = ['구분', ...originalHeaders]
+    // adaptedData.rows = [{ label, cells: [{ value: label }, { value }, ...] }]
+    const legacyData = {
+      headers: originalHeaders,
+      rows: rows.map(row => ({
+        label: row.label,
+        values: row.cells.slice(1).map(cell => cell.value)  // 첫 번째 셀(라벨) 제외
+      }))
+    };
+
+    // 기존 메서드 호출
+    this.createTableLayers(layerManager, legacyData, config, tableId);
+  }
+
+  /**
    * 열 너비 계산 (첫 번째 열은 더 넓게)
    */
   static _calculateColumnWidths(canvasWidth, padding, columnCount) {

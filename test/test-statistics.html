@@ -16,7 +16,7 @@
     h2 { margin: 30px 0 15px; color: #aaa; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 8px; }
     .test-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
       gap: 30px;
       margin-top: 20px;
     }
@@ -24,6 +24,7 @@
       background: #252540;
       border-radius: 12px;
       padding: 20px;
+      overflow: hidden;
     }
     .test-case h3 {
       margin: 0 0 10px;
@@ -41,6 +42,13 @@
       padding: 10px;
       display: flex;
       justify-content: center;
+      align-items: center;
+      overflow: auto;
+      min-height: 300px;
+    }
+    .chart-container canvas, .table-container canvas {
+      max-width: 100%;
+      height: auto;
     }
     .status {
       margin-top: 10px;
@@ -169,12 +177,20 @@
       <div class="status" id="status-table-frequency"></div>
     </div>
 
-    <!-- 14. 줄기-잎 그림 -->
+    <!-- 14. 줄기-잎 그림 (단일 모드) -->
     <div class="test-case">
-      <h3>14. 줄기-잎 그림</h3>
-      <p>tableType: 'stem-leaf'</p>
+      <h3>14. 줄기-잎 그림 (단일)</h3>
+      <p>tableType: 'stem-leaf' - 숫자만 입력</p>
       <div class="table-container" id="table-stem-leaf"></div>
       <div class="status" id="status-table-stem-leaf"></div>
+    </div>
+
+    <!-- 14-2. 줄기-잎 그림 (비교 모드) -->
+    <div class="test-case">
+      <h3>14-2. 줄기-잎 그림 (비교)</h3>
+      <p>tableType: 'stem-leaf' - 라벨: 숫자들 형식</p>
+      <div class="table-container" id="table-stem-leaf-compare"></div>
+      <div class="status" id="status-table-stem-leaf-compare"></div>
     </div>
 
     <!-- 15. 이원분류표 -->
@@ -250,11 +266,13 @@
   </div>
 
   <script type="module">
-    import * as VizAPI from './js/viz-api.js';
+    import * as VizAPI from '../js/viz-api.js';
 
     // 테스트 데이터
     const sampleData = '62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 68, 91, 83, 72, 78';
     const stemLeafData = '12, 15, 18, 21, 23, 25, 27, 31, 33, 35, 38, 41, 45, 48';
+    const stemLeafCompareData = `남학생: 162, 175, 178, 181, 185, 188, 191
+여학생: 155, 160, 163, 168, 172, 175, 180`;
     const crossTableData = `헤더: 혈액형, 남학생, 여학생
 A: 0.4, 0.4
 B: 0.22, 0.2
@@ -413,24 +431,28 @@ AB: 0.13, 0.13`;
       tableType: 'frequency',
       data: sampleData,
       classCount: 5,
-      canvasWidth: 500,
-      canvasHeight: 300
+      canvasWidth: 500
     }).then(r => showStatus('status-table-frequency', r));
 
-    // 14. 줄기-잎 그림
+    // 14. 줄기-잎 그림 (단일 모드)
     VizAPI.renderTable(document.getElementById('table-stem-leaf'), {
       tableType: 'stem-leaf',
       data: stemLeafData,
-      canvasWidth: 300,
-      canvasHeight: 250
+      canvasWidth: 300
     }).then(r => showStatus('status-table-stem-leaf', r));
+
+    // 14-2. 줄기-잎 그림 (비교 모드)
+    VizAPI.renderTable(document.getElementById('table-stem-leaf-compare'), {
+      tableType: 'stem-leaf',
+      data: stemLeafCompareData,
+      canvasWidth: 450
+    }).then(r => showStatus('status-table-stem-leaf-compare', r));
 
     // 15. 이원분류표
     VizAPI.renderTable(document.getElementById('table-cross'), {
       tableType: 'cross-table',
       data: crossTableData,
       canvasWidth: 400,
-      canvasHeight: 280,
       options: {
         crossTable: {
           showTotal: true,
@@ -443,8 +465,7 @@ AB: 0.13, 0.13`;
     VizAPI.renderTable(document.getElementById('table-category'), {
       tableType: 'category-matrix',
       data: categoryData,
-      canvasWidth: 400,
-      canvasHeight: 200
+      canvasWidth: 400
     }).then(r => showStatus('status-table-category', r));
 
     // 17. 셀 변수 치환
@@ -452,7 +473,6 @@ AB: 0.13, 0.13`;
       tableType: 'stem-leaf',
       data: stemLeafData,
       canvasWidth: 300,
-      canvasHeight: 250,
       cellVariables: [
         { rowIndex: 1, colIndex: 1, value: 'x' },
         { rowIndex: 2, colIndex: 1, value: 'y' }
@@ -465,7 +485,6 @@ AB: 0.13, 0.13`;
       data: sampleData,
       classCount: 5,
       canvasWidth: 500,
-      canvasHeight: 300,
       cellAnimations: [
         { rowIndex: 1, colIndex: 3, duration: 1500, repeat: 5 },
         { rowIndex: 2, colIndex: 3, duration: 1500, repeat: 5 }
@@ -490,8 +509,7 @@ AB: 0.13, 0.13`;
       tableType: 'frequency',
       data: sampleData,
       classCount: 5,
-      canvasWidth: 500,
-      canvasHeight: 300
+      canvasWidth: 500
     }).then(r => showStatus('status-unified-table', r));
 
     // 21. 차트 Corruption
@@ -518,7 +536,6 @@ AB: 0.13, 0.13`;
       data: sampleData,
       classCount: 5,
       canvasWidth: 500,
-      canvasHeight: 300,
       animation: false,
       options: {
         corruption: {

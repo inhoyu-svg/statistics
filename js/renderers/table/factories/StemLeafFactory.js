@@ -39,6 +39,47 @@ class StemLeafFactory {
   }
 
   /**
+   * ParserAdapter의 통일된 출력 형식으로 테이블 레이어 생성
+   * @param {LayerManager} layerManager - 레이어 매니저
+   * @param {Object} adaptedData - ParserAdapter.adapt() 출력
+   * @param {Object} config - 테이블 설정
+   * @param {string} tableId - 테이블 고유 ID
+   */
+  static createFromAdaptedData(layerManager, adaptedData, config = null, tableId = 'table-1') {
+    const { rows, rowCount, columnCount, metadata } = adaptedData;
+    const { isSingleMode, leftLabel, rightLabel, minStem, maxStem, maxLeafCount, maxLeftLeafCount, maxRightLeafCount } = metadata;
+
+    // adaptedData를 기존 파서 형식으로 변환
+    const stems = rows.map(row => {
+      if (isSingleMode) {
+        return {
+          stem: row.cells[0].value,
+          leaves: row.cells[1].metadata.leaves
+        };
+      } else {
+        return {
+          leftLeaves: row.cells[0].metadata.leaves,
+          stem: row.cells[1].value,
+          rightLeaves: row.cells[2].metadata.leaves
+        };
+      }
+    });
+
+    // 기존 형식으로 변환된 데이터
+    const legacyData = {
+      isSingleMode,
+      stems,
+      minStem,
+      maxStem,
+      leftLabel,
+      rightLabel
+    };
+
+    // 기존 메서드 호출
+    this.createTableLayers(layerManager, legacyData, config, tableId);
+  }
+
+  /**
    * 텍스트 측정용 임시 캔버스 컨텍스트 생성
    * @returns {CanvasRenderingContext2D}
    */

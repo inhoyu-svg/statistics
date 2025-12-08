@@ -273,8 +273,8 @@ class TableRenderer {
       data.showMergedHeader = tableStore.getMergedHeaderVisible(this.tableId);
     }
 
-    // 행 수 계산 (타입별)
-    const rowCount = this._calculateRowCount(type, data);
+    // 행 수 계산 (adaptedData가 있으면 직접 사용, 없으면 타입별 계산)
+    const rowCount = config?.adaptedData?.rowCount ?? this._calculateRowCount(type, data);
 
     // Canvas 크기 계산 (이원분류표는 병합 헤더 조건부 추가)
     const showMergedHeader = type === CONFIG.TABLE_TYPES.CROSS_TABLE && data.showMergedHeader !== false;

@@ -40,6 +40,39 @@ class TableFactoryRouter {
   }
 
   /**
+   * ParserAdapter의 통일된 출력 형식(ParsedTableData)으로 테이블 레이어 생성
+   * @param {LayerManager} layerManager - 레이어 매니저
+   * @param {Object} adaptedData - ParserAdapter.adapt() 출력
+   * @param {Object} config - 테이블 설정
+   * @param {string} tableId - 테이블 고유 ID
+   */
+  static createFromAdaptedData(layerManager, adaptedData, config = null, tableId = 'table-1') {
+    const { type, metadata } = adaptedData;
+
+    // config에 adaptedData 정보 병합
+    const mergedConfig = {
+      ...config,
+      adaptedData  // 팩토리에서 rowCount, columnCount 등 활용 가능
+    };
+
+    switch (type) {
+      case CONFIG.TABLE_TYPES.STEM_LEAF:
+        return StemLeafFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
+
+      case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
+        return CategoryMatrixFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
+
+      case CONFIG.TABLE_TYPES.CROSS_TABLE:
+        return CrossTableFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
+
+      case CONFIG.TABLE_TYPES.FREQUENCY:
+      default:
+        // 도수분포표는 별도 처리 (기존 TableLayerFactory 사용)
+        return null;
+    }
+  }
+
+  /**
    * 타입에 맞는 팩토리 클래스 반환
    * @param {string} type - 테이블 타입
    * @returns {Class|null}

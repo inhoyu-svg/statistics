@@ -7,6 +7,7 @@ import FrequencyParser from './FrequencyParser.js';
 import CategoryMatrixParser from './CategoryMatrixParser.js';
 import CrossTableParser from './CrossTableParser.js';
 import StemLeafParser from './StemLeafParser.js';
+import ParserAdapter from './ParserAdapter.js';
 
 /**
  * 파서 팩토리
@@ -73,6 +74,7 @@ class ParserFactory {
 
 export {
   ParserFactory,
+  ParserAdapter,
   FrequencyParser,
   CategoryMatrixParser,
   CrossTableParser,
