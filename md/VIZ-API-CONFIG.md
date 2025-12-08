@@ -70,7 +70,16 @@
 | **options** | `options` | 차트/테이블 세부 설정을 담는 객체 | 전체 |
 | **animation** | `animation` | 애니메이션 활성화 여부 | 차트/테이블 |
 | **cellAnimations** | `cellAnimations` | 셀 하이라이트 애니메이션 배열 | 모든 테이블 |
-| **cellVariables** | `cellVariables` | 셀 값 커스터마이징 (rowIndex/colIndex 기반) | 줄기-잎 |
+| **cellVariables** | `cellVariables` | 셀 값 커스터마이징 (rowIndex/colIndex 기반) | 아래 표 참조 |
+
+#### ⚠️ cellVariables 위치 (tableType별)
+
+| tableType | cellVariables 위치 |
+|:----------|:-------------------|
+| `frequency` | `options.tableConfig.cellVariables` |
+| `stem-leaf` | 최상위 `cellVariables` |
+| `cross-table` | 최상위 `cellVariables` |
+| `category-matrix` | 최상위 `cellVariables` |
 
 #### options 하위 객체 (차트)
 
@@ -179,7 +188,7 @@ config (최상위)
 │
 ├── cellAnimationOptions    { blinkEnabled: true/false }
 │
-└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (줄기-잎 전용)
+└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (stem-leaf, cross-table, category-matrix용)
 ```
 
 ---
@@ -1541,7 +1550,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 }
 ```
 
-#### cellVariables (줄기-잎 전용)
+#### cellVariables (최상위 레벨)
 
 줄기-잎은 데이터가 자동 배치되므로, 특정 셀 값을 수정하려면 `cellVariables`를 사용합니다.
 

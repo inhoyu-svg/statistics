@@ -94,7 +94,7 @@
       }
     },
     "cellVariables": {
-      "description": "셀 값 오버라이드 (줄기-잎, 카테고리 매트릭스, 이원분류표)",
+      "description": "셀 값 오버라이드 (stem-leaf, cross-table, category-matrix용. frequency는 options.tableConfig.cellVariables 사용)",
       "type": "array",
       "items": { "$ref": "#/definitions/cellVariable" }
     },
