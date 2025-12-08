@@ -6,6 +6,20 @@ import CONFIG from '../config.js';
 import Utils from './utils.js';
 import { ParserFactory } from '../core/parsers/index.js';
 
+/**
+ * 표준화된 에러 코드
+ */
+export const ERROR_CODES = {
+  REQUIRED: 'REQUIRED',
+  TYPE_ERROR: 'TYPE_ERROR',
+  INVALID_FORMAT: 'INVALID_FORMAT',
+  RANGE_ERROR: 'RANGE_ERROR',
+  MIN_LENGTH: 'MIN_LENGTH',
+  MAX_LENGTH: 'MAX_LENGTH',
+  UNSUPPORTED_TYPE: 'UNSUPPORTED_TYPE',
+  CUSTOM_RANGE_ERROR: 'CUSTOM_RANGE_ERROR'
+};
+
 class Validator {
   /**
    * 테이블 타입에 따른 데이터 검증
@@ -128,4 +142,284 @@ class Validator {
   }
 }
 
+/**
+ * viz-api 설정 검증 클래스
+ * 모든 검증을 중앙에서 처리하고 표준화된 에러 형식 반환
+ *
+ * @typedef {Object} ValidationError
+ * @property {string} field - 에러 발생 필드
+ * @property {string} code - 에러 코드 (ERROR_CODES)
+ * @property {string} message - 사용자 친화적 메시지
+ *
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - 검증 성공 여부
+ * @property {any} data - 성공 시 파싱된 데이터
+ * @property {ValidationError[]} errors - 에러 목록
+ */
+class ConfigValidator {
+  /**
+   * viz-api config 객체 전체 검증
+   * @param {Object} config - viz-api 설정 객체
+   * @param {'chart'|'table'} purpose - 렌더링 목적
+   * @returns {ValidationResult}
+   */
+  static validate(config, purpose = 'chart') {
+    const errors = [];
+    let parsedData = null;
+
+    // 1. config 객체 자체 검증
+    if (!config || typeof config !== 'object') {
+      this._addError(errors, 'config', ERROR_CODES.REQUIRED, 'config 객체가 필요합니다.');
+      return { valid: false, data: null, errors };
+    }
+
+    // 2. 필수 필드 검증
+    this._validateRequired(config, errors);
+
+    // 조기 반환: 필수 필드 누락 시
+    if (errors.length > 0) {
+      return { valid: false, data: null, errors };
+    }
+
+    // 3. 테이블 타입 검증
+    const tableType = config.tableType || 'frequency';
+    if (!this._isValidTableType(tableType)) {
+      this._addError(
+        errors,
+        'tableType',
+        ERROR_CODES.UNSUPPORTED_TYPE,
+        `지원하지 않는 테이블 타입: ${tableType}`
+      );
+    }
+
+    // 차트는 frequency 타입만 지원
+    if (purpose === 'chart' && tableType !== 'frequency') {
+      this._addError(
+        errors,
+        'tableType',
+        ERROR_CODES.UNSUPPORTED_TYPE,
+        `차트는 frequency 타입만 지원합니다. 현재: ${tableType}`
+      );
+    }
+
+    // 4. 데이터 파싱 및 검증
+    const parseResult = this._validateAndParseData(config, tableType, errors);
+    if (parseResult && parseResult.success) {
+      parsedData = {
+        tableType,
+        rawData: parseResult.data,
+        parseResult
+      };
+    }
+
+    // 5. 계급 설정 검증 (도수분포표인 경우)
+    if (tableType === 'frequency') {
+      this._validateClassSettings(config, errors);
+    }
+
+    // 6. 커스텀 범위 검증
+    if (config.classRange) {
+      this._validateCustomRange(config.classRange, errors);
+    }
+
+    // 7. 옵션 검증
+    if (config.options) {
+      this._validateOptions(config.options, purpose, errors);
+    }
+
+    return {
+      valid: errors.length === 0,
+      data: errors.length === 0 ? parsedData : null,
+      errors
+    };
+  }
+
+  // =====================
+  // 내부 검증 메서드들
+  // =====================
+
+  /**
+   * 필수 필드 검증
+   * @private
+   */
+  static _validateRequired(config, errors) {
+    if (!config.data) {
+      this._addError(errors, 'data', ERROR_CODES.REQUIRED, 'data 필드는 필수입니다.');
+    }
+  }
+
+  /**
+   * 데이터 파싱 및 검증
+   * @private
+   */
+  static _validateAndParseData(config, tableType, errors) {
+    // 데이터 문자열 변환 (배열 지원)
+    const dataString = Array.isArray(config.data)
+      ? config.data.join(', ')
+      : config.data;
+
+    // 빈 문자열 체크
+    if (!dataString || (typeof dataString === 'string' && !dataString.trim())) {
+      this._addError(errors, 'data', ERROR_CODES.REQUIRED, '데이터가 비어있습니다.');
+      return null;
+    }
+
+    // 파서를 통한 검증
+    const parseResult = ParserFactory.parse(tableType, dataString);
+
+    if (!parseResult.success) {
+      this._addError(
+        errors,
+        'data',
+        ERROR_CODES.INVALID_FORMAT,
+        parseResult.error || '데이터 형식이 올바르지 않습니다.'
+      );
+    }
+
+    return parseResult;
+  }
+
+  /**
+   * 계급 설정 검증 (도수분포표 전용)
+   * @private
+   */
+  static _validateClassSettings(config, errors) {
+    // classCount 검증
+    if (config.classCount !== undefined && config.classCount !== null) {
+      const count = config.classCount;
+
+      if (!Number.isInteger(count)) {
+        this._addError(
+          errors,
+          'classCount',
+          ERROR_CODES.TYPE_ERROR,
+          '계급 개수는 정수여야 합니다.'
+        );
+      } else if (count < CONFIG.MIN_CLASS_COUNT || count > CONFIG.MAX_CLASS_COUNT) {
+        this._addError(
+          errors,
+          'classCount',
+          ERROR_CODES.RANGE_ERROR,
+          `계급 개수는 ${CONFIG.MIN_CLASS_COUNT}~${CONFIG.MAX_CLASS_COUNT} 사이여야 합니다.`
+        );
+      }
+    }
+
+    // classWidth 검증
+    if (config.classWidth !== undefined && config.classWidth !== null && config.classWidth !== '') {
+      const width = config.classWidth;
+
+      if (isNaN(width) || width <= 0) {
+        this._addError(
+          errors,
+          'classWidth',
+          ERROR_CODES.RANGE_ERROR,
+          '계급 간격은 0보다 큰 숫자여야 합니다.'
+        );
+      } else if (width < CONFIG.MIN_CLASS_WIDTH) {
+        this._addError(
+          errors,
+          'classWidth',
+          ERROR_CODES.RANGE_ERROR,
+          `계급 간격은 최소 ${CONFIG.MIN_CLASS_WIDTH} 이상이어야 합니다.`
+        );
+      }
+    }
+  }
+
+  /**
+   * 커스텀 범위 검증
+   * @private
+   */
+  static _validateCustomRange(range, errors) {
+    const { firstEnd, secondEnd, lastStart } = range;
+
+    // 필수 필드 체크
+    if (firstEnd === undefined || secondEnd === undefined || lastStart === undefined) {
+      this._addError(
+        errors,
+        'classRange',
+        ERROR_CODES.REQUIRED,
+        'classRange는 firstEnd, secondEnd, lastStart가 모두 필요합니다.'
+      );
+      return;
+    }
+
+    // 논리적 순서 검증
+    if (firstEnd <= 0) {
+      this._addError(
+        errors,
+        'classRange.firstEnd',
+        ERROR_CODES.CUSTOM_RANGE_ERROR,
+        '첫 칸의 끝값은 0보다 커야 합니다.'
+      );
+    }
+
+    if (secondEnd <= firstEnd) {
+      this._addError(
+        errors,
+        'classRange.secondEnd',
+        ERROR_CODES.CUSTOM_RANGE_ERROR,
+        '두 번째 칸의 끝값은 첫 칸의 끝값보다 커야 합니다.'
+      );
+    }
+
+    if (lastStart <= secondEnd) {
+      this._addError(
+        errors,
+        'classRange.lastStart',
+        ERROR_CODES.CUSTOM_RANGE_ERROR,
+        '마지막 칸의 시작값은 두 번째 칸의 끝값보다 커야 합니다.'
+      );
+    }
+  }
+
+  /**
+   * 옵션 검증
+   * @private
+   */
+  static _validateOptions(options, purpose, errors) {
+    // cellAnimations 검증
+    if (options.cellAnimations && !Array.isArray(options.cellAnimations)) {
+      this._addError(
+        errors,
+        'options.cellAnimations',
+        ERROR_CODES.TYPE_ERROR,
+        'cellAnimations는 배열이어야 합니다.'
+      );
+    }
+
+    // corruption 옵션 검증
+    if (options.corruption?.enabled && !options.corruption.cells) {
+      this._addError(
+        errors,
+        'options.corruption.cells',
+        ERROR_CODES.REQUIRED,
+        'corruption.enabled가 true일 때 cells는 필수입니다.'
+      );
+    }
+  }
+
+  // =====================
+  // 헬퍼 메서드
+  // =====================
+
+  /**
+   * 테이블 타입 유효성 확인
+   * @private
+   */
+  static _isValidTableType(type) {
+    return Object.values(CONFIG.TABLE_TYPES).includes(type);
+  }
+
+  /**
+   * 에러 추가 헬퍼
+   * @private
+   */
+  static _addError(errors, field, code, message) {
+    errors.push({ field, code, message });
+  }
+}
+
 export default Validator;
+export { ConfigValidator };

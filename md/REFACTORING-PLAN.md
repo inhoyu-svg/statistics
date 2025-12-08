@@ -1,6 +1,7 @@
 # 리팩토링 계획
 
 > 작성일: 2025-12-05
+> 수정일: 2025-12-08
 > 예정: 다음 주부터 진행
 
 ---
@@ -53,6 +54,13 @@ class ConfigValidator {
 - 버그 감소, 디버깅 시간 단축
 - JSON Schema와 연동 가능
 
+### 테스트 계획
+- [ ] 필수 필드 누락 시 적절한 에러 반환 확인
+- [ ] 잘못된 타입 입력 시 에러 메시지 검증
+- [ ] 범위 초과 값 (classCount < 3, > 20) 테스트
+- [ ] 복합 에러 (여러 필드 동시 오류) 시 모든 에러 수집 확인
+- [ ] 기존 viz-api.js, processor.js 호출부 정상 동작 확인
+
 ---
 
 ## 2. cellVariables 통일 ✅ 선택적
@@ -97,6 +105,13 @@ function classToRowIndex(classes, className) {
 - ⭐⭐ 중간
 - API 일관성 향상
 - 주의: 기존 사용자 코드 호환성 고려 필요
+
+### 테스트 계획
+- [ ] 새 방식 (rowIndex/colIndex) 정상 동작 확인
+- [ ] 레거시 방식 (class/column) 호환성 유지 확인
+- [ ] deprecated 경고 메시지 출력 확인
+- [ ] classToRowIndex 헬퍼 정확성 테스트
+- [ ] 줄기-잎, 도수분포표 양쪽에서 동일 동작 확인
 
 ---
 
@@ -148,6 +163,13 @@ interface ParsedTableData {
 - 확장성 향상 (새 테이블 타입 추가 용이)
 - 주의: 대규모 변경, 테스트 필수
 
+### 테스트 계획
+- [ ] 각 파서(줄기-잎, 카테고리, 이원분류표)의 공통 인터페이스 출력 확인
+- [ ] 기존 렌더러와의 호환성 테스트
+- [ ] metadata 필드 정확성 검증
+- [ ] 새 테이블 타입 추가 시나리오 테스트
+- [ ] 전체 렌더링 파이프라인 통합 테스트
+
 ---
 
 ## 우선순위 요약
@@ -164,3 +186,101 @@ interface ParsedTableData {
 - `md/SCHEMA.md` - 현재 데이터 구조 정의
 - `schema/viz-api.schema.json` - JSON Schema
 - `js/utils/validator.js` - 기존 검증 로직
+
+---
+
+## 롤백 계획
+
+각 리팩토링 단계별로 문제 발생 시 복구 절차입니다.
+
+### 공통 원칙
+1. 각 리팩토링은 별도 브랜치에서 진행
+2. 작업 전 태그 생성: `git tag pre-refactor-{n}`
+3. PR 단위로 머지, 문제 시 revert commit 생성
+
+### 단계별 롤백
+
+| 단계 | 롤백 명령 | 영향 범위 |
+|------|-----------|-----------|
+| 1. 입력 검증 | `git revert <commit>` | validator.js, viz-api.js, processor.js |
+| 2. cellVariables | `git revert <commit>` | viz-api.js, table.js, 문서 |
+| 3. 파서 통일 | `git revert <commit>` | parsers/*, factories/*, table.js |
+
+### 긴급 롤백 시
+```bash
+# 특정 태그로 복구
+git checkout pre-refactor-1
+git checkout -b hotfix/rollback
+
+# 또는 특정 커밋 revert
+git revert --no-commit <start>..<end>
+git commit -m "Revert: 리팩토링 롤백"
+```
+
+---
+
+## 마이그레이션 가이드
+
+외부 사용자를 위한 변경 사항 안내입니다.
+
+### v2.0 변경 사항 (예정)
+
+#### 1. 에러 메시지 형식 변경
+
+**Before:**
+```javascript
+// 다양한 형식의 에러 메시지
+"data is required"
+"classCount must be integer"
+```
+
+**After:**
+```javascript
+// 표준화된 에러 객체
+{
+  valid: false,
+  errors: [
+    { field: 'data', code: 'REQUIRED', message: '필수 필드입니다' },
+    { field: 'classCount', code: 'TYPE_ERROR', message: '정수여야 합니다' }
+  ]
+}
+```
+
+#### 2. cellVariables 문법 변경
+
+**Before (deprecated, v3.0에서 제거 예정):**
+```javascript
+cellVariables: [
+  { class: "10~20", column: "frequency", value: 5 }
+]
+```
+
+**After (권장):**
+```javascript
+cellVariables: [
+  { rowIndex: 0, colIndex: 1, value: 5 }
+]
+```
+
+> ⚠️ 기존 `class/column` 방식은 v2.x에서 deprecated 경고와 함께 동작합니다.
+> v3.0에서 완전히 제거될 예정이므로, 새 방식으로 마이그레이션해주세요.
+
+#### 3. 파서 출력 구조 변경 (v3.0 예정)
+
+대규모 변경으로 별도 마이그레이션 문서 제공 예정입니다.
+
+### 마이그레이션 체크리스트
+
+- [ ] 에러 핸들링 코드에서 새 에러 형식 대응
+- [ ] cellVariables 사용 시 rowIndex/colIndex 방식으로 변경
+- [ ] deprecated 경고 로그 확인 및 수정
+- [ ] 전체 기능 테스트 수행
+
+---
+
+## 변경 이력
+
+| 날짜 | 변경 내용 |
+|------|-----------|
+| 2025-12-05 | 초안 작성 |
+| 2025-12-08 | 테스트 계획, 롤백 계획, 마이그레이션 가이드 추가 |

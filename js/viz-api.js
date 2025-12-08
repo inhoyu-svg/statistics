@@ -11,6 +11,7 @@ import TableRenderer from './renderers/table.js';
 import tableStore from './core/tableStore.js';
 import { waitForFonts } from './utils/katex.js';
 import { applyChartCorruption, applyTableCorruption } from './utils/corruption.js';
+import { ConfigValidator } from './utils/validator.js';
 
 // Counter for unique ID generation
 let chartInstanceCounter = 0;
@@ -321,30 +322,26 @@ export async function renderChart(element, config) {
   try {
     // Wait for KaTeX fonts to load
     await waitForFonts();
-    // 1. Parameter validation
+
+    // 1. Element validation
     if (!element || !(element instanceof HTMLElement)) {
-      return { error: 'element must be a valid HTMLElement' };
+      return {
+        error: 'element must be a valid HTMLElement',
+        errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
+      };
     }
 
-    if (!config || !config.data) {
-      return { error: 'config.data is required' };
+    // 2. Config validation (ConfigValidator 중앙 집중 검증)
+    const validation = ConfigValidator.validate(config, 'chart');
+    if (!validation.valid) {
+      return {
+        error: validation.errors[0]?.message || 'Validation failed',
+        errors: validation.errors
+      };
     }
 
-    const tableType = config.tableType || 'frequency';
-
-    // Currently only frequency type supports chart
-    if (tableType !== 'frequency') {
-      return { error: `'${tableType}' type does not support chart. Only 'frequency' type is supported.` };
-    }
-
-    // 2. Parse data (support both array and string format)
-    const dataString = Array.isArray(config.data)
-      ? config.data.join(', ')
-      : config.data;
-    const rawData = DataProcessor.parseInput(dataString);
-    if (rawData.length === 0) {
-      return { error: 'No valid numeric data found' };
-    }
+    // 검증 통과 시 파싱된 데이터 사용
+    const { tableType, rawData } = validation.data;
 
     // 3. Calculate statistics
     const stats = DataProcessor.calculateBasicStats(rawData);
@@ -609,17 +606,26 @@ export async function renderTable(element, config) {
   try {
     // Wait for KaTeX fonts to load
     await waitForFonts();
-    // 1. Parameter validation
+
+    // 1. Element validation
     if (!element || !(element instanceof HTMLElement)) {
-      return { error: 'element must be a valid HTMLElement' };
+      return {
+        error: 'element must be a valid HTMLElement',
+        errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
+      };
     }
 
-    if (!config || !config.data) {
-      return { error: 'config.data is required' };
+    // 2. Config validation (ConfigValidator 중앙 집중 검증)
+    const validation = ConfigValidator.validate(config, 'table');
+    if (!validation.valid) {
+      return {
+        error: validation.errors[0]?.message || 'Validation failed',
+        errors: validation.errors
+      };
     }
 
-    // 2. Get table type
-    const tableType = config.tableType || 'frequency';
+    // 검증 통과 시 파싱된 데이터 사용
+    const { tableType, rawData, parseResult } = validation.data;
 
     // 3. Parse data (support both array and string format)
     const dataString = Array.isArray(config.data)
@@ -801,13 +807,17 @@ function applyCellAnimationsFromConfig(tableRenderer, config) {
 }
 
 /**
- * Apply cell variables to table cells
+ * Apply cell variables to table cells (도수분포표)
+ * 새 방식(rowIndex/colIndex)과 레거시 방식(class/column) 모두 지원
+ *
  * @param {Array} classes - Class data array
  * @param {Array} cellVariables - Cell variable definitions
+ *   새 방식: [{ rowIndex: 0, colIndex: 1, value: 5 }, ...]
+ *   레거시: [{ class: "10~20", column: "frequency", value: 5 }, ...]
  * @param {string} tableId - Table ID
  */
 function applyCellVariables(classes, cellVariables, tableId) {
-  // Column name → index mapping
+  // Column name → index mapping (레거시 지원용)
   const columnMap = {
     'class': 0,
     'midpoint': 1,
@@ -819,17 +829,50 @@ function applyCellVariables(classes, cellVariables, tableId) {
   };
 
   cellVariables.forEach(cv => {
-    // Find row index by class range
-    const rowIndex = classes.findIndex(c =>
-      `${c.min}~${c.max}` === cv.class
-    );
-    if (rowIndex === -1) return;
+    let rowIndex, colIndex;
 
-    const colIndex = columnMap[cv.column];
-    if (colIndex === undefined) return;
+    // 새 방식: rowIndex/colIndex 직접 사용
+    if (cv.rowIndex !== undefined && cv.colIndex !== undefined) {
+      rowIndex = cv.rowIndex;
+      colIndex = cv.colIndex;
+    }
+    // 레거시 방식: class/column → rowIndex/colIndex 변환
+    else if (cv.class !== undefined && cv.column !== undefined) {
+      console.warn(
+        '[viz-api] cellVariables의 class/column 방식은 deprecated입니다. ' +
+        'rowIndex/colIndex 방식을 사용해주세요. (v3.0에서 제거 예정)'
+      );
+
+      // class 문자열 → rowIndex 변환
+      rowIndex = classToRowIndex(classes, cv.class);
+      if (rowIndex === -1) {
+        console.warn(`[viz-api] class "${cv.class}"를 찾을 수 없습니다.`);
+        return;
+      }
+
+      // column 이름 → colIndex 변환
+      colIndex = columnMap[cv.column];
+      if (colIndex === undefined) {
+        console.warn(`[viz-api] column "${cv.column}"은 유효하지 않습니다.`);
+        return;
+      }
+    } else {
+      console.warn('[viz-api] cellVariable 형식이 올바르지 않습니다:', cv);
+      return;
+    }
 
     tableStore.setCellVariable(tableId, rowIndex, colIndex, cv.value);
   });
+}
+
+/**
+ * class 문자열을 rowIndex로 변환 (레거시 호환용 헬퍼)
+ * @param {Array} classes - Class data array
+ * @param {string} className - "min~max" 형식의 class 문자열
+ * @returns {number} rowIndex (-1 if not found)
+ */
+function classToRowIndex(classes, className) {
+  return classes.findIndex(c => `${c.min}~${c.max}` === className);
 }
 
 /**

@@ -48,14 +48,16 @@ class DataProcessor {
 
   /**
    * 기본 통계 계산
+   * @precondition viz-api에서 ConfigValidator.validate()로 먼저 검증됨
    * @param {number[]} data - 숫자 배열
    * @returns {{min: number, max: number, range: number, mean: number, median: number, count: number}} 통계 객체
-   * @throws {Error} 데이터가 비어있는 경우
+   * @throws {Error} 데이터가 비어있는 경우 (방어적 검증)
    * @example
    * calculateBasicStats([1, 2, 3, 4, 5])
    * // { min: 1, max: 5, range: 4, mean: 3, median: 3, count: 5 }
    */
   static calculateBasicStats(data) {
+    // 방어적 검증: ConfigValidator에서 이미 검증되었지만, 직접 호출 시 안전장치
     if (Utils.isEmpty(data)) {
       throw new Error('데이터가 비어있습니다.');
     }
@@ -132,8 +134,10 @@ class DataProcessor {
 
   /**
    * 커스텀 범위로 계급 구간 생성
+   * @precondition viz-api에서 ConfigValidator.validate()로 classRange 검증됨
    * @param {Object} customRange - { firstEnd, secondEnd, lastStart }
    * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
+   * @throws {Error} 범위 값이 논리적으로 올바르지 않은 경우 (방어적 검증)
    * @description
    * - 첫 칸: 0 ~ firstEnd (비어있음)
    * - 두 번째 칸: firstEnd ~ secondEnd (간격 결정)
@@ -143,7 +147,7 @@ class DataProcessor {
   static createCustomRangeClasses(customRange) {
     const { firstEnd, secondEnd, lastStart } = customRange;
 
-    // 유효성 검사
+    // 방어적 검증: ConfigValidator에서 이미 검증되었지만, 직접 호출 시 안전장치
     if (firstEnd <= 0) {
       throw new Error('첫 칸의 끝값은 0보다 커야 합니다.');
     }
