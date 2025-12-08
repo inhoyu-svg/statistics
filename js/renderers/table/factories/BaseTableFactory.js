@@ -237,7 +237,22 @@ class BaseTableFactory {
    */
   static measureTextWidth(ctx, text, font) {
     ctx.font = font;
-    return ctx.measureText(String(text)).width;
+    // 상첨자 표기 제거 후 측정 (^{...} 또는 ^x)
+    const cleanText = this.stripSuperscript(String(text));
+    return ctx.measureText(cleanText).width;
+  }
+
+  /**
+   * 상첨자 표기 제거
+   * @param {string} text - 원본 텍스트
+   * @returns {string} 상첨자 표기가 제거된 텍스트
+   */
+  static stripSuperscript(text) {
+    // ^{...} 형식 제거
+    let result = text.replace(/\^{[^}]*}/g, '');
+    // ^x (단일 문자) 형식 제거
+    result = result.replace(/\^[^\s{]/g, '');
+    return result;
   }
 
   /**
@@ -268,7 +283,11 @@ class BaseTableFactory {
       let maxDataWidth = 0;
       for (const row of rows) {
         if (row[col] !== undefined && row[col] !== null) {
-          const dataWidth = this.measureTextWidth(ctx, row[col], dataFont) + cellPadding;
+          const cellText = String(row[col]);
+          // 상첨자가 있으면 추가 패딩 (상첨자 텍스트도 렌더링되므로)
+          const hasSuperscript = /\^/.test(cellText);
+          const superscriptPadding = hasSuperscript ? 40 : 0;
+          const dataWidth = this.measureTextWidth(ctx, cellText, dataFont) + cellPadding + superscriptPadding;
           maxDataWidth = Math.max(maxDataWidth, dataWidth);
         }
       }

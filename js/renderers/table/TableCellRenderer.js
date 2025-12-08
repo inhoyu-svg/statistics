@@ -182,8 +182,9 @@ class TableCellRenderer {
     // 커스텀 색상이 있으면 사용, 없으면 헤더 색상 사용
     const color = textColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
 
-    // 숫자/알파벳이면 KaTeX 폰트 적용, 한글은 TABLE_FONT_HEADER (Medium) 사용
-    this._renderCellText(cellText, cellX, cellY, alignment, color, false, true);
+    // 행 라벨은 데이터 셀과 동일한 폰트 크기 사용 (isHeader = false)
+    // 상첨자가 있어도 기본 폰트 크기가 작아지지 않도록 함
+    this._renderCellText(cellText, cellX, cellY, alignment, color, false, false);
   }
 
   /**
@@ -939,10 +940,10 @@ class TableCellRenderer {
    * @param {boolean} isHeader - 헤더 여부 (헤더는 더 작은 폰트)
    */
   _renderWithSuperscript(parts, x, y, alignment, color, bold = false, isHeader = false) {
-    // 헤더인 경우 더 작은 폰트 사용
-    const normalFontSize = isHeader ? 18 : 24;
-    const superFontSize = isHeader ? 11 : 14;
-    const superYOffset = isHeader ? -6 : -8;
+    // 헤더인 경우 더 작은 폰트 사용 (_renderCellText와 동일한 기준)
+    const normalFontSize = isHeader ? 22 : 24;
+    const superFontSize = isHeader ? 12 : 14;
+    const superYOffset = isHeader ? -7 : -8;
 
     this.ctx.save();
     this.ctx.fillStyle = color;
