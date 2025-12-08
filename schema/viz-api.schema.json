@@ -94,7 +94,7 @@
       }
     },
     "cellVariables": {
-      "description": "셀 값 오버라이드 (줄기-잎)",
+      "description": "셀 값 오버라이드 (줄기-잎, 카테고리 매트릭스, 이원분류표)",
       "type": "array",
       "items": { "$ref": "#/definitions/cellVariable" }
     },
@@ -399,22 +399,7 @@
         "cellVariables": {
           "description": "도수분포표 셀 오버라이드",
           "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["class", "column", "value"],
-            "properties": {
-              "class": {
-                "description": "계급명 (예: \"60~70\")",
-                "type": "string"
-              },
-              "column": {
-                "description": "컬럼명",
-                "type": "string",
-                "enum": ["class", "midpoint", "tally", "frequency", "relativeFrequency", "cumulativeFrequency", "cumulativeRelativeFrequency"]
-              },
-              "value": {}
-            }
-          }
+          "items": { "$ref": "#/definitions/cellVariable" }
         }
       }
     },

@@ -33,7 +33,7 @@ interface Config {
   // 셀 커스터마이징 (선택)
   cellAnimations?: CellAnimation[];     // 셀 하이라이트
   cellAnimationOptions?: { blinkEnabled: boolean };
-  cellVariables?: CellVariable[];       // 셀 값 오버라이드 (줄기-잎)
+  cellVariables?: CellVariable[];       // 셀 값 오버라이드
 
   // 세부 옵션 (선택)
   options?: Options;
@@ -287,7 +287,7 @@ interface TableOptions {
     };
     showSuperscript?: boolean;          // "이상/미만" 표시
     showSummaryRow?: boolean;           // 합계 행 표시
-    cellVariables?: FrequencyCellVariable[];
+    cellVariables?: CellVariable[];     // rowIndex/colIndex 방식
   };
 
   // 이원분류표
@@ -318,7 +318,7 @@ interface CommonOptions {
 
 ## 5. cellVariables 형식
 
-### 줄기-잎 (rowIndex/colIndex 방식)
+모든 테이블 타입에서 통일된 `rowIndex/colIndex` 방식을 사용합니다.
 
 ```typescript
 interface CellVariable {
@@ -326,33 +326,25 @@ interface CellVariable {
   colIndex: number;     // 0-based 열 인덱스
   value: string | number | any[];
 }
+```
 
-// 예시
+### 예시
+
+```typescript
+// 줄기-잎, 카테고리 매트릭스, 이원분류표
 cellVariables: [
   { rowIndex: 1, colIndex: 0, value: "?" },
   { rowIndex: 2, colIndex: 1, value: ["ㄱ", "ㄴ"] }
 ]
-```
 
-### 도수분포표 (class/column 방식)
-
-```typescript
-interface FrequencyCellVariable {
-  class: string;        // 계급명 (예: "60~70")
-  column: string;       // 컬럼명 (예: "frequency")
-  value: any;
-}
-
-// 예시
+// 도수분포표 (tableConfig 내부)
 tableConfig: {
   cellVariables: [
-    { class: "60~70", column: "frequency", value: "?" },
-    { class: "합계", column: "relativeFrequency", value: 1 }
+    { rowIndex: 0, colIndex: 2, value: "?" },
+    { rowIndex: 4, colIndex: 3, value: 1 }
   ]
 }
 ```
-
-> **참고**: 두 방식이 현재 공존하며, 향후 rowIndex/colIndex 방식으로 통일 예정
 
 ---
 
