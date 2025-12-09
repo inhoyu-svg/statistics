@@ -57,20 +57,22 @@ const CONFIG = {
 
   // 테이블 타입 설정
   TABLE_TYPES: {
-    FREQUENCY: 'frequency',              // 도수분포표
+    BASIC_TABLE: 'basic-table',          // 기본 테이블 (구 이원 분류표)
     CATEGORY_MATRIX: 'category-matrix',  // 카테고리 행렬
-    CROSS_TABLE: 'cross-table',          // 이원 분류표
-    STEM_LEAF: 'stem-leaf'               // 줄기-잎 그림
+    STEM_LEAF: 'stem-leaf',              // 줄기-잎 그림
+    // deprecated (v3.0에서 제거 예정)
+    FREQUENCY: 'frequency',              // → chart로 자동 전환
+    CROSS_TABLE: 'cross-table'           // → BASIC_TABLE 별칭
   },
 
   // 테이블 타입별 정보
   TABLE_TYPE_INFO: {
-    'frequency': {
-      name: '도수분포표',
-      description: '숫자 데이터를 계급별로 분류',
-      placeholder: '62, 87, 97, 73, 59, 85, 80, 79, 65, 75',
-      hint: '숫자를 쉼표 또는 공백으로 구분하여 입력',
-      defaultData: '62 87 97 73 59 85 80 79 65 75'
+    'basic-table': {
+      name: '기본 테이블',
+      description: '행/열 헤더가 있는 기본 테이블',
+      placeholder: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24',
+      hint: '첫 줄에 "헤더: 행라벨명, 열이름들", 이후 "행이름: 값들" 형식으로 입력',
+      defaultData: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24'
     },
     'category-matrix': {
       name: '카테고리 행렬',
@@ -79,24 +81,26 @@ const CONFIG = {
       hint: '첫 줄에 "헤더: 값들", 이후 "라벨: 값들" 형식으로 입력',
       defaultData: '헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90'
     },
-    'cross-table': {
-      name: '이원 분류표',
-      description: '두 변수의 교차 분류',
-      placeholder: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24',
-      hint: '첫 줄에 "헤더: 행라벨명, 열이름들", 이후 "행이름: 값들" 형식으로 입력',
-      defaultData: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24'
-    },
     'stem-leaf': {
       name: '줄기-잎 그림',
       description: '데이터 분포를 줄기와 잎으로 시각화',
       placeholder: '숫자만 입력 (단일) 또는\n남학생: 162 178 175...\n여학생: 160 165 170... (비교)',
       hint: '숫자만: 단일 줄기-잎 / "라벨: 숫자들": 비교형 줄기-잎',
       defaultData: '남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207'
-    }
+    },
+    // deprecated - 하위 호환성용 (v3.0에서 제거 예정)
+    'frequency': {
+      name: '도수분포표',
+      description: '숫자 데이터를 계급별로 분류 (chart로 자동 전환)',
+      placeholder: '62, 87, 97, 73, 59, 85, 80, 79, 65, 75',
+      hint: '숫자를 쉼표 또는 공백으로 구분하여 입력',
+      defaultData: '62 87 97 73 59 85 80 79 65 75'
+    },
+    'cross-table': null  // → basic-table로 리다이렉트
   },
 
   // 기본 테이블 타입
-  DEFAULT_TABLE_TYPE: 'frequency',
+  DEFAULT_TABLE_TYPE: 'basic-table',
 
   // 테이블 Canvas 설정
   TABLE_CANVAS_WIDTH: 700,

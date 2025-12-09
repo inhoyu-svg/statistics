@@ -1,13 +1,13 @@
 /**
- * 이원 분류표 파서
+ * 기본 테이블 파서 (구 이원 분류표)
  * 행(카테고리) × 열(그룹) 형식의 교차 분류 데이터를 파싱
  */
 
 import CONFIG from '../../config.js';
 
-class CrossTableParser {
+class BasicTableParser {
   /**
-   * 입력 문자열을 이원 분류표 데이터로 파싱
+   * 입력 문자열을 기본 테이블 데이터로 파싱
    * @param {string} input - 여러 줄의 "행이름: 값들" 형식 문자열
    * @returns {{ success: boolean, data: Object|null, error: string|null }}
    * @example
@@ -187,8 +187,8 @@ class CrossTableParser {
    * @returns {string}
    */
   static getType() {
-    return CONFIG.TABLE_TYPES.CROSS_TABLE;
+    return CONFIG.TABLE_TYPES.BASIC_TABLE;
   }
 }
 
-export default CrossTableParser;
+export default BasicTableParser;

@@ -1,5 +1,5 @@
 /**
- * 이원 분류표 테이블 팩토리
+ * 기본 테이블 팩토리 (구 이원 분류표)
  * 행: 카테고리 (혈액형 등), 열: 그룹 (남학생, 여학생 등)
  * 2행 헤더 구조: 병합 헤더(상대도수) + 컬럼 헤더
  */
@@ -8,17 +8,17 @@ import CONFIG from '../../../config.js';
 import { Layer } from '../../../animation/index.js';
 import BaseTableFactory from './BaseTableFactory.js';
 
-// 이원분류표 전용 상수
-const CROSS_TABLE_CONFIG = {
+// 기본 테이블 전용 상수
+const BASIC_TABLE_CONFIG = {
   MERGED_HEADER_HEIGHT: 35,           // 병합 헤더 높이
   MERGED_HEADER_TEXT: '상대도수',      // 병합 헤더 텍스트
   MERGED_HEADER_LINE_COLOR: '#8DCF66', // 병합 헤더 아래 구분선 색상
   MERGED_HEADER_LINE_WIDTH: 1          // 구분선 두께
 };
 
-class CrossTableFactory {
+class BasicTableFactory {
   /**
-   * 이원 분류표 레이어 생성
+   * 기본 테이블 레이어 생성
    * @param {LayerManager} layerManager - 레이어 매니저
    * @param {Object} data - 파싱된 데이터 { rowLabelColumn, columnHeaders, rows, totals, showTotal, showMergedHeader }
    * @param {Object} config - 테이블 설정
@@ -28,7 +28,7 @@ class CrossTableFactory {
     const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true, mergedHeaderText = null } = data;
 
     // 커스텀 병합 헤더 텍스트 (없으면 기본값 '상대도수')
-    const headerText = mergedHeaderText || CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT;
+    const headerText = mergedHeaderText || BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT;
 
     // 열 개수: 행 라벨 열 + 데이터 열들
     const columnCount = columnHeaders.length + 1;
@@ -39,7 +39,7 @@ class CrossTableFactory {
     const canvasWidth = config?.canvasWidth || CONFIG.TABLE_CANVAS_WIDTH;
 
     // Canvas 높이 계산 (병합 헤더 조건부 + 컬럼 헤더 + 데이터 행들)
-    const mergedHeaderHeight = showMergedHeader ? CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
+    const mergedHeaderHeight = showMergedHeader ? BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
     const canvasHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
@@ -47,12 +47,12 @@ class CrossTableFactory {
     const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
 
     // 테이블 타입
-    const tableType = CONFIG.TABLE_TYPES.CROSS_TABLE;
+    const tableType = CONFIG.TABLE_TYPES.BASIC_TABLE;
 
     // 루트 레이어 생성
     const rootLayer = new Layer({
       id: `${tableType}-${tableId}-table-root`,
-      name: '이원 분류표',
+      name: '기본 테이블',
       type: 'group',
       visible: true,
       order: 0,
@@ -62,7 +62,7 @@ class CrossTableFactory {
         padding,
         columnCount,
         rowCount,
-        tableType: CONFIG.TABLE_TYPES.CROSS_TABLE
+        tableType: CONFIG.TABLE_TYPES.BASIC_TABLE
       }
     });
 
@@ -183,7 +183,7 @@ class CrossTableFactory {
   }
 
   /**
-   * 격자선 레이어 생성 (이원분류표 전용)
+   * 격자선 레이어 생성 (기본 테이블 전용)
    */
   static _createGridLayer(options) {
     const {
@@ -202,9 +202,9 @@ class CrossTableFactory {
     const totalHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
 
     return new Layer({
-      id: `cross-table-${tableId}-table-grid`,
+      id: `basic-table-${tableId}-table-grid`,
       name: '격자선',
-      type: 'cross-table-grid',  // 이원분류표 전용 타입
+      type: 'basic-table-grid',  // 기본 테이블 전용 타입
       visible: true,
       order: 0,
       data: {
@@ -217,8 +217,8 @@ class CrossTableFactory {
         hasSummaryRow,
         mergedHeaderHeight,
         columnHeaderHeight: CONFIG.TABLE_HEADER_HEIGHT,
-        mergedHeaderLineColor: CROSS_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
-        mergedHeaderLineWidth: CROSS_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
+        mergedHeaderLineColor: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
+        mergedHeaderLineWidth: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
         showMergedHeader
       }
     });
@@ -231,9 +231,9 @@ class CrossTableFactory {
    * @param {string} tableId - 테이블 ID
    * @param {string} headerText - 병합 헤더 텍스트
    */
-  static _createMergedHeaderLayer(columnWidths, padding, tableId, headerText = CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT) {
+  static _createMergedHeaderLayer(columnWidths, padding, tableId, headerText = BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT) {
     const mergedHeaderGroup = new Layer({
-      id: `cross-table-${tableId}-table-merged-header`,
+      id: `basic-table-${tableId}-table-merged-header`,
       name: '병합 헤더',
       type: 'group',
       visible: true,
@@ -245,7 +245,7 @@ class CrossTableFactory {
 
     // 첫 번째 열은 빈 칸
     const emptyCell = new Layer({
-      id: `cross-table-${tableId}-table-merged-header-empty`,
+      id: `basic-table-${tableId}-table-merged-header-empty`,
       name: '(빈 셀)',
       type: 'cell',
       visible: true,
@@ -258,7 +258,7 @@ class CrossTableFactory {
         x: padding,
         y,
         width: columnWidths[0],
-        height: CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
+        height: BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
         alignment: 'center',
         highlighted: false,
         highlightProgress: 0
@@ -269,7 +269,7 @@ class CrossTableFactory {
     // 나머지 열은 커스텀 텍스트 병합
     const mergedWidth = columnWidths.slice(1).reduce((a, b) => a + b, 0);
     const mergedCell = new Layer({
-      id: `cross-table-${tableId}-table-merged-header-title`,
+      id: `basic-table-${tableId}-table-merged-header-title`,
       name: headerText,
       type: 'cell',
       visible: true,
@@ -282,7 +282,7 @@ class CrossTableFactory {
         x: padding + columnWidths[0],
         y,
         width: mergedWidth,
-        height: CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
+        height: BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
         alignment: 'center',
         highlighted: false,
         highlightProgress: 0,
@@ -298,9 +298,9 @@ class CrossTableFactory {
   /**
    * 컬럼 헤더 레이어 생성 (혈액형 | 남학생 | 여학생)
    */
-  static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
+  static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
     const headerGroup = new Layer({
-      id: `cross-table-${tableId}-table-header`,
+      id: `basic-table-${tableId}-table-header`,
       name: '컬럼 헤더',
       type: 'group',
       visible: true,
@@ -316,7 +316,7 @@ class CrossTableFactory {
 
     allHeaders.forEach((header, i) => {
       const cellLayer = new Layer({
-        id: `cross-table-${tableId}-table-header-col${i}`,
+        id: `basic-table-${tableId}-table-header-col${i}`,
         name: header,
         type: 'cell',
         visible: true,
@@ -348,9 +348,9 @@ class CrossTableFactory {
   /**
    * 데이터 행 레이어 생성
    */
-  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
+  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
     const rowGroup = new Layer({
-      id: `cross-table-${tableId}-table-row-${rowIndex}`,
+      id: `basic-table-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
       type: 'group',
       visible: true,
@@ -376,7 +376,7 @@ class CrossTableFactory {
       }
 
       const cellLayer = new Layer({
-        id: `cross-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
+        id: `basic-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
         name: String(displayText),
         type: 'cell',
         visible: true,
@@ -410,9 +410,9 @@ class CrossTableFactory {
   /**
    * 합계 행 레이어 생성
    */
-  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
+  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
     const summaryGroup = new Layer({
-      id: `cross-table-${tableId}-table-summary`,
+      id: `basic-table-${tableId}-table-summary`,
       name: '합계 행',
       type: 'group',
       visible: true,
@@ -436,7 +436,7 @@ class CrossTableFactory {
       }
 
       const cellLayer = new Layer({
-        id: `cross-table-${tableId}-table-summary-col${colIndex}`,
+        id: `basic-table-${tableId}-table-summary-col${colIndex}`,
         name: String(displayText),
         type: 'cell',
         visible: true,
@@ -465,4 +465,4 @@ class CrossTableFactory {
   }
 }
 
-export default CrossTableFactory;
+export default BasicTableFactory;

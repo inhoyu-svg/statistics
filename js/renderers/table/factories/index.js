@@ -5,7 +5,7 @@
 import CONFIG from '../../../config.js';
 import BaseTableFactory from './BaseTableFactory.js';
 import CategoryMatrixFactory from './CategoryMatrixFactory.js';
-import CrossTableFactory from './CrossTableFactory.js';
+import BasicTableFactory from './BasicTableFactory.js';
 import StemLeafFactory from './StemLeafFactory.js';
 
 /**
@@ -26,8 +26,8 @@ class TableFactoryRouter {
       case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
         return CategoryMatrixFactory.createTableLayers(layerManager, data, config, tableId);
 
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
-        return CrossTableFactory.createTableLayers(layerManager, data, config, tableId);
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        return BasicTableFactory.createTableLayers(layerManager, data, config, tableId);
 
       case CONFIG.TABLE_TYPES.STEM_LEAF:
         return StemLeafFactory.createTableLayers(layerManager, data, config, tableId);
@@ -62,8 +62,8 @@ class TableFactoryRouter {
       case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
         return CategoryMatrixFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
 
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
-        return CrossTableFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        return BasicTableFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
 
       case CONFIG.TABLE_TYPES.FREQUENCY:
       default:
@@ -81,8 +81,8 @@ class TableFactoryRouter {
     switch (type) {
       case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
         return CategoryMatrixFactory;
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
-        return CrossTableFactory;
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        return BasicTableFactory;
       case CONFIG.TABLE_TYPES.STEM_LEAF:
         return StemLeafFactory;
       default:
@@ -105,7 +105,7 @@ export {
   TableFactoryRouter,
   BaseTableFactory,
   CategoryMatrixFactory,
-  CrossTableFactory,
+  BasicTableFactory,
   StemLeafFactory
 };
 

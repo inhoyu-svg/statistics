@@ -283,10 +283,10 @@ class TableCellRenderer {
   }
 
   /**
-   * 이원분류표 격자선 렌더링 (2행 헤더 구조)
+   * 기본 테이블 격자선 렌더링 (2행 헤더 구조)
    * @param {Layer} layer - 격자선 레이어
    */
-  renderCrossTableGrid(layer) {
+  renderBasicTableGrid(layer) {
     const {
       x, y, width, height, rowCount, columnWidths, hasSummaryRow,
       mergedHeaderHeight, columnHeaderHeight,

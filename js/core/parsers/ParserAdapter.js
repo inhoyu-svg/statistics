@@ -44,8 +44,8 @@ class ParserAdapter {
       case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
         return this._adaptCategoryMatrix(data, options);
 
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
-        return this._adaptCrossTable(data, options);
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        return this._adaptBasicTable(data, options);
 
       case CONFIG.TABLE_TYPES.FREQUENCY:
         // 도수분포표는 별도 메서드 사용 (processor.js에서 계급 생성 후 호출)
@@ -183,13 +183,13 @@ class ParserAdapter {
   }
 
   /**
-   * 이원 분류표 데이터 변환
-   * @param {Object} data - CrossTableParser 출력
+   * 기본 테이블 데이터 변환
+   * @param {Object} data - BasicTableParser 출력
    * @param {Object} options - 변환 옵션
    * @returns {ParsedTableData}
    * @private
    */
-  static _adaptCrossTable(data, options = {}) {
+  static _adaptBasicTable(data, options = {}) {
     const {
       rowLabelColumn,
       columnHeaders,
@@ -242,7 +242,7 @@ class ParserAdapter {
     }
 
     return {
-      type: CONFIG.TABLE_TYPES.CROSS_TABLE,
+      type: CONFIG.TABLE_TYPES.BASIC_TABLE,
       headers: fullHeaders,
       rows,
       rowCount: rows.length,

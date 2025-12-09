@@ -199,8 +199,8 @@ class TableRenderer {
       case 'grid':
         this.cellRenderer.renderGrid(layer);
         break;
-      case 'cross-table-grid':
-        this.cellRenderer.renderCrossTableGrid(layer);
+      case 'basic-table-grid':
+        this.cellRenderer.renderBasicTableGrid(layer);
         break;
       case 'stem-leaf-grid':
         this.cellRenderer.renderStemLeafGrid(layer);
@@ -269,7 +269,7 @@ class TableRenderer {
 
     // 이원분류표인 경우 합계 행 및 병합 헤더 표시 여부 적용
     // config에서 명시적으로 설정된 값이 있으면 유지, 없으면 tableStore 사용
-    if (type === CONFIG.TABLE_TYPES.CROSS_TABLE) {
+    if (type === CONFIG.TABLE_TYPES.BASIC_TABLE) {
       if (data.showTotal === undefined) {
         data.showTotal = tableStore.getSummaryRowVisible(this.tableId);
       }
@@ -282,7 +282,7 @@ class TableRenderer {
     const rowCount = config?.adaptedData?.rowCount ?? this._calculateRowCount(type, data);
 
     // Canvas 크기 계산 (이원분류표는 병합 헤더 조건부 추가)
-    const showMergedHeader = type === CONFIG.TABLE_TYPES.CROSS_TABLE && data.showMergedHeader !== false;
+    const showMergedHeader = type === CONFIG.TABLE_TYPES.BASIC_TABLE && data.showMergedHeader !== false;
     const mergedHeaderHeight = showMergedHeader ? 35 : 0;
     const autoHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
@@ -334,7 +334,7 @@ class TableRenderer {
       case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
         return data.rows ? data.rows.length : 0;
 
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
         // 데이터 행 + 합계 행 (옵션)
         const crossRows = data.rows ? data.rows.length : 0;
         return crossRows + (data.showTotal !== false ? 1 : 0);
@@ -455,7 +455,7 @@ class TableRenderer {
         rows = (data.rows || []).map(row => [row.label, ...row.values.map(String)]);
         break;
 
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
         // 이원분류표
         headers = [data.rowLabelColumn || '', ...(data.columnHeaders || [])];
         rows = (data.rows || []).map(row => {
@@ -504,7 +504,7 @@ class TableRenderer {
       if (tableLayer && tableLayer.children) {
         // 1. 그리드 레이어 먼저 렌더링
         tableLayer.children.forEach(child => {
-          if (child.type === 'grid' || child.type === 'cross-table-grid' ||
+          if (child.type === 'grid' || child.type === 'basic-table-grid' ||
               child.type === 'stem-leaf-grid' || child.type === 'stem-leaf-single-grid') {
             this.renderLayer(child);
           }
@@ -527,7 +527,7 @@ class TableRenderer {
 
         // 3. 셀 레이어 렌더링 (텍스트)
         tableLayer.children.forEach(child => {
-          if (child.type !== 'grid' && child.type !== 'cross-table-grid' &&
+          if (child.type !== 'grid' && child.type !== 'basic-table-grid' &&
               child.type !== 'stem-leaf-grid' && child.type !== 'stem-leaf-single-grid') {
             this.renderLayer(child);
           }

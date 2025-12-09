@@ -5,7 +5,7 @@
 import CONFIG from '../../config.js';
 import FrequencyParser from './FrequencyParser.js';
 import CategoryMatrixParser from './CategoryMatrixParser.js';
-import CrossTableParser from './CrossTableParser.js';
+import BasicTableParser from './BasicTableParser.js';
 import StemLeafParser from './StemLeafParser.js';
 import ParserAdapter from './ParserAdapter.js';
 
@@ -28,8 +28,8 @@ class ParserFactory {
       case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
         return CategoryMatrixParser.parse(input);
 
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
-        return CrossTableParser.parse(input);
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        return BasicTableParser.parse(input);
 
       case CONFIG.TABLE_TYPES.STEM_LEAF:
         return StemLeafParser.parse(input);
@@ -54,8 +54,8 @@ class ParserFactory {
         return FrequencyParser;
       case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
         return CategoryMatrixParser;
-      case CONFIG.TABLE_TYPES.CROSS_TABLE:
-        return CrossTableParser;
+      case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        return BasicTableParser;
       case CONFIG.TABLE_TYPES.STEM_LEAF:
         return StemLeafParser;
       default:
@@ -77,7 +77,7 @@ export {
   ParserAdapter,
   FrequencyParser,
   CategoryMatrixParser,
-  CrossTableParser,
+  BasicTableParser,
   StemLeafParser
 };
 
