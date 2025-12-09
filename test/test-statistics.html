@@ -4,12 +4,24 @@
   <meta charset="UTF-8">
   <title>VIZ-API 테스트 케이스</title>
   <style>
+    /* SCDream 폰트 로드 */
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream3.otf') format('opentype');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream5.otf') format('opentype');
+      font-weight: 500;
+    }
+
     * { box-sizing: border-box; }
     body {
       padding: 20px;
       background: #1a1a2e;
       color: white;
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'SCDream', -apple-system, BlinkMacSystemFont, sans-serif;
       line-height: 1.6;
     }
     h1 { margin-bottom: 10px; color: #8DCF66; }
@@ -355,7 +367,7 @@ AB: 0.13, 0.13`;
       options: {
         callout: {
           enabled: true,
-          template: '{min}~{max}\n도수: {frequency}',
+          template: 'A중학교',
           preset: 'primary'
         }
       }
@@ -471,16 +483,17 @@ AB: 0.13, 0.13`;
 
     // 13. 도수분포표 (basic-table)
     const basicTableData = `헤더: 키(cm), 도수(명), 상대도수
-60이상~70미만: 2, 0.13
-70이상~80미만: 5, 0.33
-80이상~90미만: 6, 0.40
-90이상~100미만: 2, 0.14`;
+60^{이상}~70^{미만}: 2, 0.13
+70~80: 5, 0.33
+80~90: 6, 0.40
+90~100: 2, 0.14`;
     VizAPI.renderTable(document.getElementById('table-basic'), {
       tableType: 'basic-table',
       data: basicTableData,
       canvasWidth: 500,
       options: {
-        showTotal: true
+        showTotal: true,
+        showMergedHeader: false
       }
     }).then(r => showStatus('status-table-basic', r));
 
@@ -534,10 +547,11 @@ AB: 0.13, 0.13`;
       canvasWidth: 400,
       cellAnimations: [
         { rowIndex: 1, colIndex: 1, duration: 1500, repeat: 5 },
-        { rowIndex: 2, colIndex: 2, duration: 1500, repeat: 5 }
+        { rowIndex: 2, colIndex: 2, duration: 1500, repeat: 5 },
+        { rowIndex: 3, colIndex: 3, duration: 1500, repeat: 5 }
       ],
       cellAnimationOptions: {
-        blinkEnabled: true
+        blinkEnabled: false
       }
     }).then(r => showStatus('status-table-cell-animation', r));
 
