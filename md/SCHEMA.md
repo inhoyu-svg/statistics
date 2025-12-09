@@ -6,19 +6,26 @@
 
 ---
 
-## 1. tableType별 data 형식
+## 1. purpose별 data 형식
+
+### 차트 (purpose: "chart")
+
+| data 형식 | 예시 |
+|:----------|:-----|
+| 숫자 배열 | `[62, 87, 97, 73, 59, 85]` |
+
+### 테이블 (purpose: "table")
 
 | tableType | data 형식 | 예시 |
 |:----------|:----------|:-----|
-| `frequency` | 숫자 배열 또는 문자열 | `[62, 87, 97]` 또는 `"62, 87, 97"` |
+| `basic-table` | `"헤더: ...\n행: ..."` | `"헤더: 혈액형, 남, 여\nA: 0.4, 0.4"` |
+| `category-matrix` | `"헤더: ...\n라벨: ..."` | `"헤더: A, B, C\n학생수: 200, 250, 300"` |
 | `stem-leaf` (단일) | 숫자 문자열 | `"162 178 175 189"` |
 | `stem-leaf` (비교) | `"라벨: 숫자들"` 형식 | `"남학생: 162 178\n여학생: 160 165"` |
-| `cross-table` | `"헤더: ...\n행: ..."` | `"헤더: 혈액형, 남, 여\nA: 0.4, 0.4"` |
-| `category-matrix` | `"헤더: ...\n라벨: ..."` | `"헤더: A, B, C\n학생수: 200, 250, 300"` |
 
 ### 특수 문법
 
-**반복 표기** (frequency만):
+**반복 표기** (차트 data만 해당):
 ```
 "16*18"        → 16을 18번 반복
 "40*2 50*11"   → 40을 2번, 50을 11번
@@ -120,10 +127,10 @@ interface StemLeafCompare {
 }
 ```
 
-### 2.3 이원분류표 (cross-table)
+### 2.3 기본 테이블 (basic-table)
 
 ```typescript
-interface CrossTableData {
+interface BasicTableData {
   rowLabelColumn: string;       // 행 라벨 컬럼명 (예: "혈액형")
   columnHeaders: string[];      // 열 헤더 (예: ["남학생", "여학생"])
   rowHeaders: string[];         // 행 헤더 (예: ["A", "B", "AB", "O"])
