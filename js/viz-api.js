@@ -296,7 +296,7 @@ export async function render(element, config) {
  * Chart Rendering API
  * @param {HTMLElement} element - Container element to append canvas
  * @param {Object} config - Configuration object
- * @param {string} config.tableType - Table type ('frequency', 'stem-leaf', etc.)
+ * @param {string} [config.tableType] - Table type (ignored for chart, used internally)
  * @param {string} config.data - Raw data string (comma/space separated)
  * @param {number} [config.classCount=5] - Number of classes (for frequency table)
  * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
