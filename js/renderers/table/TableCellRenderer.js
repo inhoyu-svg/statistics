@@ -135,6 +135,12 @@ class TableCellRenderer {
       return;
     }
 
+    // cellText가 탈리 객체인 경우 (파서에서 "/" 패턴으로 생성된 탈리마크)
+    if (cellText && typeof cellText === 'object' && cellText.type === 'tally') {
+      this._renderTallyCanvas(cellText.count, x, y, width, height, CONFIG.getColor('--color-text'));
+      return;
+    }
+
     // 상첨자가 필요한 경우 (첫 행의 계급 컬럼)
     if (classData && showSuperscript) {
       this._drawClassWithSuperscript(cellText, cellX, cellY, classData, showSuperscript);
