@@ -181,6 +181,15 @@ class ConfigValidator {
       return { valid: false, data: null, errors };
     }
 
+    // 2.5. 테이블 데이터인데 purpose가 chart인 경우 경고
+    if (purpose === 'chart' && typeof config.data === 'string') {
+      const tablePatterns = ['헤더:', '헤더 :', 'Header:', 'header:'];
+      const looksLikeTable = tablePatterns.some(p => config.data.includes(p));
+      if (looksLikeTable) {
+        console.warn('[viz-api] 테이블 데이터 형식("헤더:")인데 purpose가 "chart"입니다. 테이블을 원하면 "purpose": "table"을 추가하세요.');
+      }
+    }
+
     // 3. 테이블 타입 검증
     // 차트는 tableType 무시하고 frequency 데이터로 처리
     const tableType = purpose === 'chart' ? 'frequency' : (config.tableType || 'basic-table');
