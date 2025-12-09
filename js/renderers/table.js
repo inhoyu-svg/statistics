@@ -79,20 +79,10 @@ class TableRenderer {
 
   /**
    * canvasId에서 tableId 추출
-   * @param {string} canvasId - Canvas ID (예: 'frequencyTable', 'frequencyTable-2')
-   * @returns {string} 테이블 ID (예: 'table-1', 'table-2')
+   * @param {string} canvasId - Canvas ID (예: 'viz-table-1', 'viz-table-2')
+   * @returns {string} 테이블 ID (예: 'viz-table-1', 'table-1')
    */
   extractTableId(canvasId) {
-    // 'frequencyTable' → 'table-1'
-    // 'frequencyTable-2' → 'table-2'
-    // 'viz-table-1' → 'viz-table-1' (viz-api용)
-    if (canvasId === 'frequencyTable') {
-      return 'table-1';
-    }
-    const freqMatch = canvasId.match(/frequencyTable-(\d+)/);
-    if (freqMatch) {
-      return `table-${freqMatch[1]}`;
-    }
     // viz-api 형식: viz-table-1, viz-table-2 등 → 그대로 사용
     const vizMatch = canvasId.match(/viz-table-\d+/);
     if (vizMatch) {

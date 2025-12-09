@@ -687,128 +687,66 @@ export async function renderTable(element, config) {
       tableRenderer.animationMode = false;
     }
 
-    // 6. Handle by table type
-    if (tableType === 'frequency') {
-      // Frequency table: use DataProcessor
-      const rawData = DataProcessor.parseInput(dataString);
-      if (rawData.length === 0) {
-        return { error: 'No valid numeric data found' };
-      }
-
-      const stats = DataProcessor.calculateBasicStats(rawData);
-      const classCount = config.classCount || 5;
-      const classWidth = config.classWidth || null;
-      const customRange = config.classRange || null;
-      const { classes } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
-
-      DataProcessor.calculateFrequencies(rawData, classes);
-      DataProcessor.calculateRelativeAndCumulative(classes, rawData.length);
-
-      tableRenderer.draw(classes, rawData.length, tableConfig);
-
-      // Apply cell variables if specified
-      if (tableConfig?.cellVariables && Array.isArray(tableConfig.cellVariables)) {
-        applyCellVariables(classes, tableConfig.cellVariables, tableRenderer.tableId);
-        // Re-render to apply cell variables
-        tableRenderer.draw(classes, rawData.length, tableConfig);
-      }
-
-      // Apply cell animations if specified
-      applyCellAnimationsFromConfig(tableRenderer, config);
-
-      // Apply corruption effect (if enabled)
-      if (options.corruption?.enabled) {
-        const showSummaryRow = tableConfig?.showSummaryRow ?? true;
-        const totalRows = classes.length + 1 + (showSummaryRow ? 1 : 0); // header + data + summary
-        const scale = tableRenderer.scaleRatio || 1;
-
-        // grid 레이어에서 실제 columnWidths 가져오기
-        const gridLayers = tableRenderer.layerManager.getLayersByType('grid');
-        const gridLayer = gridLayers[0];
-        if (gridLayer && gridLayer.data && gridLayer.data.columnWidths) {
-          const { x, y, columnWidths } = gridLayer.data;
-          const totalCols = columnWidths.length;
-
-          const tableInfo = {
-            startX: x * scale,
-            startY: y * scale,
-            columnWidths: columnWidths.map(w => w * scale),
-            cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
-            totalRows,
-            totalCols,
-            inset: 3 * scale
-          };
-          applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
-        }
-      }
-
-      return {
-        tableRenderer,
-        canvas,
-        classes,
-        stats
-      };
-    } else {
-      // Custom table types: use ParserFactory + ParserAdapter
-      const parseResult = ParserFactory.parse(tableType, dataString);
-      if (!parseResult.success) {
-        return { error: parseResult.error || 'Failed to parse data' };
-      }
-
-      // Apply basic-table specific options
-      // basicTable, 'basic-table' (하이픈), crossTable, 'cross-table' (레거시) 모두 지원
-      if (tableType === 'basic-table') {
-        const basicTableOptions = options.basicTable || options['basic-table'] ||
-                                   options.crossTable || options['cross-table'] || {};
-        if (basicTableOptions.showTotal !== undefined) {
-          parseResult.data.showTotal = basicTableOptions.showTotal;
-        }
-        if (basicTableOptions.showMergedHeader !== undefined) {
-          parseResult.data.showMergedHeader = basicTableOptions.showMergedHeader;
-        }
-      }
-
-      // Apply cell variables if specified (for custom table types)
-      let finalParseResult = parseResult;
-      if (config.cellVariables && Array.isArray(config.cellVariables)) {
-        finalParseResult = applyCellVariablesGeneric(config.cellVariables, parseResult, tableType);
-      }
-
-      // ParserAdapter로 통일된 형식 생성 (팩토리에서 활용 가능)
-      let adaptedData = null;
-      try {
-        adaptedData = ParserAdapter.adapt(tableType, finalParseResult);
-      } catch (e) {
-        // ParserAdapter 실패 시 기존 방식으로 fallback
-        console.warn('[viz-api] ParserAdapter 변환 실패, 기존 방식 사용:', e.message);
-      }
-
-      // tableConfig에 adaptedData 포함 (팩토리에서 rowCount, columnCount 등 활용)
-      const enhancedTableConfig = {
-        ...tableConfig,
-        adaptedData
-      };
-
-      tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
-
-      // Apply cell animations if specified
-      applyCellAnimationsFromConfig(tableRenderer, config);
-
-      // Apply corruption effect (if enabled)
-      if (options.corruption?.enabled) {
-        const scale = tableRenderer.scaleRatio || 1;
-        const tableInfo = calculateCustomTableInfo(tableType, finalParseResult.data, canvas, tableConfig, scale);
-        if (tableInfo) {
-          applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
-        }
-      }
-
-      return {
-        tableRenderer,
-        canvas,
-        parsedData: parseResult.data
-      };
+    // 6. Parse and render table (frequency는 위에서 chart로 리다이렉트됨)
+    // ParserFactory + ParserAdapter 사용
+    const parseResult = ParserFactory.parse(tableType, dataString);
+    if (!parseResult.success) {
+      return { error: parseResult.error || 'Failed to parse data' };
     }
+
+    // Apply basic-table specific options
+    // basicTable, 'basic-table' (하이픈), crossTable, 'cross-table' (레거시) 모두 지원
+    if (tableType === 'basic-table') {
+      const basicTableOptions = options.basicTable || options['basic-table'] ||
+                                 options.crossTable || options['cross-table'] || {};
+      if (basicTableOptions.showTotal !== undefined) {
+        parseResult.data.showTotal = basicTableOptions.showTotal;
+      }
+      if (basicTableOptions.showMergedHeader !== undefined) {
+        parseResult.data.showMergedHeader = basicTableOptions.showMergedHeader;
+      }
+    }
+
+    // Apply cell variables if specified
+    let finalParseResult = parseResult;
+    if (config.cellVariables && Array.isArray(config.cellVariables)) {
+      finalParseResult = applyCellVariablesGeneric(config.cellVariables, parseResult, tableType);
+    }
+
+    // ParserAdapter로 통일된 형식 생성 (팩토리에서 활용 가능)
+    let adaptedData = null;
+    try {
+      adaptedData = ParserAdapter.adapt(tableType, finalParseResult);
+    } catch (e) {
+      // ParserAdapter 실패 시 기존 방식으로 fallback
+      console.warn('[viz-api] ParserAdapter 변환 실패, 기존 방식 사용:', e.message);
+    }
+
+    // tableConfig에 adaptedData 포함 (팩토리에서 rowCount, columnCount 등 활용)
+    const enhancedTableConfig = {
+      ...tableConfig,
+      adaptedData
+    };
+
+    tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
+
+    // Apply cell animations if specified
+    applyCellAnimationsFromConfig(tableRenderer, config);
+
+    // Apply corruption effect (if enabled)
+    if (options.corruption?.enabled) {
+      const scale = tableRenderer.scaleRatio || 1;
+      const tableInfo = calculateCustomTableInfo(tableType, finalParseResult.data, canvas, tableConfig, scale);
+      if (tableInfo) {
+        applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
+      }
+    }
+
+    return {
+      tableRenderer,
+      canvas,
+      parsedData: parseResult.data
+    };
 
   } catch (error) {
     console.error('renderTable error:', error);
@@ -844,75 +782,6 @@ function applyCellAnimationsFromConfig(tableRenderer, config) {
     const playOptions = config.cellAnimationOptions || {};
     tableRenderer.playAllAnimations(playOptions);
   }
-}
-
-/**
- * Apply cell variables to table cells (도수분포표)
- * 새 방식(rowIndex/colIndex)과 레거시 방식(class/column) 모두 지원
- *
- * @param {Array} classes - Class data array
- * @param {Array} cellVariables - Cell variable definitions
- *   새 방식: [{ rowIndex: 0, colIndex: 1, value: 5 }, ...]
- *   레거시: [{ class: "10~20", column: "frequency", value: 5 }, ...]
- * @param {string} tableId - Table ID
- */
-function applyCellVariables(classes, cellVariables, tableId) {
-  // Column name → index mapping (레거시 지원용)
-  const columnMap = {
-    'class': 0,
-    'midpoint': 1,
-    'tally': 2,
-    'frequency': 3,
-    'relativeFrequency': 4,
-    'cumulativeFrequency': 5,
-    'cumulativeRelativeFrequency': 6
-  };
-
-  cellVariables.forEach(cv => {
-    let rowIndex, colIndex;
-
-    // 새 방식: rowIndex/colIndex 직접 사용
-    if (cv.rowIndex !== undefined && cv.colIndex !== undefined) {
-      rowIndex = cv.rowIndex;
-      colIndex = cv.colIndex;
-    }
-    // 레거시 방식: class/column → rowIndex/colIndex 변환
-    else if (cv.class !== undefined && cv.column !== undefined) {
-      console.warn(
-        '[viz-api] cellVariables의 class/column 방식은 deprecated입니다. ' +
-        'rowIndex/colIndex 방식을 사용해주세요. (v3.0에서 제거 예정)'
-      );
-
-      // class 문자열 → rowIndex 변환
-      rowIndex = classToRowIndex(classes, cv.class);
-      if (rowIndex === -1) {
-        console.warn(`[viz-api] class "${cv.class}"를 찾을 수 없습니다.`);
-        return;
-      }
-
-      // column 이름 → colIndex 변환
-      colIndex = columnMap[cv.column];
-      if (colIndex === undefined) {
-        console.warn(`[viz-api] column "${cv.column}"은 유효하지 않습니다.`);
-        return;
-      }
-    } else {
-      console.warn('[viz-api] cellVariable 형식이 올바르지 않습니다:', cv);
-      return;
-    }
-
-    tableStore.setCellVariable(tableId, rowIndex, colIndex, cv.value);
-  });
-}
-
-/**
- * class 문자열을 rowIndex로 변환 (레거시 호환용 헬퍼)
- * @param {Array} classes - Class data array
- * @param {string} className - "min~max" 형식의 class 문자열
- * @returns {number} rowIndex (-1 if not found)
- */
-function classToRowIndex(classes, className) {
-  return classes.findIndex(c => `${c.min}~${c.max}` === className);
 }
 
 /**
