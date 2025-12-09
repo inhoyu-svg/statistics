@@ -178,10 +178,10 @@
   <h2>📋 테이블 (Table) 테스트</h2>
   <div class="test-grid">
 
-    <!-- 13. 기본 테이블 (basic-table) -->
+    <!-- 13. 도수분포표 (basic-table) -->
     <div class="test-case">
-      <h3>13. 기본 테이블</h3>
-      <p>tableType: 'basic-table' (기본값)</p>
+      <h3>13. 도수분포표</h3>
+      <p>tableType: 'basic-table' (도수분포표 형태)</p>
       <div class="table-container" id="table-basic"></div>
       <div class="status" id="status-table-basic"></div>
     </div>
@@ -469,15 +469,19 @@ AB: 0.13, 0.13`;
 
     // ===== 테이블 테스트 =====
 
-    // 13. 기본 테이블 (basic-table)
-    const basicTableData = `헤더: 항목, 값1, 값2
-A: 10, 20
-B: 30, 40
-C: 50, 60`;
+    // 13. 도수분포표 (basic-table)
+    const basicTableData = `헤더: 키(cm), 도수(명), 상대도수
+60이상~70미만: 2, 0.13
+70이상~80미만: 5, 0.33
+80이상~90미만: 6, 0.40
+90이상~100미만: 2, 0.14`;
     VizAPI.renderTable(document.getElementById('table-basic'), {
       tableType: 'basic-table',
       data: basicTableData,
-      canvasWidth: 400
+      canvasWidth: 500,
+      options: {
+        showTotal: true
+      }
     }).then(r => showStatus('status-table-basic', r));
 
     // 14. 줄기-잎 그림 (단일 모드)
