@@ -187,11 +187,10 @@ config (최상위)
 │   ├── showTotal           합계 행 표시
 │   └── showMergedHeader    병합 헤더 표시
 │
-├── cellAnimations          [{ rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, duration, repeat }, ...]
-│
+│  [테이블 전용]
+├── cellAnimations          [{ rowIndex, colIndex, duration, repeat }, ...]
 ├── cellAnimationOptions    { blinkEnabled: true/false }
-│
-└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (모든 테이블 타입)
+└── cellVariables           [{ rowIndex, colIndex, value }, ...]
 ```
 
 ---
