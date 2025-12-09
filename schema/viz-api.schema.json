@@ -121,7 +121,7 @@
       }
     },
     "cellVariables": {
-      "description": "셀 값 오버라이드 (stem-leaf, cross-table, category-matrix용). frequency는 options.tableConfig.cellVariables 사용",
+      "description": "셀 값 오버라이드 (모든 테이블 타입에서 최상위 레벨에 배치)",
       "type": "array",
       "items": { "$ref": "#/definitions/cellVariable" },
       "examples": [
@@ -416,11 +416,15 @@
         "corruption": {
           "$ref": "#/definitions/corruption"
         },
-        "tableConfig": {
-          "$ref": "#/definitions/tableConfig"
+        "showTotal": {
+          "type": "boolean",
+          "description": "합계 행/열 표시 (basic-table 전용)",
+          "default": true
         },
-        "crossTable": {
-          "$ref": "#/definitions/crossTable"
+        "showMergedHeader": {
+          "type": "boolean",
+          "description": "병합된 헤더 표시 (basic-table 전용)",
+          "default": true
         }
       }
     },
@@ -603,109 +607,6 @@
               "default": 50
             }
           }
-        }
-      }
-    },
-    "tableConfig": {
-      "type": "object",
-      "description": "도수분포표 설정 (tableType='frequency'일 때)",
-      "additionalProperties": false,
-      "properties": {
-        "visibleColumns": {
-          "description": "7개 컬럼 표시 여부 배열. 순서: [계급, 계급값, 탤리, 도수, 상대도수, 누적도수, 누적상대도수]",
-          "type": "array",
-          "items": { "type": "boolean" },
-          "minItems": 7,
-          "maxItems": 7,
-          "examples": [
-            [true, true, false, true, true, false, false]
-          ]
-        },
-        "columnOrder": {
-          "description": "컬럼 표시 순서 (0-based 인덱스 배열)",
-          "type": "array",
-          "items": { "type": "integer", "minimum": 0, "maximum": 6 },
-          "examples": [
-            [0, 3, 4],
-            [0, 1, 2, 3, 4, 5, 6]
-          ]
-        },
-        "labels": {
-          "type": "object",
-          "description": "컬럼 라벨 커스터마이징",
-          "additionalProperties": false,
-          "properties": {
-            "class": {
-              "type": "string",
-              "description": "계급 컬럼 라벨",
-              "default": "계급"
-            },
-            "midpoint": {
-              "type": "string",
-              "description": "계급값 컬럼 라벨",
-              "default": "계급값"
-            },
-            "tally": {
-              "type": "string",
-              "description": "탤리 컬럼 라벨",
-              "default": "탤리"
-            },
-            "frequency": {
-              "type": "string",
-              "description": "도수 컬럼 라벨",
-              "default": "도수"
-            },
-            "relativeFrequency": {
-              "type": "string",
-              "description": "상대도수 컬럼 라벨",
-              "default": "상대도수"
-            },
-            "cumulativeFrequency": {
-              "type": "string",
-              "description": "누적도수 컬럼 라벨",
-              "default": "누적도수"
-            },
-            "cumulativeRelativeFrequency": {
-              "type": "string",
-              "description": "누적상대도수 컬럼 라벨",
-              "default": "누적상대도수"
-            }
-          }
-        },
-        "showSuperscript": {
-          "description": "계급값에 이상/미만 위첨자 표시",
-          "type": "boolean",
-          "default": false
-        },
-        "showSummaryRow": {
-          "description": "합계 행 표시",
-          "type": "boolean",
-          "default": true
-        },
-        "cellVariables": {
-          "description": "도수분포표 셀 값 오버라이드. frequency 테이블은 이 위치에 지정해야 함",
-          "type": "array",
-          "items": { "$ref": "#/definitions/cellVariable" },
-          "examples": [
-            [{ "rowIndex": 0, "colIndex": 2, "value": "?" }]
-          ]
-        }
-      }
-    },
-    "crossTable": {
-      "type": "object",
-      "description": "이원분류표 설정 (tableType='cross-table'일 때)",
-      "additionalProperties": false,
-      "properties": {
-        "showTotal": {
-          "type": "boolean",
-          "description": "합계 행/열 표시",
-          "default": true
-        },
-        "showMergedHeader": {
-          "type": "boolean",
-          "description": "병합된 헤더 표시",
-          "default": true
         }
       }
     }

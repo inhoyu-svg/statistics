@@ -138,15 +138,9 @@ if (!valid) console.log(validate.errors);
 
 | 용어 | JSON 경로 | 설명 |
 |:-----|:----------|:-----|
-| **basicTable** | `options.basicTable` | 기본 테이블 전용 설정 (합계/병합헤더) |
+| **showTotal** | `options.showTotal` | 합계 행 표시 여부 (basic-table 전용) |
+| **showMergedHeader** | `options.showMergedHeader` | 병합 헤더 표시 여부 (basic-table 전용) |
 | **corruption** | `options.corruption` | 찢김 효과 설정 (`{ enabled, cells, style }`) |
-
-#### basicTable 하위 객체
-
-| 용어 | JSON 경로 | 설명 |
-|:-----|:----------|:-----|
-| **showTotal** | `options.basicTable.showTotal` | 합계 행 표시 여부 |
-| **showMergedHeader** | `options.basicTable.showMergedHeader` | 병합 헤더 표시 여부 |
 
 ---
 
@@ -190,9 +184,8 @@ config (최상위)
 │   ├── corruption          { enabled, cells, maskAxisLabels, style } 찢김 효과
 │   │
 │   │  [basic-table 전용]
-│   └── basicTable          ─────────────────────────
-│       ├── showTotal       합계 행 표시
-│       └── showMergedHeader 병합 헤더 표시
+│   ├── showTotal           합계 행 표시
+│   └── showMergedHeader    병합 헤더 표시
 │
 ├── cellAnimations          [{ rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, duration, repeat }, ...]
 │
@@ -1363,7 +1356,8 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 | `tableType` | `string` | X | `"basic-table"` | 테이블 타입 |
 | `canvasWidth` | `number` | X | `600` | 캔버스 너비 (px) |
 | `canvasHeight` | `number` | X | `400` | 캔버스 높이 (px) |
-| `options.basicTable` | `object` | X | `null` | basic-table 전용 옵션 |
+| `options.showTotal` | `boolean` | X | `true` | 합계 행 표시 (basic-table 전용) |
+| `options.showMergedHeader` | `boolean` | X | `true` | 병합 헤더 표시 (basic-table 전용) |
 | `cellAnimations` | `array` | X | `null` | 셀 애니메이션 설정 |
 | `cellAnimationOptions` | `object` | X | `null` | 애니메이션 재생 옵션 |
 
@@ -1500,7 +1494,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 }
 ```
 
-#### options.basicTable
+#### options (basic-table 전용)
 
 | 옵션 | 타입 | 필수 | 기본값 | 설명 |
 |:-----|:-----|:----:|:------:|:-----|
@@ -1513,10 +1507,8 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
   "tableType": "basic-table",
   "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4",
   "options": {
-    "basicTable": {
-      "showTotal": false,
-      "showMergedHeader": true
-    }
+    "showTotal": false,
+    "showMergedHeader": true
   }
 }
 ```
@@ -1695,10 +1687,8 @@ basic-table은 다양한 형태의 테이블을 만들 수 있는 범용 타입�
   "canvasWidth": 500,
   "canvasHeight": 300,
   "options": {
-    "basicTable": {
-      "showTotal": true,
-      "showMergedHeader": false
-    }
+    "showTotal": true,
+    "showMergedHeader": false
   }
 }
 ```
@@ -1717,10 +1707,8 @@ basic-table은 다양한 형태의 테이블을 만들 수 있는 범용 타입�
   "canvasWidth": 500,
   "canvasHeight": 400,
   "options": {
-    "basicTable": {
-      "showTotal": true,
-      "showMergedHeader": true
-    }
+    "showTotal": true,
+    "showMergedHeader": true
   }
 }
 ```
@@ -1739,17 +1727,11 @@ basic-table은 다양한 형태의 테이블을 만들 수 있는 범용 타입�
 | `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
 | `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
-| `options.basicTable` | `object` | X | 테이블 옵션 |
+| `options.showTotal` | `boolean` | X | 합계 행 표시 (기본: true) |
+| `options.showMergedHeader` | `boolean` | X | 병합 헤더 표시 (기본: true) |
 | `cellAnimations` | `array` | X | 셀 하이라이트 (rowIndex, colIndex, duration, repeat) |
 | `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (rowIndex, colIndex, duration, repeat) |
 | `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
-
-#### options.basicTable 상세
-
-| 옵션 | 타입 | 필수 | 기본값 | 설명 |
-|:-----|:-----|:----:|:------:|:-----|
-| `showTotal` | `boolean` | X | `true` | 합계 행 표시 |
-| `showMergedHeader` | `boolean` | X | `true` | 병합 헤더 표시 |
 
 ---
 
@@ -1841,7 +1823,7 @@ O: 0.26, 0.24
     { "rowIndex": 3, "colIndex": 2, "value": "1" }
   ],
   "options": {
-    "basicTable": { "showTotal": true }
+    "showTotal": true
   }
 }
 ```

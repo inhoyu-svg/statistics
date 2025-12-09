@@ -590,9 +590,8 @@ export async function renderChart(element, config) {
  * @param {Array<Object>} [config.cellVariables] - Cell variable replacements
  * @param {Object} [config.options] - Additional options
  * @param {boolean} [config.options.animation=true] - Enable animation
- * @param {Object} [config.options.basicTable] - Basic-table specific options
- * @param {boolean} [config.options.basicTable.showTotal=true] - Show total row
- * @param {boolean} [config.options.basicTable.showMergedHeader=true] - Show merged header
+ * @param {boolean} [config.options.showTotal=true] - Show total row (basic-table only)
+ * @param {boolean} [config.options.showMergedHeader=true] - Show merged header (basic-table only)
  * @returns {Promise<Object>} { tableRenderer, canvas, parsedData? } or { error }
  */
 export async function renderTable(element, config) {
@@ -656,14 +655,13 @@ export async function renderTable(element, config) {
 
     // 6. parseResult는 validator에서 이미 파싱됨 (validation.data.parseResult)
 
-    // Apply basic-table specific options
+    // Apply basic-table specific options (평탄화된 구조)
     if (tableType === 'basic-table') {
-      const basicTableOptions = options.basicTable || {};
-      if (basicTableOptions.showTotal !== undefined) {
-        parseResult.data.showTotal = basicTableOptions.showTotal;
+      if (options.showTotal !== undefined) {
+        parseResult.data.showTotal = options.showTotal;
       }
-      if (basicTableOptions.showMergedHeader !== undefined) {
-        parseResult.data.showMergedHeader = basicTableOptions.showMergedHeader;
+      if (options.showMergedHeader !== undefined) {
+        parseResult.data.showMergedHeader = options.showMergedHeader;
       }
     }
 
