@@ -655,12 +655,7 @@ export async function renderTable(element, config) {
       tableRenderer.animationMode = false;
     }
 
-    // 6. Parse and render table (frequency는 위에서 chart로 리다이렉트됨)
-    // ParserFactory + ParserAdapter 사용
-    const parseResult = ParserFactory.parse(tableType, dataString);
-    if (!parseResult.success) {
-      return { error: parseResult.error || 'Failed to parse data' };
-    }
+    // 6. parseResult는 validator에서 이미 파싱됨 (validation.data.parseResult)
 
     // Apply basic-table specific options
     if (tableType === 'basic-table') {
