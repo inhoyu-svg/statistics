@@ -369,15 +369,18 @@ class BasicTableFactory {
     cells.forEach((cellText, colIndex) => {
       const isLabelColumn = colIndex === 0;
 
-      // 값 포맷팅 (소수점인 경우)
+      // 값 포맷팅 (소수점인 경우, null은 그대로 유지)
       let displayText = cellText;
       if (typeof cellText === 'number' && !isLabelColumn) {
         displayText = cellText.toFixed(2).replace(/\.?0+$/, '');
       }
 
+      // null은 그대로 유지 (빈칸 처리용)
+      const cellTextValue = displayText === null ? null : String(displayText);
+
       const cellLayer = new Layer({
         id: `basic-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
-        name: String(displayText),
+        name: cellTextValue ?? '',
         type: 'cell',
         visible: true,
         order: colIndex,
@@ -386,7 +389,7 @@ class BasicTableFactory {
           rowIndex,
           colIndex,
           colLabel: '',
-          cellText: String(displayText),
+          cellText: cellTextValue,
           x,
           y,
           width: columnWidths[colIndex],

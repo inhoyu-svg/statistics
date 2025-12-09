@@ -620,11 +620,16 @@ class TableCellRenderer {
    * @param {boolean} isHeader - 헤더 여부 (헤더는 더 작은 폰트)
    */
   _renderCellText(text, x, y, alignment, color, bold = false, isHeader = false) {
+    // null은 빈칸 처리 (cellVariables에서 null 사용)
+    if (text === null) {
+      return;
+    }
+
     const str = String(text).trim();
     const fontSize = isHeader ? 22 : 24;
 
-    // 언더바만 있는 경우 빈칸으로 처리 (렌더링 스킵)
-    if (str === '_' || str === '') {
+    // 빈 문자열은 렌더링 스킵
+    if (str === '') {
       return;
     }
 
