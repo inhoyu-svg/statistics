@@ -5,10 +5,9 @@
 
 import CONFIG from './config.js';
 import DataProcessor from './core/processor.js';
-import { ParserFactory, ParserAdapter } from './core/parsers/index.js';
+import { ParserAdapter } from './core/parsers/index.js';
 import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
-import tableStore from './core/tableStore.js';
 import { waitForFonts } from './utils/katex.js';
 import { applyChartCorruption, applyTableCorruption } from './utils/corruption.js';
 import { ConfigValidator } from './utils/validator.js';
