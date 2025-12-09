@@ -37,11 +37,11 @@
       "examples": ["table"]
     },
     "tableType": {
-      "description": "테이블 유형 (purpose가 'table'일 때만 유효). 기본값은 'frequency'",
+      "description": "테이블 유형 (purpose가 'table'일 때만 유효). 기본값은 'basic-table'. Note: 'frequency', 'cross-table'은 deprecated (v3.0 제거 예정)",
       "type": "string",
-      "enum": ["frequency", "cross-table", "category-matrix", "stem-leaf"],
-      "default": "frequency",
-      "examples": ["stem-leaf", "cross-table"]
+      "enum": ["basic-table", "category-matrix", "stem-leaf", "frequency", "cross-table"],
+      "default": "basic-table",
+      "examples": ["stem-leaf", "basic-table"]
     },
     "canvasSize": {
       "description": "정사각형 캔버스 크기. canvasWidth/canvasHeight보다 우선 적용됨",

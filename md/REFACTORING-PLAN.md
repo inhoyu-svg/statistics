@@ -172,59 +172,199 @@ interface ParsedTableData {
 
 ---
 
-## 4. cellVariables 위치 통일 🔜 향후
+## 4. tableType 통합 + tableConfig 제거 ✅ 완료
+
+> 작성일: 2025-12-08
+> 수정일: 2025-12-09 (기존 4번, 5번 통합)
 
 ### 현재 문제
-- `frequency` 테이블: `options.tableConfig.cellVariables`
-- 기타 테이블: 최상위 `cellVariables`
-- LLM이 위치 혼동으로 잘못된 JSON 생성
+1. **tableType 복잡성**: 4가지 타입 (frequency, cross-table, category-matrix, stem-leaf)
+2. **data 형식 다형성**: frequency는 `number[]`, 나머지는 `string`
+3. **tableConfig 중첩**: `options.tableConfig.cellVariables` 등 3단계 중첩
+4. **frequency 전용 옵션**: visibleColumns, columnOrder 등 다른 타입에서 불필요
 
 ### 목표
-모든 tableType에서 두 위치 모두 동작하도록 통일
+- `frequency` tableType 제거 → chart 자동 전환
+- `cross-table` → `basic-table` 이름 변경
+- `options.tableConfig` 제거 → 최상위로 이동
+- tableType **3개**로 단순화: **basic-table**, **category-matrix**, **stem-leaf**
+- 모든 테이블 data 형식 **string으로 통일**
 
-### 구현 계획
+### 변경 전후 비교
 
-**파일**: `js/viz-api.js`
+#### tableType 변경
+| 변경 전 | 변경 후 | data 형식 | 헤더 위치 |
+|--------|--------|----------|----------|
+| frequency | ❌ 제거 | number[] → chart 전용 | - |
+| cross-table | **basic-table** | string | 위쪽 (top) |
+| category-matrix | category-matrix | string | 왼쪽 (left) |
+| stem-leaf | stem-leaf | string | - |
 
-**변경 1**: frequency에서 최상위 cellVariables도 지원 (라인 687 근처)
+#### options 구조 변경
 ```javascript
-// Before
-if (tableConfig?.cellVariables && Array.isArray(tableConfig.cellVariables)) {
-  applyCellVariables(classes, tableConfig.cellVariables, tableRenderer.tableId);
+// Before (3단계 중첩)
+{
+  "options": {
+    "tableConfig": {
+      "cellVariables": [...],
+      "visibleColumns": [...],
+      "columnOrder": [...]
+    }
+  }
 }
 
-// After
-const cellVars = config.cellVariables || tableConfig?.cellVariables;
-if (cellVars && Array.isArray(cellVars)) {
-  applyCellVariables(classes, cellVars, tableRenderer.tableId);
+// After (최상위로 이동)
+{
+  "cellVariables": [...],
+  // visibleColumns, columnOrder → 제거 (frequency 전용이었음)
 }
 ```
 
-**변경 2**: 기타 테이블에서 options.tableConfig.cellVariables도 지원 (라인 748 근처)
-```javascript
-// Before
-if (config.cellVariables && Array.isArray(config.cellVariables)) {
-  finalParseResult = applyCellVariablesGeneric(config.cellVariables, parseResult, tableType);
-}
+### 하위 호환성 처리
 
-// After
-const cellVars = config.cellVariables || tableConfig?.cellVariables;
-if (cellVars && Array.isArray(cellVars)) {
-  finalParseResult = applyCellVariablesGeneric(cellVars, parseResult, tableType);
+#### cross-table → basic-table (별칭)
+```javascript
+// viz-api.js 초기 처리
+if (tableType === 'cross-table') {
+  console.warn('[viz-api] tableType "cross-table" is deprecated. Use "basic-table" instead.');
+  tableType = 'basic-table';
 }
 ```
+
+#### frequency → chart 자동 전환
+```javascript
+// viz-api.js 초기 처리
+if (purpose === 'table' && tableType === 'frequency') {
+  console.warn('[viz-api] tableType "frequency" for tables is deprecated. Use purpose: "chart" instead.');
+  purpose = 'chart';
+}
+```
+
+#### options.tableConfig → 최상위 (하위 호환)
+```javascript
+// viz-api.js 초기 처리
+if (options?.tableConfig?.cellVariables) {
+  console.warn('[viz-api] options.tableConfig.cellVariables is deprecated. Use config.cellVariables instead.');
+  config.cellVariables = config.cellVariables || options.tableConfig.cellVariables;
+}
+```
+
+### 제거되는 옵션들
+
+**테이블에서 제거 (chart에서는 유지):**
+- `classCount`, `classWidth`, `classRange` - 계급 설정
+
+**완전 제거 (frequency 테이블 전용):**
+- `options.tableConfig` - 전체 객체
+- `visibleColumns` - 컬럼 표시/숨김
+- `columnOrder` - 컬럼 순서
+- `showSuperscript` - "이상/미만" 표시
+
+**최상위로 이동:**
+- `cellVariables` - 셀 값 수정 (이미 다른 테이블에서 최상위 사용 중)
+
+### 수정 파일
+
+| 파일 | 변경 유형 |
+|------|----------|
+| `js/config.js` | TABLE_TYPES 수정 |
+| `js/viz-api.js` | frequency 로직 제거, cross→basic, tableConfig 하위호환 |
+| `js/renderers/table.js` | frequency 로직 제거, cross→basic |
+| `js/renderers/table/factories/index.js` | 라우터 수정 |
+| `js/renderers/table/factories/CrossTableFactory.js` | → `BasicTableFactory.js` 이름 변경 |
+| `js/renderers/table/TableCellRenderer.js` | 메서드명 변경 |
+| `js/core/parsers/index.js` | 파서 라우터 수정 |
+| `js/core/parsers/CrossTableParser.js` | → `BasicTableParser.js` 이름 변경 |
+| `js/core/tableStore.js` | frequency 전용 상태 제거 |
+| `js/utils/validator.js` | validation 수정 |
+| `md/VIZ-API-CONFIG.md` | 문서 업데이트 |
+| `md/SCHEMA.md` | 문서 업데이트 |
+| `schema/viz-api.schema.json` | 스키마 업데이트 |
+
+### 커밋 순서
+
+1. **Commit 1**: CONFIG 상수 및 Factory/Parser 이름 변경
+2. **Commit 2**: viz-api.js 하위 호환성 처리 (별칭, 경고)
+3. **Commit 3**: viz-api.js, table.js frequency 로직 제거
+4. **Commit 4**: tableStore frequency 전용 상태 제거
+5. **Commit 5**: 문서 및 스키마 업데이트
 
 ### 테스트 계획
-- [ ] frequency + 최상위 cellVariables
-- [ ] frequency + options.tableConfig.cellVariables
-- [ ] stem-leaf + 양쪽 위치
-- [ ] cross-table + 양쪽 위치
-- [ ] category-matrix + 양쪽 위치
+
+- [ ] cross-table 별칭 → basic-table 동작 확인
+- [ ] frequency + purpose:table → chart 자동 전환 확인
+- [ ] options.tableConfig.cellVariables → config.cellVariables 폴백 확인
+- [ ] basic-table + cellVariables 정상 동작
+- [ ] category-matrix + cellVariables 정상 동작
+- [ ] stem-leaf + cellVariables 정상 동작
+- [ ] 기존 JSON 설정 하위 호환성 확인
 
 ### 예상 효과
-- ⭐⭐ 중간
-- LLM 오류 감소
-- API 일관성 향상
+- ⭐⭐⭐ 높음
+- API 단순화 (tableType 4개 → 3개)
+- data 형식 통일 (모두 string)
+- options 중첩 제거 (3단계 → 1단계)
+- LLM 오류 감소 (다형성 제거, 경로 단순화)
+- 코드 복잡도 감소 (frequency 전용 로직 제거)
+
+### 추가 고려사항
+
+#### 1. options 키 형식
+```javascript
+// 현재
+options['cross-table']    // 하이픈 + 대괄호
+options.crossTable        // camelCase (폴백)
+
+// 변경 후
+options.basicTable        // camelCase 통일
+options['basic-table']    // 폴백 지원
+```
+
+#### 2. tableStore 정리
+**frequency 제거 시 불필요해지는 상태:**
+- `visibleColumns`, `columnOrder`, `columnAlignment`, `cellVariables`, `labels`
+
+**유지할 상태:**
+- `summaryRowVisible` - basic-table에서 계속 사용
+- `mergedHeaderVisible` - basic-table에서 계속 사용
+
+#### 3. 동적 너비 계산 (별도 작업)
+| Factory | 현재 방식 |
+|---------|----------|
+| BaseTableFactory | `calculateDynamicWidths()` - 텍스트 측정 |
+| CrossTableFactory | `_calculateColumnWidths()` - 균등 분배 |
+| CategoryMatrixFactory | `_calculateColumnWidths()` - 균등 분배 |
+| StemLeafFactory | `calculateDynamicWidths()` - 자체 로직 |
+
+**권장:** 모든 팩토리에서 동적 너비 계산 통일 (이 리팩토링 범위 밖)
+
+#### 4. 특수 값 표기법
+
+**빈 셀 표기: `null`**
+- 기존 `_` 대신 `null` 사용 (프로그래밍 표준)
+- 파서에서 문자열 `"null"` → 빈 값으로 처리
+
+**탈리마크 표기: `/` 연속**
+```
+"/"      → 탈리 1개
+"///"    → 탈리 3개
+"/////"  → 탈리 5개 (正)
+"1/2"    → 분수 (탈리 아님)
+```
+
+#### 5. 문서 추가 내용 (VIZ-API-CONFIG.md)
+**cellVariables로 합계 직접 지정하는 케이스:**
+```json
+{
+  "tableType": "basic-table",
+  "data": "헤더: 구분, 남, 여\nA형: A, 0.3\nB형: 0.4, null",
+  "cellVariables": [
+    { "rowIndex": 3, "colIndex": 1, "value": "0.7" },
+    { "rowIndex": 3, "colIndex": 2, "value": "0.5" }
+  ],
+  "options": { "basicTable": { "showTotal": true } }
+}
+```
 
 ---
 
@@ -235,8 +375,7 @@ if (cellVars && Array.isArray(cellVars)) {
 | 1 | 입력 검증 강화 | ⭐⭐⭐ | 중간 | ✅ 완료 |
 | 2 | cellVariables 형식 통일 | ⭐⭐ | 작음 | ✅ 완료 |
 | 3 | 파서 출력 통일 | ⭐⭐ | 큼 | ✅ 완료 |
-| 4 | cellVariables 위치 통일 | ⭐⭐ | 작음 | 🔜 향후 |
-| 5 | tableType 통합 | ⭐⭐⭐ | 큼 | 🔜 향후 |
+| 4 | tableType 통합 + tableConfig 제거 | ⭐⭐⭐ | 큼 | ✅ 완료 |
 
 ---
 
@@ -346,9 +485,8 @@ cellVariables: [
 | 2025-12-08 | ✅ 리팩토링 1: ConfigValidator 클래스 구현 완료 |
 | 2025-12-08 | ✅ 리팩토링 2: cellVariables rowIndex/colIndex 통일 완료 |
 | 2025-12-08 | ✅ 리팩토링 3: ParserAdapter 패턴 구현 완료 |
-| 2025-12-08 | 🔜 리팩토링 4: cellVariables 위치 통일 계획 추가 (향후 작업) |
 | 2025-12-08 | ✅ JSON Schema 개선: 조건부 검증, description/examples 추가 (421줄 → 713줄) |
-| 2025-12-08 | 🔜 리팩토링 5: tableType 통합 계획 추가 (frequency 제거, cross-table → basic-table) |
+| 2025-12-09 | 🔜 리팩토링 4: 기존 4번(cellVariables 위치), 5번(tableType 통합) 통합 |
 
 ---
 
@@ -383,174 +521,9 @@ cellVariables: [
 
 ### 향후 개선 방향
 
-- **#1~4 (높음)**: 리팩토링 4번(cellVariables 위치 통일)으로 #4 해결 예정
+- **#1~4 (높음)**: 리팩토링 4번(tableType 통합 + tableConfig 제거)으로 해결 예정
+  - #1: frequency 제거 → data 형식 string 통일
+  - #3: tableType 기본값 → basic-table로 변경
+  - #4: tableConfig 제거 → 최상위로 이동
 - **#5~8 (중간)**: 문서 개선으로 대응 (VIZ-API-CONFIG.md Common Mistakes 섹션)
 - **#9~10 (낮음)**: 필요시 개선
-
----
-
-## 5. tableType 통합 리팩토링 🔜 향후
-
-> 작성일: 2025-12-08
-
-### 목표
-- `frequency` tableType을 제거하고 `cross-table`을 `basic-table`로 이름 변경
-- chart에서만 `number[]` 데이터 처리 유지
-- tableType 3개로 단순화: **basic-table**, **category-matrix**, **stem-leaf**
-
-### 변경 전후 비교
-
-| 변경 전 | 변경 후 | data 형식 | 헤더 위치 |
-|--------|--------|----------|----------|
-| frequency | ❌ 제거 | number[] → chart 전용 | - |
-| cross-table | **basic-table** | string | 위쪽 (top) |
-| category-matrix | category-matrix | string | 왼쪽 (left) |
-| stem-leaf | stem-leaf | string | - |
-
-### 하위 호환성 처리
-
-#### cross-table → basic-table (별칭)
-```javascript
-// viz-api.js 초기 처리
-if (tableType === 'cross-table') {
-  console.warn('[viz-api] tableType "cross-table" is deprecated. Use "basic-table" instead.');
-  tableType = 'basic-table';
-}
-```
-
-#### frequency → chart 자동 전환
-```javascript
-// viz-api.js 초기 처리
-if (purpose === 'table' && tableType === 'frequency') {
-  console.warn('[viz-api] tableType "frequency" for tables is deprecated. Rendering as histogram chart.');
-  purpose = 'chart';
-}
-```
-
-### 제거되는 옵션들
-
-**테이블에서 제거 (chart에서는 유지):**
-- `classCount`, `classWidth`, `classRange` - 계급 설정
-
-**완전 제거 (frequency 테이블 전용):**
-- `visibleColumns` - 컬럼 표시/숨김
-- `columnOrder` - 컬럼 순서
-- `showSuperscript` - "이상/미만" 표시
-
-### 수정 파일
-
-| 파일 | 변경 유형 |
-|------|----------|
-| `js/config.js` | TABLE_TYPES 수정 |
-| `js/viz-api.js` | frequency 로직 제거, cross→basic |
-| `js/renderers/table.js` | frequency 로직 제거, cross→basic |
-| `js/renderers/table/factories/index.js` | 라우터 수정 |
-| `js/renderers/table/factories/CrossTableFactory.js` | 파일명/클래스명 변경 |
-| `js/renderers/table/TableCellRenderer.js` | 메서드명 변경 |
-| `js/core/parsers/index.js` | 파서 라우터 수정 |
-| `js/core/parsers/CrossTableParser.js` | 파일명/클래스명 변경 |
-| `js/utils/validator.js` | validation 수정 |
-| `md/VIZ-API-CONFIG.md` | 문서 업데이트 |
-| `md/SCHEMA.md` | 문서 업데이트 |
-| `schema/viz-api.schema.json` | 스키마 업데이트 |
-
-### 추가 고려사항
-
-#### 1. cellVariables 처리
-| 구분 | frequency (제거) | 기타 테이블 |
-|------|-----------------|-----------|
-| **위치** | `options.tableConfig.cellVariables` | `config.cellVariables` (최상위) |
-| **처리** | tableStore 기반 | 파싱 데이터 직접 수정 |
-
-**결정:** frequency 제거 후 `config.cellVariables` (최상위)로 통일
-
-#### 2. options 키 형식
-```javascript
-// 현재
-options['cross-table']    // 하이픈 + 대괄호
-options.crossTable        // camelCase (폴백)
-
-// 변경 후
-options.basicTable        // camelCase 통일
-options['basic-table']    // 폴백 지원
-```
-
-#### 3. tableStore 정리
-**frequency 제거 시 불필요해지는 상태:**
-- `visibleColumns`, `columnOrder`, `columnAlignment`, `cellVariables`, `labels`
-
-**유지할 상태:**
-- `summaryRowVisible` - basic-table에서 계속 사용
-- `mergedHeaderVisible` - basic-table에서 계속 사용
-
-#### 4. 동적 너비 계산
-| Factory | 현재 방식 |
-|---------|----------|
-| BaseTableFactory | `calculateDynamicWidths()` - 텍스트 측정 |
-| CrossTableFactory | `_calculateColumnWidths()` - 균등 분배 |
-| CategoryMatrixFactory | `_calculateColumnWidths()` - 균등 분배 |
-| StemLeafFactory | `calculateDynamicWidths()` - 자체 로직 |
-
-**권장:** 모든 팩토리에서 동적 너비 계산 통일 (별도 작업)
-
-#### 5. 테스트 데이터 / 예시
-- `examples/` 폴더 생성
-- 각 tableType별 JSON 예시 파일
-- VIZ-API-CONFIG.md 예시 업데이트
-
-#### 6. 문서 추가 내용 (VIZ-API-CONFIG.md)
-**cellVariables로 합계 직접 지정하는 케이스:**
-- 데이터에 숫자가 아닌 값(A, x, null 등)이 포함되면 합계가 "-"로 표시됨
-- 이 경우 cellVariables를 사용하여 합계 행 값을 직접 지정
-- 예시:
-```json
-{
-  "tableType": "basic-table",
-  "data": "헤더: 구분, 남, 여\nA형: A, 0.3\nB형: 0.4, null",
-  "cellVariables": [
-    { "rowIndex": 3, "colIndex": 1, "value": "0.7" },
-    { "rowIndex": 3, "colIndex": 2, "value": "0.5" }
-  ],
-  "options": { "basicTable": { "showTotal": true } }
-}
-```
-
-#### 7. 특수 값 표기법
-
-**빈 셀 표기: `null`**
-- 기존 `_` 대신 `null` 사용 (프로그래밍 표준)
-- 파서에서 문자열 `"null"` → 빈 값으로 처리
-```javascript
-const parsedValue = (value === 'null' || value === '') ? null : value;
-```
-
-**탈리마크 표기: `/` 연속**
-- 슬래시 연속 입력 → 탈리마크로 렌더링
-- 분수(`1/2`)와 구분: 슬래시만 있으면 탈리
-```
-"/"      → 탈리 1개
-"///"    → 탈리 3개
-"/////"  → 탈리 5개 (正)
-"1/2"    → 분수 (탈리 아님)
-```
-- 파서 로직:
-```javascript
-if (/^\/+$/.test(value)) {
-  return { type: 'tally', count: value.length };
-}
-```
-
-### 커밋 순서
-
-1. **Commit 1**: CONFIG 상수 및 Factory 이름 변경
-2. **Commit 2**: viz-api.js frequency 로직 제거
-3. **Commit 3**: table.js frequency 로직 제거
-4. **Commit 4**: 문서 업데이트
-5. **Commit 5**: 하위 호환성 처리 (별칭 등)
-
-### 예상 효과
-- ⭐⭐⭐ 높음
-- API 단순화 (tableType 4개 → 3개)
-- data 형식 통일 (모두 string)
-- LLM 오류 감소 (다형성 제거)
-- 코드 복잡도 감소 (frequency 전용 로직 제거)

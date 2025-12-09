@@ -182,23 +182,14 @@ class ConfigValidator {
     }
 
     // 3. 테이블 타입 검증
-    const tableType = config.tableType || 'frequency';
+    // 차트는 tableType 무시하고 frequency 데이터로 처리
+    const tableType = purpose === 'chart' ? 'frequency' : (config.tableType || 'basic-table');
     if (!this._isValidTableType(tableType)) {
       this._addError(
         errors,
         'tableType',
         ERROR_CODES.UNSUPPORTED_TYPE,
         `지원하지 않는 테이블 타입: ${tableType}`
-      );
-    }
-
-    // 차트는 frequency 타입만 지원
-    if (purpose === 'chart' && tableType !== 'frequency') {
-      this._addError(
-        errors,
-        'tableType',
-        ERROR_CODES.UNSUPPORTED_TYPE,
-        `차트는 frequency 타입만 지원합니다. 현재: ${tableType}`
       );
     }
 
@@ -212,8 +203,8 @@ class ConfigValidator {
       };
     }
 
-    // 5. 계급 설정 검증 (도수분포표인 경우)
-    if (tableType === 'frequency') {
+    // 5. 계급 설정 검증 (차트인 경우)
+    if (purpose === 'chart') {
       this._validateClassSettings(config, errors);
     }
 

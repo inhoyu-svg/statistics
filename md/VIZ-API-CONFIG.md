@@ -85,7 +85,7 @@ if (!valid) console.log(validate.errors);
 |:-----|:----------|:-----|:----------|
 | **data** | `data` | 렌더링할 숫자 데이터 배열 (필수) | 전체 |
 | **purpose** | `purpose` | 렌더링 목적 (`"chart"` / `"table"`) | 전체 |
-| **tableType** | `tableType` | 테이블 유형 (`"frequency"` / `"cross-table"` / `"category-matrix"` / `"stem-leaf"`) | 테이블 |
+| **tableType** | `tableType` | 테이블 유형 (`"basic-table"` / `"category-matrix"` / `"stem-leaf"`) | 테이블 |
 | **config** | `config` | 계급 설정 (개수, 간격, 범위) | 차트/테이블 |
 | **classCount** | `classCount` | 계급 개수 (기본: 5) | 차트/테이블 |
 | **classWidth** | `classWidth` | 계급 간격 (자동 계산) | 차트/테이블 |
@@ -98,14 +98,21 @@ if (!valid) console.log(validate.errors);
 | **cellAnimations** | `cellAnimations` | 셀 하이라이트 애니메이션 배열 | 모든 테이블 |
 | **cellVariables** | `cellVariables` | 셀 값 커스터마이징 (rowIndex/colIndex 기반) | 아래 표 참조 |
 
-#### ⚠️ cellVariables 위치 (tableType별)
+#### cellVariables 위치
 
-| tableType | cellVariables 위치 |
-|:----------|:-------------------|
-| `frequency` | `options.tableConfig.cellVariables` |
-| `stem-leaf` | 최상위 `cellVariables` |
-| `cross-table` | 최상위 `cellVariables` |
-| `category-matrix` | 최상위 `cellVariables` |
+모든 테이블 타입에서 **최상위 `cellVariables`** 사용:
+
+```json
+{
+  "tableType": "basic-table",
+  "data": "...",
+  "cellVariables": [
+    { "rowIndex": 0, "colIndex": 1, "value": "A" }
+  ]
+}
+```
+
+> ⚠️ **Deprecated**: `options.tableConfig.cellVariables`는 v3.0에서 제거 예정
 
 #### options 하위 객체 (차트)
 
@@ -133,27 +140,17 @@ if (!valid) console.log(validate.errors);
 
 | 용어 | JSON 경로 | 설명 |
 |:-----|:----------|:-----|
-| **tableConfig** | `options.tableConfig` | 도수분포표 컬럼 설정 (표시/순서/라벨) |
-| **crossTable** | `options.crossTable` | 이원분류표 전용 설정 (합계/병합헤더) |
+| **basicTable** | `options.basicTable` | 기본 테이블 전용 설정 (합계/병합헤더) |
 | **corruption** | `options.corruption` | 찢김 효과 설정 (`{ enabled, cells, style }`) |
 
-#### tableConfig 하위 객체
+#### basicTable 하위 객체
 
 | 용어 | JSON 경로 | 설명 |
 |:-----|:----------|:-----|
-| **visibleColumns** | `options.tableConfig.visibleColumns` | 컬럼 표시 여부 배열 (`[true, false, ...]`) |
-| **columnOrder** | `options.tableConfig.columnOrder` | 컬럼 순서 배열 (`[0, 1, 2, ...]`) |
-| **labels** | `options.tableConfig.labels` | 컬럼 라벨 설정 (`{ class, frequency, ... }`) |
-| **showSuperscript** | `options.tableConfig.showSuperscript` | "이상/미만" 표시 여부 |
-| **showSummaryRow** | `options.tableConfig.showSummaryRow` | 합계 행 표시 여부 |
-| **cellVariables** | `options.tableConfig.cellVariables` | 셀 값 커스터마이징 배열 |
+| **showTotal** | `options.basicTable.showTotal` | 합계 행 표시 여부 |
+| **showMergedHeader** | `options.basicTable.showMergedHeader` | 병합 헤더 표시 여부 |
 
-#### crossTable 하위 객체
-
-| 용어 | JSON 경로 | 설명 |
-|:-----|:----------|:-----|
-| **showTotal** | `options.crossTable.showTotal` | 합계 행 표시 여부 |
-| **showMergedHeader** | `options.crossTable.showMergedHeader` | 병합 헤더 표시 여부 |
+> ⚠️ **Deprecated**: `options.crossTable`는 v3.0에서 제거 예정. `options.basicTable` 사용
 
 ---
 
@@ -166,7 +163,7 @@ config (최상위)
 │
 ├── data                    (필수) 숫자 배열 또는 특수 문자열
 ├── purpose                 "chart" | "table"
-├── tableType               "frequency" | "cross-table" | "category-matrix" | "stem-leaf"
+├── tableType               "basic-table" | "category-matrix" | "stem-leaf" (기본: "basic-table")
 ├── classCount              계급 개수 (기본: 5)
 ├── classWidth              계급 간격 (자동 계산)
 ├── classRange              계급 범위 커스터마이징 { firstEnd, secondEnd, lastStart }
@@ -196,25 +193,16 @@ config (최상위)
 │   │  [차트/테이블 공통]
 │   ├── corruption          { enabled, cells, maskAxisLabels, style } 찢김 효과
 │   │
-│   │  [도수분포표 전용]
-│   ├── tableConfig         ─────────────────────────
-│   │   ├── visibleColumns  [true, false, ...] 7개
-│   │   ├── columnOrder     [0, 1, 2, ...] 순서
-│   │   ├── labels          { class, frequency, ... }
-│   │   ├── showSuperscript "이상/미만" 표시
-│   │   ├── showSummaryRow  합계 행 표시
-│   │   └── cellVariables   [{ rowIndex, colIndex, value }, ...]
-│   │
-│   │  [이원분류표 전용]
-│   └── crossTable          ─────────────────────────
+│   │  [basic-table 전용]
+│   └── basicTable          ─────────────────────────
 │       ├── showTotal       합계 행 표시
 │       └── showMergedHeader 병합 헤더 표시
-│   
+│
 ├── cellAnimations          [{ rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, duration, repeat }, ...]
 │
 ├── cellAnimationOptions    { blinkEnabled: true/false }
 │
-└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (stem-leaf, cross-table, category-matrix용)
+└── cellVariables           [{ rowIndex, colIndex, value }, ...]  (모든 테이블 타입)
 ```
 
 ---
@@ -1402,7 +1390,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 |:---|:-----|:-----|:----------|
 | `"frequency"` | 도수분포표 | 숫자 데이터를 계급별로 분류 | 숫자 배열 |
 | `"category-matrix"` | 카테고리 행렬 | 카테고리별 데이터 비교 | 특수 문자열 |
-| `"cross-table"` | 이원 분류표 | 두 변수의 교차 분류 | 특수 문자열 |
+| `"basic-table"` | 기본 테이블 (구 이원분류표) | 두 변수의 교차 분류 | 특수 문자열 |
 | `"stem-leaf"` | 줄기-잎 그림 | 데이터 분포 시각화 | 숫자 또는 특수 문자열 |
 
 #### data 형식 비교표
@@ -1411,7 +1399,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 |:----------|:----------|:----------|
 | `frequency` | `number[]` | `[62, 87, 97, 73, 59]` |
 | `category-matrix` | `string` | `"헤더: A, B, C\n행1: 10, 20, 30"` |
-| `cross-table` | `string` | `"제목\n헤더: 라벨명, 열1, 열2\n행1: 값1, 값2"` |
+| `basic-table` | `string` | `"제목\n헤더: 라벨명, 열1, 열2\n행1: 값1, 값2"` |
 | `stem-leaf` | `string` | `"162 178 175"` 또는 `"남: 162 178\n여: 160 165"` |
 
 ---
@@ -1496,7 +1484,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 
 ---
 
-### 3. cross-table (이원 분류표)
+### 3. basic-table (이원 분류표)
 
 `헤더: 행라벨명, 열이름들` + `행이름: 값들` 형식의 문자열을 사용합니다.
 
@@ -1513,7 +1501,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 ```json
 {
   "purpose": "table",
-  "tableType": "cross-table",
+  "tableType": "basic-table",
   "data": "비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24"
 }
 ```
@@ -1522,7 +1510,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 ```json
 {
   "purpose": "table",
-  "tableType": "cross-table",
+  "tableType": "basic-table",
   "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, ?\nB: ?, 0.2\nAB: _, 0.16"
 }
 ```
@@ -1537,7 +1525,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 ```json
 {
   "purpose": "table",
-  "tableType": "cross-table",
+  "tableType": "basic-table",
   "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4",
   "options": {
     "crossTable": {
@@ -1983,12 +1971,12 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
 
 ---
 
-### 3. cross-table (이원 분류표)
+### 3. basic-table (이원 분류표)
 
 ```json
 {
   "purpose": "table",
-  "tableType": "cross-table",
+  "tableType": "basic-table",
   "data": "상대도수\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24",
   "canvasWidth": 500,
   "canvasHeight": 400,
@@ -2012,7 +2000,7 @@ O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값�
 | 필드 | 타입 | 필수 | 설명 |
 |:-----|:-----|:----:|:-----|
 | `purpose` | `string` | **O** | `"table"` |
-| `tableType` | `string` | **O** | `"cross-table"` |
+| `tableType` | `string` | **O** | `"basic-table"` |
 | `data` | `string` | **O** | `"병합헤더\n헤더: 행라벨명, 열들\n행: 값들"` 형식 |
 | `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
 | `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
@@ -2536,7 +2524,7 @@ O: 0.26, 0.24
 ```json
 {
   "purpose": "table",
-  "tableType": "cross-table",
+  "tableType": "basic-table",
   "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, _\nB: _, 0.2\nAB: 0.12, 0.16"
 }
 ```
@@ -2697,7 +2685,7 @@ O: 0.26, 0.24
 | tableType | cellVariables 위치 |
 |:----------|:-------------------|
 | `frequency` | `options.tableConfig.cellVariables` |
-| `stem-leaf`, `cross-table`, `category-matrix` | 최상위 `cellVariables` |
+| `stem-leaf`, `basic-table`, `category-matrix` | 최상위 `cellVariables` |
 
 ```json
 // ❌ frequency에서 최상위 cellVariables 사용 (무시됨)
@@ -2725,7 +2713,7 @@ O: 0.26, 0.24
 |:----------|:---------|:-----|
 | `frequency` | 숫자 배열 | `[62, 87, 97, 73]` |
 | `stem-leaf` | 공백 구분 숫자 문자열 | `"162 178 175"` |
-| `cross-table` | 줄바꿈 구분 행 | `"헤더: 혈액형, 남, 여\nA: 5, 3"` |
+| `basic-table` | 줄바꿈 구분 행 | `"헤더: 혈액형, 남, 여\nA: 5, 3"` |
 | `category-matrix` | 줄바꿈 구분 행 | `"헤더: A, B\n행1: 1, 2"` |
 
 ```json
@@ -2743,7 +2731,7 @@ O: 0.26, 0.24
 | 실수 | 증상 | 해결 방법 |
 |:-----|:-----|:----------|
 | `animation: true`만 설정 | 애니메이션 효과 없음 | `cellAnimations` 배열도 함께 설정 필요 |
-| cross-table에서 `헤더:` 누락 | 파싱 오류 | 첫 줄은 반드시 `헤더: 라벨명, 열1, 열2` 형식 |
+| basic-table에서 `헤더:` 누락 | 파싱 오류 | 첫 줄은 반드시 `헤더: 라벨명, 열1, 열2` 형식 |
 | `blinkEnabled: true`만 설정 | 깜빡임 없이 정적 하이라이트 | `duration`, `repeat` 값도 함께 설정 권장 |
 | JSON 문법 오류 | 렌더링 안 됨 | trailing comma 제거, 객체 사이 comma 확인 |
 
