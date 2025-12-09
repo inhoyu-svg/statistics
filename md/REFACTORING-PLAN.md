@@ -338,7 +338,7 @@ options['basic-table']    // 폴백 지원
 
 **권장:** 모든 팩토리에서 동적 너비 계산 통일 (이 리팩토링 범위 밖)
 
-#### 4. 특수 값 표기법
+#### 4. 특수 값 표기법 ✅ 완료
 
 **빈 셀 표기: `null`**
 - 기존 `_` 대신 `null` 사용 (프로그래밍 표준)
@@ -351,6 +351,11 @@ options['basic-table']    // 폴백 지원
 "/////"  → 탈리 5개 (正)
 "1/2"    → 분수 (탈리 아님)
 ```
+
+**구현 완료 (2025-12-09):**
+- `BasicTableParser.js`, `CategoryMatrixParser.js`: null/탈리 파싱 추가
+- `TableCellRenderer.js`: 탈리 객체 감지 및 렌더링
+- `VIZ-API-CONFIG.md`: 특수 값 표기법 문서화
 
 #### 5. 문서 추가 내용 (VIZ-API-CONFIG.md)
 **cellVariables로 합계 직접 지정하는 케이스:**
@@ -486,7 +491,33 @@ cellVariables: [
 | 2025-12-08 | ✅ 리팩토링 2: cellVariables rowIndex/colIndex 통일 완료 |
 | 2025-12-08 | ✅ 리팩토링 3: ParserAdapter 패턴 구현 완료 |
 | 2025-12-08 | ✅ JSON Schema 개선: 조건부 검증, description/examples 추가 (421줄 → 713줄) |
-| 2025-12-09 | 🔜 리팩토링 4: 기존 4번(cellVariables 위치), 5번(tableType 통합) 통합 |
+| 2025-12-09 | ✅ 리팩토링 4: tableType 통합 + tableConfig 제거 (5 commits) |
+| 2025-12-09 | ✅ 특수 값 표기법: null/탈리마크 파싱 및 렌더링 구현 (3 commits) |
+
+---
+
+## 향후 작업 (Future Work)
+
+> 리팩토링 범위 밖으로 분류된 항목들
+
+### 1. 동적 너비 계산 통일
+| Factory | 현재 방식 |
+|---------|----------|
+| BaseTableFactory | `calculateDynamicWidths()` - 텍스트 측정 |
+| CrossTableFactory | `_calculateColumnWidths()` - 균등 분배 |
+| CategoryMatrixFactory | `_calculateColumnWidths()` - 균등 분배 |
+| StemLeafFactory | `calculateDynamicWidths()` - 자체 로직 |
+
+**목표:** 모든 팩토리에서 동일한 동적 너비 계산 방식 사용
+
+### 2. 테스트 자동화
+- 현재 모든 테스트 계획이 수동 체크박스
+- Jest 또는 유사 프레임워크로 자동화 검토
+
+### 3. 레거시 코드 제거 (v3.0)
+- `class/column` 방식 cellVariables 완전 제거
+- `cross-table` 별칭 제거
+- `options.tableConfig` 폴백 제거
 
 ---
 
