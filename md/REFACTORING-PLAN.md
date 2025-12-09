@@ -522,18 +522,23 @@ cellVariables: [
 
 ---
 
-## 데이터 구조 위험 요소 분석
+## 데이터 구조 위험 요소 분석 (2025-12-09 업데이트)
 
 > LLM/AI가 viz-api JSON 생성 시 주의해야 할 구조적 위험 요소
 
-### 🔴 높음 (오류 가능성 높음)
+### ✅ 해결됨 (리팩토링 4번 완료)
+
+| # | 위험 요소 | 해결 내용 |
+|:-:|:---------|:---------|
+| ~~1~~ | ~~`data` 타입 다형성~~ | ✅ chart는 `number[]`, table은 `string` 형식으로 명확히 구분 |
+| ~~3~~ | ~~`tableType` 기본값 혼란~~ | ✅ 기본값 `"basic-table"`로 변경 (frequency 제거) |
+| ~~4~~ | ~~`options` 깊은 중첩~~ | ✅ `tableConfig` 제거, `cellVariables` 최상위 이동, `options.showTotal` 평탄화 |
+
+### 🔴 높음 (여전히 주의 필요)
 
 | # | 위험 요소 | 문제 | 영향 |
 |:-:|:---------|:-----|:-----|
-| 1 | `data` 타입 다형성 | `number[]` 또는 `string` - tableType별로 다른 형식 필요 | 잘못된 형식 생성 |
 | 2 | `purpose` 누락 시 기본값 | `"chart"`가 기본 → 테이블 원하면 반드시 명시 필요 | 테이블 의도했는데 차트 생성 |
-| 3 | `tableType` 기본값 혼란 | `"frequency"` 기본 → 다른 타입 원하면 반드시 명시 | 잘못된 테이블 타입 |
-| 4 | `options` 깊은 중첩 | `options.tableConfig.cellVariables` 등 3단계 중첩 | 경로 오류 빈번 |
 
 ### 🟡 중간 (혼동 가능)
 
@@ -541,8 +546,8 @@ cellVariables: [
 |:-:|:---------|:-----|
 | 5 | 유사 필드명 | `cellAnimations` vs `cellVariables` vs `cellAnimationOptions` |
 | 6 | `animation` 다형성 | `boolean` 또는 `{ enabled: boolean }` 둘 다 허용 |
-| 7 | 계급 설정 3종 | `classCount` vs `classWidth` vs `classRange` 중 어떤 걸 써야 하는지 |
-| 8 | 인덱스 기반 참조 | `visibleColumns[0]`이 뭔지, `columnOrder`가 뭔지 암기 필요 |
+| 7 | 계급 설정 3종 | `classCount` + `classWidth` 함께 사용 권장 (문서에 명시됨) |
+| 8 | 인덱스 기반 참조 | `rowIndex`, `colIndex` 0-based 인덱스 사용 |
 
 ### 🟢 낮음 (개선 권장)
 
@@ -551,11 +556,10 @@ cellVariables: [
 | 9 | `corruption.cells` 문법 | `"0-0:2-3"` 특수 문법 이해 어려움 |
 | 10 | Preset vs Custom | `histogramColorPreset` vs `histogramColor` 우선순위 불명확 |
 
-### 향후 개선 방향
+### 개선 현황
 
-- **#1~4 (높음)**: 리팩토링 4번(tableType 통합 + tableConfig 제거)으로 해결 예정
-  - #1: frequency 제거 → data 형식 string 통일
-  - #3: tableType 기본값 → basic-table로 변경
-  - #4: tableConfig 제거 → 최상위로 이동
-- **#5~8 (중간)**: 문서 개선으로 대응 (VIZ-API-CONFIG.md Common Mistakes 섹션)
+- **#1, #3, #4 (높음)**: ✅ 리팩토링 4번으로 해결 완료
+- **#2 (높음)**: 문서에 주의사항 명시 (purpose: "table" 필수)
+- **#5~8 (중간)**: VIZ-API-CONFIG.md Common Mistakes 섹션에서 대응
+- **#7**: 문서에 `classCount` + `classWidth` 함께 사용 권장사항 추가
 - **#9~10 (낮음)**: 필요시 개선
