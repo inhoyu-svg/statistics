@@ -1059,6 +1059,172 @@ Y축의 **눈금 간격을 직접 설정**할 수 있습니다.
 
 ---
 
+### 🫥 Corruption (찢김 효과)
+
+차트나 테이블의 특정 영역에 **종이가 찢어진 듯한 효과**를 적용할 수 있습니다.
+
+#### 🎨 효과 특징
+
+| 요소 | 설명 |
+|------|------|
+| **찢어진 가장자리** | 불규칙한 곡선으로 자연스러운 찢김 표현 |
+| **섬유 효과** | 찢긴 부분에 종이 섬유가 보이는 효과 |
+| **투명/불투명** | 찢긴 영역을 투명하게 또는 배경색으로 처리 |
+
+#### ⚙️ viz-api.js에서 사용
+
+```javascript
+VizAPI.renderChart(element, {
+  data: [62, 87, 97, 73, 59, 85],
+  options: {
+    corruption: {
+      enabled: true,
+      cells: ['1-1:2-3'],  // 시작셀:끝셀 형식
+      style: {
+        edgeComplexity: 0.7,  // 가장자리 복잡도 (0~1)
+        transparent: true,     // 투명 처리
+        fiberEnabled: true     // 섬유 효과
+      }
+    }
+  }
+});
+```
+
+#### 📊 셀 범위 지정 형식
+
+```
+"행-열:행-열"  →  시작셀:끝셀
+"1-1:2-3"     →  (1,1)부터 (2,3)까지 영역
+```
+
+---
+
+### 🔤 셀 변수 치환 (cellVariables)
+
+테이블의 특정 셀 값을 **변수나 커스텀 텍스트로 대체**할 수 있습니다.
+
+#### 📌 용도
+
+- 문제 출제 시 특정 값을 변수(x, a, ?)로 표시
+- 합계 행의 값을 직접 지정
+- 빈칸으로 만들어 학생이 채우도록 유도
+
+#### ⚙️ viz-api.js에서 사용
+
+```javascript
+VizAPI.renderTable(element, {
+  tableType: 'basic-table',
+  data: '헤더: 계급, 도수\n0~10: 5\n10~20: 8',
+  cellVariables: [
+    { rowIndex: 1, colIndex: 1, value: 'x' },      // (1,1)을 'x'로
+    { rowIndex: 2, colIndex: 1, value: '?' },      // (2,1)을 '?'로
+    { rowIndex: 0, colIndex: 0, value: '점수' }    // 헤더 변경
+  ]
+});
+```
+
+#### 📊 rowIndex/colIndex 규칙
+
+| rowIndex | 의미 |
+|:--------:|------|
+| 0 | 헤더 행 |
+| 1~ | 데이터 행 |
+
+| colIndex | 의미 |
+|:--------:|------|
+| 0 | 첫 번째 열 (행 라벨) |
+| 1~ | 데이터 열 |
+
+#### 💡 특수 값
+
+| 값 | 효과 |
+|----|------|
+| `"_"` | 빈칸으로 표시 |
+| `"x"`, `"?"` 등 | 변수로 표시 |
+
+---
+
+### ✨ 셀 애니메이션 (cellAnimations)
+
+테이블의 특정 셀을 **하이라이트 애니메이션**으로 강조할 수 있습니다.
+
+#### 🎬 애니메이션 종류
+
+| 모드 | 설명 |
+|------|------|
+| **블링크** | 셀이 깜빡이며 강조 |
+| **정적** | 셀이 계속 하이라이트된 상태 유지 |
+
+#### ⚙️ viz-api.js에서 사용
+
+```javascript
+VizAPI.renderTable(element, {
+  tableType: 'category-matrix',
+  data: '헤더: A, B, C\n수학: 85, 90, 78',
+  cellAnimations: [
+    { rowIndex: 1, colIndex: 1, duration: 1500, repeat: 5 },
+    { rowIndex: 1, colIndex: 2, duration: 1500, repeat: 3 }
+  ],
+  cellAnimationOptions: {
+    blinkEnabled: true  // false면 정적 하이라이트
+  }
+});
+```
+
+#### 📊 애니메이션 옵션
+
+| 옵션 | 타입 | 기본값 | 설명 |
+|------|------|:------:|------|
+| `rowIndex` | number | - | 행 인덱스 (0=헤더) |
+| `colIndex` | number | - | 열 인덱스 |
+| `duration` | number | 1500 | 애니메이션 주기 (ms) |
+| `repeat` | number | 3 | 반복 횟수 |
+
+---
+
+### 🔌 viz-api.js 외부 연동
+
+**viz-api.js**를 사용하면 외부 웹페이지에서 차트와 테이블을 쉽게 생성할 수 있습니다.
+
+#### 📦 기본 사용법
+
+```html
+<script type="module">
+  import * as VizAPI from './js/viz-api.js';
+
+  // 차트 생성
+  VizAPI.renderChart(document.getElementById('chart'), {
+    data: [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
+    classCount: 5,
+    canvasSize: 500
+  });
+
+  // 테이블 생성
+  VizAPI.renderTable(document.getElementById('table'), {
+    tableType: 'basic-table',
+    data: '헤더: 혈액형, 남, 여\nA: 0.4, 0.4\nB: 0.3, 0.3',
+    canvasWidth: 400
+  });
+</script>
+```
+
+#### 🎯 통합 render() 함수
+
+```javascript
+// purpose로 차트/테이블 자동 분기
+VizAPI.render(element, {
+  purpose: 'chart',  // 또는 'table'
+  data: [62, 87, 97, 73, 59, 85],
+  // ... 옵션
+});
+```
+
+#### 📚 상세 문서
+
+모든 옵션과 설정은 **[VIZ-API-CONFIG.md](./VIZ-API-CONFIG.md)** 문서를 참조하세요.
+
+---
+
 ## 🔧 문제 해결
 
 ### ⚠️ 자주 발생하는 오류
