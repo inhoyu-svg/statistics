@@ -542,24 +542,25 @@ cellVariables: [
 
 ### 🟡 중간 (혼동 가능)
 
-| # | 위험 요소 | 문제 |
+| # | 위험 요소 | 상태 |
 |:-:|:---------|:-----|
-| 5 | 유사 필드명 | `cellAnimations` vs `cellVariables` vs `cellAnimationOptions` |
-| 6 | `animation` 다형성 | `boolean` 또는 `{ enabled: boolean }` 둘 다 허용 |
-| 7 | 계급 설정 3종 | `classCount` + `classWidth` 함께 사용 권장 (문서에 명시됨) |
-| 8 | 인덱스 기반 참조 | `rowIndex`, `colIndex` 0-based 인덱스 사용 |
+| ~~5~~ | ~~유사 필드명~~ | ✅ 비교표 추가 (cellAnimations vs cellVariables vs cellAnimationOptions) |
+| 6 | `animation` 다형성 | 문서에 설명됨 (`boolean` 또는 `{ enabled }`) |
+| ~~7~~ | ~~계급 설정 3종~~ | ✅ 권장사항 추가 (`classCount` + `classWidth` 함께 사용) |
+| 8 | 인덱스 기반 참조 | 문서에 설명됨 (`rowIndex`, `colIndex` 0-based) |
 
 ### 🟢 낮음 (개선 권장)
 
-| # | 위험 요소 | 문제 |
+| # | 위험 요소 | 상태 |
 |:-:|:---------|:-----|
-| 9 | `corruption.cells` 문법 | `"0-0:2-3"` 특수 문법 이해 어려움 |
-| 10 | Preset vs Custom | `histogramColorPreset` vs `histogramColor` 우선순위 불명확 |
+| 9 | `corruption.cells` 문법 | 문서에 설명됨 (`"0-0:2-3"` 형식) |
+| ~~10~~ | ~~Preset vs Custom~~ | ✅ 우선순위 명시됨 (커스텀 > 프리셋 > 기본값) |
 
 ### 개선 현황
 
 - **#1, #3, #4 (높음)**: ✅ 리팩토링 4번으로 해결 완료
-- **#2 (높음)**: 문서에 주의사항 명시 (purpose: "table" 필수)
-- **#5~8 (중간)**: VIZ-API-CONFIG.md Common Mistakes 섹션에서 대응
-- **#7**: 문서에 `classCount` + `classWidth` 함께 사용 권장사항 추가
-- **#9~10 (낮음)**: 필요시 개선
+- **#2 (높음)**: ✅ validator.js에 경고 로그 추가 + 문서 주의사항
+- **#5 (중간)**: ✅ 유사 필드명 비교표 추가
+- **#7 (중간)**: ✅ `classCount` + `classWidth` 권장사항 추가
+- **#10 (낮음)**: ✅ 우선순위 이미 문서화됨
+- **#6, #8, #9**: 문서로 충분히 대응됨

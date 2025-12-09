@@ -112,6 +112,26 @@ if (!valid) console.log(validate.errors);
 }
 ```
 
+#### 유사 필드명 구분 [테이블 전용]
+
+> 혼동하기 쉬운 3가지 필드를 명확히 구분합니다.
+
+| 필드 | 용도 | 예시 |
+|:-----|:-----|:-----|
+| `cellAnimations` | 셀 **하이라이트** (깜빡임 효과) | `[{ "rowIndex": 0, "colIndex": 1 }]` |
+| `cellVariables` | 셀 **값 변경** (?, _, 숫자 등) | `[{ "rowIndex": 0, "colIndex": 1, "value": "?" }]` |
+| `cellAnimationOptions` | 애니메이션 **전역 옵션** | `{ "blinkEnabled": true }` |
+
+```json
+{
+  "purpose": "table",
+  "data": "헤더: 항목, 값\nA: 10\nB: 20",
+  "cellAnimations": [{ "rowIndex": 1, "colIndex": 1 }],
+  "cellAnimationOptions": { "blinkEnabled": true },
+  "cellVariables": [{ "rowIndex": 2, "colIndex": 1, "value": "?" }]
+}
+```
+
 #### options 하위 객체 (차트)
 
 | 용어 | JSON 경로 | 설명 |
