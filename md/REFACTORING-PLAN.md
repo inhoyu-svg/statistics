@@ -493,6 +493,7 @@ cellVariables: [
 | 2025-12-08 | ✅ JSON Schema 개선: 조건부 검증, description/examples 추가 (421줄 → 713줄) |
 | 2025-12-09 | ✅ 리팩토링 4: tableType 통합 + tableConfig 제거 (5 commits) |
 | 2025-12-09 | ✅ 특수 값 표기법: null/탈리마크 파싱 및 렌더링 구현 (3 commits) |
+| 2025-12-09 | ✅ 레거시 코드 제거: cross-table 별칭, tableConfig 폴백, frequency 리다이렉트 |
 
 ---
 
@@ -500,24 +501,24 @@ cellVariables: [
 
 > 리팩토링 범위 밖으로 분류된 항목들
 
-### 1. 동적 너비 계산 통일
+### 1. 동적 너비 계산 통일 ✅ 이미 구현됨
 | Factory | 현재 방식 |
 |---------|----------|
 | BaseTableFactory | `calculateDynamicWidths()` - 텍스트 측정 |
-| CrossTableFactory | `_calculateColumnWidths()` - 균등 분배 |
-| CategoryMatrixFactory | `_calculateColumnWidths()` - 균등 분배 |
+| BasicTableFactory | `_calculateColumnWidths()` - **폴백용** (table.js에서 동적 계산 후 전달) |
+| CategoryMatrixFactory | `_calculateColumnWidths()` - **폴백용** (table.js에서 동적 계산 후 전달) |
 | StemLeafFactory | `calculateDynamicWidths()` - 자체 로직 |
 
-**목표:** 모든 팩토리에서 동일한 동적 너비 계산 방식 사용
+**현황:** table.js의 `_calculateCustomTableDynamicWidth()`에서 `BaseTableFactory.calculateDynamicWidths()` 호출하여 통일됨
 
-### 2. 테스트 자동화
-- 현재 모든 테스트 계획이 수동 체크박스
-- Jest 또는 유사 프레임워크로 자동화 검토
+### 2. 테스트 자동화 ❌ 제외
+- 프레임워크 사용 안 함
 
-### 3. 레거시 코드 제거 (v3.0)
-- `class/column` 방식 cellVariables 완전 제거
-- `cross-table` 별칭 제거
-- `options.tableConfig` 폴백 제거
+### 3. 레거시 코드 제거 ✅ 완료 (2025-12-09)
+- ~~`class/column` 방식 cellVariables 완전 제거~~ (이미 v2에서 deprecated 처리됨)
+- ~~`cross-table` 별칭 제거~~ ✅
+- ~~`options.tableConfig` 폴백 제거~~ ✅
+- ~~`frequency` 테이블 → chart 자동 전환 제거~~ ✅
 
 ---
 
