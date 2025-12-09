@@ -104,6 +104,8 @@ const CONFIG = {
 
   // 테이블 Canvas 설정
   TABLE_CANVAS_WIDTH: 700,
+  TABLE_DEFAULT_WIDTH: 600,          // viz-api 테이블 기본 너비
+  TABLE_DEFAULT_HEIGHT: 400,         // viz-api 테이블 기본 높이
   TABLE_MIN_WIDTH: 300,              // 동적 너비 최소값
   TABLE_MAX_WIDTH: 700,              // 동적 너비 최대값 (TABLE_CANVAS_WIDTH와 동일)
   TABLE_ROW_HEIGHT: 40,
