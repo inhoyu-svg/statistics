@@ -227,6 +227,10 @@
       border-color: #f0ad4e;
     }
 
+    .field-item.redundant {
+      border-color: #888;
+    }
+
     .field-item.skipped {
       border-color: #666;
       opacity: 0.6;
@@ -296,6 +300,21 @@
 
     .field-warning::before {
       content: '💡 ';
+    }
+
+    .field-redundant {
+      color: #888;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .redundant-badge {
+      background: #555;
+      color: #ccc;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      margin-left: 8px;
     }
 
     /* 전체 결과 요약 */
@@ -757,12 +776,17 @@
         if (purpose === 'chart' && isTableOnlyField && !hasValue) continue;
         if (purpose === 'table' && isChartOnlyField && !hasValue) continue;
 
+        // 기본값과 동일한 값을 명시적으로 입력했는지 체크
+        const isRedundant = hasValue && def.default !== undefined &&
+          JSON.stringify(value) === JSON.stringify(def.default);
+
         fields.push({
           name: def.label,
           desc: def.desc,
           hasValue,
           value: hasValue ? value : def.default,
           isDefault: !hasValue && def.default !== undefined,
+          isRedundant,
           valid: !error,
           error: error?.message,
           required: def.required,
@@ -804,10 +828,11 @@
       ` : '';
 
       const fieldsHtml = fields.map(f => {
-        // 우선순위: error > warning > valid
+        // 우선순위: error > warning > redundant > valid
         let statusClass = 'valid';
         if (!f.valid) statusClass = 'invalid';
         else if (f.hasWarning) statusClass = 'warning';
+        else if (f.isRedundant) statusClass = 'redundant';
 
         return `
           <div class="field-item ${statusClass}">
@@ -818,9 +843,11 @@
             <div class="field-desc">${f.desc}</div>
             <div class="field-value">
               ${f.isDefault ? '<span class="default-badge">기본값</span>' : ''}
+              ${f.isRedundant ? '<span class="redundant-badge">기본값과 동일</span>' : ''}
               <code>${formatValue(f.value)}</code>
             </div>
             ${f.error ? `<div class="field-error">${escapeHtml(f.error)}</div>` : ''}
+            ${f.isRedundant ? `<div class="field-redundant">이 값은 기본값과 동일합니다. 생략해도 됩니다.</div>` : ''}
           </div>
         `;
       }).join('');
