@@ -1,97 +1,19 @@
 /**
  * 테이블 저장소
- * 도수분포표의 표시 설정을 관리
+ * 테이블의 셀 변수, 합계 행, 병합 헤더 등 표시 설정을 관리
  */
 
 import CONFIG from '../config.js';
 
 /**
  * @class TableStore
- * @description 테이블 관련 설정(컬럼 표시, 순서, 라벨)을 저장하는 저장소
+ * @description 테이블 관련 설정을 저장하는 저장소
  */
 class TableStore {
   constructor() {
-    this.visibleColumns = [...CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS]; // 6개 컬럼 표시 여부
-    this.columnOrder = [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER];       // 컬럼 순서
-    this.labels = null;                                               // 테이블 라벨
-    this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };     // 컬럼별 정렬
-    this.cellVariables = new Map();                                   // 셀 변수 치환 정보
-    this.summaryRowVisible = new Map();                               // 테이블별 합계 행 표시 여부
-    this.mergedHeaderVisible = new Map();                             // 테이블별 병합 헤더 표시 여부 (이원분류표)
-  }
-
-  /**
-   * 테이블 설정 저장
-   * @param {Array} visibleColumns - 표시할 컬럼 배열
-   * @param {Array} columnOrder - 컬럼 순서 배열
-   * @param {Object} labels - 테이블 라벨 객체
-   */
-  setConfig(visibleColumns, columnOrder, labels) {
-    this.visibleColumns = visibleColumns;
-    this.columnOrder = columnOrder;
-    this.labels = labels;
-  }
-
-  /**
-   * 테이블 설정 가져오기
-   * @returns {Object} 테이블 설정 객체
-   */
-  getConfig() {
-    return {
-      visibleColumns: this.visibleColumns,
-      columnOrder: this.columnOrder,
-      labels: this.labels || CONFIG.DEFAULT_LABELS.table
-    };
-  }
-
-  /**
-   * 표시할 컬럼 설정
-   * @param {Array} visibleColumns - 표시할 컬럼 배열
-   */
-  setVisibleColumns(visibleColumns) {
-    this.visibleColumns = visibleColumns;
-  }
-
-  /**
-   * 컬럼 순서 설정
-   * @param {Array} columnOrder - 컬럼 순서 배열
-   */
-  setColumnOrder(columnOrder) {
-    this.columnOrder = columnOrder;
-  }
-
-  /**
-   * 테이블 라벨 설정
-   * @param {Object} labels - 테이블 라벨 객체
-   */
-  setLabels(labels) {
-    this.labels = labels;
-  }
-
-  /**
-   * 컬럼 정렬 설정
-   * @param {string} columnName - 컬럼 이름
-   * @param {string} alignment - 정렬 방식 ('left', 'center', 'right')
-   */
-  setColumnAlignment(columnName, alignment) {
-    this.columnAlignment[columnName] = alignment;
-  }
-
-  /**
-   * 컬럼 정렬 가져오기
-   * @param {string} columnName - 컬럼 이름
-   * @returns {string} 정렬 방식
-   */
-  getColumnAlignment(columnName) {
-    return this.columnAlignment[columnName] || 'center';
-  }
-
-  /**
-   * 모든 컬럼 정렬 가져오기
-   * @returns {Object} 컬럼별 정렬 객체
-   */
-  getAllAlignments() {
-    return { ...this.columnAlignment };
+    this.cellVariables = new Map();          // 셀 변수 치환 정보
+    this.summaryRowVisible = new Map();      // 테이블별 합계 행 표시 여부
+    this.mergedHeaderVisible = new Map();    // 테이블별 병합 헤더 표시 여부 (basic-table)
   }
 
   // =============================================
@@ -190,11 +112,11 @@ class TableStore {
   }
 
   // =============================================
-  // 병합 헤더 표시 관련 메서드 (이원분류표 전용)
+  // 병합 헤더 표시 관련 메서드 (basic-table 전용)
   // =============================================
 
   /**
-   * 병합 헤더 표시 여부 설정 (이원분류표)
+   * 병합 헤더 표시 여부 설정 (basic-table)
    * @param {string} tableId - 테이블 ID
    * @param {boolean} visible - 표시 여부
    */
@@ -203,7 +125,7 @@ class TableStore {
   }
 
   /**
-   * 병합 헤더 표시 여부 조회 (이원분류표)
+   * 병합 헤더 표시 여부 조회 (basic-table)
    * @param {string} tableId - 테이블 ID
    * @returns {boolean} 표시 여부 (기본값: true)
    */
@@ -218,26 +140,9 @@ class TableStore {
    * 기본값으로 초기화
    */
   reset() {
-    this.visibleColumns = [...CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS];
-    this.columnOrder = [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER];
-    this.labels = null;
-    this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };
     this.cellVariables.clear();
     this.summaryRowVisible.clear();
     this.mergedHeaderVisible.clear();
-  }
-
-  /**
-   * JSON 형식으로 변환 (Export용)
-   * @returns {Object} JSON 객체
-   */
-  toJSON() {
-    return {
-      visibleColumns: this.visibleColumns,
-      columnOrder: this.columnOrder,
-      labels: this.labels,
-      columnAlignment: this.columnAlignment
-    };
   }
 }
 
