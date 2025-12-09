@@ -99,22 +99,62 @@
                             </div>
                             <div class="focus-area-scene0-viz1 text-animate-in" id="focusScene2_0viz1">
                                 <div class="visualization-container" id="visualizationContainer2_0_1" data-viz-mode="chart" data-viz-type="graph_library" data-viz-config="{
-  &quot;purpose&quot;: &quot;table&quot;,
-    &quot;tableType&quot;: &quot;basic-table&quot;,
-    &quot;data&quot;: &quot;헤더: 혈액형, 남, 여\nA형: 8, null\nB형: 12, 8\nO형: 10, 12\nAB형: 5, 6&quot;,
-    &quot;canvasWidth&quot;: 700,
-    &quot;animation&quot;: true,
-    &quot;options&quot;: {
-      &quot;showTotal&quot;: true,
-      &quot;showMergedHeader&quot;: false
+&quot;purpose&quot;: &quot;chart&quot;,
+  &quot;data&quot;: [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11],
+  &quot;classRange&quot;: {
+    &quot;firstEnd&quot;: 1,
+    &quot;secondEnd&quot;: 3,
+    &quot;lastStart&quot;: 13
+  },
+  &quot;unifiedMaxY&quot;: 8,
+  &quot;unifiedClassCount&quot;: 8,
+  &quot;canvasSize&quot;: 700,
+  &quot;animation&quot;: true,
+  &quot;options&quot;: {
+    &quot;callout&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;template&quot;: &quot;남학생&quot;
     },
-    &quot;cellVariables&quot;: [
-      {&quot;rowIndex&quot;: 2, &quot;colIndex&quot;: 1, &quot;value&quot;: null}
-    ],
-    &quot;cellAnimations&quot;: [
-      {&quot;rowIndex&quot;: 2, &quot;colIndex&quot;: 1}
-    ]
-}">
+    &quot;showHistogram&quot;: false,
+    &quot;showPolygon&quot;: true,
+    &quot;dataType&quot;: &quot;frequency&quot;,
+    &quot;polygonColorPreset&quot;: &quot;primary&quot;,
+    &quot;axisLabels&quot;: {
+      &quot;xAxis&quot;: &quot;(회)&quot;,
+      &quot;yAxis&quot;: &quot;학생 수(명)&quot;
+    }
+  }
+}
+">
+                                </div>
+                                <div class="visualization-container" id="visualizationContainer2_0_2" data-viz-canvas="visualizationContainer2_0_1" data-viz-mode="chart" data-viz-type="graph_library" data-viz-config="{
+&quot;purpose&quot;: &quot;chart&quot;,
+  &quot;data&quot;: [1, 1, 3, 3, 3, 5, 5, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11, 12, 12],
+  &quot;classRange&quot;: {
+    &quot;firstEnd&quot;: 1,
+    &quot;secondEnd&quot;: 3,
+    &quot;lastStart&quot;: 13
+  },
+  &quot;unifiedMaxY&quot;: 8,
+  &quot;unifiedClassCount&quot;: 8,
+  &quot;canvasSize&quot;: 700,
+  &quot;animation&quot;: true,
+  &quot;options&quot;: {
+    &quot;callout&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;template&quot;: &quot;여학생&quot;
+    },
+    &quot;showHistogram&quot;: false,
+    &quot;showPolygon&quot;: true,
+    &quot;dataType&quot;: &quot;frequency&quot;,
+    &quot;polygonColorPreset&quot;: &quot;secondary&quot;,
+    &quot;axisLabels&quot;: {
+      &quot;xAxis&quot;: &quot;(회)&quot;,
+      &quot;yAxis&quot;: &quot;학생 수(명)&quot;
+    }
+  }
+}
+">
                             </div>
                         </div>
  
