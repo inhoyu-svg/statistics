@@ -148,8 +148,6 @@ if (!valid) console.log(validate.errors);
 | **showTotal** | `options.basicTable.showTotal` | 합계 행 표시 여부 |
 | **showMergedHeader** | `options.basicTable.showMergedHeader` | 병합 헤더 표시 여부 |
 
-> ⚠️ **Deprecated**: `options.crossTable`는 v3.0에서 제거 예정. `options.basicTable` 사용
-
 ---
 
 ## JSON 구조 개요
@@ -1365,7 +1363,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 | `tableType` | `string` | X | `"basic-table"` | 테이블 타입 |
 | `canvasWidth` | `number` | X | `600` | 캔버스 너비 (px) |
 | `canvasHeight` | `number` | X | `400` | 캔버스 높이 (px) |
-| `options.crossTable` | `object` | X | `null` | basic-table 전용 옵션 |
+| `options.basicTable` | `object` | X | `null` | basic-table 전용 옵션 |
 | `cellAnimations` | `array` | X | `null` | 셀 애니메이션 설정 |
 | `cellAnimationOptions` | `object` | X | `null` | 애니메이션 재생 옵션 |
 
@@ -1502,7 +1500,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 }
 ```
 
-#### options.crossTable
+#### options.basicTable
 
 | 옵션 | 타입 | 필수 | 기본값 | 설명 |
 |:-----|:-----|:----:|:------:|:-----|
@@ -1515,7 +1513,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
   "tableType": "basic-table",
   "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4",
   "options": {
-    "crossTable": {
+    "basicTable": {
       "showTotal": false,
       "showMergedHeader": true
     }
@@ -1697,7 +1695,7 @@ basic-table은 다양한 형태의 테이블을 만들 수 있는 범용 타입�
   "canvasWidth": 500,
   "canvasHeight": 300,
   "options": {
-    "crossTable": {
+    "basicTable": {
       "showTotal": true,
       "showMergedHeader": false
     }
@@ -1719,7 +1717,7 @@ basic-table은 다양한 형태의 테이블을 만들 수 있는 범용 타입�
   "canvasWidth": 500,
   "canvasHeight": 400,
   "options": {
-    "crossTable": {
+    "basicTable": {
       "showTotal": true,
       "showMergedHeader": true
     }
@@ -1741,12 +1739,12 @@ basic-table은 다양한 형태의 테이블을 만들 수 있는 범용 타입�
 | `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
 | `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
-| `options.crossTable` | `object` | X | 테이블 옵션 |
+| `options.basicTable` | `object` | X | 테이블 옵션 |
 | `cellAnimations` | `array` | X | 셀 하이라이트 (rowIndex, colIndex, duration, repeat) |
 | `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (rowIndex, colIndex, duration, repeat) |
 | `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
 
-#### options.crossTable 상세
+#### options.basicTable 상세
 
 | 옵션 | 타입 | 필수 | 기본값 | 설명 |
 |:-----|:-----|:----:|:------:|:-----|
