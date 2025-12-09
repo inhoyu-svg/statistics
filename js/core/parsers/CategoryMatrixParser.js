@@ -83,8 +83,21 @@ class CategoryMatrixParser {
       } else {
         // 데이터 행
         const values = valuesStr.split(',').map(v => {
-          const num = Number(v.trim());
-          return isNaN(num) ? v.trim() : num; // 숫자가 아니면 문자열 유지
+          const trimmedVal = v.trim();
+
+          // 1. null 표기 → 빈 값
+          if (trimmedVal === 'null' || trimmedVal === '') {
+            return null;
+          }
+
+          // 2. 탈리마크 표기 → { type: 'tally', count: N }
+          if (/^\/+$/.test(trimmedVal)) {
+            return { type: 'tally', count: trimmedVal.length };
+          }
+
+          // 3. 숫자 변환
+          const num = Number(trimmedVal);
+          return isNaN(num) ? trimmedVal : num;
         });
 
         // 헤더가 있으면 개수 확인

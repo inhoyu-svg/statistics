@@ -111,6 +111,18 @@ class BasicTableParser {
         // 데이터 행
         const values = valuesStr.split(',').map(v => {
           const trimmedVal = v.trim();
+
+          // 1. null 표기 → 빈 값
+          if (trimmedVal === 'null' || trimmedVal === '') {
+            return null;
+          }
+
+          // 2. 탈리마크 표기 → { type: 'tally', count: N }
+          if (/^\/+$/.test(trimmedVal)) {
+            return { type: 'tally', count: trimmedVal.length };
+          }
+
+          // 3. 숫자 변환
           const num = Number(trimmedVal);
           return isNaN(num) ? trimmedVal : num;
         });
