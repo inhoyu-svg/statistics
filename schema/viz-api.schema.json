@@ -8,25 +8,25 @@
   "additionalProperties": false,
   "properties": {
     "data": {
-      "description": "변량 데이터 (필수). tableType에 따라 형식이 다릅니다: frequency는 숫자 배열, 나머지는 문자열",
+      "description": "변량 데이터 (필수). purpose/tableType에 따라 형식이 다릅니다: chart는 숫자 배열, table은 tableType별 문자열 형식",
       "oneOf": [
         {
           "type": "array",
           "items": { "type": "number" },
           "minItems": 1,
-          "description": "frequency용 숫자 배열"
+          "description": "차트용 숫자 배열"
         },
         {
           "type": "string",
           "minLength": 1,
-          "description": "stem-leaf, cross-table, category-matrix용 문자열"
+          "description": "테이블용 문자열 (basic-table, stem-leaf, category-matrix)"
         }
       ],
       "examples": [
         [62, 87, 97, 73, 81],
+        "헤더: 항목, 값\nA: 10\nB: 20",
         "162 178 175 189",
-        "남학생: 162 178\n여학생: 160 165",
-        "헤더: 혈액형, 남, 여\nA: 0.4, 0.4\nB: 0.22, 0.2"
+        "헤더: A, B, C\n행1: 1, 2, 3"
       ]
     },
     "purpose": {
@@ -37,11 +37,11 @@
       "examples": ["table"]
     },
     "tableType": {
-      "description": "테이블 유형 (purpose가 'table'일 때만 유효). 기본값은 'basic-table'. Note: 'frequency', 'cross-table'은 deprecated (v3.0 제거 예정)",
+      "description": "테이블 유형 (purpose가 'table'일 때만 유효). 기본값은 'basic-table'",
       "type": "string",
-      "enum": ["basic-table", "category-matrix", "stem-leaf", "frequency", "cross-table"],
+      "enum": ["basic-table", "category-matrix", "stem-leaf"],
       "default": "basic-table",
-      "examples": ["stem-leaf", "basic-table"]
+      "examples": ["stem-leaf", "basic-table", "category-matrix"]
     },
     "canvasSize": {
       "description": "정사각형 캔버스 크기. canvasWidth/canvasHeight보다 우선 적용됨",
@@ -72,7 +72,7 @@
       "examples": [5, 6, 10]
     },
     "classWidth": {
-      "description": "계급 간격. 지정하지 않으면 자동 계산됨. classCount와 함께 사용 불가",
+      "description": "계급 간격. 지정하지 않으면 classCount 기반 자동 계산. classCount와 함께 사용 시 간격은 classWidth, 최소 개수는 classCount 적용",
       "type": "number",
       "minimum": 0.1,
       "examples": [10, 5]
@@ -138,43 +138,16 @@
     {
       "if": {
         "properties": {
-          "purpose": { "const": "table" },
-          "tableType": { "const": "frequency" }
+          "purpose": { "const": "table" }
         },
         "required": ["purpose"]
       },
       "then": {
         "properties": {
           "data": {
-            "oneOf": [
-              {
-                "type": "array",
-                "items": { "type": "number" },
-                "minItems": 1
-              },
-              {
-                "type": "string",
-                "minLength": 1,
-                "description": "반복 표기 지원: '16*18' = 16을 18번 반복"
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "purpose": { "const": "table" },
-          "tableType": { "enum": ["stem-leaf", "cross-table", "category-matrix"] }
-        },
-        "required": ["purpose", "tableType"]
-      },
-      "then": {
-        "properties": {
-          "data": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "테이블은 문자열 형식 필수 (basic-table, stem-leaf, category-matrix 모두)"
           }
         }
       }
