@@ -585,22 +585,17 @@ export async function renderChart(element, config) {
  * Table Rendering API
  * @param {HTMLElement} element - Container element to append canvas
  * @param {Object} config - Configuration object
- * @param {string} [config.tableType='frequency'] - Table type
- *   ('frequency' | 'category-matrix' | 'cross-table' | 'stem-leaf')
+ * @param {string} [config.tableType='basic-table'] - Table type
+ *   ('basic-table' | 'category-matrix' | 'stem-leaf')
+ *   Note: 'frequency', 'cross-table' are deprecated (v3.0에서 제거 예정)
  * @param {string} config.data - Raw data string (format depends on tableType)
- * @param {number} [config.classCount=5] - Number of classes (for frequency table)
- * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
- * @param {Object} [config.classRange] - Custom class range (for frequency table, overrides classCount/classWidth)
- * @param {number} config.classRange.firstEnd - First class end value
- * @param {number} config.classRange.secondEnd - Second class end value (determines interval)
- * @param {number} config.classRange.lastStart - Last class start value
+ * @param {Array<Object>} [config.cellVariables] - Cell variable replacements
  * @param {Object} [config.options] - Additional options
- * @param {Object} [config.options.tableConfig] - Table configuration
  * @param {boolean} [config.options.animation=true] - Enable animation
- * @param {Object} [config.options.crossTable] - Cross-table specific options
- * @param {boolean} [config.options.crossTable.showTotal=true] - Show total row
- * @param {boolean} [config.options.crossTable.showMergedHeader=true] - Show merged header
- * @returns {Promise<Object>} { tableRenderer, canvas, classes?, stats?, parsedData? } or { error }
+ * @param {Object} [config.options.basicTable] - Basic-table specific options
+ * @param {boolean} [config.options.basicTable.showTotal=true] - Show total row
+ * @param {boolean} [config.options.basicTable.showMergedHeader=true] - Show merged header
+ * @returns {Promise<Object>} { tableRenderer, canvas, parsedData? } or { error }
  */
 export async function renderTable(element, config) {
   try {
@@ -625,7 +620,36 @@ export async function renderTable(element, config) {
     }
 
     // 검증 통과 시 파싱된 데이터 사용
-    const { tableType, rawData, parseResult } = validation.data;
+    let { tableType, rawData, parseResult } = validation.data;
+
+    // === 하위 호환성 처리 (v3.0에서 제거 예정) ===
+
+    // 1. cross-table → basic-table 별칭 (deprecated)
+    if (tableType === 'cross-table') {
+      console.warn('[viz-api] tableType "cross-table" is deprecated. Use "basic-table" instead.');
+      tableType = 'basic-table';
+    }
+
+    // 2. frequency 테이블 → chart로 자동 전환 (deprecated)
+    if (tableType === 'frequency') {
+      console.warn('[viz-api] tableType "frequency" for tables is deprecated. Use purpose: "chart" instead.');
+      return renderChart(element, { ...config, purpose: 'chart' });
+    }
+
+    // 3. options.tableConfig.cellVariables → config.cellVariables 폴백 (deprecated)
+    const options = config.options || {};
+    if (options.tableConfig?.cellVariables && !config.cellVariables) {
+      console.warn('[viz-api] options.tableConfig.cellVariables is deprecated. Use config.cellVariables instead.');
+      config = { ...config, cellVariables: options.tableConfig.cellVariables };
+    }
+
+    // 4. options['cross-table'] → options.basicTable 폴백 (deprecated)
+    if (options['cross-table'] && !options.basicTable) {
+      console.warn('[viz-api] options["cross-table"] is deprecated. Use options.basicTable instead.');
+      options.basicTable = options['cross-table'];
+    }
+
+    // === 하위 호환성 처리 끝 ===
 
     // 3. Parse data (support both array and string format)
     const dataString = Array.isArray(config.data)
@@ -646,8 +670,7 @@ export async function renderTable(element, config) {
     // 5. Create TableRenderer
     const tableRenderer = new TableRenderer(canvasId);
 
-    // Process options
-    const options = config.options || {};
+    // Process options (options는 위 하위 호환성 처리에서 이미 선언됨)
     const baseTableConfig = options.tableConfig || {};
     // canvasWidth/canvasHeight를 tableConfig에 포함 (사용자 설정 우선)
     const tableConfig = {
@@ -732,15 +755,16 @@ export async function renderTable(element, config) {
         return { error: parseResult.error || 'Failed to parse data' };
       }
 
-      // Apply cross-table specific options
-      // 'cross-table' (하이픈) 또는 'crossTable' (camelCase) 모두 지원
-      if (tableType === 'cross-table') {
-        const crossTableOptions = options['cross-table'] || options.crossTable || {};
-        if (crossTableOptions.showTotal !== undefined) {
-          parseResult.data.showTotal = crossTableOptions.showTotal;
+      // Apply basic-table specific options
+      // basicTable, 'basic-table' (하이픈), crossTable, 'cross-table' (레거시) 모두 지원
+      if (tableType === 'basic-table') {
+        const basicTableOptions = options.basicTable || options['basic-table'] ||
+                                   options.crossTable || options['cross-table'] || {};
+        if (basicTableOptions.showTotal !== undefined) {
+          parseResult.data.showTotal = basicTableOptions.showTotal;
         }
-        if (crossTableOptions.showMergedHeader !== undefined) {
-          parseResult.data.showMergedHeader = crossTableOptions.showMergedHeader;
+        if (basicTableOptions.showMergedHeader !== undefined) {
+          parseResult.data.showMergedHeader = basicTableOptions.showMergedHeader;
         }
       }
 
