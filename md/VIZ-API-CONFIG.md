@@ -136,10 +136,9 @@ if (!valid) console.log(validate.errors);
 | **data** | `data` | 렌더링할 숫자 데이터 배열 (필수) | 전체 |
 | **purpose** | `purpose` | 렌더링 목적 (`"chart"` / `"table"`) | 전체 |
 | **tableType** | `tableType` | 테이블 유형 (`"basic-table"` / `"category-matrix"` / `"stem-leaf"`) | 테이블 |
-| **config** | `config` | 계급 설정 (개수, 간격, 범위) | 차트/테이블 |
-| **classCount** | `classCount` | 계급 개수 (기본: 5) | 차트/테이블 |
-| **classWidth** | `classWidth` | 계급 간격 (자동 계산) | 차트/테이블 |
-| **classRange** | `classRange` | 계급 범위 수동 설정 (`{ firstEnd, secondEnd, lastStart }`) | 차트/테이블 |
+| **classCount** | `classCount` | 계급 개수 (기본: 5) | 차트 |
+| **classWidth** | `classWidth` | 계급 간격 (자동 계산) | 차트 |
+| **classRange** | `classRange` | 계급 범위 수동 설정 (`{ firstEnd, secondEnd, lastStart }`) | 차트 |
 | **canvasSize** | `canvasSize` | 정사각형 캔버스 크기 (우선 적용) | 차트 |
 | **canvasWidth** | `canvasWidth` | 캔버스 너비 (기본: 700) | 차트 |
 | **canvasHeight** | `canvasHeight` | 캔버스 높이 (기본: 450) | 차트 |
@@ -224,9 +223,9 @@ config (최상위)
 ├── data                    (필수) 숫자 배열 또는 특수 문자열
 ├── purpose                 "chart" | "table"
 ├── tableType               "basic-table" | "category-matrix" | "stem-leaf" (기본: "basic-table")
-├── classCount              계급 개수 (기본: 5)
-├── classWidth              계급 간격 (자동 계산)
-├── classRange              계급 범위 커스터마이징 { firstEnd, secondEnd, lastStart }
+├── classCount              계급 개수 (차트 전용, 기본: 5)
+├── classWidth              계급 간격 (차트 전용, 자동 계산)
+├── classRange              계급 범위 커스터마이징 (차트 전용) { firstEnd, secondEnd, lastStart }
 ├── canvasSize              정사각형 캔버스 크기 (차트 전용, 우선 적용)
 ├── canvasWidth             캔버스 너비
 ├── canvasHeight            캔버스 높이
@@ -360,11 +359,6 @@ config (최상위)
 
 **결과**: 데이터가 4개 계급으로 나뉨
 
-> **💡 테이블 권장사항**: 테이블에서는 `classCount`와 `classWidth`를 **함께** 사용하세요.
-> - `classCount`: 최소 계급 개수 보장
-> - `classWidth`: 계급 간격 고정
-> - 예: `"classCount": 5, "classWidth": 10` → 간격 10으로 최소 5개 계급 생성
-
 ---
 
 ### classWidth
@@ -480,6 +474,9 @@ config (최상위)
 
 | 필드 | 타입 | 필수 | 기본값 | 설명 |
 |:-----|:-----|:----:|:------:|:-----|
+| `classCount` | `number` | X | `5` | 계급 개수 |
+| `classWidth` | `number` | X | 자동 | 계급 간격 |
+| `classRange` | `object` | X | - | 계급 범위 수동 설정 (`{ firstEnd, secondEnd, lastStart }`) |
 | `canvasWidth` | `number` | X | `700` | 캔버스 가로 크기 (px) |
 | `canvasHeight` | `number` | X | `450` | 캔버스 세로 크기 (px) |
 | `canvasSize` | `number` | X | - | 정사각형 캔버스 크기 (우선 적용) |
@@ -1526,10 +1523,10 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 
 `헤더: 값들` + `라벨: 값들` 형식의 문자열을 사용합니다.
 
-| 행 | 형식 | 설명 |
-|:---|:-----|:-----|
-| 1행 | `헤더: A, B, C, ...` | 열 이름들 |
-| 2행~ | `라벨: 값1, 값2, ...` | 각 행의 데이터 |
+| rowIndex | 형식 | 설명 |
+|:---------|:-----|:-----|
+| 0 (헤더) | `헤더: A, B, C, ...` | 열 이름들 |
+| 1~ (데이터) | `라벨: 값1, 값2, ...` | 각 행의 데이터 |
 
 > **비숫자 문자 지원**: 값에 숫자 외에 `null`, `?`, 영문자 등 임의의 문자를 사용할 수 있습니다.
 > - `null` 입력 → 빈칸으로 표시
@@ -1620,13 +1617,19 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 {
   "purpose": "table",
   "tableType": "basic-table",
-  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4",
+  "data": "헤더: 혈액형, 남학생, 여학생\nA: 0.4, null\nB: null, 0.2",
   "options": {
-    "showTotal": false,
+    "showTotal": true,
     "showMergedHeader": true
-  }
+  },
+  "cellVariables": [
+    { "rowIndex": 3, "colIndex": 1, "value": "1" },
+    { "rowIndex": 3, "colIndex": 2, "value": "1" }
+  ]
 }
 ```
+
+> **설명**: A행 여학생, B행 남학생이 `null`(빈칸)이므로 합계가 자동 계산 불가 → `cellVariables`로 합계(rowIndex 3) 직접 지정
 
 ---
 
@@ -1728,7 +1731,7 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 {
   "purpose": "table",
   "tableType": "category-matrix",
-  "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90\nO형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23",
+  "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, null, 350, 400\nO형인 학생 수 (명): 50, ?, 70, 80, 90",
   "canvasWidth": 800,
   "canvasHeight": 300,
   "animation": true,
@@ -1738,7 +1741,11 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
   ],
   "cellAnimationOptions": {
     "blinkEnabled": true
-  }
+  },
+  "cellVariables": [
+    { "rowIndex": 1, "colIndex": 3, "value": "300" },
+    { "rowIndex": 2, "colIndex": 2, "value": "60" }
+  ]
 }
 ```
 
@@ -1757,10 +1764,9 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 #### data 형식 상세
 
 ```
-헤더: A, B, C, D, E          ← 열 이름 (5개)
-전체 학생 수 (명): 200, 250, 300, 350, 400   ← 행1: 라벨 + 값들
-O형인 학생 수 (명): 50, 60, 70, 80, 90       ← 행2: 라벨 + 값들
-O형인 학생의 비율: 0.25, 0.24, 0.23, 0.23, 0.23  ← 행3: 라벨 + 값들
+헤더: A, B, C, D, E                          ← rowIndex 0 (열 이름)
+전체 학생 수 (명): 200, 250, null, 350, 400  ← rowIndex 1 (null = 빈칸)
+O형인 학생 수 (명): 50, ?, 70, 80, 90        ← rowIndex 2 (? = 물음표)
 ```
 
 #### 셀 값 커스터마이징
@@ -1874,11 +1880,21 @@ O: 0.26, 0.24
 
 #### data 작성 규칙
 
-| 행 | 형식 | 필수 | 설명 |
-|:---|:-----|:----:|:-----|
-| 0행 | `텍스트` (콜론 없음) | X | 병합 헤더 텍스트. 생략 시 "상대도수" |
-| 1행 | `헤더: 행라벨명, 열1, 열2, ...` | **O** | 열 구조 정의. 반드시 `헤더:`로 시작 |
-| 2행~ | `행이름: 값1, 값2, ...` | **O** | 데이터 행. `행이름:`으로 시작 |
+**기본 형식:**
+```
+헤더: 행라벨명, 열1, 열2, ...    ← rowIndex 0
+행이름1: 값1, 값2, ...           ← rowIndex 1
+행이름2: 값1, 값2, ...           ← rowIndex 2
+```
+
+**병합 헤더 포함:**
+```
+병합헤더텍스트                   ← cellVariables로 수정 불가 (시각 전용)
+헤더: 행라벨명, 열1, 열2, ...    ← rowIndex 0
+행이름1: 값1, 값2, ...           ← rowIndex 1
+```
+
+> **규칙**: 첫 줄이 `헤더:`로 시작하지 않고 `:`도 없으면 병합 헤더로 인식
 
 #### 병합 헤더 커스텀 예시
 
@@ -1919,10 +1935,9 @@ O: 0.26, 0.24
 | `?` | 물음표 표시 |
 | `x`, `A` 등 | 해당 문자 그대로 표시 |
 
-> **💡 권장사항**: 이원분류표에서는 `cellVariables` 대신 **data 문자열에서 직접 편집**하는 것을 권장합니다.
-> - JSON 경량화: `cellVariables` 배열 없이도 동일한 결과
-> - 가독성 향상: 데이터와 커스텀 값이 한눈에 보임
-> - 유지보수 용이: rowIndex/colIndex 계산 불필요
+> **⚠️ 주의**: 비숫자 값(`null`, `?`, `/` 등) 사용 시 합계가 자동 계산되지 않아 `-`로 표시됩니다.
+> - **데이터 행**: data 문자열에서 직접 편집 (가독성 좋음)
+> - **합계 행**: `cellVariables`로 반드시 직접 지정 필요
 
 #### 합계 행 직접 지정 (cellVariables)
 
@@ -2296,26 +2311,9 @@ O: 0.26, 0.24
 
 ---
 
-### 블링크 비활성화
-
-```json
-{
-  "purpose": "table",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "cellAnimations": [
-    { "rowIndex": 0, "colIndex": 2 }
-  ],
-  "cellAnimationOptions": {
-    "blinkEnabled": false
-  }
-}
-```
-
-**결과**: 블링크 없이 정적 하이라이트 표시
-
----
-
 ### 블링크 활성화
+
+> **기본값**: `blinkEnabled: false` (정적 하이라이트). `cellAnimationOptions` 생략 시 블링크 없이 표시됩니다.
 
 ```json
 {
@@ -2664,7 +2662,7 @@ data 문자열에서 연속된 슬래시(`/`)를 입력하면 **탈리마크로 
 |:-----|:-----|:----------|
 | `animation: true`만 설정 | 애니메이션 효과 없음 | `cellAnimations` 배열도 함께 설정 필요 |
 | basic-table에서 `헤더:` 누락 | 파싱 오류 | 첫 줄은 반드시 `헤더: 라벨명, 열1, 열2` 형식 |
-| `blinkEnabled: true`만 설정 | 깜빡임 없이 정적 하이라이트 | `duration`, `repeat` 값도 함께 설정 권장 |
+| `cellAnimations`만 설정 | 깜빡임 없이 정적 하이라이트 | 깜빡임 원하면 `cellAnimationOptions: { blinkEnabled: true }` 추가 |
 | JSON 문법 오류 | 렌더링 안 됨 | trailing comma 제거, 객체 사이 comma 확인 |
 
 ---
