@@ -178,12 +178,12 @@
   <h2>📋 테이블 (Table) 테스트</h2>
   <div class="test-grid">
 
-    <!-- 13. 기본 도수분포표 -->
+    <!-- 13. 기본 테이블 (basic-table) -->
     <div class="test-case">
-      <h3>13. 기본 도수분포표</h3>
-      <p>tableType: 'frequency' (기본값)</p>
-      <div class="table-container" id="table-frequency"></div>
-      <div class="status" id="status-table-frequency"></div>
+      <h3>13. 기본 테이블</h3>
+      <p>tableType: 'basic-table' (기본값)</p>
+      <div class="table-container" id="table-basic"></div>
+      <div class="status" id="status-table-basic"></div>
     </div>
 
     <!-- 14. 줄기-잎 그림 (단일 모드) -->
@@ -205,7 +205,7 @@
     <!-- 15. 이원분류표 -->
     <div class="test-case">
       <h3>15. 이원분류표</h3>
-      <p>tableType: 'cross-table'</p>
+      <p>tableType: 'basic-table' + 병합헤더</p>
       <div class="table-container" id="table-cross"></div>
       <div class="status" id="status-table-cross"></div>
     </div>
@@ -469,13 +469,16 @@ AB: 0.13, 0.13`;
 
     // ===== 테이블 테스트 =====
 
-    // 13. 기본 도수분포표
-    VizAPI.renderTable(document.getElementById('table-frequency'), {
-      tableType: 'frequency',
-      data: sampleData,
-      classCount: 5,
-      canvasWidth: 500
-    }).then(r => showStatus('status-table-frequency', r));
+    // 13. 기본 테이블 (basic-table)
+    const basicTableData = `헤더: 항목, 값1, 값2
+A: 10, 20
+B: 30, 40
+C: 50, 60`;
+    VizAPI.renderTable(document.getElementById('table-basic'), {
+      tableType: 'basic-table',
+      data: basicTableData,
+      canvasWidth: 400
+    }).then(r => showStatus('status-table-basic', r));
 
     // 14. 줄기-잎 그림 (단일 모드)
     VizAPI.renderTable(document.getElementById('table-stem-leaf'), {
@@ -491,16 +494,14 @@ AB: 0.13, 0.13`;
       canvasWidth: 450
     }).then(r => showStatus('status-table-stem-leaf-compare', r));
 
-    // 15. 이원분류표
+    // 15. 이원분류표 (basic-table + 병합헤더)
     VizAPI.renderTable(document.getElementById('table-cross'), {
-      tableType: 'cross-table',
+      tableType: 'basic-table',
       data: crossTableData,
       canvasWidth: 400,
       options: {
-        crossTable: {
-          showTotal: true,
-          showMergedHeader: true
-        }
+        showTotal: true,
+        showMergedHeader: true
       }
     }).then(r => showStatus('status-table-cross', r));
 
@@ -524,14 +525,16 @@ AB: 0.13, 0.13`;
 
     // 18. 셀 애니메이션
     VizAPI.renderTable(document.getElementById('table-cell-animation'), {
-      tableType: 'frequency',
-      data: sampleData,
-      classCount: 5,
-      canvasWidth: 500,
+      tableType: 'category-matrix',
+      data: categoryData,
+      canvasWidth: 400,
       cellAnimations: [
         { rowIndex: 1, colIndex: 1, duration: 1500, repeat: 5 },
         { rowIndex: 2, colIndex: 2, duration: 1500, repeat: 5 }
-      ]
+      ],
+      cellAnimationOptions: {
+        blinkEnabled: true
+      }
     }).then(r => showStatus('status-table-cell-animation', r));
 
     // ===== 통합 테스트 =====
@@ -549,10 +552,9 @@ AB: 0.13, 0.13`;
     // 20. render() 함수 - 테이블
     VizAPI.render(document.getElementById('unified-table'), {
       purpose: 'table',
-      tableType: 'frequency',
-      data: sampleData,
-      classCount: 5,
-      canvasWidth: 500
+      tableType: 'basic-table',
+      data: basicTableData,
+      canvasWidth: 400
     }).then(r => showStatus('status-unified-table', r));
 
     // 21. 차트 Corruption
@@ -575,15 +577,14 @@ AB: 0.13, 0.13`;
 
     // 22. 테이블 Corruption
     VizAPI.renderTable(document.getElementById('table-corruption'), {
-      tableType: 'frequency',
-      data: sampleData,
-      classCount: 5,
-      canvasWidth: 500,
+      tableType: 'basic-table',
+      data: basicTableData,
+      canvasWidth: 400,
       animation: false,
       options: {
         corruption: {
           enabled: true,
-          cells: ['2-1:3-2'],
+          cells: ['1-1:2-2'],
           style: {
             edgeComplexity: 0.7,
             transparent: true
