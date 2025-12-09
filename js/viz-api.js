@@ -587,7 +587,6 @@ export async function renderChart(element, config) {
  * @param {Object} config - Configuration object
  * @param {string} [config.tableType='basic-table'] - Table type
  *   ('basic-table' | 'category-matrix' | 'stem-leaf')
- *   Note: 'frequency', 'cross-table' are deprecated (v3.0에서 제거 예정)
  * @param {string} config.data - Raw data string (format depends on tableType)
  * @param {Array<Object>} [config.cellVariables] - Cell variable replacements
  * @param {Object} [config.options] - Additional options
@@ -620,36 +619,8 @@ export async function renderTable(element, config) {
     }
 
     // 검증 통과 시 파싱된 데이터 사용
-    let { tableType, rawData, parseResult } = validation.data;
-
-    // === 하위 호환성 처리 (v3.0에서 제거 예정) ===
-
-    // 1. cross-table → basic-table 별칭 (deprecated)
-    if (tableType === 'cross-table') {
-      console.warn('[viz-api] tableType "cross-table" is deprecated. Use "basic-table" instead.');
-      tableType = 'basic-table';
-    }
-
-    // 2. frequency 테이블 → chart로 자동 전환 (deprecated)
-    if (tableType === 'frequency') {
-      console.warn('[viz-api] tableType "frequency" for tables is deprecated. Use purpose: "chart" instead.');
-      return renderChart(element, { ...config, purpose: 'chart' });
-    }
-
-    // 3. options.tableConfig.cellVariables → config.cellVariables 폴백 (deprecated)
+    const { tableType, rawData, parseResult } = validation.data;
     const options = config.options || {};
-    if (options.tableConfig?.cellVariables && !config.cellVariables) {
-      console.warn('[viz-api] options.tableConfig.cellVariables is deprecated. Use config.cellVariables instead.');
-      config = { ...config, cellVariables: options.tableConfig.cellVariables };
-    }
-
-    // 4. options['cross-table'] → options.basicTable 폴백 (deprecated)
-    if (options['cross-table'] && !options.basicTable) {
-      console.warn('[viz-api] options["cross-table"] is deprecated. Use options.basicTable instead.');
-      options.basicTable = options['cross-table'];
-    }
-
-    // === 하위 호환성 처리 끝 ===
 
     // 3. Parse data (support both array and string format)
     const dataString = Array.isArray(config.data)
@@ -670,11 +641,8 @@ export async function renderTable(element, config) {
     // 5. Create TableRenderer
     const tableRenderer = new TableRenderer(canvasId);
 
-    // Process options (options는 위 하위 호환성 처리에서 이미 선언됨)
-    const baseTableConfig = options.tableConfig || {};
-    // canvasWidth/canvasHeight를 tableConfig에 포함 (사용자 설정 우선)
+    // 테이블 설정 구성
     const tableConfig = {
-      ...baseTableConfig,
       canvasWidth: config.canvasWidth,
       canvasHeight: config.canvasHeight
     };
@@ -695,10 +663,8 @@ export async function renderTable(element, config) {
     }
 
     // Apply basic-table specific options
-    // basicTable, 'basic-table' (하이픈), crossTable, 'cross-table' (레거시) 모두 지원
     if (tableType === 'basic-table') {
-      const basicTableOptions = options.basicTable || options['basic-table'] ||
-                                 options.crossTable || options['cross-table'] || {};
+      const basicTableOptions = options.basicTable || {};
       if (basicTableOptions.showTotal !== undefined) {
         parseResult.data.showTotal = basicTableOptions.showTotal;
       }
@@ -811,8 +777,8 @@ function applyCellVariablesGeneric(cellVariables, parseResult, tableType) {
       applyCellVariableToStemLeaf(data, dataRowIndex, cv.colIndex, cv.value);
     } else if (tableType === 'category-matrix') {
       applyCellVariableToCategoryMatrix(data, dataRowIndex, cv.colIndex, cv.value);
-    } else if (tableType === 'cross-table') {
-      applyCellVariableToCrossTable(data, dataRowIndex, cv.colIndex, cv.value);
+    } else if (tableType === 'basic-table') {
+      applyCellVariableToBasicTable(data, dataRowIndex, cv.colIndex, cv.value);
     }
   });
 
@@ -872,10 +838,10 @@ function applyCellVariableToCategoryMatrix(data, dataRowIndex, colIndex, value) 
 }
 
 /**
- * Apply cell variable to cross-table data
+ * Apply cell variable to basic-table data
  * 합계 행도 편집 가능 (dataRowIndex === data.rows.length)
  */
-function applyCellVariableToCrossTable(data, dataRowIndex, colIndex, value) {
+function applyCellVariableToBasicTable(data, dataRowIndex, colIndex, value) {
   if (!data.rows) return;
 
   // 합계 행 처리 (dataRowIndex === data.rows.length)
@@ -923,11 +889,11 @@ function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 
     // category-matrix: rows + header
     totalRows = (data.rows?.length || 0) + 1;
     totalCols = (data.headers?.length || 0) + 1; // label column + value columns
-  } else if (tableType === 'cross-table') {
-    // cross-table: rows + header + (total row if shown)
+  } else if (tableType === 'basic-table') {
+    // basic-table: rows + header + (total row if shown)
     const showTotal = data.showTotal !== false;
     totalRows = (data.rows?.length || 0) + 1 + (showTotal ? 1 : 0);
-    totalCols = (data.columns?.length || 0) + 1 + (showTotal ? 1 : 0); // label col + data cols + total col
+    totalCols = (data.columnHeaders?.length || 0) + 1 + (showTotal ? 1 : 0); // label col + data cols + total col
   } else {
     return null;
   }
