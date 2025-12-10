@@ -79,6 +79,7 @@
       color: transparent;
       pointer-events: none;
       box-sizing: border-box;
+      z-index: 1;
     }
 
     .editor-backdrop .highlight-warning {
@@ -104,6 +105,7 @@
       resize: none;
       box-sizing: border-box;
       caret-color: #eee;
+      z-index: 2;
     }
 
     .input-section textarea:focus {
@@ -612,6 +614,14 @@
           <div class="guide-item-desc">
             <code>classRange</code>는 복수 도수다각형 오버레이 용도로만 권장됩니다.
             일반적인 경우 <code>classCount</code> + <code>classWidth</code> 조합을 사용하세요.
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">도수분포표 이상/미만 표기</div>
+          <div class="guide-item-desc">
+            도수분포표(basic-table)에서 첫 번째 데이터 행에만 상첨자로 이상/미만을 표기하세요.<br>
+            <code>60^{이상}~70^{미만}: 2, 0.2</code><br>
+            나머지 행은 숫자만 사용: <code>70~80: 5, 0.5</code>
           </div>
         </div>
       </div>
@@ -1187,9 +1197,11 @@
         return null;
       },
 
-      // 테이블 data 첫 행에 이상/미만 표기 권장
+      // 테이블 data 첫 행에 이상/미만 표기 권장 (basic-table 도수분포표 전용)
       tableFirstRowNotation: (config) => {
         if (config.purpose !== 'table') return null;
+        const tableType = config.tableType || 'basic-table';
+        if (tableType !== 'basic-table') return null;
 
         const data = config.data;
         if (typeof data !== 'string') return null;
@@ -1199,6 +1211,9 @@
 
         // 첫 번째 데이터 행 (헤더 다음)
         const firstDataLine = lines[1];
+
+        // 도수분포표 형태인지 확인 (~가 포함되어 있으면 도수분포표)
+        if (!firstDataLine.includes('~')) return null;
 
         // 이상/미만 표기가 있는지 확인 (^{이상}, ^{미만}, _{이상}, _{미만} 등)
         const hasNotation = /[\^_]\{(이상|미만)\}/.test(firstDataLine);
@@ -1212,14 +1227,22 @@
         return null;
       },
 
-      // 나머지 행에 이상/미만 텍스트가 그냥 적혀있으면 경고
+      // 나머지 행에 이상/미만 텍스트가 그냥 적혀있으면 경고 (basic-table 도수분포표 전용)
       tableOtherRowsPlainNotation: (config) => {
         if (config.purpose !== 'table') return null;
+        const tableType = config.tableType || 'basic-table';
+        if (tableType !== 'basic-table') return null;
 
         const data = config.data;
         if (typeof data !== 'string') return null;
 
         const lines = data.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return null;
+
+        // 첫 번째 데이터 행에 ~가 없으면 도수분포표가 아님
+        const firstDataLine = lines[1];
+        if (!firstDataLine.includes('~')) return null;
+
         if (lines.length < 3) return null;
 
         // 2번째 데이터 행부터 검사 (lines[2] 이후)
@@ -1301,7 +1324,9 @@
 
       // 하이라이트 패턴 적용
       highlightPatterns.forEach(pattern => {
-        if (pattern.regex) {
+        if (pattern.customReplace) {
+          text = pattern.customReplace(text);
+        } else if (pattern.regex) {
           text = text.replace(pattern.regex, match =>
             `<span class="highlight-warning">${match}</span>`
           );
@@ -1323,8 +1348,24 @@
       warnings.forEach(w => {
         // 나머지 행의 이상/미만 텍스트 하이라이트
         if (w.key === 'tableOtherRowsPlainNotation') {
-          // "이상" 또는 "미만"이 ^{} 없이 사용된 경우
-          patterns.push({ regex: /(?<![_^]\{)(이상|미만)(?!\})/g });
+          // "숫자이상" 또는 "숫자미만" 형태 (^{이상}이 아닌 것)
+          patterns.push({
+            customReplace: (text) => {
+              return text.replace(/(\d+)(이상|미만)(?!\})/g, (match) => {
+                return `<span class="highlight-warning">${match}</span>`;
+              });
+            }
+          });
+        }
+
+        // 캔버스 크기 관련 경고
+        if (w.key === 'canvasSizeRecommendation') {
+          w.fields.forEach(field => {
+            // "canvasWidth": 또는 "canvasHeight": 패턴 하이라이트
+            patterns.push({
+              regex: new RegExp(`"${field}"\\s*:\\s*\\d+`, 'g')
+            });
+          });
         }
       });
 
