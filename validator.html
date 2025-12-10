@@ -386,11 +386,18 @@
       background: #555;
     }
 
-    /* 사이드 패널 */
-    .guide-toggle-btn {
+    /* 사이드 패널 버튼 그룹 */
+    .guide-btn-group {
       position: fixed;
       top: 24px;
       right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .guide-toggle-btn {
       background: #3a3a5a;
       color: #aaa;
       border: 1px solid #555;
@@ -401,7 +408,8 @@
       font-weight: 500;
       font-size: 13px;
       transition: all 0.2s;
-      z-index: 100;
+      text-align: left;
+      white-space: nowrap;
     }
 
     .guide-toggle-btn:hover {
@@ -527,8 +535,13 @@
   </style>
 </head>
 <body>
-  <!-- 가이드 토글 버튼 -->
-  <button class="guide-toggle-btn" id="guideToggleBtn">권장사항 가이드</button>
+  <!-- 가이드 버튼 그룹 -->
+  <div class="guide-btn-group">
+    <button class="guide-toggle-btn" id="guideToggleBtn">권장사항 가이드</button>
+    <button class="guide-toggle-btn" id="chartOptionsBtn">차트 옵션 모음</button>
+    <button class="guide-toggle-btn" id="tableOptionsBtn">테이블 옵션 모음</button>
+    <button class="guide-toggle-btn" id="fullJsonBtn">전체 옵션 JSON</button>
+  </div>
 
   <!-- 배경 오버레이 -->
   <div class="guide-overlay" id="guideOverlay"></div>
@@ -630,6 +643,323 @@
             <code>animation</code>: true<br>
             기본값과 동일한 값은 생략해도 됩니다.
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트 옵션 패널 -->
+  <div class="guide-panel" id="chartOptionsPanel">
+    <div class="guide-panel-header">
+      <h3>차트 옵션 모음</h3>
+      <button class="guide-close-btn" data-close-panel>&times;</button>
+    </div>
+    <div class="guide-panel-content">
+      <div class="guide-section">
+        <h4>기본 설정</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">data</div>
+          <div class="guide-item-desc">숫자 배열 (필수)<br><code>[62, 87, 97, 73, 59, 85]</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">classCount</div>
+          <div class="guide-item-desc">계급 개수 (기본: 5, 범위: 3~20)<br><code>"classCount": 6</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">classWidth</div>
+          <div class="guide-item-desc">계급 간격 (자동 계산됨)<br><code>"classWidth": 10</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">classRange</div>
+          <div class="guide-item-desc">계급 범위 수동 지정<br><code>"classRange": { "firstEnd": 2, "secondEnd": 4, "lastStart": 12 }</code></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>캔버스 크기</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">canvasSize</div>
+          <div class="guide-item-desc">정사각형 기준 크기 (우선 적용)<br><code>"canvasSize": 600</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">canvasWidth / canvasHeight</div>
+          <div class="guide-item-desc">너비/높이 개별 지정<br><code>"canvasWidth": 700, "canvasHeight": 450</code></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>options 하위</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">showHistogram / showPolygon</div>
+          <div class="guide-item-desc">히스토그램/도수다각형 표시 (기본: true)<br><code>"showHistogram": false</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">dataType</div>
+          <div class="guide-item-desc">Y축 타입: <code>"frequency"</code> 또는 <code>"relativeFrequency"</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">histogramColorPreset / polygonColorPreset</div>
+          <div class="guide-item-desc">색상 프리셋: <code>"default"</code>, <code>"primary"</code>, <code>"secondary"</code>, <code>"tertiary"</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">histogramColor / polygonColor</div>
+          <div class="guide-item-desc">직접 색상 지정<br><code>"histogramColor": { "fill": "#8DCF66", "border": "#5a9a3d" }</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">axisLabels</div>
+          <div class="guide-item-desc">축 라벨<br><code>"axisLabels": { "xAxis": "점수", "yAxis": "도수" }</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">grid</div>
+          <div class="guide-item-desc">격자선<br><code>"grid": { "showHorizontal": true, "showVertical": false }</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">axis</div>
+          <div class="guide-item-desc">축 설정<br><code>"axis": { "showYLabels": true, "showXLabels": true }</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">customYInterval</div>
+          <div class="guide-item-desc">Y축 간격 커스텀<br><code>"customYInterval": 2</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">showDashedLines</div>
+          <div class="guide-item-desc">수직 파선 표시<br><code>"showDashedLines": true</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">callout</div>
+          <div class="guide-item-desc">말풍선<br><code>"callout": { "enabled": true, "template": "남학생" }</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">congruentTriangles</div>
+          <div class="guide-item-desc">합동 삼각형<br><code>"congruentTriangles": { "enabled": true, "boundary": 75 }</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">triangleLabels</div>
+          <div class="guide-item-desc">합동삼각형 라벨<br><code>"triangleLabels": ["S₁", "S₂"]</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">customBarLabels</div>
+          <div class="guide-item-desc">막대 내부 라벨<br><code>"customBarLabels": ["A", null, "B"]</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">corruption (차트)</div>
+          <div class="guide-item-desc">찢김 효과<br><code>"corruption": { "enabled": true, "cells": "0-1:2-3", "maskAxisLabels": true }</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 테이블 옵션 패널 -->
+  <div class="guide-panel" id="tableOptionsPanel">
+    <div class="guide-panel-header">
+      <h3>테이블 옵션 모음</h3>
+      <button class="guide-close-btn" data-close-panel>&times;</button>
+    </div>
+    <div class="guide-panel-content">
+      <div class="guide-section">
+        <h4>기본 설정</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">purpose</div>
+          <div class="guide-item-desc">테이블은 반드시 명시<br><code>"purpose": "table"</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">tableType</div>
+          <div class="guide-item-desc">
+            <code>"basic-table"</code> - 도수분포표 (기본)<br>
+            <code>"category-matrix"</code> - 카테고리 교차표<br>
+            <code>"stem-leaf"</code> - 줄기-잎 그림
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">data (basic-table: 일반)</div>
+          <div class="guide-item-desc"><code>"헤더: 항목, 값\nA: 10\nB: 20"</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">data (basic-table: 도수분포표)</div>
+          <div class="guide-item-desc"><code>"헤더: 계급(점), 도수(명)\n60^{이상}~70^{미만}: 2\n70~80: 5\n80~90: 3"</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">data (category-matrix)</div>
+          <div class="guide-item-desc"><code>"헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90"</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">data (stem-leaf)</div>
+          <div class="guide-item-desc"><code>"162 178 175 183"</code> 또는 <code>"남: 162 178\n여: 165 172"</code></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>캔버스 크기</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">canvasWidth / canvasHeight</div>
+          <div class="guide-item-desc">둘 중 하나만 사용 권장<br><code>"canvasWidth": 500</code></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>셀 관련</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">cellVariables</div>
+          <div class="guide-item-desc">셀 값 변경 (최상위 레벨!)<br><code>"cellVariables": [{ "rowIndex": 1, "colIndex": 2, "value": "?" }]</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">cellAnimations</div>
+          <div class="guide-item-desc">셀 하이라이트<br><code>"cellAnimations": [{ "rowIndex": 1, "colIndex": 2 }]</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">cellAnimationOptions</div>
+          <div class="guide-item-desc">애니메이션 전역 옵션<br><code>"cellAnimationOptions": { "blinkEnabled": true }</code></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>options 하위 (basic-table)</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">showTotal</div>
+          <div class="guide-item-desc">합계 행 표시<br><code>"options": { "showTotal": true }</code></div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">showMergedHeader</div>
+          <div class="guide-item-desc">병합 헤더 표시<br><code>"options": { "showMergedHeader": true }</code></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>Corruption (찢김 효과)</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">corruption</div>
+          <div class="guide-item-desc">
+            <code>"options": { "corruption": { "enabled": true, "cells": "1-1:2-3" } }</code><br>
+            셀 범위: <code>"행-열:행-열"</code> 형식
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 전체 옵션 JSON 패널 -->
+  <div class="guide-panel" id="fullJsonPanel">
+    <div class="guide-panel-header">
+      <h3>전체 옵션 JSON</h3>
+      <button class="guide-close-btn" data-close-panel>&times;</button>
+    </div>
+    <div class="guide-panel-content">
+      <div class="guide-section">
+        <h4>차트 전체 옵션</h4>
+        <div class="guide-item">
+          <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
+  "purpose": "chart",
+  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 68, 91, 83, 72, 78],
+  "classCount": 5,
+  "canvasSize": 600,
+  "animation": true,
+  "options": {
+    "showHistogram": true,
+    "showPolygon": true,
+    "dataType": "frequency",
+    "axisLabels": {
+      "xAxis": "점수 구간",
+      "yAxis": "학생 수(명)"
+    },
+    "histogramColor": {
+      "fill": "linear-gradient(180deg, rgba(174, 255, 126, 0.3) 0%, rgba(104, 153, 76, 0.3) 100%)",
+      "stroke": "linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)",
+      "alpha": 0.3
+    },
+    "polygonColor": {
+      "line": "linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%)",
+      "point": "#61C1F9"
+    },
+    "callout": {
+      "enabled": true,
+      "template": "남학생",
+      "preset": "primary"
+    },
+    "showDashedLines": true,
+    "grid": {
+      "showHorizontal": true,
+      "showVertical": false
+    },
+    "axis": {
+      "showYLabels": true,
+      "showXLabels": true,
+      "yLabelFormat": "percent"
+    },
+    "congruentTriangles": {
+      "enabled": true,
+      "boundary": 70
+    },
+    "customYInterval": 2
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>테이블 전체 옵션 (basic-table)</h4>
+        <div class="guide-item">
+          <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
+  "purpose": "table",
+  "tableType": "basic-table",
+  "data": "헤더: 키(cm), 도수(명), 상대도수\n60이상~70미만: 2, 0.2\n70이상~80미만: 5, 0.5\n80이상~90미만: 3, 0.3",
+  "canvasWidth": 500,
+  "canvasHeight": 300,
+  "animation": true,
+  "options": {
+    "showTotal": true,
+    "showMergedHeader": false
+  },
+  "cellVariables": [
+    { "rowIndex": 2, "colIndex": 1, "value": "?" }
+  ],
+  "cellAnimations": [
+    { "rowIndex": 2, "colIndex": 1, "duration": 1500, "repeat": 3 }
+  ],
+  "cellAnimationOptions": {
+    "blinkEnabled": true
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>테이블 전체 옵션 (category-matrix)</h4>
+        <div class="guide-item">
+          <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
+  "purpose": "table",
+  "tableType": "category-matrix",
+  "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, null, 350, 400\nO형인 학생 수 (명): 50, ?, 70, 80, 90",
+  "canvasWidth": 800,
+  "canvasHeight": 300,
+  "animation": true,
+  "cellAnimations": [
+    { "rowIndex": 1, "colIndex": 2, "duration": 1500, "repeat": 3 },
+    { "rowIndex": 2, "colIndex": 2, "duration": 1500, "repeat": 3 }
+  ],
+  "cellAnimationOptions": {
+    "blinkEnabled": true
+  },
+  "cellVariables": [
+    { "rowIndex": 1, "colIndex": 3, "value": "300" },
+    { "rowIndex": 2, "colIndex": 2, "value": "60" }
+  ]
+}</pre>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>테이블 전체 옵션 (stem-leaf)</h4>
+        <div class="guide-item">
+          <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
+  "purpose": "table",
+  "tableType": "stem-leaf",
+  "data": "남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207",
+  "canvasWidth": 500,
+  "animation": true,
+  "cellVariables": [
+    { "rowIndex": 2, "colIndex": 1, "value": ["x", 5, 8] }
+  ]
+}</pre>
         </div>
       </div>
     </div>
@@ -1176,30 +1506,58 @@
       }
     });
 
-    // 가이드 패널 토글
-    const guidePanel = document.getElementById('guidePanel');
+    // 패널 토글 시스템
     const guideOverlay = document.getElementById('guideOverlay');
-    const guideToggleBtn = document.getElementById('guideToggleBtn');
-    const guideCloseBtn = document.getElementById('guideCloseBtn');
+    const panels = {
+      guide: document.getElementById('guidePanel'),
+      chartOptions: document.getElementById('chartOptionsPanel'),
+      tableOptions: document.getElementById('tableOptionsPanel'),
+      fullJson: document.getElementById('fullJsonPanel')
+    };
+    const buttons = {
+      guide: document.getElementById('guideToggleBtn'),
+      chartOptions: document.getElementById('chartOptionsBtn'),
+      tableOptions: document.getElementById('tableOptionsBtn'),
+      fullJson: document.getElementById('fullJsonBtn')
+    };
 
-    function openGuidePanel() {
-      guidePanel.classList.add('open');
+    let currentPanel = null;
+
+    function openPanel(panelKey) {
+      // 다른 패널 닫기
+      Object.values(panels).forEach(p => p.classList.remove('open'));
+      // 선택한 패널 열기
+      panels[panelKey].classList.add('open');
       guideOverlay.classList.add('open');
+      currentPanel = panelKey;
     }
 
-    function closeGuidePanel() {
-      guidePanel.classList.remove('open');
+    function closeAllPanels() {
+      Object.values(panels).forEach(p => p.classList.remove('open'));
       guideOverlay.classList.remove('open');
+      currentPanel = null;
     }
 
-    guideToggleBtn.addEventListener('click', openGuidePanel);
-    guideCloseBtn.addEventListener('click', closeGuidePanel);
-    guideOverlay.addEventListener('click', closeGuidePanel);
+    // 버튼 이벤트
+    buttons.guide.addEventListener('click', () => openPanel('guide'));
+    buttons.chartOptions.addEventListener('click', () => openPanel('chartOptions'));
+    buttons.tableOptions.addEventListener('click', () => openPanel('tableOptions'));
+    buttons.fullJson.addEventListener('click', () => openPanel('fullJson'));
+
+    // 닫기 버튼들 (data-close-panel 속성 사용)
+    document.querySelectorAll('[data-close-panel]').forEach(btn => {
+      btn.addEventListener('click', closeAllPanels);
+    });
+    // 기존 guideCloseBtn도 처리
+    document.getElementById('guideCloseBtn')?.addEventListener('click', closeAllPanels);
+
+    // 오버레이 클릭으로 닫기
+    guideOverlay.addEventListener('click', closeAllPanels);
 
     // ESC 키로 닫기
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && guidePanel.classList.contains('open')) {
-        closeGuidePanel();
+      if (e.key === 'Escape' && currentPanel) {
+        closeAllPanels();
       }
     });
   </script>

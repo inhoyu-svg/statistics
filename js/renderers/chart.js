@@ -202,6 +202,10 @@ class ChartRenderer {
       if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
         this.triangleRenderer.drawStatic(values, coords);
       }
+      // 파선 렌더링 (정적 모드)
+      if (CONFIG.SHOW_DASHED_LINES && CONFIG.SHOW_POLYGON) {
+        this.dashedLineRenderer.drawStatic(values, coords, dataType);
+      }
       if (clearCanvas) {
         this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
       }

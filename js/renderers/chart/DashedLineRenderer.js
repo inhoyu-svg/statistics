@@ -68,6 +68,50 @@ class DashedLineRenderer {
   }
 
   /**
+   * 정적 모드에서 모든 파선 렌더링
+   * @param {number[]} values - 상대도수/도수 배열
+   * @param {Object} coords - 좌표 시스템
+   * @param {string} dataType - 데이터 타입
+   */
+  drawStatic(values, coords, dataType = 'relativeFrequency') {
+    const histogramPreset = CONFIG.HISTOGRAM_COLOR_PRESET || 'default';
+
+    values.forEach((value, index) => {
+      // 도수 0인 계급은 스킵
+      if (value === 0) return;
+
+      const { toX, toY, xScale } = coords;
+
+      // 점의 위치 (우측 시작점)
+      const pointX = toX(index) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
+      const pointY = toY(value);
+
+      // Y축 위치 (좌측 끝점)
+      const leftEdgeX = toX(0);
+
+      // 히스토그램 프리셋에서 색상 가져오기
+      const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[histogramPreset]
+                  || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
+      const dashedLineColor = preset.strokeEnd || preset.strokeStart || CONFIG.getColor('--chart-dashed-line-color');
+
+      this.ctx.save();
+      this.ctx.strokeStyle = dashedLineColor;
+      this.ctx.lineWidth = CONFIG.getScaledLineWidth('dashed');
+      this.ctx.setLineDash(CONFIG.getScaledDashPattern());
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(pointX, pointY);
+      this.ctx.lineTo(leftEdgeX, pointY);
+      this.ctx.stroke();
+
+      this.ctx.restore();
+
+      // 파선 끝점 라벨
+      this._renderEndpointLabel(leftEdgeX, pointY, value, dataType);
+    });
+  }
+
+  /**
    * 파선 끝점(Y축)에 값 라벨 렌더링
    * @param {number} x - X 좌표 (Y축 위치)
    * @param {number} y - Y 좌표 (파선 높이)
