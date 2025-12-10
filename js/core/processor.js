@@ -144,7 +144,7 @@ class DataProcessor {
    * - lastEnd: 전체 구간의 끝값 (마지막 계급 끝)
    * @example
    * // { firstStart: 12, secondStart: 14, lastEnd: 22 }
-   * // → 간격 2, 계급: 12~14, 14~16, 16~18, 18~20, 20~22
+   * // → 간격 2, 계급: 0~12(빈), 12~14, 14~16, 16~18, 18~20, 20~22
    */
   static createCustomRangeClasses(customRange) {
     const { firstStart, secondStart, lastEnd } = customRange;
@@ -171,6 +171,17 @@ class DataProcessor {
 
     const classes = [];
 
+    // firstStart가 0보다 크면 0~firstStart 빈 구간 추가 (중략 표시용)
+    if (firstStart > 0) {
+      classes.push({
+        min: 0,
+        max: firstStart,
+        frequency: 0,
+        data: [],
+        midpoint: firstStart / 2
+      });
+    }
+
     // firstStart부터 lastEnd까지 classWidth 간격으로 계급 생성
     let currentMin = firstStart;
     while (currentMin < lastEnd) {
@@ -184,6 +195,15 @@ class DataProcessor {
       });
       currentMin = currentMax;
     }
+
+    // lastEnd 이후에 빈 구간 추가 (축 라벨 표시용)
+    classes.push({
+      min: lastEnd,
+      max: lastEnd + classWidth,
+      frequency: 0,
+      data: [],
+      midpoint: lastEnd + (classWidth / 2)
+    });
 
     return { classes, classWidth };
   }

@@ -433,11 +433,12 @@
       padding: 16px;
       display: flex;
       justify-content: center;
+      overflow: auto;
     }
 
     #previewContainer canvas {
-      max-width: 100%;
-      height: auto;
+      /* 캔버스 크기 유지 (잘림 방지) */
+      flex-shrink: 0;
     }
 
     /* 스크롤바 스타일 */
@@ -758,7 +759,7 @@
         </div>
         <div class="guide-item">
           <div class="guide-item-title">classRange</div>
-          <div class="guide-item-desc">계급 범위 수동 지정<br><code>"classRange": { "firstEnd": 2, "secondEnd": 4, "lastStart": 12 }</code></div>
+          <div class="guide-item-desc">계급 범위 수동 지정<br><code>"classRange": { "firstStart": 12, "secondStart": 14, "lastEnd": 22 }</code></div>
         </div>
       </div>
 

@@ -66,14 +66,40 @@ class AxisRenderer {
       const isEndpoint = (i === 0 || i === gridDivisions);
       if (!CONFIG.AXIS_SHOW_Y_LABELS && !isEndpoint) continue;
 
-      // 마지막 라벨은 축 제목으로 대체 (4글자 초과 시 폰트 축소)
+      // 마지막 라벨은 축 제목으로 대체
       if (i === gridDivisions && yLabel) {
-        const baseFontSize = yLabel.length > 4 ? 18 : 22;
-        KatexUtils.renderMixedText(this.ctx, yLabel,
-          this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
-          toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
-          { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
-        );
+        const baseFontSize = 22;
+        if (yLabel.length > 4) {
+          // 4글자 초과: Y축 상단 위에 가로로 표시
+          KatexUtils.renderMixedText(this.ctx, yLabel,
+            this.padding,
+            toY(value) - CONFIG.getScaledValue(10),
+            { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom' }
+          );
+          // 최댓값 숫자도 표시
+          let formattedMax;
+          if (dataType === 'frequency') {
+            formattedMax = Math.round(value).toString();
+          } else {
+            if (CONFIG.AXIS_Y_LABEL_FORMAT === 'percent') {
+              formattedMax = Utils.formatNumberClean(value * 100) + '%';
+            } else {
+              formattedMax = Utils.formatNumberClean(value);
+            }
+          }
+          KatexUtils.render(this.ctx, formattedMax,
+            this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
+            toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
+            { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
+          );
+        } else {
+          // 4글자 이하: 기존 위치 (Y축 왼쪽, 숫자 대신 제목)
+          KatexUtils.renderMixedText(this.ctx, yLabel,
+            this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
+            toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
+            { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
+          );
+        }
         continue;
       }
 
