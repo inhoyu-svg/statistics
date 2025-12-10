@@ -859,8 +859,8 @@
     "showPolygon": true,
     "dataType": "frequency",
     "axisLabels": {
-      "xAxis": "점수 구간",
-      "yAxis": "학생 수(명)"
+      "xAxis": "(점)",
+      "yAxis": "(명)"
     },
     "histogramColor": {
       "fill": "linear-gradient(180deg, rgba(174, 255, 126, 0.3) 0%, rgba(104, 153, 76, 0.3) 100%)",
@@ -890,7 +890,7 @@
       "enabled": true,
       "boundary": 70
     },
-    "customYInterval": 2
+    "customYInterval": 1
   }
 }</pre>
         </div>
@@ -902,7 +902,7 @@
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "table",
   "tableType": "basic-table",
-  "data": "헤더: 키(cm), 도수(명), 상대도수\n60^{이상}~70{미만}: 2, 0.2\n70~80: 5, 0.5\n80~90: 3, 0.3",
+  "data": "헤더: 키(cm), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.2\n70~80: 5, 0.5\n80~90: 3, 0.3",
   "canvasWidth": 500,
   "canvasHeight": 300,
   "animation": true,
@@ -1160,6 +1160,32 @@
             message: '테이블 첫 번째 데이터 행에 "이상/미만" 표기를 권장합니다. 예: 60^{이상}~70^{미만}',
             fields: ['data']
           };
+        }
+        return null;
+      },
+
+      // 나머지 행에 이상/미만 텍스트가 그냥 적혀있으면 경고
+      tableOtherRowsPlainNotation: (config) => {
+        if (config.purpose !== 'table') return null;
+
+        const data = config.data;
+        if (typeof data !== 'string') return null;
+
+        const lines = data.split('\n').filter(line => line.trim());
+        if (lines.length < 3) return null;
+
+        // 2번째 데이터 행부터 검사 (lines[2] 이후)
+        for (let i = 2; i < lines.length; i++) {
+          const line = lines[i];
+          // 상첨자/하첨자 없이 "이상" 또는 "미만"이 그냥 적혀있는지 확인
+          const hasPlainText = /(이상|미만)/.test(line) && !/[\^_]\{(이상|미만)\}/.test(line);
+
+          if (hasPlainText) {
+            return {
+              message: `${i}번째 데이터 행에 "이상/미만"이 일반 텍스트로 적혀있습니다. 첫 행에만 ^{이상}~^{미만}을 사용하고, 나머지는 숫자만 사용하세요.`,
+              fields: ['data']
+            };
+          }
         }
         return null;
       }
