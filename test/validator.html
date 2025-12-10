@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistics JSON 동작 검증기</title>
+  <style>
+    /* 폰트 */
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream3.otf') format('opentype');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream5.otf') format('opentype');
+      font-weight: 500;
+    }
+
+    /* 다크 테마 */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #1a1a2e;
+      color: #eee;
+      font-family: 'SCDream', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 24px;
+      font-weight: 500;
+      color: #8DCF66;
+    }
+
+    .container {
+      display: flex;
+      gap: 24px;
+      padding: 0 24px 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* 좌측: JSON 입력 */
+    .input-section {
+      flex: 1;
+      min-width: 400px;
+    }
+
+    .input-section h2 {
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .input-section textarea {
+      width: 100%;
+      height: 500px;
+      background: #252540;
+      color: #eee;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      resize: vertical;
+    }
+
+    .input-section textarea:focus {
+      outline: none;
+      border-color: #8DCF66;
+    }
+
+    .input-section textarea::placeholder {
+      color: #666;
+    }
+
+    /* 버튼 그룹 */
+    .button-group {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      background: #8DCF66;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #7bc156;
+    }
+
+    /* 우측: 필드별 결과 */
+    .result-section {
+      flex: 1;
+      min-width: 400px;
+    }
+
+    .result-section h2 {
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    #fieldResults {
+      /* 스크롤 없이 전체 표시 */
+    }
+
+    .empty-state {
+      color: #666;
+      padding: 24px;
+      text-align: center;
+      background: #252540;
+      border-radius: 8px;
+    }
+
+    /* JSON 문법 에러 */
+    .json-error {
+      background: #3a2020;
+      border: 1px solid #ff6b6b;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .json-error-title {
+      color: #ff6b6b;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .json-error-message {
+      font-family: monospace;
+      font-size: 12px;
+      color: #ffaaaa;
+    }
+
+    .error-context {
+      margin-top: 12px;
+      background: #1a1a2e;
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .error-location {
+      color: #ff6b6b;
+      font-size: 12px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .code-preview {
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .code-line {
+      display: flex;
+      white-space: pre;
+    }
+
+    .code-line .line-num {
+      color: #666;
+      width: 30px;
+      text-align: right;
+      margin-right: 12px;
+      user-select: none;
+    }
+
+    .code-line .line-content {
+      color: #aaa;
+    }
+
+    .code-line.error-line .line-content {
+      color: #fff;
+    }
+
+    .error-char {
+      background: #ff6b6b;
+      color: #fff;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .error-pointer {
+      display: flex;
+      color: #ff6b6b;
+      font-size: 11px;
+    }
+
+    .error-pointer .line-num {
+      width: 30px;
+      margin-right: 12px;
+    }
+
+    .error-pointer .pointer {
+      white-space: pre;
+    }
+
+    /* 필드 아이템 */
+    .field-item {
+      background: #252540;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-left: 4px solid;
+    }
+
+    .field-item.valid {
+      border-color: #8DCF66;
+    }
+
+    .field-item.invalid {
+      border-color: #ff6b6b;
+    }
+
+    .field-item.warning {
+      border-color: #f0ad4e;
+    }
+
+    .field-item.skipped {
+      border-color: #666;
+      opacity: 0.6;
+    }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .field-name {
+      font-weight: 500;
+      font-family: monospace;
+      font-size: 14px;
+    }
+
+    .field-status {
+      font-size: 16px;
+    }
+
+    .field-desc {
+      color: #888;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .field-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .field-value code {
+      background: #1a1a2e;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      max-width: 100%;
+      overflow-x: auto;
+      word-break: break-all;
+    }
+
+    .default-badge {
+      background: #444;
+      color: #aaa;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .field-error {
+      color: #ff6b6b;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .field-warning {
+      color: #f0ad4e;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .field-warning::before {
+      content: '💡 ';
+    }
+
+    /* 전체 결과 요약 */
+    .result-summary {
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .result-summary.success {
+      background: #203a20;
+      border: 1px solid #8DCF66;
+      color: #8DCF66;
+    }
+
+    .result-summary.error {
+      background: #3a2020;
+      border: 1px solid #ff6b6b;
+      color: #ff6b6b;
+    }
+
+    .result-summary.warning {
+      background: #3a3520;
+      border: 1px solid #f0ad4e;
+      color: #f0ad4e;
+    }
+
+    .recommendations-section {
+      margin-bottom: 16px;
+    }
+
+    /* 미리보기 (JSON 입력 아래) */
+    .preview-section {
+      margin-top: 16px;
+    }
+
+    .preview-section h3 {
+      margin-bottom: 12px;
+      font-weight: 500;
+      font-size: 14px;
+      color: #888;
+    }
+
+    #previewContainer {
+      background: #252540;
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    #previewContainer canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* 스크롤바 스타일 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1a1a2e;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>viz-api JSON 검증기</h1>
+
+  <div class="container">
+    <!-- 좌측: JSON 입력 -->
+    <div class="input-section">
+      <h2>JSON 입력</h2>
+      <textarea id="jsonInput" placeholder='{
+  "data": [62, 87, 97, 73, 59],
+  "classCount": 5,
+  "options": {
+    "showHistogram": true,
+    "showPolygon": true
+  }
+}'></textarea>
+      <div class="button-group">
+        <button id="validateBtn">검증하기</button>
+      </div>
+
+      <!-- 미리보기 (JSON 입력 아래) -->
+      <div class="preview-section" id="previewSection" style="display:none">
+        <h3>미리보기</h3>
+        <div id="previewContainer"></div>
+      </div>
+    </div>
+
+    <!-- 우측: 필드별 결과 -->
+    <div class="result-section">
+      <h2>필드별 검증 결과</h2>
+      <div id="fieldResults">
+        <div class="empty-state">
+          JSON을 입력하고 검증하기 버튼을 누르세요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { ConfigValidator } from '../js/utils/validator.js';
+    import * as VizAPI from '../js/viz-api.js';
+
+    // 권장사항 체크 함수들
+    const RECOMMENDATIONS = {
+      // 테이블인데 purpose 명시 안함
+      missingTablePurpose: (config) => {
+        if (config.purpose) return null;
+        const tablePatterns = ['헤더:', '헤더 :', 'Header:', 'header:'];
+        const looksLikeTable = typeof config.data === 'string' &&
+          tablePatterns.some(p => config.data.includes(p));
+        if (looksLikeTable) {
+          return {
+            message: '테이블 데이터로 보입니다. "purpose": "table" 명시를 권장합니다.',
+            fields: ['purpose']
+          };
+        }
+        return null;
+      },
+
+      // classRange 사용 비권장
+      classRangeUsage: (config) => {
+        if (config.classRange) {
+          return {
+            message: 'classRange는 복수 도수다각형 오버레이 용도로만 권장됩니다. 일반적인 경우 classCount + classWidth 조합을 사용하세요.',
+            fields: ['classRange']
+          };
+        }
+        return null;
+      },
+
+      // 캔버스 크기 권장사항
+      canvasSizeRecommendation: (config) => {
+        const purpose = config.purpose || 'chart';
+
+        // canvasWidth와 canvasHeight 동시 사용
+        if (config.canvasWidth && config.canvasHeight && !config.canvasSize) {
+          if (purpose === 'table') {
+            return {
+              message: '테이블은 canvasWidth 또는 canvasHeight 둘 중 하나만 사용을 권장합니다. 동시 지정 시 비율이 왜곡될 수 있습니다.',
+              fields: ['canvasWidth', 'canvasHeight']
+            };
+          }
+        }
+
+        // 테이블인데 canvasSize 사용
+        if (purpose === 'table' && config.canvasSize) {
+          return {
+            message: '테이블은 canvasWidth 또는 canvasHeight 사용을 권장합니다.',
+            fields: ['canvasSize']
+          };
+        }
+
+        return null;
+      },
+
+      // callout.preset 불필요
+      calloutPreset: (config) => {
+        if (config.options?.callout?.preset) {
+          return {
+            message: 'callout.preset은 도수다각형 색상을 자동으로 따르므로 생략해도 됩니다.',
+            fields: ['options']
+          };
+        }
+        return null;
+      },
+
+      // showDashedLines + showYLabels
+      dashedLinesYLabels: (config) => {
+        if (config.options?.showDashedLines && config.options?.axis?.showYLabels !== false) {
+          return {
+            message: 'showDashedLines 사용 시 Y축 라벨과 중복될 수 있습니다. axis.showYLabels: false 권장합니다.',
+            fields: ['options']
+          };
+        }
+        return null;
+      },
+
+      // blinkEnabled 없이 duration/repeat 사용
+      cellAnimationBlink: (config) => {
+        const anims = config.cellAnimations || config.options?.cellAnimations;
+        if (!anims) return null;
+
+        const hasTimingWithoutBlink = anims.some(a =>
+          (a.duration || a.repeat) &&
+          !config.cellAnimationOptions?.blinkEnabled
+        );
+
+        if (hasTimingWithoutBlink) {
+          return {
+            message: 'duration/repeat은 cellAnimationOptions.blinkEnabled: true일 때만 적용됩니다.',
+            fields: ['cellAnimations']
+          };
+        }
+        return null;
+      },
+
+      // animation: true인데 cellAnimations 없음
+      animationWithoutCellAnimations: (config) => {
+        const animation = config.animation;
+        const hasAnimation = animation === true || animation?.enabled === true;
+        const hasCellAnimations = config.cellAnimations && config.cellAnimations.length > 0;
+
+        if (hasAnimation && !hasCellAnimations) {
+          return {
+            message: 'animation이 활성화되어 있지만 cellAnimations가 없습니다. 셀 애니메이션을 사용하려면 cellAnimations를 추가하세요.',
+            fields: ['animation', 'cellAnimations']
+          };
+        }
+        return null;
+      },
+
+      // customYInterval 권장 값
+      customYInterval: (config) => {
+        const interval = config.options?.customYInterval;
+        if (!interval) return null;
+
+        const dataType = config.options?.dataType || 'relativeFrequency';
+        if (dataType === 'frequency' && !Number.isInteger(interval)) {
+          return {
+            message: '도수 모드에서 customYInterval은 정수(1, 2, 5, 10 등)를 권장합니다.',
+            fields: ['options']
+          };
+        }
+        if (dataType === 'relativeFrequency' && interval >= 1) {
+          return {
+            message: '상대도수 모드에서 customYInterval은 소수(0.05, 0.1 등)를 권장합니다.',
+            fields: ['options']
+          };
+        }
+        return null;
+      }
+    };
+
+    // 전체 권장사항 체크
+    function checkRecommendations(config) {
+      const warnings = [];
+      const warningFields = new Set();
+
+      for (const [key, checkFn] of Object.entries(RECOMMENDATIONS)) {
+        const result = checkFn(config);
+        if (result) {
+          warnings.push({ key, message: result.message, fields: result.fields || [] });
+          // 경고 관련 필드들 수집
+          (result.fields || []).forEach(f => warningFields.add(f));
+        }
+      }
+
+      return { warnings, warningFields };
+    }
+
+    // 검증할 필드 정의
+    const FIELD_DEFINITIONS = {
+      data: { required: true, label: 'data', desc: '변량 데이터 (필수)' },
+      purpose: { required: false, label: 'purpose', desc: '렌더링 목적', default: 'chart' },
+      tableType: { required: false, label: 'tableType', desc: '테이블 타입', default: 'basic-table' },
+      classCount: { required: false, label: 'classCount', desc: '계급 개수 (3~20)', default: 5 },
+      classWidth: { required: false, label: 'classWidth', desc: '계급 간격' },
+      classRange: { required: false, label: 'classRange', desc: '계급 범위 수동 지정' },
+      canvasSize: { required: false, label: 'canvasSize', desc: '캔버스 크기' },
+      canvasWidth: { required: false, label: 'canvasWidth', desc: '캔버스 너비', default: 700 },
+      canvasHeight: { required: false, label: 'canvasHeight', desc: '캔버스 높이', default: 450 },
+      cellVariables: { required: false, label: 'cellVariables', desc: '셀 변수 치환' },
+      cellAnimations: { required: false, label: 'cellAnimations', desc: '셀 애니메이션' },
+      animation: { required: false, label: 'animation', desc: '애니메이션 활성화', default: true },
+      options: { required: false, label: 'options', desc: '세부 옵션' }
+    };
+
+    // DOM 요소
+    const jsonInput = document.getElementById('jsonInput');
+    const validateBtn = document.getElementById('validateBtn');
+    const fieldResults = document.getElementById('fieldResults');
+    const previewSection = document.getElementById('previewSection');
+    const previewContainer = document.getElementById('previewContainer');
+
+    // 검증 함수
+    function validateJson() {
+      const input = jsonInput.value.trim();
+
+      if (!input) {
+        showEmptyState();
+        hidePreview();
+        return;
+      }
+
+      // 1. JSON 파싱
+      let config;
+      try {
+        config = JSON.parse(input);
+      } catch (e) {
+        showJsonSyntaxError(e);
+        hidePreview();
+        return;
+      }
+
+      // 2. ConfigValidator로 전체 검증
+      const purpose = config.purpose || 'chart';
+      const result = ConfigValidator.validate(config, purpose);
+
+      // 3. 권장사항 체크
+      const { warnings, warningFields } = checkRecommendations(config);
+
+      // 4. 필드별 결과 생성 및 렌더링
+      const fields = buildFieldResults(config, result, warningFields);
+      renderFieldResults(fields, result.valid, warnings);
+
+      // 4. 미리보기 (유효할 때만)
+      if (result.valid) {
+        renderPreview(config, purpose);
+      } else {
+        hidePreview();
+      }
+    }
+
+    // 빈 상태 표시
+    function showEmptyState() {
+      fieldResults.innerHTML = `
+        <div class="empty-state">
+          JSON을 입력하고 검증하기 버튼을 누르세요.
+        </div>
+      `;
+    }
+
+    // JSON 문법 에러 표시
+    function showJsonSyntaxError(error) {
+      const input = jsonInput.value;
+      const errorInfo = parseJsonErrorPosition(error.message, input);
+
+      let errorContextHtml = '';
+      if (errorInfo.line !== null) {
+        const lines = input.split('\n');
+        const startLine = Math.max(0, errorInfo.line - 2);
+        const endLine = Math.min(lines.length, errorInfo.line + 2);
+
+        const contextLines = [];
+        for (let i = startLine; i < endLine; i++) {
+          const lineNum = i + 1;
+          const isErrorLine = i === errorInfo.line;
+          const lineContent = escapeHtml(lines[i] || '');
+
+          if (isErrorLine) {
+            // 에러 위치 표시
+            const col = errorInfo.column || 0;
+            const before = lineContent.substring(0, col);
+            const errorChar = lineContent.substring(col, col + 1) || ' ';
+            const after = lineContent.substring(col + 1);
+
+            contextLines.push(
+              `<div class="code-line error-line">` +
+              `<span class="line-num">${lineNum}</span>` +
+              `<span class="line-content">${before}<span class="error-char">${errorChar}</span>${after}</span>` +
+              `</div>`
+            );
+            // 에러 포인터
+            contextLines.push(
+              `<div class="error-pointer">` +
+              `<span class="line-num"></span>` +
+              `<span class="pointer">${' '.repeat(col)}^ 여기</span>` +
+              `</div>`
+            );
+          } else {
+            contextLines.push(
+              `<div class="code-line">` +
+              `<span class="line-num">${lineNum}</span>` +
+              `<span class="line-content">${lineContent}</span>` +
+              `</div>`
+            );
+          }
+        }
+
+        errorContextHtml = `
+          <div class="error-context">
+            <div class="error-location">줄 ${errorInfo.line + 1}, 열 ${(errorInfo.column || 0) + 1}</div>
+            <div class="code-preview">${contextLines.join('')}</div>
+          </div>
+        `;
+      }
+
+      fieldResults.innerHTML = `
+        <div class="json-error">
+          <div class="json-error-title">JSON 문법 오류</div>
+          <div class="json-error-message">${escapeHtml(error.message)}</div>
+          ${errorContextHtml}
+        </div>
+        <div class="empty-state">
+          JSON 문법을 확인해주세요.
+        </div>
+      `;
+    }
+
+    // JSON 에러 메시지에서 위치 파싱
+    function parseJsonErrorPosition(message, input) {
+      let position = null;
+
+      // "at position 123" 패턴
+      const posMatch = message.match(/position\s+(\d+)/i);
+      if (posMatch) {
+        position = parseInt(posMatch[1], 10);
+      }
+
+      // "at line 1 column 5" 패턴
+      const lineColMatch = message.match(/line\s+(\d+)\s+column\s+(\d+)/i);
+      if (lineColMatch) {
+        return {
+          line: parseInt(lineColMatch[1], 10) - 1,
+          column: parseInt(lineColMatch[2], 10) - 1
+        };
+      }
+
+      // position으로부터 line/column 계산
+      if (position !== null) {
+        let line = 0;
+        let col = 0;
+        for (let i = 0; i < position && i < input.length; i++) {
+          if (input[i] === '\n') {
+            line++;
+            col = 0;
+          } else {
+            col++;
+          }
+        }
+        return { line, column: col };
+      }
+
+      return { line: null, column: null };
+    }
+
+    // 필드별 결과 생성
+    function buildFieldResults(config, validationResult, warningFields = new Set()) {
+      const fields = [];
+      const errorMap = new Map(validationResult.errors.map(e => [e.field, e]));
+
+      for (const [key, def] of Object.entries(FIELD_DEFINITIONS)) {
+        const hasValue = config.hasOwnProperty(key);
+        const value = config[key];
+        const error = errorMap.get(key);
+        const hasWarning = warningFields.has(key);
+
+        // 테이블 전용 필드 체크
+        const purpose = config.purpose || 'chart';
+        const isTableOnlyField = ['tableType'].includes(key);
+        const isChartOnlyField = ['classCount', 'classWidth', 'classRange'].includes(key);
+
+        // 관련 없는 필드는 스킵
+        if (purpose === 'chart' && isTableOnlyField && !hasValue) continue;
+        if (purpose === 'table' && isChartOnlyField && !hasValue) continue;
+
+        fields.push({
+          name: def.label,
+          desc: def.desc,
+          hasValue,
+          value: hasValue ? value : def.default,
+          isDefault: !hasValue && def.default !== undefined,
+          valid: !error,
+          error: error?.message,
+          required: def.required,
+          hasWarning
+        });
+      }
+
+      return fields;
+    }
+
+    // 필드별 결과 렌더링
+    function renderFieldResults(fields, isValid, recommendations = []) {
+      const hasWarnings = recommendations.length > 0;
+
+      let summaryText = isValid ? '모든 필드가 유효합니다' : '일부 필드에 오류가 있습니다';
+      let summaryClass = isValid ? 'success' : 'error';
+
+      if (isValid && hasWarnings) {
+        summaryText = `유효하지만 ${recommendations.length}개의 권장사항이 있습니다`;
+        summaryClass = 'warning';
+      }
+
+      const summaryHtml = `
+        <div class="result-summary ${summaryClass}">
+          ${summaryText}
+        </div>
+      `;
+
+      // 권장사항 섹션
+      const warningsHtml = hasWarnings ? `
+        <div class="recommendations-section">
+          <h4 style="color: #f0ad4e; margin-bottom: 8px; font-size: 13px;">권장사항</h4>
+          ${recommendations.map(r => `
+            <div class="field-item warning">
+              <div class="field-warning">${escapeHtml(r.message)}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : '';
+
+      const fieldsHtml = fields.map(f => {
+        // 우선순위: error > warning > valid
+        let statusClass = 'valid';
+        if (!f.valid) statusClass = 'invalid';
+        else if (f.hasWarning) statusClass = 'warning';
+
+        return `
+          <div class="field-item ${statusClass}">
+            <div class="field-header">
+              <span class="field-name">${f.name}${f.required ? ' *' : ''}</span>
+              <span class="field-status"></span>
+            </div>
+            <div class="field-desc">${f.desc}</div>
+            <div class="field-value">
+              ${f.isDefault ? '<span class="default-badge">기본값</span>' : ''}
+              <code>${formatValue(f.value)}</code>
+            </div>
+            ${f.error ? `<div class="field-error">${escapeHtml(f.error)}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      fieldResults.innerHTML = summaryHtml + warningsHtml + fieldsHtml;
+    }
+
+    // 값 포맷팅 (배열/객체는 축약)
+    function formatValue(value) {
+      if (value === undefined) return '<em style="color:#666">미설정</em>';
+      if (value === null) return 'null';
+
+      if (Array.isArray(value)) {
+        if (value.length === 0) return '[]';
+        if (value.length > 5) {
+          return `[${value.slice(0, 3).join(', ')}, ... +${value.length - 3}개]`;
+        }
+        return JSON.stringify(value);
+      }
+
+      if (typeof value === 'object') {
+        const keys = Object.keys(value);
+        if (keys.length === 0) return '{}';
+        if (keys.length > 3) {
+          return `{ ${keys.slice(0, 3).join(', ')}, ... }`;
+        }
+        return JSON.stringify(value);
+      }
+
+      if (typeof value === 'string' && value.includes('\n')) {
+        return `"${value.substring(0, 30)}..."`;
+      }
+
+      return JSON.stringify(value);
+    }
+
+    // HTML 이스케이프
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 미리보기 렌더링
+    async function renderPreview(config, purpose) {
+      previewContainer.innerHTML = '';
+
+      try {
+        // 작은 캔버스 크기 설정
+        const smallConfig = {
+          ...config,
+          canvasSize: 400,
+          animation: false
+        };
+
+        if (purpose === 'chart') {
+          await VizAPI.renderChart(previewContainer, smallConfig);
+        } else {
+          await VizAPI.renderTable(previewContainer, smallConfig);
+        }
+
+        previewSection.style.display = 'block';
+      } catch (e) {
+        console.error('미리보기 렌더링 실패:', e);
+        previewContainer.innerHTML = `<div style="color:#ff6b6b;">미리보기 렌더링 실패: ${escapeHtml(e.message)}</div>`;
+        previewSection.style.display = 'block';
+      }
+    }
+
+    // 미리보기 숨기기
+    function hidePreview() {
+      previewSection.style.display = 'none';
+      previewContainer.innerHTML = '';
+    }
+
+    // 이벤트 리스너
+    validateBtn.addEventListener('click', validateJson);
+
+    // Enter 키로 검증 (Ctrl+Enter)
+    jsonInput.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        validateJson();
+      }
+    });
+  </script>
+</body>
+</html>
