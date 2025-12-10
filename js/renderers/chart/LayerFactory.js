@@ -19,8 +19,9 @@ class LayerFactory {
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
    * @param {string} calloutTemplate - 말풍선 템플릿
+   * @param {Array<number>} hiddenPolygonIndices - 숨길 다각형 점/선 인덱스 배열
    */
-  static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null) {
+  static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null, hiddenPolygonIndices = []) {
     // clearAll() 제거: 기존 레이어 유지하면서 새 레이어 추가
     // layerManager.clearAll();
 
@@ -103,11 +104,14 @@ class LayerFactory {
       // 계급명 생성
       const className = Utils.getClassName(classes[index]);
 
+      // hidden 배열에 포함된 인덱스는 숨김
+      const isHidden = hiddenPolygonIndices.includes(index);
+
       const pointLayer = new Layer({
         id: `point-${timestamp}-${index}`,
         name: `점(${className})`,
         type: 'point',
-        visible: true,
+        visible: !isHidden,
         data: {
           index,
           relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
@@ -128,11 +132,14 @@ class LayerFactory {
         const fromClassName = Utils.getClassName(classes[prevIndex]);
         const toClassName = Utils.getClassName(classes[index]);
 
+        // hidden 인덱스와 연결된 선은 숨김 (from 또는 to가 hidden이면)
+        const isLineHidden = hiddenPolygonIndices.includes(prevIndex) || hiddenPolygonIndices.includes(index);
+
         const lineLayer = new Layer({
           id: `line-${timestamp}-${prevIndex}-${index}`,
           name: `선(${fromClassName}→${toClassName})`,
           type: 'line',
-          visible: true,
+          visible: !isLineHidden,
           data: {
             fromIndex: prevIndex,
             toIndex: index,

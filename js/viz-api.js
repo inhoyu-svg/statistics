@@ -526,6 +526,10 @@ export async function renderChart(element, config) {
     // Y축 간격 커스텀 설정
     const customYInterval = options.customYInterval || null;
 
+    // 다각형 숨김 옵션 (점/선)
+    const polygonOptions = options.polygon || {};
+    const hiddenPolygonIndices = polygonOptions.hidden || [];
+
     if (!animation) {
       chartRenderer.disableAnimation();
     }
@@ -549,7 +553,8 @@ export async function renderChart(element, config) {
       clearCanvas,
       unifiedMaxY,
       unifiedClassCount,
-      customYInterval
+      customYInterval,
+      hiddenPolygonIndices
     );
 
     // 10. Apply corruption effect (if enabled)

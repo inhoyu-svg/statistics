@@ -198,6 +198,7 @@ if (!valid) console.log(validate.errors);
 | **triangleLabels** | `options.triangleLabels` | 합동삼각형 라벨 (`["S₁", "S₂"]`) |
 | **customBarLabels** | `options.customBarLabels` | 막대 내부 커스텀 라벨 배열 |
 | **customYInterval** | `options.customYInterval` | Y축 간격 커스텀 |
+| **polygon** | `options.polygon` | 다각형 옵션 (`{ hidden }`) |
 | **corruption** | `options.corruption` | 찢김 효과 설정 (`{ enabled, cells, maskAxisLabels, style }`) |
 | **histogramColorPreset** | `options.histogramColorPreset` | 히스토그램 색상 프리셋 |
 | **histogramColor** | `options.histogramColor` | 히스토그램 커스텀 색상 |
@@ -249,6 +250,7 @@ config (최상위)
 │   ├── triangleLabels      ["S₁", "S₂"] 합동삼각형 라벨 배열
 │   ├── customYInterval     Y축 간격 커스텀
 │   ├── customBarLabels     ["A", null, "B"] 막대 내부 라벨 배열
+│   ├── polygon             { hidden } 다각형 숨김 옵션
 │   │
 │   │  [차트/테이블 공통]
 │   ├── corruption          { enabled, cells, maskAxisLabels, style } 찢김 효과
@@ -623,6 +625,8 @@ config (최상위)
 | `options.congruentTriangles` | `object` | X | - | 합동 삼각형 설정 |
 | `options.customYInterval` | `number` | X | `null` | Y축 간격 커스텀 |
 | `options.customBarLabels` | `array` | X | - | 막대 내부 라벨 배열 (null은 스킵) |
+| `options.polygon` | `object` | X | - | 다각형 옵션 |
+| `options.polygon.hidden` | `array` | X | `[]` | 숨길 점/선의 계급 인덱스 배열 |
 
 ---
 
@@ -1381,6 +1385,55 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 ```
 
 **결과**: Y축이 0, 0.1, 0.2, 0.3, 0.4... 간격으로 표시됩니다.
+
+---
+
+### options.polygon
+
+다각형(도수다각형)의 점과 선을 부분적으로 숨기는 옵션입니다. 통계 문제에서 "일부 데이터가 소실된" 상황을 표현할 때 사용합니다.
+
+| 항목 | 설명 |
+|:-----|:-----|
+| **타입** | `object` |
+| **필수 여부** | 선택 |
+| **기본값** | `{}` |
+
+#### 하위 속성
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:------:|:-----|
+| `hidden` | `number[]` | `[]` | 숨길 계급 인덱스 배열 |
+
+#### hidden 동작 원리
+
+`hidden` 배열에 포함된 인덱스의:
+- **점**: 해당 계급의 점이 숨겨짐
+- **연결 선**: 해당 점과 연결된 양쪽 선이 모두 숨겨짐
+
+예: `"hidden": [2]`이면:
+- index 2의 점 숨김
+- index 1 → 2 선 숨김
+- index 2 → 3 선 숨김
+
+#### 예시 JSON
+
+```json
+{
+  "purpose": "chart",
+  "data": [11, 11, 13, 13, 13, 13, 15, 15, 15, 15, 15, 15, 17, 17, 17, 17, 19, 19, 21],
+  "classRange": { "firstStart": 10, "secondStart": 12, "lastEnd": 22 },
+  "options": {
+    "showHistogram": true,
+    "showPolygon": true,
+    "dataType": "frequency",
+    "polygon": {
+      "hidden": [3]
+    }
+  }
+}
+```
+
+**결과**: index 3 (16~18 계급)의 점과 연결 선이 보이지 않아, 다각형이 끊어진 것처럼 표시됩니다.
 
 ---
 

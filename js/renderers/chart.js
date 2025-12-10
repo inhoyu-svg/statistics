@@ -94,8 +94,9 @@ class ChartRenderer {
    * @param {number} unifiedMaxY - 통합 최대 Y값 (여러 데이터셋 사용 시, 없으면 자동 계산)
    * @param {number} unifiedClassCount - 통합 계급 개수 (여러 데이터셋 사용 시, 없으면 자동 계산)
    * @param {number} customYInterval - 커스텀 Y축 간격 (없으면 자동 계산)
+   * @param {Array<number>} hiddenPolygonIndices - 숨길 다각형 점/선 인덱스 배열
    */
-  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null, customYInterval = null) {
+  draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null, customYInterval = null, hiddenPolygonIndices = []) {
     // 캔버스 크기에 따라 패딩 스케일링
     this.padding = CONFIG.getScaledPadding();
     this.axisRenderer.padding = this.padding;
@@ -171,7 +172,8 @@ class ChartRenderer {
         coords,
         ellipsisInfo,
         dataType,
-        calloutTemplate
+        calloutTemplate,
+        hiddenPolygonIndices
       );
       this.setupAnimations(classes);
 
@@ -196,7 +198,7 @@ class ChartRenderer {
         this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
       }
       if (CONFIG.SHOW_POLYGON) {
-        this.polygonRenderer.draw(values, coords, ellipsisInfo);
+        this.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenPolygonIndices);
       }
       // 합동 삼각형 렌더링 (정적 모드)
       if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {

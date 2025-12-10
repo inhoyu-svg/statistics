@@ -20,8 +20,9 @@ class PolygonRenderer {
    * @param {Array} relativeFreqs - 상대도수 배열
    * @param {Object} coords - 좌표 시스템 객체
    * @param {Object} ellipsisInfo - 중략 정보
+   * @param {Array<number>} hiddenIndices - 숨길 점/선 인덱스 배열
    */
-  draw(relativeFreqs, coords, ellipsisInfo) {
+  draw(relativeFreqs, coords, ellipsisInfo, hiddenIndices = []) {
     const { toX, toY, xScale } = coords;
 
     // 현재 프리셋의 색상 가져오기
@@ -36,24 +37,28 @@ class PolygonRenderer {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
       if (prevIndex !== null) {
-        const x1 = CoordinateSystem.getBarCenterX(prevIndex, toX, xScale);
-        const y1 = toY(relativeFreqs[prevIndex]);
-        const x2 = CoordinateSystem.getBarCenterX(index, toX, xScale);
-        const y2 = toY(relativeFreq);
+        // hidden 인덱스와 연결된 선은 스킵
+        const isLineHidden = hiddenIndices.includes(prevIndex) || hiddenIndices.includes(index);
+        if (!isLineHidden) {
+          const x1 = CoordinateSystem.getBarCenterX(prevIndex, toX, xScale);
+          const y1 = toY(relativeFreqs[prevIndex]);
+          const x2 = CoordinateSystem.getBarCenterX(index, toX, xScale);
+          const y2 = toY(relativeFreq);
 
-        // 그라디언트 선 (위에서 아래로)
-        const lineGradient = Utils.createLineGradient(
-          this.ctx, x1, y1, x2, y2,
-          gradientStart,
-          gradientEnd
-        );
+          // 그라디언트 선 (위에서 아래로)
+          const lineGradient = Utils.createLineGradient(
+            this.ctx, x1, y1, x2, y2,
+            gradientStart,
+            gradientEnd
+          );
 
-        this.ctx.strokeStyle = lineGradient;
-        this.ctx.lineWidth = CONFIG.getScaledLineWidth('thick');
-        this.ctx.beginPath();
-        this.ctx.moveTo(x1, y1);
-        this.ctx.lineTo(x2, y2);
-        this.ctx.stroke();
+          this.ctx.strokeStyle = lineGradient;
+          this.ctx.lineWidth = CONFIG.getScaledLineWidth('thick');
+          this.ctx.beginPath();
+          this.ctx.moveTo(x1, y1);
+          this.ctx.lineTo(x2, y2);
+          this.ctx.stroke();
+        }
       }
 
       prevIndex = index;
@@ -62,6 +67,9 @@ class PolygonRenderer {
     // 점 그리기 (나중에 그려서 선 위에 위치)
     relativeFreqs.forEach((relativeFreq, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+      // hidden 인덱스는 스킵
+      if (hiddenIndices.includes(index)) return;
 
       const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
       const centerY = toY(relativeFreq);
