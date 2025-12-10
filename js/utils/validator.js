@@ -340,44 +340,56 @@ class ConfigValidator {
    * @private
    */
   static _validateCustomRange(range, errors) {
-    const { firstEnd, secondEnd, lastStart } = range;
+    const { firstStart, secondStart, lastEnd } = range;
 
     // 필수 필드 체크
-    if (firstEnd === undefined || secondEnd === undefined || lastStart === undefined) {
+    if (firstStart === undefined || secondStart === undefined || lastEnd === undefined) {
       this._addError(
         errors,
         'classRange',
         ERROR_CODES.REQUIRED,
-        'classRange는 firstEnd, secondEnd, lastStart가 모두 필요합니다.'
+        'classRange는 firstStart, secondStart, lastEnd가 모두 필요합니다.'
       );
       return;
     }
 
     // 논리적 순서 검증
-    if (firstEnd <= 0) {
+    if (firstStart < 0) {
       this._addError(
         errors,
-        'classRange.firstEnd',
+        'classRange.firstStart',
         ERROR_CODES.CUSTOM_RANGE_ERROR,
-        '첫 칸의 끝값은 0보다 커야 합니다.'
+        '첫 계급의 시작값은 0 이상이어야 합니다.'
       );
     }
 
-    if (secondEnd <= firstEnd) {
+    if (secondStart <= firstStart) {
       this._addError(
         errors,
-        'classRange.secondEnd',
+        'classRange.secondStart',
         ERROR_CODES.CUSTOM_RANGE_ERROR,
-        '두 번째 칸의 끝값은 첫 칸의 끝값보다 커야 합니다.'
+        '두 번째 계급의 시작값은 첫 계급의 시작값보다 커야 합니다.'
       );
     }
 
-    if (lastStart <= secondEnd) {
+    if (lastEnd <= secondStart) {
       this._addError(
         errors,
-        'classRange.lastStart',
+        'classRange.lastEnd',
         ERROR_CODES.CUSTOM_RANGE_ERROR,
-        '마지막 칸의 시작값은 두 번째 칸의 끝값보다 커야 합니다.'
+        '마지막 계급의 끝값은 두 번째 계급의 시작값보다 커야 합니다.'
+      );
+    }
+
+    // 간격으로 나누어 떨어지는지 검증
+    const classWidth = secondStart - firstStart;
+    const totalRange = lastEnd - firstStart;
+    if (classWidth > 0 && totalRange % classWidth !== 0) {
+      this._addError(
+        errors,
+        'classRange',
+        ERROR_CODES.CUSTOM_RANGE_ERROR,
+        `전체 범위(${totalRange})가 간격(${classWidth})으로 나누어 떨어지지 않습니다.`
       );
     }
   }

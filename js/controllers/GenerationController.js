@@ -32,36 +32,26 @@ class GenerationController {
    * 계급 범위 편집기 이벤트 리스너 등록
    */
   initClassRangeEditor() {
-    const firstEndInput = document.getElementById('firstEnd');
-    const secondEndInput = document.getElementById('secondEnd');
-    const lastStartInput = document.getElementById('lastStart');
-    const secondStart = document.getElementById('secondStart');
-    const lastEnd = document.getElementById('lastEnd');
+    const firstStartInput = document.getElementById('firstStart');
+    const secondStartInput = document.getElementById('secondStart');
+    const lastEndInput = document.getElementById('lastEnd');
     const intervalDisplay = document.getElementById('intervalDisplay');
     const applyBtn = document.getElementById('applyClassRangeBtn');
 
     const updateDisplayValues = () => {
-      const firstEnd = parseFloat(firstEndInput?.value) || 1;
-      const secondEnd = parseFloat(secondEndInput?.value) || 3;
-      const lastStart = parseFloat(lastStartInput?.value) || 15;
+      const firstStart = parseFloat(firstStartInput?.value) || 0;
+      const secondStart = parseFloat(secondStartInput?.value) || 2;
+      const lastEnd = parseFloat(lastEndInput?.value) || 20;
 
-      if (secondStart) {
-        secondStart.textContent = firstEnd;
-      }
-
-      const interval = secondEnd - firstEnd;
+      const interval = secondStart - firstStart;
       if (intervalDisplay) {
         intervalDisplay.textContent = `(간격: ${interval})`;
       }
-
-      if (lastEnd) {
-        lastEnd.textContent = lastStart + interval;
-      }
     };
 
-    firstEndInput?.addEventListener('input', updateDisplayValues);
-    secondEndInput?.addEventListener('input', updateDisplayValues);
-    lastStartInput?.addEventListener('input', updateDisplayValues);
+    firstStartInput?.addEventListener('input', updateDisplayValues);
+    secondStartInput?.addEventListener('input', updateDisplayValues);
+    lastEndInput?.addEventListener('input', updateDisplayValues);
 
     applyBtn?.addEventListener('click', () => {
       this.regenerateWithCustomRange();
@@ -78,18 +68,18 @@ class GenerationController {
 
     editor.style.display = 'block';
 
-    if (classes.length >= 3) {
-      const firstEnd = classes[0].max;
-      const secondEnd = classes[1].max;
-      const lastStart = classes[classes.length - 1].min;
+    if (classes.length >= 2) {
+      const firstStart = classes[0].min;
+      const secondStart = classes[1].min;
+      const lastEnd = classes[classes.length - 1].max;
 
-      const firstEndInput = document.getElementById('firstEnd');
-      const secondEndInput = document.getElementById('secondEnd');
-      const lastStartInput = document.getElementById('lastStart');
+      const firstStartInput = document.getElementById('firstStart');
+      const secondStartInput = document.getElementById('secondStart');
+      const lastEndInput = document.getElementById('lastEnd');
 
-      if (firstEndInput) firstEndInput.value = firstEnd;
-      if (secondEndInput) secondEndInput.value = secondEnd;
-      if (lastStartInput) lastStartInput.value = lastStart;
+      if (firstStartInput) firstStartInput.value = firstStart;
+      if (secondStartInput) secondStartInput.value = secondStart;
+      if (lastEndInput) lastEndInput.value = lastEnd;
     }
   }
 
@@ -98,11 +88,11 @@ class GenerationController {
    */
   regenerateWithCustomRange() {
     try {
-      const firstEnd = parseFloat(document.getElementById('firstEnd')?.value);
-      const secondEnd = parseFloat(document.getElementById('secondEnd')?.value);
-      const lastStart = parseFloat(document.getElementById('lastStart')?.value);
+      const firstStart = parseFloat(document.getElementById('firstStart')?.value);
+      const secondStart = parseFloat(document.getElementById('secondStart')?.value);
+      const lastEnd = parseFloat(document.getElementById('lastEnd')?.value);
 
-      if (!firstEnd || !secondEnd || !lastStart) return;
+      if (firstStart === undefined || !secondStart || !lastEnd) return;
 
       // 루프 전 초기화 (generate()와 동일)
       this.app.chartRenderer.canvas.width = CONFIG.CANVAS_WIDTH;
@@ -115,7 +105,7 @@ class GenerationController {
       this.app.chartRenderer.timeline.duration = 0;
       this.app.chartRenderer.lastHighlightInfo = null;
 
-      const customRange = { firstEnd, secondEnd, lastStart };
+      const customRange = { firstStart, secondStart, lastEnd };
 
       const allDatasetInputs = this.app.datasetController.getAllDatasetInputValues();
       if (allDatasetInputs.length === 0) return;
@@ -632,12 +622,12 @@ class GenerationController {
         }
       }
 
-      const firstEnd = parseFloat(document.getElementById('firstEnd')?.value);
-      const secondEnd = parseFloat(document.getElementById('secondEnd')?.value);
-      const lastStart = parseFloat(document.getElementById('lastStart')?.value);
+      const firstStart = parseFloat(document.getElementById('firstStart')?.value);
+      const secondStart = parseFloat(document.getElementById('secondStart')?.value);
+      const lastEnd = parseFloat(document.getElementById('lastEnd')?.value);
 
-      if (firstEnd && secondEnd && lastStart) {
-        jsonData.customRange = { firstEnd, secondEnd, lastStart };
+      if (firstStart !== undefined && secondStart && lastEnd) {
+        jsonData.customRange = { firstStart, secondStart, lastEnd };
       }
 
       const jsonString = JSON.stringify(jsonData, null, 2);
@@ -807,23 +797,19 @@ class GenerationController {
       this.syncDatasetFormFromImport(classes, formConfig);
 
       if (data.customRange) {
-        const { firstEnd, secondEnd, lastStart } = data.customRange;
+        const { firstStart, secondStart, lastEnd } = data.customRange;
 
-        const firstEndInput = document.getElementById('firstEnd');
-        const secondEndInput = document.getElementById('secondEnd');
-        const lastStartInput = document.getElementById('lastStart');
+        const firstStartInput = document.getElementById('firstStart');
+        const secondStartInput = document.getElementById('secondStart');
+        const lastEndInput = document.getElementById('lastEnd');
 
-        if (firstEndInput) firstEndInput.value = firstEnd;
-        if (secondEndInput) secondEndInput.value = secondEnd;
-        if (lastStartInput) lastStartInput.value = lastStart;
+        if (firstStartInput) firstStartInput.value = firstStart;
+        if (secondStartInput) secondStartInput.value = secondStart;
+        if (lastEndInput) lastEndInput.value = lastEnd;
 
-        const secondStartEl = document.getElementById('secondStart');
-        const lastEndEl = document.getElementById('lastEnd');
         const intervalDisplay = document.getElementById('intervalDisplay');
-        const interval = secondEnd - firstEnd;
+        const interval = secondStart - firstStart;
 
-        if (secondStartEl) secondStartEl.textContent = firstEnd;
-        if (lastEndEl) lastEndEl.textContent = lastStart + interval;
         if (intervalDisplay) intervalDisplay.textContent = `(간격: ${interval})`;
       }
     }

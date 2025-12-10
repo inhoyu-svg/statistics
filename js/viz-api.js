@@ -306,9 +306,9 @@ export async function render(element, config) {
  * @param {number} [config.classCount=5] - Number of classes (for frequency table)
  * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
  * @param {Object} [config.classRange] - Custom class range (overrides classCount/classWidth)
- * @param {number} config.classRange.firstEnd - First class end value (e.g., 10 for 0~10)
- * @param {number} config.classRange.secondEnd - Second class end value (determines interval)
- * @param {number} config.classRange.lastStart - Last class start value
+ * @param {number} config.classRange.firstStart - First class start value (e.g., 12 for 12~14)
+ * @param {number} config.classRange.secondStart - Second class start value (determines interval)
+ * @param {number} config.classRange.lastEnd - Last class end value
  * @param {Object} [config.options] - Additional options
  * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
  * @param {string} [config.options.dataType='relativeFrequency'] - Data type ('frequency' | 'relativeFrequency')

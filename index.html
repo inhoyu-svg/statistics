@@ -190,29 +190,28 @@
               </div>
               <div class="range-inputs">
                 <div class="range-input-group">
-                  <label>첫 칸:</label>
+                  <label>첫 계급:</label>
                   <div class="range-display">
-                    <span class="range-fixed">0</span>
+                    <input type="number" id="firstStart" class="range-input" min="0" step="0.1" placeholder="0">
                     <span class="range-separator">~</span>
-                    <input type="number" id="firstEnd" class="range-input" min="0" step="0.1" placeholder="1">
+                    <span class="range-auto">(자동)</span>
                   </div>
                 </div>
                 <div class="range-input-group">
                   <label>두 번째:</label>
                   <div class="range-display">
-                    <span class="range-auto" id="secondStart">1</span>
+                    <input type="number" id="secondStart" class="range-input" min="0" step="0.1" placeholder="2">
                     <span class="range-separator">~</span>
-                    <input type="number" id="secondEnd" class="range-input" min="0" step="0.1" placeholder="3">
+                    <span class="range-auto">(자동)</span>
                     <span class="interval-display" id="intervalDisplay">(간격: 2)</span>
                   </div>
                 </div>
                 <div class="range-input-group">
-                  <label>마지막:</label>
+                  <label>마지막 끝:</label>
                   <div class="range-display">
-                    <input type="number" id="lastStart" class="range-input" min="0" step="0.1" placeholder="15">
+                    <span class="range-auto">(자동)</span>
                     <span class="range-separator">~</span>
-                    <span class="range-auto" id="lastEnd">17</span>
-                    <span class="interval-display">(자동)</span>
+                    <input type="number" id="lastEnd" class="range-input" min="0" step="0.1" placeholder="20">
                   </div>
                 </div>
               </div>

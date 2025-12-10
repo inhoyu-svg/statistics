@@ -80,7 +80,7 @@ class DataProcessor {
    * @param {Object} stats - 통계 객체 (calculateBasicStats 반환값)
    * @param {number} classCount - 생성할 계급 개수
    * @param {number|null} customWidth - 커스텀 계급 간격 (선택)
-   * @param {Object|null} customRange - 커스텀 범위 설정 { firstEnd, secondEnd, lastStart }
+   * @param {Object|null} customRange - 커스텀 범위 설정 { firstStart, secondStart, lastEnd }
    * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
    * @example
    * createClasses({ max: 100 }, 5)
@@ -135,46 +135,45 @@ class DataProcessor {
   /**
    * 커스텀 범위로 계급 구간 생성
    * @precondition viz-api에서 ConfigValidator.validate()로 classRange 검증됨
-   * @param {Object} customRange - { firstEnd, secondEnd, lastStart }
+   * @param {Object} customRange - { firstStart, secondStart, lastEnd }
    * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
    * @throws {Error} 범위 값이 논리적으로 올바르지 않은 경우 (방어적 검증)
    * @description
-   * - 첫 칸: 0 ~ firstEnd (비어있음)
-   * - 두 번째 칸: firstEnd ~ secondEnd (간격 결정)
-   * - 중간 칸들: 두 번째 칸의 간격으로 자동 생성
-   * - 마지막 칸: lastStart ~ (lastStart + 간격)
+   * - firstStart: 전체 구간의 시작값 (첫 계급 시작)
+   * - secondStart: 두 번째 계급의 시작값 (간격 결정용)
+   * - lastEnd: 전체 구간의 끝값 (마지막 계급 끝)
+   * @example
+   * // { firstStart: 12, secondStart: 14, lastEnd: 22 }
+   * // → 간격 2, 계급: 12~14, 14~16, 16~18, 18~20, 20~22
    */
   static createCustomRangeClasses(customRange) {
-    const { firstEnd, secondEnd, lastStart } = customRange;
+    const { firstStart, secondStart, lastEnd } = customRange;
 
     // 방어적 검증: ConfigValidator에서 이미 검증되었지만, 직접 호출 시 안전장치
-    if (firstEnd <= 0) {
-      throw new Error('첫 칸의 끝값은 0보다 커야 합니다.');
+    if (firstStart < 0) {
+      throw new Error('첫 계급의 시작값은 0 이상이어야 합니다.');
     }
-    if (secondEnd <= firstEnd) {
-      throw new Error('두 번째 칸의 끝값은 첫 칸의 끝값보다 커야 합니다.');
+    if (secondStart <= firstStart) {
+      throw new Error('두 번째 계급의 시작값은 첫 계급의 시작값보다 커야 합니다.');
     }
-    if (lastStart <= secondEnd) {
-      throw new Error('마지막 칸의 시작값은 두 번째 칸의 끝값보다 커야 합니다.');
+    if (lastEnd <= secondStart) {
+      throw new Error('마지막 계급의 끝값은 두 번째 계급의 시작값보다 커야 합니다.');
     }
 
-    // 간격 계산 (두 번째 칸 기준)
-    const classWidth = secondEnd - firstEnd;
+    // 간격 계산 (첫 번째와 두 번째 계급 시작값의 차이)
+    const classWidth = secondStart - firstStart;
+
+    // 간격으로 나누어 떨어지는지 검증
+    const totalRange = lastEnd - firstStart;
+    if (totalRange % classWidth !== 0) {
+      console.warn(`classRange 경고: 전체 범위(${totalRange})가 간격(${classWidth})으로 나누어 떨어지지 않습니다.`);
+    }
 
     const classes = [];
 
-    // 첫 칸 추가 (0 ~ firstEnd)
-    classes.push({
-      min: 0,
-      max: firstEnd,
-      frequency: 0,
-      data: [],
-      midpoint: firstEnd / 2
-    });
-
-    // 두 번째 칸부터 마지막 칸 직전까지
-    let currentMin = firstEnd;
-    while (currentMin < lastStart) {
+    // firstStart부터 lastEnd까지 classWidth 간격으로 계급 생성
+    let currentMin = firstStart;
+    while (currentMin < lastEnd) {
       const currentMax = currentMin + classWidth;
       classes.push({
         min: currentMin,
@@ -185,15 +184,6 @@ class DataProcessor {
       });
       currentMin = currentMax;
     }
-
-    // 마지막 칸 추가 (lastStart ~ lastStart + classWidth)
-    classes.push({
-      min: lastStart,
-      max: lastStart + classWidth,
-      frequency: 0,
-      data: [],
-      midpoint: lastStart + (classWidth / 2)
-    });
 
     return { classes, classWidth };
   }

@@ -139,7 +139,7 @@ if (!valid) console.log(validate.errors);
 | **tableType** | `tableType` | 테이블 유형 (`"basic-table"` / `"category-matrix"` / `"stem-leaf"`) | 테이블 |
 | **classCount** | `classCount` | 계급 개수 (기본: 5) | 차트 |
 | **classWidth** | `classWidth` | 계급 간격 (자동 계산) | 차트 |
-| **classRange** | `classRange` | 계급 범위 수동 설정 (`{ firstEnd, secondEnd, lastStart }`) | 차트 |
+| **classRange** | `classRange` | 계급 범위 수동 설정 (`{ firstStart, secondStart, lastEnd }`) | 차트 |
 | **canvasSize** | `canvasSize` | 정사각형 캔버스 크기 (우선 적용) | 차트 |
 | **canvasWidth** | `canvasWidth` | 캔버스 너비 (기본: 700) | 차트 |
 | **canvasHeight** | `canvasHeight` | 캔버스 높이 (기본: 450) | 차트 |
@@ -226,7 +226,7 @@ config (최상위)
 ├── tableType               "basic-table" | "category-matrix" | "stem-leaf" (기본: "basic-table")
 ├── classCount              계급 개수 (차트 전용, 기본: 5)
 ├── classWidth              계급 간격 (차트 전용, 자동 계산)
-├── classRange              계급 범위 커스터마이징 (차트 전용) { firstEnd, secondEnd, lastStart }
+├── classRange              계급 범위 커스터마이징 (차트 전용) { firstStart, secondStart, lastEnd }
 ├── canvasSize              정사각형 캔버스 크기 (차트 전용, 우선 적용)
 ├── canvasWidth             캔버스 너비
 ├── canvasHeight            캔버스 높이
@@ -399,22 +399,22 @@ config (최상위)
 
 | 하위 필드 | 타입 | 설명 | 예시 |
 |:----------|:-----|:-----|:-----|
-| `firstEnd` | `number` | 첫 번째 계급의 끝값 | `2` → 0이상~2미만 |
-| `secondEnd` | `number` | 두 번째 계급의 끝값 (간격 결정) | `4` → 간격 2 |
-| `lastStart` | `number` | 마지막 계급의 시작값 | `12` → 12이상~14미만 |
+| `firstStart` | `number` | 전체 구간의 **시작값** (첫 계급 시작) | `12` → 12이상~14미만 |
+| `secondStart` | `number` | 두 번째 계급의 시작값 (간격 결정용) | `14` → 간격 2 (14-12) |
+| `lastEnd` | `number` | 전체 구간의 **끝값** (마지막 계급 끝) | `22` → 20이상~22미만 |
 
 ```json
 {
-  "data": [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 9, 9, 9, 11, 11],
+  "data": [12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
   "classRange": {
-    "firstEnd": 2,
-    "secondEnd": 4,
-    "lastStart": 12
+    "firstStart": 12,
+    "secondStart": 14,
+    "lastEnd": 22
   }
 }
 ```
 
-**결과**: 0~2, 2~4, 4~6, 6~8, 8~10, 10~12, 12~14 (간격 2, 7개 계급)
+**결과**: 12~14, 14~16, 16~18, 18~20, 20~22 (간격 2, 5개 계급)
 
 > **⛔ 금지사항 (Strict Rule)**:
 > - **단일 히스토그램/도수다각형에서는 `classRange`를 절대 사용하지 마십시오.**
@@ -491,7 +491,7 @@ config (최상위)
 |:-----|:-----|:-----|
 | `showHistogram: false` | 히스토그램 비활성화 필수 | `"options": { "showHistogram": false }` |
 | `showPolygon: true` | 다각형 활성화 필수 | `"options": { "showPolygon": true }` |
-| `classRange` 지정 | 모든 데이터셋 정렬을 위해 필수 | `"classRange": { "firstEnd": 1, "secondEnd": 3, "lastStart": 13 }` |
+| `classRange` 지정 | 모든 데이터셋 정렬을 위해 필수 | `"classRange": { "firstStart": 1, "secondStart": 3, "lastEnd": 15 }` |
 | `dataType: "frequency"` | 도수 모드 권장 (상대도수도 가능) | `"options": { "dataType": "frequency" }` |
 | 서로 다른 `polygonColorPreset` | 데이터셋 구분을 위해 필수 | `"primary"`, `"secondary"`, `"tertiary"` |
 
@@ -521,7 +521,7 @@ config (최상위)
       "callout": { "template": "여학생" }
     }
   ],
-  "classRange": { "firstEnd": 1, "secondEnd": 3, "lastStart": 13 },
+  "classRange": { "firstStart": 1, "secondStart": 3, "lastEnd": 15 },
   "canvasSize": 700,
   "options": {
     "showHistogram": false,
@@ -575,7 +575,7 @@ config (최상위)
 | `datasets` | `array` | X | - | 복수 데이터셋 배열 (복수 다각형 렌더링) |
 | `classCount` | `number` | X | `5` | 계급 개수 |
 | `classWidth` | `number` | X | 자동 | 계급 간격 |
-| `classRange` | `object` | X | - | 계급 범위 수동 설정 (`{ firstEnd, secondEnd, lastStart }`) |
+| `classRange` | `object` | X | - | 계급 범위 수동 설정 (`{ firstStart, secondStart, lastEnd }`) |
 | `canvasWidth` | `number` | X | `700` | 캔버스 가로 크기 (px) |
 | `canvasHeight` | `number` | X | `450` | 캔버스 세로 크기 (px) |
 | `canvasSize` | `number` | X | - | 정사각형 캔버스 크기 (우선 적용) |

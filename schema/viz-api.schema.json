@@ -180,28 +180,28 @@
   "definitions": {
     "classRange": {
       "type": "object",
-      "description": "계급 범위 수동 지정. 예: {firstEnd:10, secondEnd:20, lastStart:50} → 0~10, 10~20, 20~30, 30~40, 40~50, 50~60",
-      "required": ["firstEnd", "secondEnd", "lastStart"],
+      "description": "계급 범위 수동 지정. 예: {firstStart:12, secondStart:14, lastEnd:22} → 12~14, 14~16, 16~18, 18~20, 20~22 (간격 2)",
+      "required": ["firstStart", "secondStart", "lastEnd"],
       "additionalProperties": false,
       "properties": {
-        "firstEnd": {
-          "description": "첫 계급 끝값 (0~firstEnd가 첫 계급)",
+        "firstStart": {
+          "description": "전체 구간의 시작값 (첫 계급 시작)",
           "type": "number",
-          "examples": [10, 20]
+          "examples": [0, 12]
         },
-        "secondEnd": {
-          "description": "두 번째 계급 끝값 (간격 = secondEnd - firstEnd)",
+        "secondStart": {
+          "description": "두 번째 계급 시작값 (간격 = secondStart - firstStart)",
           "type": "number",
-          "examples": [20, 40]
+          "examples": [2, 14]
         },
-        "lastStart": {
-          "description": "마지막 계급 시작값",
+        "lastEnd": {
+          "description": "전체 구간의 끝값 (마지막 계급 끝)",
           "type": "number",
-          "examples": [50, 80]
+          "examples": [20, 22]
         }
       },
       "examples": [
-        { "firstEnd": 10, "secondEnd": 20, "lastStart": 50 }
+        { "firstStart": 12, "secondStart": 14, "lastEnd": 22 }
       ]
     },
     "cellAnimation": {
