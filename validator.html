@@ -902,7 +902,7 @@
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "table",
   "tableType": "basic-table",
-  "data": "헤더: 키(cm), 도수(명), 상대도수\n60이상~70미만: 2, 0.2\n70이상~80미만: 5, 0.5\n80이상~90미만: 3, 0.3",
+  "data": "헤더: 키(cm), 도수(명), 상대도수\n60^{이상}~70{미만}: 2, 0.2\n70~80: 5, 0.5\n80~90: 3, 0.3",
   "canvasWidth": 500,
   "canvasHeight": 300,
   "animation": true,
@@ -1134,6 +1134,31 @@
           return {
             message: '상대도수 모드에서 customYInterval은 소수(0.05, 0.1 등)를 권장합니다.',
             fields: ['options']
+          };
+        }
+        return null;
+      },
+
+      // 테이블 data 첫 행에 이상/미만 표기 권장
+      tableFirstRowNotation: (config) => {
+        if (config.purpose !== 'table') return null;
+
+        const data = config.data;
+        if (typeof data !== 'string') return null;
+
+        const lines = data.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return null;
+
+        // 첫 번째 데이터 행 (헤더 다음)
+        const firstDataLine = lines[1];
+
+        // 이상/미만 표기가 있는지 확인 (^{이상}, ^{미만}, _{이상}, _{미만} 등)
+        const hasNotation = /[\^_]\{(이상|미만)\}/.test(firstDataLine);
+
+        if (!hasNotation) {
+          return {
+            message: '테이블 첫 번째 데이터 행에 "이상/미만" 표기를 권장합니다. 예: 60^{이상}~70^{미만}',
+            fields: ['data']
           };
         }
         return null;
