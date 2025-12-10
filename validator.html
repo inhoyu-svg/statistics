@@ -851,6 +851,7 @@
   "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 68, 91, 83, 72, 78],
   "classCount": 5,
+  "classWidth": 10,
   "canvasSize": 600,
   "animation": true,
   "options": {
@@ -881,7 +882,7 @@
       "showVertical": false
     },
     "axis": {
-      "showYLabels": true,
+      "showYLabels": false,
       "showXLabels": true,
       "yLabelFormat": "percent"
     },
@@ -1099,8 +1100,11 @@
         return null;
       },
 
-      // animation: true인데 cellAnimations 없음
+      // animation: true인데 cellAnimations 없음 (테이블 전용)
       animationWithoutCellAnimations: (config) => {
+        // 테이블일 때만 해당되는 검증
+        if (config.purpose !== 'table') return null;
+
         const animation = config.animation;
         const hasAnimation = animation === true || animation?.enabled === true;
         const hasCellAnimations = config.cellAnimations && config.cellAnimations.length > 0;
