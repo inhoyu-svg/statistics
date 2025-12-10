@@ -433,14 +433,16 @@ class BasicTableFactory {
 
     cells.forEach((cellText, colIndex) => {
       let displayText = cellText;
-      if (typeof cellText === 'number') {
+      if (cellText === null) {
+        displayText = null;  // null은 그대로 유지 (빈칸 처리용)
+      } else if (typeof cellText === 'number') {
         // 1인 경우 그대로 1로 표시, 그 외는 소수점 처리
         displayText = cellText === 1 ? '1' : cellText.toFixed(2).replace(/\.?0+$/, '');
       }
 
       const cellLayer = new Layer({
         id: `basic-table-${tableId}-table-summary-col${colIndex}`,
-        name: String(displayText),
+        name: displayText === null ? '' : String(displayText),
         type: 'cell',
         visible: true,
         order: colIndex,
@@ -449,7 +451,7 @@ class BasicTableFactory {
           rowIndex: dataRowCount,
           colIndex,
           colLabel: '',
-          cellText: String(displayText),
+          cellText: displayText === null ? null : String(displayText),
           x,
           y,
           width: columnWidths[colIndex],
