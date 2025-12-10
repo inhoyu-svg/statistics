@@ -385,10 +385,257 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #555;
     }
+
+    /* 사이드 패널 */
+    .guide-toggle-btn {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: #3a3a5a;
+      color: #aaa;
+      border: 1px solid #555;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.2s;
+      z-index: 100;
+    }
+
+    .guide-toggle-btn:hover {
+      background: #4a4a6a;
+      color: #fff;
+      border-color: #8DCF66;
+    }
+
+    .guide-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      height: 100vh;
+      background: #252540;
+      border-left: 1px solid #444;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+      transition: right 0.3s ease;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .guide-panel.open {
+      right: 0;
+    }
+
+    .guide-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #444;
+      background: #1a1a2e;
+    }
+
+    .guide-panel-header h3 {
+      font-weight: 500;
+      color: #8DCF66;
+      font-size: 16px;
+    }
+
+    .guide-close-btn {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .guide-close-btn:hover {
+      color: #fff;
+    }
+
+    .guide-panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .guide-section {
+      margin-bottom: 24px;
+    }
+
+    .guide-section h4 {
+      color: #8DCF66;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #3a3a5a;
+    }
+
+    .guide-item {
+      background: #1a1a2e;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .guide-item-title {
+      color: #f0ad4e;
+      font-weight: 500;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .guide-item-desc {
+      color: #aaa;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .guide-item code {
+      background: #3a3a5a;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 11px;
+      color: #8DCF66;
+    }
+
+    /* 패널 열렸을 때 배경 오버레이 */
+    .guide-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s;
+      z-index: 150;
+    }
+
+    .guide-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
   </style>
 </head>
 <body>
-  <h1>viz-api JSON 검증기</h1>
+  <!-- 가이드 토글 버튼 -->
+  <button class="guide-toggle-btn" id="guideToggleBtn">권장사항 가이드</button>
+
+  <!-- 배경 오버레이 -->
+  <div class="guide-overlay" id="guideOverlay"></div>
+
+  <!-- 사이드 패널 -->
+  <div class="guide-panel" id="guidePanel">
+    <div class="guide-panel-header">
+      <h3>권장사항 가이드</h3>
+      <button class="guide-close-btn" id="guideCloseBtn">&times;</button>
+    </div>
+    <div class="guide-panel-content">
+      <div class="guide-section">
+        <h4>데이터 설정</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">테이블 데이터에는 purpose 명시</div>
+          <div class="guide-item-desc">
+            테이블 형식 데이터를 사용할 때는 <code>"purpose": "table"</code>을 명시하세요.
+            자동 감지되지만 명시적 선언이 안전합니다.
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">classRange 사용 주의</div>
+          <div class="guide-item-desc">
+            <code>classRange</code>는 복수 도수다각형 오버레이 용도로만 권장됩니다.
+            일반적인 경우 <code>classCount</code> + <code>classWidth</code> 조합을 사용하세요.
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>캔버스 크기</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">차트: canvasSize 사용</div>
+          <div class="guide-item-desc">
+            차트는 <code>canvasSize</code> 하나로 정사각형 기준 크기를 설정하거나,
+            <code>canvasWidth</code>와 <code>canvasHeight</code>를 함께 사용하세요.
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">테이블: width 또는 height 중 하나만</div>
+          <div class="guide-item-desc">
+            테이블은 <code>canvasWidth</code> 또는 <code>canvasHeight</code> 둘 중 하나만 사용을 권장합니다.
+            동시 지정 시 비율이 왜곡될 수 있습니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>옵션 설정</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">callout.preset 생략 가능</div>
+          <div class="guide-item-desc">
+            <code>callout.preset</code>은 도수다각형 색상을 자동으로 따르므로 생략해도 됩니다.
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">showDashedLines + Y축 라벨</div>
+          <div class="guide-item-desc">
+            <code>showDashedLines</code> 사용 시 Y축 라벨과 중복될 수 있습니다.
+            <code>axis.showYLabels: false</code>를 권장합니다.
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">customYInterval 값</div>
+          <div class="guide-item-desc">
+            도수 모드(<code>dataType: "frequency"</code>)에서는 정수(1, 2, 5, 10 등),
+            상대도수 모드에서는 소수(0.05, 0.1 등)를 권장합니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>애니메이션</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">cellAnimations 필요</div>
+          <div class="guide-item-desc">
+            <code>animation: true</code>를 설정했다면 <code>cellAnimations</code> 배열을 추가해야
+            셀 애니메이션이 동작합니다.
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-item-title">duration/repeat은 blink 전용</div>
+          <div class="guide-item-desc">
+            <code>duration</code>과 <code>repeat</code>은
+            <code>cellAnimationOptions.blinkEnabled: true</code>일 때만 적용됩니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>기본값 참고</h4>
+        <div class="guide-item">
+          <div class="guide-item-title">자주 쓰는 기본값</div>
+          <div class="guide-item-desc">
+            <code>purpose</code>: "chart"<br>
+            <code>classCount</code>: 5<br>
+            <code>canvasWidth</code>: 700<br>
+            <code>canvasHeight</code>: 450<br>
+            <code>animation</code>: true<br>
+            기본값과 동일한 값은 생략해도 됩니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>Statistics JSON 동작 검증기</h1>
 
   <div class="container">
     <!-- 좌측: JSON 입력 -->
@@ -926,6 +1173,33 @@
     jsonInput.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.key === 'Enter') {
         validateJson();
+      }
+    });
+
+    // 가이드 패널 토글
+    const guidePanel = document.getElementById('guidePanel');
+    const guideOverlay = document.getElementById('guideOverlay');
+    const guideToggleBtn = document.getElementById('guideToggleBtn');
+    const guideCloseBtn = document.getElementById('guideCloseBtn');
+
+    function openGuidePanel() {
+      guidePanel.classList.add('open');
+      guideOverlay.classList.add('open');
+    }
+
+    function closeGuidePanel() {
+      guidePanel.classList.remove('open');
+      guideOverlay.classList.remove('open');
+    }
+
+    guideToggleBtn.addEventListener('click', openGuidePanel);
+    guideCloseBtn.addEventListener('click', closeGuidePanel);
+    guideOverlay.addEventListener('click', closeGuidePanel);
+
+    // ESC 키로 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && guidePanel.classList.contains('open')) {
+        closeGuidePanel();
       }
     });
   </script>
