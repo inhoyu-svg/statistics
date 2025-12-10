@@ -272,18 +272,23 @@ function applyCustomColors(options) {
  * @param {Object} config - Configuration object
  * @param {string} [config.purpose='chart'] - Rendering purpose ('chart' | 'table')
  * @param {string} config.data - Raw data string (comma/space separated)
+ * @param {Array} [config.datasets] - Multiple datasets for overlay rendering
  * @param {number} [config.classCount=5] - Number of classes
  * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
  * @param {Object} [config.options] - Additional options
  * @returns {Promise<Object>} Renderer result or { error }
  */
-export async function render(element, config) {  
+export async function render(element, config) {
   // Wait for KaTeX fonts to load
   await waitForFonts();
 
   const purpose = config.purpose || 'chart';
 
   if (purpose === 'chart') {
+    // datasets 배열이 있으면 복수 도수다각형 렌더링
+    if (Array.isArray(config.datasets) && config.datasets.length > 0) {
+      return renderMultiplePolygons(element, config);
+    }
     return renderChart(element, config);
   } else if (purpose === 'table') {
     return renderTable(element, config);
@@ -328,6 +333,11 @@ export async function renderChart(element, config) {
         error: 'element must be a valid HTMLElement',
         errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
       };
+    }
+
+    // datasets 배열이 있으면 복수 도수다각형 렌더링
+    if (Array.isArray(config.datasets) && config.datasets.length > 0) {
+      return renderMultiplePolygons(element, config);
     }
 
     // 2. Config validation (ConfigValidator 중앙 집중 검증)
@@ -901,6 +911,280 @@ function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 
     totalCols,
     inset: 3 * scale
   };
+}
+
+// ============================================
+// Multiple Polygon Rendering (Static Mode)
+// ============================================
+
+/**
+ * 복수 도수다각형 정적 렌더링
+ * datasets 배열을 받아 하나의 캔버스에 여러 다각형을 동시 렌더링
+ * @param {HTMLElement} element - 컨테이너 요소
+ * @param {Object} config - 설정 객체
+ * @param {Array} config.datasets - 데이터셋 배열 [{ data, callout, polygonColorPreset }, ...]
+ * @param {Object} [config.classRange] - 공통 계급 범위
+ * @param {Object} [config.options] - 공통 옵션
+ * @returns {Promise<Object>} { chartRenderer, canvas, allClasses }
+ */
+async function renderMultiplePolygons(element, config) {
+  try {
+    await waitForFonts();
+
+    // 1. Element validation
+    if (!element || !(element instanceof HTMLElement)) {
+      return {
+        error: 'element must be a valid HTMLElement',
+        errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
+      };
+    }
+
+    const datasets = config.datasets;
+    if (!Array.isArray(datasets) || datasets.length === 0) {
+      return { error: 'datasets array is required and must not be empty' };
+    }
+
+    // 2. 각 dataset 분석 및 classes 생성
+    const allAnalyzed = [];
+    for (const dataset of datasets) {
+      if (!dataset.data) {
+        console.warn('[viz-api] Dataset missing data field, skipping');
+        continue;
+      }
+
+      const dataString = Array.isArray(dataset.data)
+        ? dataset.data.join(', ')
+        : dataset.data;
+      const rawData = DataProcessor.parseInput(dataString);
+      if (rawData.length === 0) continue;
+
+      const stats = DataProcessor.calculateBasicStats(rawData);
+      const classCount = config.classCount || 5;
+      const classWidth = config.classWidth || null;
+      const customRange = config.classRange || null;
+      const { classes, classWidth: classInterval } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
+
+      DataProcessor.calculateFrequencies(rawData, classes);
+
+      const freq = classes.map(c => c.frequency);
+      const total = freq.reduce((a, b) => a + b, 0);
+      const relativeFreqs = freq.map(f => f / total);
+
+      allAnalyzed.push({
+        dataset,
+        classes,
+        classInterval,
+        freq,
+        relativeFreqs,
+        total,
+        maxRelativeFreq: Math.max(...relativeFreqs),
+        maxFrequency: Math.max(...freq)
+      });
+    }
+
+    if (allAnalyzed.length === 0) {
+      return { error: 'No valid datasets found' };
+    }
+
+    // 3. 통합 값 계산
+    const options = config.options || {};
+    const dataType = options.dataType || 'relativeFrequency';
+
+    // config에서 unifiedMaxY 지정 가능, 없으면 자동 계산
+    // CoordinateSystem에서 customYInterval이 있으면 자동으로 2칸 여백 추가하므로 여기선 최대값만 전달
+    let unifiedMaxY = config.unifiedMaxY;
+    if (unifiedMaxY === undefined || unifiedMaxY === null) {
+      if (dataType === 'frequency') {
+        unifiedMaxY = Math.max(...allAnalyzed.map(a => a.maxFrequency));
+      } else {
+        const maxRelFreq = Math.max(...allAnalyzed.map(a => a.maxRelativeFreq));
+        unifiedMaxY = maxRelFreq * CONFIG.CHART_Y_SCALE_MULTIPLIER;
+      }
+    }
+
+    const unifiedClassCount = Math.max(...allAnalyzed.map(a => a.classes.length));
+
+    console.log(`[viz-api] Multiple polygons: ${allAnalyzed.length} datasets, unifiedMaxY=${unifiedMaxY}, unifiedClassCount=${unifiedClassCount}`);
+
+    // 4. 캔버스 생성
+    const canvasId = `viz-chart-${++chartInstanceCounter}`;
+    const canvas = document.createElement('canvas');
+    canvas.id = canvasId;
+
+    if (config.canvasSize) {
+      canvas.width = config.canvasSize;
+      canvas.height = config.canvasSize;
+    } else {
+      canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
+      canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
+    }
+
+    CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
+
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', 'Multiple frequency polygons');
+    element.appendChild(canvas);
+
+    // 5. ChartRenderer 생성 및 정적 모드 설정
+    const chartRenderer = new ChartRenderer(canvasId);
+    chartRenderer.disableAnimation();
+
+    // 6. 공통 옵션 적용
+    CONFIG.SHOW_HISTOGRAM = options.showHistogram === true;  // 기본 false
+    CONFIG.SHOW_POLYGON = options.showPolygon !== false;     // 기본 true
+    CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
+
+    const gridOptions = options.grid || {};
+    CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;
+    CONFIG.GRID_SHOW_VERTICAL = gridOptions.showVertical !== false;
+
+    const axisOptions = options.axis || {};
+    CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
+    CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
+
+    // 7. 각 데이터셋 순서대로 그리기
+    const axisLabels = options.axisLabels || null;
+    const customYInterval = options.customYInterval || null;
+    const ellipsisInfo = DataProcessor.shouldShowEllipsis(allAnalyzed[0].classes);
+
+    // 첫 번째 데이터셋으로 축/그리드 그리기
+    const firstAnalyzed = allAnalyzed[0];
+    CONFIG.POLYGON_COLOR_PRESET = firstAnalyzed.dataset.polygonColorPreset || 'default';
+
+    console.log(`[viz-api] Drawing dataset 0: preset=${CONFIG.POLYGON_COLOR_PRESET}, isFirst=true`);
+
+    chartRenderer.draw(
+      firstAnalyzed.classes,
+      axisLabels,
+      ellipsisInfo,
+      dataType,
+      null,  // tableConfig
+      null,  // calloutTemplate
+      true,  // clearCanvas
+      unifiedMaxY,
+      unifiedClassCount,
+      customYInterval
+    );
+
+    // 저장된 coords 사용 (나머지 데이터셋에서 재사용)
+    const coords = chartRenderer.currentCoords;
+
+    // callout 인덱스 (세로 배치용)
+    let calloutIndex = 0;
+
+    // 첫 번째 callout
+    if (firstAnalyzed.dataset.callout?.template) {
+      const calloutPreset = firstAnalyzed.dataset.callout.preset || CONFIG.POLYGON_COLOR_PRESET;
+      const values = dataType === 'frequency' ? firstAnalyzed.freq : firstAnalyzed.relativeFreqs;
+      console.log(`[viz-api] Drawing callout for dataset 0: template=${firstAnalyzed.dataset.callout.template}, index=${calloutIndex}`);
+      renderStaticCallout(chartRenderer, firstAnalyzed.classes, values, coords, firstAnalyzed.dataset.callout.template, calloutPreset, dataType, calloutIndex);
+      calloutIndex++;
+    }
+
+    // 나머지 데이터셋은 다각형만 직접 그리기 (draw() 호출 안 함)
+    for (let i = 1; i < allAnalyzed.length; i++) {
+      const analyzed = allAnalyzed[i];
+      const colorPreset = analyzed.dataset.polygonColorPreset || 'default';
+
+      console.log(`[viz-api] Drawing dataset ${i}: preset=${colorPreset}, isFirst=false`);
+
+      // 색상 프리셋 설정
+      CONFIG.POLYGON_COLOR_PRESET = colorPreset;
+
+      // 값 배열
+      const values = dataType === 'frequency' ? analyzed.freq : analyzed.relativeFreqs;
+
+      // 다각형 직접 그리기 (축/그리드 건드리지 않음)
+      if (CONFIG.SHOW_POLYGON) {
+        chartRenderer.polygonRenderer.draw(values, coords, ellipsisInfo);
+      }
+
+      // callout 그리기
+      if (analyzed.dataset.callout?.template) {
+        const calloutPreset = analyzed.dataset.callout.preset || colorPreset;
+        console.log(`[viz-api] Drawing callout for dataset ${i}: template=${analyzed.dataset.callout.template}, index=${calloutIndex}`);
+        renderStaticCallout(chartRenderer, analyzed.classes, values, coords, analyzed.dataset.callout.template, calloutPreset, dataType, calloutIndex);
+        calloutIndex++;
+      }
+    }
+
+    return {
+      chartRenderer,
+      canvas,
+      allClasses: allAnalyzed.map(a => a.classes)
+    };
+
+  } catch (error) {
+    console.error('renderMultiplePolygons error:', error);
+    return { error: error.message };
+  }
+}
+
+/**
+ * 정적 모드에서 Callout 렌더링 (왼쪽 상단에 세로로 쌓임)
+ * @param {ChartRenderer} chartRenderer - 차트 렌더러
+ * @param {Array} classes - 계급 배열
+ * @param {Array} values - 값 배열
+ * @param {Object} coords - 좌표 시스템
+ * @param {string} template - 템플릿 문자열
+ * @param {string} colorPreset - 색상 프리셋
+ * @param {string} dataType - 데이터 타입
+ * @param {number} calloutIndex - 말풍선 인덱스 (0부터, 세로 배치용)
+ */
+function renderStaticCallout(chartRenderer, classes, values, coords, template, colorPreset, dataType, calloutIndex = 0) {
+  // 최고점 찾기
+  let maxIndex = 0;
+  let maxValue = values[0];
+  values.forEach((v, i) => {
+    if (v > maxValue) {
+      maxValue = v;
+      maxIndex = i;
+    }
+  });
+
+  const classData = classes[maxIndex];
+  if (!classData) return;
+
+  // 상대도수 계산 (백분율)
+  const total = classes.reduce((sum, c) => sum + c.frequency, 0);
+  classData.relativeFreq = ((classData.frequency / total) * 100).toFixed(1);
+
+  // 템플릿 치환
+  const CalloutRenderer = chartRenderer.calloutRenderer.constructor;
+  const text = CalloutRenderer.formatTemplate(template, classData, dataType);
+  if (!text) return;
+
+  // 말풍선 크기 계산
+  const scaledCalloutSize = CONFIG.getScaledCalloutSize();
+  const font = `${CONFIG.getScaledFontSize(20)}px KaTeX_Main`;
+  const calloutWidth = CalloutRenderer.calculateCalloutWidth(text, font);
+  const calloutHeight = scaledCalloutSize.height;
+
+  // 위치 계산 - 왼쪽 상단에 세로로 쌓임 (LayerFactory와 동일한 로직)
+  const calloutSpacing = CONFIG.getScaledValue(10);
+  const calloutX = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_X);
+  const calloutY = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_Y) + (calloutIndex * (calloutHeight + calloutSpacing));
+
+  // 포인트 좌표 (연결선용)
+  const { toX, toY, xScale } = coords;
+  const pointX = toX(maxIndex) + xScale * CONFIG.CHART_BAR_WIDTH_RATIO / 2;
+  const pointY = toY(maxValue);
+
+  // 레이어 데이터 구성
+  const layerData = {
+    x: calloutX,
+    y: calloutY,
+    width: calloutWidth,
+    height: calloutHeight,
+    text,
+    opacity: 1,
+    polygonPreset: colorPreset,
+    pointX,
+    pointY
+  };
+
+  // 렌더링
+  chartRenderer.calloutRenderer.render({ data: layerData });
 }
 
 // ============================================

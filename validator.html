@@ -296,6 +296,31 @@
       font-size: 16px;
     }
 
+    .type-badge {
+      background: #3a5a3a;
+      color: #8DCF66;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    .type-badge.type-error {
+      background: #5a3a3a;
+      color: #ff6b6b;
+    }
+
+    /* 중첩 필드 (options 하위) 스타일 */
+    .field-item.nested {
+      margin-left: 20px;
+      border-left-width: 3px;
+      background: #1e1e35;
+    }
+
+    .field-item.nested .field-name {
+      color: #aaa;
+    }
+
     .field-desc {
       color: #888;
       font-size: 12px;
@@ -952,7 +977,9 @@
       "enabled": true,
       "boundary": 70
     },
-    "customYInterval": 1
+    "triangleLabels": ["S₁", "S₂"],
+    "customYInterval": 1,
+    "customBarLabels": ["A", null, "B", null, "C"]
   }
 }</pre>
         </div>
@@ -1113,12 +1140,38 @@
         return null;
       },
 
-      // classRange 사용 비권장
+      // classRange 사용 비권장 (datasets 사용 시에는 권장)
       classRangeUsage: (config) => {
+        // datasets 사용 시에는 classRange가 필수
+        if (config.datasets && config.datasets.length > 0) return null;
         if (config.classRange) {
           return {
             message: 'classRange는 복수 도수다각형 오버레이 용도로만 권장됩니다. 일반적인 경우 classCount + classWidth 조합을 사용하세요.',
             fields: ['classRange']
+          };
+        }
+        return null;
+      },
+
+      // datasets 사용 시 showHistogram: false 권장
+      datasetsHistogram: (config) => {
+        if (config.datasets && config.datasets.length > 0) {
+          if (config.options?.showHistogram !== false) {
+            return {
+              message: 'datasets 사용 시 히스토그램이 겹쳐 보입니다. "options.showHistogram": false 권장합니다.',
+              fields: ['datasets', 'options.showHistogram']
+            };
+          }
+        }
+        return null;
+      },
+
+      // datasets + data 동시 사용 경고
+      datasetsWithData: (config) => {
+        if (config.datasets && config.datasets.length > 0 && config.data) {
+          return {
+            message: 'datasets 사용 시 data 필드는 무시됩니다. data를 제거하세요.',
+            fields: ['data', 'datasets']
           };
         }
         return null;
@@ -1154,7 +1207,7 @@
         if (config.options?.callout?.preset) {
           return {
             message: 'callout.preset은 도수다각형 색상을 자동으로 따르므로 생략해도 됩니다.',
-            fields: ['options']
+            fields: ['options.callout']
           };
         }
         return null;
@@ -1165,7 +1218,7 @@
         if (config.options?.showDashedLines && config.options?.axis?.showYLabels !== false) {
           return {
             message: 'showDashedLines 사용 시 Y축 라벨과 중복될 수 있습니다. axis.showYLabels: false 권장합니다.',
-            fields: ['options']
+            fields: ['options.showDashedLines', 'options.axis']
           };
         }
         return null;
@@ -1217,13 +1270,13 @@
         if (dataType === 'frequency' && !Number.isInteger(interval)) {
           return {
             message: '도수 모드에서 customYInterval은 정수(1, 2, 5, 10 등)를 권장합니다.',
-            fields: ['options']
+            fields: ['options.customYInterval']
           };
         }
         if (dataType === 'relativeFrequency' && interval >= 1) {
           return {
             message: '상대도수 모드에서 customYInterval은 소수(0.05, 0.1 등)를 권장합니다.',
-            fields: ['options']
+            fields: ['options.customYInterval']
           };
         }
         return null;
@@ -1312,14 +1365,14 @@
         if (isFrequencyTable && showMergedHeader === true) {
           return {
             message: '도수분포표에서는 showMergedHeader: false를 권장합니다.',
-            fields: ['options']
+            fields: ['options.showMergedHeader']
           };
         }
 
         if (!isFrequencyTable && showMergedHeader === false) {
           return {
             message: '이원분류표에서는 showMergedHeader: true를 권장합니다.',
-            fields: ['options']
+            fields: ['options.showMergedHeader']
           };
         }
 
@@ -1336,7 +1389,7 @@
         const result = checkFn(config);
         if (result) {
           warnings.push({ key, message: result.message, fields: result.fields || [] });
-          // 경고 관련 필드들 수집
+          // 경고 관련 필드들 수집 (options.xxx 형태도 지원)
           (result.fields || []).forEach(f => warningFields.add(f));
         }
       }
@@ -1346,20 +1399,82 @@
 
     // 검증할 필드 정의
     const FIELD_DEFINITIONS = {
-      data: { required: true, label: 'data', desc: '변량 데이터 (필수)' },
-      purpose: { required: false, label: 'purpose', desc: '렌더링 목적', default: 'chart' },
-      tableType: { required: false, label: 'tableType', desc: '테이블 타입', default: 'basic-table' },
-      classCount: { required: false, label: 'classCount', desc: '계급 개수 (3~20)', default: 5 },
-      classWidth: { required: false, label: 'classWidth', desc: '계급 간격' },
-      classRange: { required: false, label: 'classRange', desc: '계급 범위 수동 지정' },
-      canvasSize: { required: false, label: 'canvasSize', desc: '캔버스 크기' },
-      canvasWidth: { required: false, label: 'canvasWidth', desc: '캔버스 너비', default: 700 },
-      canvasHeight: { required: false, label: 'canvasHeight', desc: '캔버스 높이', default: 450 },
-      cellVariables: { required: false, label: 'cellVariables', desc: '셀 변수 치환' },
-      cellAnimations: { required: false, label: 'cellAnimations', desc: '셀 애니메이션' },
-      animation: { required: false, label: 'animation', desc: '애니메이션 활성화', default: true },
-      options: { required: false, label: 'options', desc: '세부 옵션' }
+      // 최상위 필드
+      data: { required: true, label: 'data', desc: '변량 데이터 (필수)', type: 'array|string' },
+      datasets: { required: false, label: 'datasets', desc: '복수 데이터셋 배열 (복수 다각형)', type: 'array' },
+      purpose: { required: false, label: 'purpose', desc: '렌더링 목적', default: 'chart', type: 'string' },
+      tableType: { required: false, label: 'tableType', desc: '테이블 타입', default: 'basic-table', type: 'string' },
+      classCount: { required: false, label: 'classCount', desc: '계급 개수 (3~20)', default: 5, type: 'number' },
+      classWidth: { required: false, label: 'classWidth', desc: '계급 간격', type: 'number' },
+      classRange: { required: false, label: 'classRange', desc: '계급 범위 수동 지정', type: 'object' },
+      canvasSize: { required: false, label: 'canvasSize', desc: '캔버스 크기', type: 'number' },
+      canvasWidth: { required: false, label: 'canvasWidth', desc: '캔버스 너비', default: 700, type: 'number' },
+      canvasHeight: { required: false, label: 'canvasHeight', desc: '캔버스 높이', default: 450, type: 'number' },
+      cellVariables: { required: false, label: 'cellVariables', desc: '셀 변수 치환', type: 'array' },
+      cellAnimations: { required: false, label: 'cellAnimations', desc: '셀 애니메이션', type: 'array' },
+      cellAnimationOptions: { required: false, label: 'cellAnimationOptions', desc: '셀 애니메이션 전역 옵션', type: 'object' },
+      animation: { required: false, label: 'animation', desc: '애니메이션 활성화', default: true, type: 'boolean' },
+      options: { required: false, label: 'options', desc: '세부 옵션', type: 'object' }
     };
+
+    // options 하위 필드 정의 (차트)
+    const OPTIONS_CHART_DEFINITIONS = {
+      showHistogram: { label: 'options.showHistogram', desc: '히스토그램 표시', default: true, type: 'boolean' },
+      showPolygon: { label: 'options.showPolygon', desc: '도수다각형 표시', default: true, type: 'boolean' },
+      dataType: { label: 'options.dataType', desc: 'Y축 데이터 타입', default: 'relativeFrequency', type: 'string' },
+      axisLabels: { label: 'options.axisLabels', desc: '축 라벨 설정', type: 'object' },
+      grid: { label: 'options.grid', desc: '격자선 설정', type: 'object' },
+      axis: { label: 'options.axis', desc: '축 표시 설정', type: 'object' },
+      callout: { label: 'options.callout', desc: '말풍선 설정', type: 'object' },
+      showDashedLines: { label: 'options.showDashedLines', desc: '수직 파선 표시', default: false, type: 'boolean' },
+      congruentTriangles: { label: 'options.congruentTriangles', desc: '합동 삼각형 설정', type: 'object' },
+      triangleLabels: { label: 'options.triangleLabels', desc: '삼각형 라벨', type: 'array' },
+      customBarLabels: { label: 'options.customBarLabels', desc: '막대 내부 라벨', type: 'array' },
+      customYInterval: { label: 'options.customYInterval', desc: 'Y축 간격', type: 'number' },
+      histogramColorPreset: { label: 'options.histogramColorPreset', desc: '히스토그램 색상 프리셋', type: 'string' },
+      polygonColorPreset: { label: 'options.polygonColorPreset', desc: '도수다각형 색상 프리셋', type: 'string' },
+      histogramColor: { label: 'options.histogramColor', desc: '히스토그램 직접 색상', type: 'object' },
+      polygonColor: { label: 'options.polygonColor', desc: '도수다각형 직접 색상', type: 'object' },
+      corruption: { label: 'options.corruption', desc: '찢김 효과 설정', type: 'object' }
+    };
+
+    // options 하위 필드 정의 (테이블)
+    const OPTIONS_TABLE_DEFINITIONS = {
+      showTotal: { label: 'options.showTotal', desc: '합계 행 표시', default: false, type: 'boolean' },
+      showMergedHeader: { label: 'options.showMergedHeader', desc: '병합 헤더 표시', type: 'boolean' },
+      corruption: { label: 'options.corruption', desc: '찢김 효과 설정', type: 'object' }
+    };
+
+    // 타입 검증 함수
+    function checkType(value, expectedType) {
+      if (value === undefined || value === null) return { valid: true, actualType: null };
+
+      const types = expectedType.split('|');
+      const actualType = Array.isArray(value) ? 'array' : typeof value;
+
+      const isValid = types.some(t => {
+        if (t === 'array') return Array.isArray(value);
+        if (t === 'object') return typeof value === 'object' && !Array.isArray(value);
+        return typeof value === t;
+      });
+
+      return { valid: isValid, actualType, expectedType };
+    }
+
+    // 타입 이름 (영어 + 한글)
+    function getTypeLabel(type, includeKorean = true) {
+      const labels = {
+        'string': { en: 'string', ko: '문자열' },
+        'number': { en: 'number', ko: '숫자' },
+        'boolean': { en: 'boolean', ko: '불리언' },
+        'array': { en: 'array', ko: '배열' },
+        'object': { en: 'object', ko: '객체' },
+        'array|string': { en: 'array|string', ko: '배열/문자열' }
+      };
+      const label = labels[type];
+      if (!label) return type;
+      return includeKorean ? `${label.en} (${label.ko})` : label.en;
+    }
 
     // DOM 요소
     const jsonInput = document.getElementById('jsonInput');
@@ -1606,7 +1721,10 @@
     function buildFieldResults(config, validationResult, warningFields = new Set()) {
       const fields = [];
       const errorMap = new Map(validationResult.errors.map(e => [e.field, e]));
+      const purpose = config.purpose || 'chart';
+      const hasDatasets = Array.isArray(config.datasets) && config.datasets.length > 0;
 
+      // 최상위 필드 처리
       for (const [key, def] of Object.entries(FIELD_DEFINITIONS)) {
         const hasValue = config.hasOwnProperty(key);
         const value = config[key];
@@ -1614,17 +1732,25 @@
         const hasWarning = warningFields.has(key);
 
         // 테이블 전용 필드 체크
-        const purpose = config.purpose || 'chart';
         const isTableOnlyField = ['tableType'].includes(key);
-        const isChartOnlyField = ['classCount', 'classWidth', 'classRange'].includes(key);
+        const isChartOnlyField = ['classCount', 'classWidth', 'classRange', 'datasets'].includes(key);
 
         // 관련 없는 필드는 스킵
         if (purpose === 'chart' && isTableOnlyField && !hasValue) continue;
         if (purpose === 'table' && isChartOnlyField && !hasValue) continue;
 
+        // datasets 사용 시 data 필드는 required가 아님
+        let isRequired = def.required;
+        if (key === 'data' && hasDatasets) {
+          isRequired = false;
+        }
+
         // 기본값과 동일한 값을 명시적으로 입력했는지 체크
         const isRedundant = hasValue && def.default !== undefined &&
           JSON.stringify(value) === JSON.stringify(def.default);
+
+        // 타입 검증
+        const typeCheck = hasValue && def.type ? checkType(value, def.type) : { valid: true, actualType: null };
 
         fields.push({
           name: def.label,
@@ -1633,11 +1759,54 @@
           value: hasValue ? value : def.default,
           isDefault: !hasValue && def.default !== undefined,
           isRedundant,
-          valid: !error,
+          valid: !error && typeCheck.valid,
           error: error?.message,
-          required: def.required,
-          hasWarning
+          typeError: !typeCheck.valid ? `타입 오류: ${getTypeLabel(def.type)} 필요, ${getTypeLabel(typeCheck.actualType)} 입력됨` : null,
+          expectedType: def.type,
+          actualType: typeCheck.actualType,
+          required: isRequired,
+          hasWarning,
+          isNested: false
         });
+      }
+
+      // options 하위 필드 처리
+      if (config.options && typeof config.options === 'object') {
+        const optionsDefs = purpose === 'table' ? OPTIONS_TABLE_DEFINITIONS : OPTIONS_CHART_DEFINITIONS;
+
+        for (const [key, def] of Object.entries(optionsDefs)) {
+          const hasValue = config.options.hasOwnProperty(key);
+          const value = config.options[key];
+          // options.xxx 형태로 정확히 매칭
+          const hasWarning = warningFields.has(`options.${key}`);
+
+          // 값이 없으면 스킵 (options 하위 필드는 선택적)
+          if (!hasValue) continue;
+
+          // 기본값과 동일한 값을 명시적으로 입력했는지 체크
+          const isRedundant = hasValue && def.default !== undefined &&
+            JSON.stringify(value) === JSON.stringify(def.default);
+
+          // 타입 검증
+          const typeCheck = hasValue && def.type ? checkType(value, def.type) : { valid: true, actualType: null };
+
+          fields.push({
+            name: def.label,
+            desc: def.desc,
+            hasValue,
+            value: value,
+            isDefault: false,
+            isRedundant,
+            valid: typeCheck.valid,
+            error: null,
+            typeError: !typeCheck.valid ? `타입 오류: ${getTypeLabel(def.type)} 필요, ${getTypeLabel(typeCheck.actualType)} 입력됨` : null,
+            expectedType: def.type,
+            actualType: typeCheck.actualType,
+            required: false,
+            hasWarning,
+            isNested: true
+          });
+        }
       }
 
       return fields;
@@ -1680,11 +1849,17 @@
         else if (f.hasWarning) statusClass = 'warning';
         else if (f.isRedundant) statusClass = 'redundant';
 
+        // 중첩 필드 클래스
+        const nestedClass = f.isNested ? 'nested' : '';
+
+        // 타입 배지 생성
+        const typeBadge = f.expectedType ? `<span class="type-badge ${f.typeError ? 'type-error' : ''}">${getTypeLabel(f.expectedType)}</span>` : '';
+
         return `
-          <div class="field-item ${statusClass}">
+          <div class="field-item ${statusClass} ${nestedClass}">
             <div class="field-header">
               <span class="field-name">${f.name}${f.required ? ' *' : ''}</span>
-              <span class="field-status"></span>
+              <span class="field-status">${typeBadge}</span>
             </div>
             <div class="field-desc">${f.desc}</div>
             <div class="field-value">
@@ -1693,6 +1868,7 @@
               <code>${formatValue(f.value)}</code>
             </div>
             ${f.error ? `<div class="field-error">${escapeHtml(f.error)}</div>` : ''}
+            ${f.typeError ? `<div class="field-error">${escapeHtml(f.typeError)}</div>` : ''}
             ${f.isRedundant ? `<div class="field-redundant">이 값은 기본값과 동일합니다. 생략해도 됩니다.</div>` : ''}
           </div>
         `;

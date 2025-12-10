@@ -206,6 +206,10 @@ class ChartRenderer {
       if (CONFIG.SHOW_DASHED_LINES && CONFIG.SHOW_POLYGON) {
         this.dashedLineRenderer.drawStatic(values, coords, dataType);
       }
+      // 막대 내부 커스텀 라벨 렌더링 (정적 모드)
+      if (CONFIG.SHOW_BAR_CUSTOM_LABELS && CONFIG.SHOW_HISTOGRAM) {
+        this.histogramRenderer.drawCustomLabelsStatic(values, freq, coords, ellipsisInfo);
+      }
       if (clearCanvas) {
         this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
       }

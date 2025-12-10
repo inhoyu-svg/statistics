@@ -470,12 +470,109 @@ config (최상위)
 | 선 | 그라데이션 색상 |
 | 위치 | 히스토그램 위에 오버레이 |
 
+### 3. 복수 도수다각형 (Multiple Polygons)
+
+단일 차트에 여러 데이터셋의 도수다각형을 동시에 표시할 수 있습니다.
+
+> ⚠️ **일반 차트와 다른 특수 모드입니다.** 반드시 아래 권장사항과 금지사항을 확인하세요.
+
+#### 개요
+
+| 항목 | 설명 |
+|:-----|:-----|
+| 표현 방식 | 여러 데이터셋을 **서로 다른 색상**의 다각형으로 오버레이 |
+| 좌표 통합 | 모든 데이터셋의 최대값을 기준으로 Y축 자동 조정 |
+| 렌더링 모드 | **정적 렌더링만 지원** (애니메이션 비활성화) |
+| 말풍선 위치 | 차트 좌측 상단에 세로로 배치 (datasets 순서대로) |
+
+#### ✅ 권장사항 (MUST)
+
+| 항목 | 설명 | 예시 |
+|:-----|:-----|:-----|
+| `showHistogram: false` | 히스토그램 비활성화 필수 | `"options": { "showHistogram": false }` |
+| `showPolygon: true` | 다각형 활성화 필수 | `"options": { "showPolygon": true }` |
+| `classRange` 지정 | 모든 데이터셋 정렬을 위해 필수 | `"classRange": { "firstEnd": 1, "secondEnd": 3, "lastStart": 13 }` |
+| `dataType: "frequency"` | 도수 모드 권장 (상대도수도 가능) | `"options": { "dataType": "frequency" }` |
+| 서로 다른 `polygonColorPreset` | 데이터셋 구분을 위해 필수 | `"primary"`, `"secondary"`, `"tertiary"` |
+
+#### ⛔ 금지사항 (MUST NOT)
+
+| 항목 | 이유 | 증상 |
+|:-----|:-----|:-----|
+| `customYInterval` 사용 금지 | 좌표계 충돌로 차트 깨짐 | 계급이 0~1만 표시되고 전체 영역 차지 |
+| `data` 필드 사용 금지 | `datasets`와 충돌 | 무시되거나 오류 발생 |
+| `animation: true` 사용 금지 | 복수 다각형은 정적 모드만 지원 | 자동으로 false 처리됨 |
+| `showHistogram: true` 사용 금지 | 여러 히스토그램이 겹쳐서 표시됨 | 차트 가독성 심각하게 저하 |
+
+#### datasets 배열 구조
+
+```json
+{
+  "purpose": "chart",
+  "datasets": [
+    {
+      "data": [1, 3, 3, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11],
+      "polygonColorPreset": "primary",
+      "callout": { "template": "남학생" }
+    },
+    {
+      "data": [1, 1, 3, 3, 3, 5, 5, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 11, 11, 12, 12],
+      "polygonColorPreset": "secondary",
+      "callout": { "template": "여학생" }
+    }
+  ],
+  "classRange": { "firstEnd": 1, "secondEnd": 3, "lastStart": 13 },
+  "canvasSize": 700,
+  "options": {
+    "showHistogram": false,
+    "showPolygon": true,
+    "dataType": "frequency",
+    "axisLabels": {
+      "xAxis": "(회)",
+      "yAxis": "학생 수(명)"
+    }
+  }
+}
+```
+
+#### dataset 개별 필드
+
+| 필드 | 타입 | 필수 | 설명 |
+|:-----|:-----|:----:|:-----|
+| `data` | `array\|string` | ✅ | 해당 데이터셋의 원시 데이터 |
+| `polygonColorPreset` | `string` | ✅ | 다각형 색상 (`"primary"`, `"secondary"`, `"tertiary"`, `"default"`) |
+| `callout` | `object` | X | 해당 데이터셋의 말풍선 설정 |
+| `callout.template` | `string` | X | 말풍선 텍스트 |
+| `callout.preset` | `string` | X | 말풍선 색상 (생략 시 polygonColorPreset 사용) |
+
+#### 일반 차트와의 차이점
+
+| 항목 | 일반 차트 (`data`) | 복수 다각형 (`datasets`) |
+|:-----|:-----|:-----|
+| 데이터 소스 | `data` 필드 | `datasets[].data` 배열 |
+| 히스토그램 | 지원 | **미지원** (다각형만) |
+| 애니메이션 | 지원 | **미지원** (정적만) |
+| 말풍선 위치 | 최고점 위 | **좌측 상단 고정** (세로 배치) |
+| Y축 간격 커스텀 | `customYInterval` 가능 | **사용 금지** |
+| `classRange` | 선택 | **필수** (정렬 필요) |
+
+#### 트러블슈팅
+
+| 증상 | 원인 | 해결 |
+|:-----|:-----|:-----|
+| 차트가 0~1 구간만 표시됨 | `customYInterval` 사용 | `customYInterval` 옵션 제거 |
+| 첫 번째 다각형이 안 보임 | 코드 버전 문제 | 브라우저 캐시 삭제 (Ctrl+Shift+R) |
+| Y축 여백이 이상함 | 파라미터 순서 오류 | 최신 코드로 업데이트 |
+| 말풍선이 겹침 | 구버전 코드 | 최신 코드로 업데이트 (세로 배치 지원) |
+| 두 데이터셋의 X축이 안 맞음 | `classRange` 미지정 | `classRange` 필수 지정 |
+
 ---
 
 ## 차트 전용 필드
 
 | 필드 | 타입 | 필수 | 기본값 | 설명 |
 |:-----|:-----|:----:|:------:|:-----|
+| `datasets` | `array` | X | - | 복수 데이터셋 배열 (복수 다각형 렌더링) |
 | `classCount` | `number` | X | `5` | 계급 개수 |
 | `classWidth` | `number` | X | 자동 | 계급 간격 |
 | `classRange` | `object` | X | - | 계급 범위 수동 설정 (`{ firstEnd, secondEnd, lastStart }`) |

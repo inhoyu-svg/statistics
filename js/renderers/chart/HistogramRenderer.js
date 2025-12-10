@@ -200,6 +200,46 @@ class HistogramRenderer {
     });
     this.ctx.restore();
   }
+
+  /**
+   * 막대 내부 커스텀 라벨 정적 렌더링
+   * @param {Array} values - 값 배열 (상대도수 또는 도수)
+   * @param {Array} freq - 도수 배열
+   * @param {Object} coords - 좌표 시스템 객체
+   * @param {Object} ellipsisInfo - 중략 정보
+   */
+  drawCustomLabelsStatic(values, freq, coords, ellipsisInfo) {
+    const { toX, toY, xScale } = coords;
+    const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
+
+    // 실제 표시되는 막대 기준 인덱스로 라벨 적용 (LayerFactory와 동일한 로직)
+    let visibleBarIndex = 0;
+
+    values.forEach((value, index) => {
+      // 막대 생성 조건과 동일하게 체크
+      if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+      if (freq[index] === 0) return;  // 도수가 0인 막대는 스킵
+
+      // 표시되는 막대 인덱스 기준으로 라벨 조회
+      const customLabel = CONFIG.BAR_CUSTOM_LABELS[visibleBarIndex];
+      visibleBarIndex++;
+
+      if (!customLabel) return;
+
+      // 막대 중앙 좌표 계산
+      const x = toX(index) + barWidth / 2;
+      const baseY = toY(0);
+      const fullY = toY(value);
+      const y = (baseY + fullY) / 2;  // 세로 중앙
+
+      KatexUtils.render(this.ctx, customLabel, x, y, {
+        fontSize: CONFIG.getScaledFontSize(CONFIG.BAR_CUSTOM_LABEL_FONT_SIZE),
+        color: CONFIG.BAR_CUSTOM_LABEL_COLOR,
+        align: 'center',
+        baseline: 'middle'
+      });
+    });
+  }
 }
 
 export default HistogramRenderer;

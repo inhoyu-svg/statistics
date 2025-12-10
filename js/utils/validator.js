@@ -243,7 +243,9 @@ class ConfigValidator {
    * @private
    */
   static _validateRequired(config, errors) {
-    if (!config.data) {
+    // datasets 배열이 있으면 data는 필수가 아님
+    const hasDatasets = Array.isArray(config.datasets) && config.datasets.length > 0;
+    if (!config.data && !hasDatasets) {
       this._addError(errors, 'data', ERROR_CODES.REQUIRED, 'data 필드는 필수입니다.');
     }
   }
@@ -253,6 +255,12 @@ class ConfigValidator {
    * @private
    */
   static _validateAndParseData(config, tableType, errors) {
+    // datasets 배열이 있으면 data 검증 스킵
+    const hasDatasets = Array.isArray(config.datasets) && config.datasets.length > 0;
+    if (hasDatasets) {
+      return { success: true, data: null };
+    }
+
     // 데이터 문자열 변환 (배열 지원)
     const dataString = Array.isArray(config.data)
       ? config.data.join(', ')
