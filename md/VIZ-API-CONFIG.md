@@ -1572,6 +1572,10 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 | `showTotal` | `boolean` | X | `true` | 합계 행 표시 |
 | `showMergedHeader` | `boolean` | X | `true` | 병합 헤더 표시 |
 
+> **💡 showMergedHeader 권장값**:
+> - **도수분포표** (`~` 또는 `^{이상}`, `^{미만}` 포함): `showMergedHeader: false` 권장
+> - **이원분류표** (위 패턴 없음): `showMergedHeader: true` 권장
+
 > **⚠️ 주의**: `showTotal: true`일 때, 비숫자 값(`null`, `?` 등)이 있으면 합계가 `-`로 표시됩니다. 이 경우 `cellVariables`로 합계를 직접 지정하세요. ([상세 설명](#합계-행-직접-지정-cellvariables))
 
 ```json

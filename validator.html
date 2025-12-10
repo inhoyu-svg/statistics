@@ -624,6 +624,13 @@
             나머지 행은 숫자만 사용: <code>70~80: 5, 0.5</code>
           </div>
         </div>
+        <div class="guide-item">
+          <div class="guide-item-title">showMergedHeader 설정</div>
+          <div class="guide-item-desc">
+            <strong>도수분포표</strong> (~, ^{이상}, ^{미만} 포함): <code>showMergedHeader: false</code><br>
+            <strong>이원분류표</strong> (위 패턴 없음): <code>showMergedHeader: true</code>
+          </div>
+        </div>
       </div>
 
       <div class="guide-section">
@@ -1284,6 +1291,39 @@
           }
         }
         return null;
+      },
+
+      // showMergedHeader 권장값 (도수분포표 vs 이원분류표)
+      showMergedHeaderRecommendation: (config) => {
+        if (config.purpose !== 'table') return null;
+        const tableType = config.tableType || 'basic-table';
+        if (tableType !== 'basic-table') return null;
+
+        const data = config.data;
+        if (typeof data !== 'string') return null;
+
+        const showMergedHeader = config.options?.showMergedHeader;
+        // 명시적으로 설정하지 않았으면 체크하지 않음
+        if (showMergedHeader === undefined) return null;
+
+        // 도수분포표 판별: ~ 또는 ^{이상}, ^{미만} 포함
+        const isFrequencyTable = data.includes('~') || /[\^_]\{(이상|미만)\}/.test(data);
+
+        if (isFrequencyTable && showMergedHeader === true) {
+          return {
+            message: '도수분포표에서는 showMergedHeader: false를 권장합니다.',
+            fields: ['options']
+          };
+        }
+
+        if (!isFrequencyTable && showMergedHeader === false) {
+          return {
+            message: '이원분류표에서는 showMergedHeader: true를 권장합니다.',
+            fields: ['options']
+          };
+        }
+
+        return null;
       }
     };
 
@@ -1390,6 +1430,13 @@
             patterns.push({
               regex: new RegExp(`"${field}"\\s*:\\s*\\d+`, 'g')
             });
+          });
+        }
+
+        // showMergedHeader 경고
+        if (w.key === 'showMergedHeaderRecommendation') {
+          patterns.push({
+            regex: /"showMergedHeader"\s*:\s*(true|false)/g
           });
         }
       });
