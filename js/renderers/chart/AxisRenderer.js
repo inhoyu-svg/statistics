@@ -69,8 +69,8 @@ class AxisRenderer {
       // 마지막 라벨은 축 제목으로 대체
       if (i === gridDivisions && yLabel) {
         const baseFontSize = 22;
-        if (yLabel.length > 4) {
-          // 4글자 초과: Y축 상단 위에 가로로 표시
+        if (yLabel.length >= 4) {
+          // 4글자 이상: Y축 상단 위에 가로로 표시
           KatexUtils.renderMixedText(this.ctx, yLabel,
             this.padding,
             toY(value) - CONFIG.getScaledValue(10),
@@ -93,7 +93,7 @@ class AxisRenderer {
             { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
           );
         } else {
-          // 4글자 이하: 기존 위치 (Y축 왼쪽, 숫자 대신 제목)
+          // 3글자 이하: 기존 위치 (Y축 왼쪽, 숫자 대신 제목)
           KatexUtils.renderMixedText(this.ctx, yLabel,
             this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
             toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
