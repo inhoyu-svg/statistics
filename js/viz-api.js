@@ -709,9 +709,10 @@ export async function renderTable(element, config) {
     // Apply corruption effect (if enabled)
     if (options.corruption?.enabled) {
       const scale = tableRenderer.scaleRatio || 1;
-      const tableInfo = calculateCustomTableInfo(tableType, finalParseResult.data, canvas, tableConfig, scale);
-      if (tableInfo) {
-        applyTableCorruption(tableRenderer.ctx, options.corruption, tableInfo);
+      // 테이블 렌더러에서 실제 계산된 columnWidths와 rowHeights 가져오기
+      const actualTableInfo = getActualTableInfo(tableRenderer, tableType, finalParseResult.data, canvas, scale);
+      if (actualTableInfo) {
+        applyTableCorruption(tableRenderer.ctx, options.corruption, actualTableInfo);
       }
     }
 
@@ -877,7 +878,88 @@ function applyCellVariableToBasicTable(data, dataRowIndex, colIndex, value) {
 }
 
 /**
- * Calculate tableInfo for custom table types (corruption용)
+ * 테이블 렌더러의 레이어 매니저에서 실제 테이블 정보 추출 (corruption용)
+ * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
+ * @param {string} tableType - 테이블 타입
+ * @param {Object} data - 파싱된 테이블 데이터
+ * @param {HTMLCanvasElement} canvas - Canvas 요소
+ * @param {number} scale - 스케일 비율
+ * @returns {Object|null} tableInfo for corruption
+ */
+function getActualTableInfo(tableRenderer, tableType, data, canvas, scale = 1) {
+  const padding = CONFIG.TABLE_PADDING * scale;
+
+  // 레이어 매니저에서 grid 레이어 찾기
+  const rootLayer = tableRenderer.layerManager?.root;
+  if (!rootLayer) {
+    return calculateCustomTableInfo(tableType, data, canvas, null, scale);
+  }
+
+  // basic-table의 경우 rootLayer.children[0]이 table-root이고, 그 안에 grid가 있음
+  const tableRoot = rootLayer?.children?.[0];
+
+  // grid 레이어 찾기 (tableRoot.children에서 검색)
+  let gridLayer = null;
+  const searchChildren = tableRoot?.children || rootLayer.children || [];
+  for (const child of searchChildren) {
+    if (child.type?.includes('grid')) {
+      gridLayer = child;
+      break;
+    }
+  }
+
+  if (!gridLayer?.data) {
+    // grid 레이어가 없으면 기존 방식 사용
+    return calculateCustomTableInfo(tableType, data, canvas, null, scale);
+  }
+
+  const gridData = gridLayer.data;
+
+  // 실제 columnWidths 추출 (scale 적용)
+  let columnWidths = null;
+  if (gridData.columnWidths && Array.isArray(gridData.columnWidths)) {
+    columnWidths = gridData.columnWidths.map(w => w * scale);
+  }
+
+  // 행 높이 계산
+  const showMergedHeader = gridData.showMergedHeader !== false;
+  const mergedHeaderHeight = showMergedHeader ? (gridData.mergedHeaderHeight || 35) * scale : 0;
+  const columnHeaderHeight = (gridData.columnHeaderHeight || CONFIG.TABLE_HEADER_HEIGHT) * scale;
+
+  // rowHeights 계산: 개별 행 높이 배열
+  const rowHeights = [];
+  if (showMergedHeader) rowHeights.push(mergedHeaderHeight);
+  rowHeights.push(columnHeaderHeight);
+
+  // 데이터 행 높이 (gridData.rowHeights가 있으면 사용, 없으면 균일 높이)
+  const dataRowCount = gridData.rowCount || (data.rows?.length || 0) + (data.showTotal !== false ? 1 : 0);
+  if (gridData.rowHeights && Array.isArray(gridData.rowHeights)) {
+    gridData.rowHeights.forEach(h => rowHeights.push(h * scale));
+  } else {
+    const defaultRowHeight = CONFIG.TABLE_ROW_HEIGHT * scale;
+    for (let i = 0; i < dataRowCount; i++) {
+      rowHeights.push(defaultRowHeight);
+    }
+  }
+
+  const totalRows = rowHeights.length;
+  const totalCols = columnWidths ? columnWidths.length : (data.columnHeaders?.length || 0) + 1;
+
+  return {
+    startX: padding,
+    startY: padding,
+    cellWidth: columnWidths ? columnWidths[0] : (canvas.width - padding * 2) / totalCols,
+    cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
+    columnWidths,
+    rowHeights,
+    totalRows,
+    totalCols,
+    inset: 3 * scale
+  };
+}
+
+/**
+ * Calculate tableInfo for custom table types (corruption용) - fallback
  * @param {string} tableType - Table type
  * @param {Object} data - Parsed table data
  * @param {HTMLCanvasElement} canvas - Canvas element
@@ -887,6 +969,11 @@ function applyCellVariableToBasicTable(data, dataRowIndex, colIndex, value) {
  */
 function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 1) {
   let totalRows, totalCols;
+  let columnWidths = null;
+  let rowHeights = null;  // 각 행의 높이 배열
+  let startY = CONFIG.TABLE_PADDING * scale;
+  const padding = CONFIG.TABLE_PADDING * scale;
+  const totalWidth = canvas.width - padding * 2;
 
   if (tableType === 'stem-leaf') {
     // stem-leaf: stems 배열 + header
@@ -897,10 +984,32 @@ function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 
     totalRows = (data.rows?.length || 0) + 1;
     totalCols = (data.headers?.length || 0) + 1; // label column + value columns
   } else if (tableType === 'basic-table') {
-    // basic-table: rows + header + (total row if shown)
+    // basic-table: 병합헤더(선택적) + 컬럼헤더 + 데이터행 + 합계행(선택적)
     const showTotal = data.showTotal !== false;
-    totalRows = (data.rows?.length || 0) + 1 + (showTotal ? 1 : 0);
-    totalCols = (data.columnHeaders?.length || 0) + 1 + (showTotal ? 1 : 0); // label col + data cols + total col
+    const showMergedHeader = data.showMergedHeader !== false;
+    const mergedHeaderHeight = 35 * scale;
+    const columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT * scale;
+    const dataRowHeight = CONFIG.TABLE_ROW_HEIGHT * scale;
+
+    // 행 계산: 병합헤더 + 컬럼헤더 + 데이터행 + 합계행
+    const dataRowCount = data.rows?.length || 0;
+    totalRows = (showMergedHeader ? 1 : 0) + 1 + dataRowCount + (showTotal ? 1 : 0);
+    // 열 계산: 행라벨열 + 데이터열들 (합계는 행이지 열이 아님)
+    totalCols = (data.columnHeaders?.length || 0) + 1;
+
+    // BasicTableFactory와 동일한 열 너비 계산: 첫 열 20%, 나머지 80% 균등
+    const labelColumnWidth = totalWidth * 0.2;
+    const dataColumnWidth = totalCols > 1 ? (totalWidth * 0.8) / (totalCols - 1) : totalWidth * 0.8;
+    columnWidths = [labelColumnWidth, ...Array(totalCols - 1).fill(dataColumnWidth)];
+
+    // 각 행의 높이 배열 생성 (행마다 다른 높이 적용)
+    rowHeights = [];
+    if (showMergedHeader) rowHeights.push(mergedHeaderHeight);  // row 0: 병합헤더
+    rowHeights.push(columnHeaderHeight);  // row 1 (또는 0): 컬럼헤더
+    for (let i = 0; i < dataRowCount; i++) {
+      rowHeights.push(dataRowHeight);  // 데이터 행
+    }
+    if (showTotal) rowHeights.push(dataRowHeight);  // 합계 행
   } else {
     return null;
   }
@@ -908,10 +1017,12 @@ function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 
   if (totalRows === 0 || totalCols === 0) return null;
 
   return {
-    startX: CONFIG.TABLE_PADDING * scale,
-    startY: CONFIG.TABLE_PADDING * scale,
-    cellWidth: (canvas.width - CONFIG.TABLE_PADDING * scale * 2) / totalCols,
+    startX: padding,
+    startY,
+    cellWidth: totalWidth / totalCols,
     cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
+    columnWidths,
+    rowHeights,  // 각 행의 높이 배열 추가
     totalRows,
     totalCols,
     inset: 3 * scale

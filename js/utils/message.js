@@ -7,6 +7,11 @@ import CONFIG from '../config.js';
 class MessageManager {
   static show(message, type = 'error') {
     const messageBox = document.getElementById('messageBox');
+    if (!messageBox) {
+      // messageBox가 없으면 콘솔에만 출력
+      console.warn(`[MessageManager] ${type}: ${message}`);
+      return;
+    }
     messageBox.textContent = message;
     messageBox.className = `message-box show ${type}`;
 
@@ -18,6 +23,7 @@ class MessageManager {
 
   static hide() {
     const messageBox = document.getElementById('messageBox');
+    if (!messageBox) return;
     messageBox.classList.remove('show');
   }
 
