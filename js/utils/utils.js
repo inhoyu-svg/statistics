@@ -125,6 +125,16 @@ class Utils {
   }
 
   /**
+   * LaTeX 분수 문자열 생성
+   * @param {number} numerator - 분자
+   * @param {number} denominator - 분모
+   * @returns {string} LaTeX 분수 문자열 (예: \frac{2}{9})
+   */
+  static toLatexFrac(numerator, denominator) {
+    return `\\frac{${numerator}}{${denominator}}`;
+  }
+
+  /**
    * 소수 값 포맷팅 (끝자리 0 생략, 무한소수 처리)
    * @param {number} value - 소수 값 (예: 0.15)
    * @returns {string} 포맷된 문자열

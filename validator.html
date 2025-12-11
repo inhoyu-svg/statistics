@@ -431,14 +431,11 @@
       background: #252540;
       border-radius: 8px;
       padding: 16px;
-      display: flex;
-      justify-content: center;
-      overflow: auto;
     }
 
     #previewContainer canvas {
-      /* 캔버스 크기 유지 (잘림 방지) */
-      flex-shrink: 0;
+      display: block;
+      margin: 0 auto;
     }
 
     /* 스크롤바 스타일 */
@@ -1920,17 +1917,18 @@
       previewContainer.innerHTML = '';
 
       try {
-        // 작은 캔버스 크기 설정
-        const smallConfig = {
+        // 테이블은 자동 높이, 차트는 400 제한
+        const previewConfig = {
           ...config,
-          canvasSize: 400,
           animation: false
         };
 
         if (purpose === 'chart') {
-          await VizAPI.renderChart(previewContainer, smallConfig);
+          previewConfig.canvasSize = 400;
+          await VizAPI.renderChart(previewContainer, previewConfig);
         } else {
-          await VizAPI.renderTable(previewContainer, smallConfig);
+          // 테이블은 canvasSize 제한 없이 자동 높이
+          await VizAPI.renderTable(previewContainer, previewConfig);
         }
 
         previewSection.style.display = 'block';

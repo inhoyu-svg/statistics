@@ -274,7 +274,11 @@ class TableRenderer {
     // Canvas 크기 계산 (이원분류표는 병합 헤더 조건부 추가)
     const showMergedHeader = type === CONFIG.TABLE_TYPES.BASIC_TABLE && data.showMergedHeader !== false;
     const mergedHeaderHeight = showMergedHeader ? 35 : 0;
-    const autoHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
+
+    // 분수가 포함된 경우 행 높이 조정
+    const hasFraction = this._checkTableHasFraction(type, data);
+    const rowHeight = hasFraction ? CONFIG.TABLE_ROW_HEIGHT_FRACTION : CONFIG.TABLE_ROW_HEIGHT;
+    const autoHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * rowHeight) + this.padding * 2;
 
     // 동적 너비 계산 (줄기-잎 제외)
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
@@ -335,6 +339,39 @@ class TableRenderer {
       default:
         return 0;
     }
+  }
+
+  /**
+   * 테이블 데이터에 분수(\frac{}{})가 포함되어 있는지 확인
+   * @param {string} type - 테이블 타입
+   * @param {Object} data - 파싱된 데이터
+   * @returns {boolean} 분수 포함 여부
+   */
+  _checkTableHasFraction(type, data) {
+    const fracPattern = /\\frac\{[^}]*\}\{[^}]*\}/;
+
+    if (type === CONFIG.TABLE_TYPES.BASIC_TABLE && data.rows) {
+      // 데이터 행 검사
+      for (const row of data.rows) {
+        if (row.values) {
+          for (const val of row.values) {
+            if (typeof val === 'string' && fracPattern.test(val)) {
+              return true;
+            }
+          }
+        }
+      }
+      // 합계 행 검사
+      if (data.totals) {
+        for (const val of data.totals) {
+          if (typeof val === 'string' && fracPattern.test(val)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 
   /**

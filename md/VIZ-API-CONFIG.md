@@ -575,6 +575,8 @@ config (최상위)
 | `callout` | `object` | X | 해당 데이터셋의 말풍선 설정 |
 | `callout.template` | `string` | X | 말풍선 텍스트 |
 | `callout.preset` | `string` | X | 말풍선 색상 (생략 시 polygonColorPreset 사용) |
+| `polygon` | `object` | X | 해당 데이터셋의 다각형 옵션 |
+| `polygon.hidden` | `array` | X | 숨길 점 인덱스 배열 (연결된 선도 자동 숨김)
 
 #### 일반 차트와의 차이점
 
@@ -1912,6 +1914,24 @@ y(그리드)
 ```
 
 > **설명**: A행 여학생, B행 남학생이 `null`(빈칸)이므로 합계가 자동 계산 불가 → `cellVariables`로 합계(rowIndex 3) 직접 지정
+
+#### LaTeX 분수 표기
+
+테이블 셀에서 `\frac{분자}{분모}` 형식으로 분수를 표현할 수 있습니다.
+
+```json
+{
+  "purpose": "table",
+  "tableType": "basic-table",
+  "data": "헤더: 횟수(회), 상대도수\n0^{이상}~4^{미만}: \\frac{1}{6}\n4~8: \\frac{2}{9}\n8~12: null",
+  "options": {
+    "showTotal": true,
+    "showMergedHeader": false
+  }
+}
+```
+
+> **자동 높이 조정**: 테이블에 분수가 하나라도 포함되면 **모든 행의 높이가 52px로 통일**됩니다 (기본 40px).
 
 ---
 

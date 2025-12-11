@@ -38,10 +38,14 @@ class BasicTableFactory {
     const padding = CONFIG.TABLE_PADDING;
     const canvasWidth = config?.canvasWidth || CONFIG.TABLE_CANVAS_WIDTH;
 
+    // 각 행의 높이 계산 (분수 포함 여부에 따라)
+    const rowHeights = this._calculateRowHeights(rows, totals, showTotal);
+    const totalRowHeight = rowHeights.reduce((sum, h) => sum + h, 0);
+
     // Canvas 높이 계산 (병합 헤더 조건부 + 컬럼 헤더 + 데이터 행들)
     const mergedHeaderHeight = showMergedHeader ? BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-    const canvasHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
+    const canvasHeight = totalHeaderHeight + totalRowHeight + padding * 2;
 
     // 열 너비 계산 (config에서 전달받거나 자동 계산)
     const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
@@ -75,7 +79,8 @@ class BasicTableFactory {
       tableId,
       hasSummaryRow: showTotal,
       mergedHeaderHeight,
-      showMergedHeader
+      showMergedHeader,
+      rowHeights
     });
     rootLayer.addChild(gridLayer);
 
@@ -109,7 +114,8 @@ class BasicTableFactory {
         columnWidths,
         padding,
         tableId,
-        mergedHeaderHeight
+        mergedHeaderHeight,
+        rowHeights
       );
       rootLayer.addChild(rowLayer);
     });
@@ -122,7 +128,8 @@ class BasicTableFactory {
         columnWidths,
         padding,
         tableId,
-        mergedHeaderHeight
+        mergedHeaderHeight,
+        rowHeights
       );
       rootLayer.addChild(summaryLayer);
     }
@@ -171,6 +178,57 @@ class BasicTableFactory {
   }
 
   /**
+   * 행별 높이 계산 (분수 포함 여부에 따라)
+   * 테이블에 분수가 하나라도 있으면 모든 행을 동일한 높이로 통일
+   * @param {Array} rows - 데이터 행 배열
+   * @param {Array} totals - 합계 배열
+   * @param {boolean} showTotal - 합계 행 표시 여부
+   * @returns {Array<number>} 각 행의 높이 배열
+   */
+  static _calculateRowHeights(rows, totals, showTotal) {
+    // 테이블 전체에서 분수가 있는지 확인
+    const hasAnyFraction = rows.some(row => this._rowContainsFraction(row.values)) ||
+      (showTotal && totals && this._arrayContainsFraction(totals));
+
+    // 분수가 있으면 모든 행을 분수 높이로 통일
+    const rowHeight = hasAnyFraction ? CONFIG.TABLE_ROW_HEIGHT_FRACTION : CONFIG.TABLE_ROW_HEIGHT;
+
+    const heights = [];
+
+    // 데이터 행들
+    rows.forEach(() => {
+      heights.push(rowHeight);
+    });
+
+    // 합계 행
+    if (showTotal && totals) {
+      heights.push(rowHeight);
+    }
+
+    return heights;
+  }
+
+  /**
+   * 행에 분수가 포함되어 있는지 확인
+   */
+  static _rowContainsFraction(values) {
+    return this._arrayContainsFraction(values);
+  }
+
+  /**
+   * 배열에 분수가 포함되어 있는지 확인
+   */
+  static _arrayContainsFraction(arr) {
+    if (!arr) return false;
+    return arr.some(val => {
+      if (typeof val === 'string') {
+        return /\\frac\{[^}]*\}\{[^}]*\}/.test(val);
+      }
+      return false;
+    });
+  }
+
+  /**
    * 열 너비 계산
    */
   static _calculateColumnWidths(canvasWidth, padding, columnCount) {
@@ -194,12 +252,16 @@ class BasicTableFactory {
       tableId,
       hasSummaryRow,
       mergedHeaderHeight,
-      showMergedHeader = true
+      showMergedHeader = true,
+      rowHeights = []
     } = options;
 
     const totalWidth = canvasWidth - padding * 2;
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-    const totalHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
+    const totalRowHeight = rowHeights.length > 0
+      ? rowHeights.reduce((sum, h) => sum + h, 0)
+      : rowCount * CONFIG.TABLE_ROW_HEIGHT;
+    const totalHeight = totalHeaderHeight + totalRowHeight;
 
     return new Layer({
       id: `basic-table-${tableId}-table-grid`,
@@ -219,7 +281,8 @@ class BasicTableFactory {
         columnHeaderHeight: CONFIG.TABLE_HEADER_HEIGHT,
         mergedHeaderLineColor: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
         mergedHeaderLineWidth: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
-        showMergedHeader
+        showMergedHeader,
+        rowHeights
       }
     });
   }
@@ -348,7 +411,7 @@ class BasicTableFactory {
   /**
    * 데이터 행 레이어 생성
    */
-  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
+  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = []) {
     const rowGroup = new Layer({
       id: `basic-table-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
@@ -360,7 +423,11 @@ class BasicTableFactory {
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 이후)
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-    const y = padding + totalHeaderHeight + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
+    // rowHeights가 있으면 이전 행들의 높이 합산, 없으면 기존 방식
+    const y = padding + totalHeaderHeight + (rowHeights.length > 0
+      ? rowHeights.slice(0, rowIndex).reduce((sum, h) => sum + h, 0)
+      : rowIndex * CONFIG.TABLE_ROW_HEIGHT);
+    const currentRowHeight = rowHeights[rowIndex] || CONFIG.TABLE_ROW_HEIGHT;
     let x = padding;
 
     // 첫 번째 열은 행 라벨 (혈액형 값: A, B, AB, O)
@@ -393,7 +460,7 @@ class BasicTableFactory {
           x,
           y,
           width: columnWidths[colIndex],
-          height: CONFIG.TABLE_ROW_HEIGHT,
+          height: currentRowHeight,
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0,
@@ -413,7 +480,7 @@ class BasicTableFactory {
   /**
    * 합계 행 레이어 생성
    */
-  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
+  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = []) {
     const summaryGroup = new Layer({
       id: `basic-table-${tableId}-table-summary`,
       name: '합계 행',
@@ -425,7 +492,12 @@ class BasicTableFactory {
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 + 데이터 행들 이후)
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-    const y = padding + totalHeaderHeight + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
+    // rowHeights가 있으면 데이터 행들의 높이 합산
+    const dataRowsHeight = rowHeights.length > 0
+      ? rowHeights.slice(0, dataRowCount).reduce((sum, h) => sum + h, 0)
+      : dataRowCount * CONFIG.TABLE_ROW_HEIGHT;
+    const y = padding + totalHeaderHeight + dataRowsHeight;
+    const summaryRowHeight = rowHeights[dataRowCount] || CONFIG.TABLE_ROW_HEIGHT;
     let x = padding;
 
     // 첫 번째 열은 "합계"
@@ -455,7 +527,7 @@ class BasicTableFactory {
           x,
           y,
           width: columnWidths[colIndex],
-          height: CONFIG.TABLE_ROW_HEIGHT,
+          height: summaryRowHeight,
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0

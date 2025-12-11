@@ -1056,6 +1056,9 @@ async function renderMultiplePolygons(element, config) {
     const firstAnalyzed = allAnalyzed[0];
     CONFIG.POLYGON_COLOR_PRESET = firstAnalyzed.dataset.polygonColorPreset || 'default';
 
+    // 첫 번째 dataset의 다각형 숨김 인덱스
+    const firstHiddenIndices = firstAnalyzed.dataset.polygon?.hidden || [];
+
     console.log(`[viz-api] Drawing dataset 0: preset=${CONFIG.POLYGON_COLOR_PRESET}, isFirst=true`);
 
     chartRenderer.draw(
@@ -1068,7 +1071,8 @@ async function renderMultiplePolygons(element, config) {
       true,  // clearCanvas
       unifiedMaxY,
       unifiedClassCount,
-      customYInterval
+      customYInterval,
+      firstHiddenIndices
     );
 
     // 저장된 coords 사용 (나머지 데이터셋에서 재사용)
@@ -1099,9 +1103,12 @@ async function renderMultiplePolygons(element, config) {
       // 값 배열
       const values = dataType === 'frequency' ? analyzed.freq : analyzed.relativeFreqs;
 
+      // 다각형 숨김 인덱스 (dataset별)
+      const hiddenIndices = analyzed.dataset.polygon?.hidden || [];
+
       // 다각형 직접 그리기 (축/그리드 건드리지 않음)
       if (CONFIG.SHOW_POLYGON) {
-        chartRenderer.polygonRenderer.draw(values, coords, ellipsisInfo);
+        chartRenderer.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenIndices);
       }
 
       // callout 그리기

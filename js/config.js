@@ -109,6 +109,7 @@ const CONFIG = {
   TABLE_MIN_WIDTH: 300,              // 동적 너비 최소값
   TABLE_MAX_WIDTH: 700,              // 동적 너비 최대값 (TABLE_CANVAS_WIDTH와 동일)
   TABLE_ROW_HEIGHT: 40,
+  TABLE_ROW_HEIGHT_FRACTION: 52,    // 분수가 포함된 행 높이
   TABLE_HEADER_HEIGHT: 45,
   TABLE_PADDING: 10,
   TABLE_FONT_HEADER: "500 18px 'SCDream', sans-serif",   // Medium (녹색 텍스트)

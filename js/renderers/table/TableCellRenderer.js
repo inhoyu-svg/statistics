@@ -297,7 +297,8 @@ class TableCellRenderer {
       x, y, width, height, rowCount, columnWidths, hasSummaryRow,
       mergedHeaderHeight, columnHeaderHeight,
       mergedHeaderLineColor, mergedHeaderLineWidth,
-      showMergedHeader = true
+      showMergedHeader = true,
+      rowHeights = []
     } = layer.data;
 
     const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
@@ -330,8 +331,12 @@ class TableCellRenderer {
     this.ctx.stroke();
 
     // 데이터 행 구분선
+    let cumulativeY = 0;
     for (let i = 1; i <= rowCount; i++) {
-      const lineY = y + totalHeaderHeight + (i - 1) * CONFIG.TABLE_ROW_HEIGHT;
+      // rowHeights가 있으면 누적 높이 사용, 없으면 기존 방식
+      const lineY = y + totalHeaderHeight + (rowHeights.length > 0
+        ? cumulativeY
+        : (i - 1) * CONFIG.TABLE_ROW_HEIGHT);
 
       // 첫 번째 선(컬럼 헤더 아래) 또는 마지막 선(합계 위)은 두께 2, 밝은 회색
       const isHeaderLine = i === 1;
@@ -349,6 +354,11 @@ class TableCellRenderer {
       this.ctx.moveTo(x, lineY);
       this.ctx.lineTo(x + width, lineY);
       this.ctx.stroke();
+
+      // 다음 행을 위해 현재 행 높이 누적
+      if (rowHeights.length > 0 && i <= rowHeights.length) {
+        cumulativeY += rowHeights[i - 1];
+      }
     }
 
     // 수직선 (점선, 컬럼 헤더 이후부터)
@@ -630,6 +640,18 @@ class TableCellRenderer {
 
     // 빈 문자열은 렌더링 스킵
     if (str === '') {
+      return;
+    }
+
+    // LaTeX 분수 표기법(\frac{}{})이 포함된 경우 특별 처리
+    const fracMatch = str.match(/^\\frac\{([^}]*)\}\{([^}]*)\}$/);
+    if (fracMatch) {
+      KatexUtils.renderFraction(this.ctx, fracMatch[1], fracMatch[2], x, y, {
+        fontSize: fontSize,
+        color: color,
+        align: alignment,
+        baseline: 'middle'
+      });
       return;
     }
 
