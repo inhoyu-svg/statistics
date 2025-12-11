@@ -578,7 +578,7 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
   const style = corruptionOptions.style || {};
   const edgeComplexity = style.edgeComplexity || 0.7;
   const seed = style.seed || 42;
-  const inset = 10;
+  const inset = 0;
   const overlap = 2;
   const maskAxisLabels = corruptionOptions.maskAxisLabels !== false;
 
