@@ -2891,12 +2891,3 @@ data 문자열에서 연속된 슬래시(`/`)를 입력하면 **탈리마크로 
 | `cellAnimations`만 설정 | 깜빡임 없이 정적 하이라이트 | 깜빡임 원하면 `cellAnimationOptions: { blinkEnabled: true }` 추가 |
 | JSON 문법 오류 | 렌더링 안 됨 | trailing comma 제거, 객체 사이 comma 확인 |
 
-# 오류 메시지
-
-| 오류 | 원인 | 해결 방법 |
-|:-----|:-----|:----------|
-| `element must be a valid HTMLElement` | 컨테이너 요소 없음 | 유효한 DOM 요소 전달 |
-| `config.data is required` | data 필드 누락 | data 배열 추가 |
-| `No valid numeric data found` | 유효한 숫자 없음 | 숫자 배열 확인 |
-| `Invalid purpose` | 잘못된 purpose 값 | `"chart"` 또는 `"table"` 사용 |
-| `'xxx' type does not support chart` | 차트 미지원 테이블 타입 | 차트는 숫자 배열 데이터만 지원 |
