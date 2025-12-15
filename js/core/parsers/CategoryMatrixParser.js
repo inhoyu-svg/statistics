@@ -77,14 +77,6 @@ class CategoryMatrixParser {
           // null 문자열은 빈 문자열로 처리 (빈칸 표시)
           return trimmed === 'null' ? '' : trimmed;
         });
-        // 모든 헤더가 빈 문자열인지 확인
-        if (result.headers.every(h => h === '')) {
-          return {
-            success: false,
-            data: null,
-            error: '헤더 값이 비어있습니다.'
-          };
-        }
       } else {
         // 데이터 행
         const values = valuesStr.split(',').map(v => {
