@@ -574,6 +574,47 @@ const CONFIG = {
       maxY: fallbackDivisions,
       divisions: fallbackDivisions
     };
+  },
+
+  // ============================================================
+  // 산점도 (Scatter Plot) 설정
+  // ============================================================
+
+  // 산점도 기본 설정
+  SCATTER_PADDING: 60,                    // 캔버스 패딩
+  SCATTER_POINT_RADIUS: 6,                // 점 반지름
+  SCATTER_POINT_COLOR: '#93DA6A',         // 점 색상 (기본)
+  SCATTER_GRID_COLOR: '#444444',          // 그리드선 색상
+  SCATTER_AXIS_COLOR: '#888888',          // 축선 색상
+  SCATTER_LABEL_COLOR: '#e5e7eb',         // 라벨 색상
+
+  // 산점도 폰트 설정
+  SCATTER_FONT_LABEL: "300 14px 'SCDream', sans-serif",
+  SCATTER_FONT_TITLE: "500 16px 'SCDream', sans-serif",
+
+  // 산점도 캔버스 기본 크기
+  SCATTER_DEFAULT_WIDTH: 600,
+  SCATTER_DEFAULT_HEIGHT: 600,
+
+  // 산점도 그리드 설정
+  SCATTER_GRID_LINE_WIDTH: 1,             // 그리드선 두께
+  SCATTER_AXIS_LINE_WIDTH: 2,             // 축선 두께
+
+  /**
+   * 두 숫자의 최대공약수(GCD) 계산
+   * @param {number} a - 첫 번째 숫자
+   * @param {number} b - 두 번째 숫자
+   * @returns {number} 최대공약수
+   */
+  gcd(a, b) {
+    a = Math.abs(a);
+    b = Math.abs(b);
+    while (b > 0) {
+      const temp = b;
+      b = a % b;
+      a = temp;
+    }
+    return a;
   }
 };
 

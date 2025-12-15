@@ -8,6 +8,7 @@ import DataProcessor from './core/processor.js';
 import { ParserAdapter } from './core/parsers/index.js';
 import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
+import ScatterRenderer from './renderers/scatter.js';
 import { waitForFonts } from './utils/katex.js';
 import { applyChartCorruption, applyTableCorruption } from './utils/corruption.js';
 import { ConfigValidator } from './utils/validator.js';
@@ -292,8 +293,10 @@ export async function render(element, config) {
     return renderChart(element, config);
   } else if (purpose === 'table') {
     return renderTable(element, config);
+  } else if (purpose === 'scatter') {
+    return renderScatter(element, config);
   } else {
-    return { error: `Invalid purpose: ${purpose}. Use 'chart' or 'table'.` };
+    return { error: `Invalid purpose: ${purpose}. Use 'chart', 'table', or 'scatter'.` };
   }
 }
 
@@ -1027,6 +1030,92 @@ function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 
     totalCols,
     inset: 3 * scale
   };
+}
+
+// ============================================
+// Scatter Plot Rendering
+// ============================================
+
+/**
+ * 산점도 렌더링 API
+ * @param {HTMLElement} element - 컨테이너 요소
+ * @param {Object} config - 설정 객체
+ * @param {Array<Array<number>>} config.data - 데이터 포인트 [[x1, y1], [x2, y2], ...]
+ * @param {Object} [config.options] - 옵션
+ * @param {Object} [config.options.axisLabels] - 축 라벨 { xAxis, yAxis }
+ * @param {number} [config.options.pointSize] - 점 크기
+ * @param {string} [config.options.pointColor] - 점 색상
+ * @param {number} [config.canvasWidth] - 캔버스 너비
+ * @param {number} [config.canvasHeight] - 캔버스 높이
+ * @returns {Promise<Object>} { scatterRenderer, canvas, coords } or { error }
+ */
+export async function renderScatter(element, config) {
+  try {
+    // Wait for KaTeX fonts to load
+    await waitForFonts();
+
+    // 1. Element validation
+    if (!element || !(element instanceof HTMLElement)) {
+      return {
+        error: 'element must be a valid HTMLElement',
+        errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
+      };
+    }
+
+    // 2. Data validation
+    let dataPoints = config.data;
+
+    // 문자열이면 파싱
+    if (typeof dataPoints === 'string') {
+      dataPoints = ScatterRenderer.parseData(dataPoints);
+    }
+
+    // 유효성 검사
+    const validation = ScatterRenderer.validate(dataPoints);
+    if (!validation.valid) {
+      return {
+        error: validation.error,
+        errors: [{ field: 'data', code: 'VALIDATION_ERROR', message: validation.error }]
+      };
+    }
+
+    // 3. Options 추출
+    const options = config.options || {};
+    const canvasWidth = config.canvasWidth || CONFIG.SCATTER_DEFAULT_WIDTH;
+    const canvasHeight = config.canvasHeight || CONFIG.SCATTER_DEFAULT_HEIGHT;
+
+    // 4. Canvas 생성
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    canvas.style.display = 'block';
+    canvas.style.maxWidth = '100%';
+    element.appendChild(canvas);
+
+    // 5. 렌더링
+    const scatterRenderer = new ScatterRenderer(canvas);
+    const result = scatterRenderer.draw(dataPoints, {
+      axisLabels: options.axisLabels || {},
+      pointSize: options.pointSize || CONFIG.SCATTER_POINT_RADIUS,
+      pointColor: options.pointColor || CONFIG.SCATTER_POINT_COLOR,
+      canvasWidth,
+      canvasHeight
+    });
+
+    return {
+      scatterRenderer,
+      canvas,
+      coords: result.coords,
+      dataPoints: result.dataPoints
+    };
+
+  } catch (error) {
+    console.error('[viz-api] Scatter rendering error:', error);
+    return {
+      error: error.message || 'Unknown error during scatter rendering',
+      errors: [{ field: 'unknown', code: 'RENDER_ERROR', message: error.message }]
+    };
+  }
 }
 
 // ============================================
