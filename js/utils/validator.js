@@ -160,7 +160,7 @@ class ConfigValidator {
   /**
    * viz-api config 객체 전체 검증
    * @param {Object} config - viz-api 설정 객체
-   * @param {'chart'|'table'} purpose - 렌더링 목적
+   * @param {'chart'|'table'|'scatter'} purpose - 렌더링 목적
    * @returns {ValidationResult}
    */
   static validate(config, purpose = 'chart') {
@@ -179,6 +179,11 @@ class ConfigValidator {
     // 조기 반환: 필수 필드 누락 시
     if (errors.length > 0) {
       return { valid: false, data: null, errors };
+    }
+
+    // 산점도는 별도 검증 로직
+    if (purpose === 'scatter') {
+      return this._validateScatter(config, errors);
     }
 
     // 2.5. 테이블 데이터인데 purpose가 chart인 경우 경고
@@ -230,6 +235,45 @@ class ConfigValidator {
     return {
       valid: errors.length === 0,
       data: errors.length === 0 ? parsedData : null,
+      errors
+    };
+  }
+
+  /**
+   * 산점도 데이터 검증
+   * @private
+   */
+  static _validateScatter(config, errors) {
+    const data = config.data;
+
+    // data가 2D 배열인지 검증
+    if (!Array.isArray(data)) {
+      this._addError(errors, 'data', ERROR_CODES.TYPE_ERROR, 'scatter data는 2D 배열이어야 합니다. 예: [[x1, y1], [x2, y2], ...]');
+      return { valid: false, data: null, errors };
+    }
+
+    // 최소 2개 포인트 필요
+    if (data.length < 2) {
+      this._addError(errors, 'data', ERROR_CODES.MIN_LENGTH, '최소 2개의 데이터 포인트가 필요합니다.');
+      return { valid: false, data: null, errors };
+    }
+
+    // 각 포인트가 [x, y] 형식인지 검증
+    for (let i = 0; i < data.length; i++) {
+      const point = data[i];
+      if (!Array.isArray(point) || point.length !== 2) {
+        this._addError(errors, 'data', ERROR_CODES.INVALID_FORMAT, `${i}번째 포인트는 [x, y] 형식이어야 합니다.`);
+        return { valid: false, data: null, errors };
+      }
+      if (typeof point[0] !== 'number' || typeof point[1] !== 'number') {
+        this._addError(errors, 'data', ERROR_CODES.TYPE_ERROR, `${i}번째 포인트의 x, y는 숫자여야 합니다.`);
+        return { valid: false, data: null, errors };
+      }
+    }
+
+    return {
+      valid: true,
+      data: { rawData: data },
       errors
     };
   }

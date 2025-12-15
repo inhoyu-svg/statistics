@@ -1444,6 +1444,13 @@
       corruption: { label: 'options.corruption', desc: '찢김 효과 설정', type: 'object' }
     };
 
+    // options 하위 필드 정의 (산점도)
+    const OPTIONS_SCATTER_DEFINITIONS = {
+      axisLabels: { label: 'options.axisLabels', desc: '축 라벨 설정', type: 'object' },
+      pointSize: { label: 'options.pointSize', desc: '점 반지름', default: 6, type: 'number' },
+      pointColor: { label: 'options.pointColor', desc: '점 색상', default: '#93DA6A', type: 'string' }
+    };
+
     // 타입 검증 함수
     function checkType(value, expectedType) {
       if (value === undefined || value === null) return { valid: true, actualType: null };
@@ -1582,19 +1589,6 @@
 
       // 2. ConfigValidator로 전체 검증
       const purpose = config.purpose || 'chart';
-
-      // scatter는 별도 검증 (ConfigValidator 미지원)
-      if (purpose === 'scatter') {
-        // 간단한 scatter 검증
-        if (!config.data || !Array.isArray(config.data) || config.data.length < 2) {
-          fieldResults.innerHTML = `<div style="color:#ff6b6b;">scatter 데이터는 최소 2개 이상의 [x, y] 배열이 필요합니다.</div>`;
-          hidePreview();
-          return;
-        }
-        renderPreview(config, purpose);
-        return;
-      }
-
       const result = ConfigValidator.validate(config, purpose);
 
       // 3. 권장사항 체크
@@ -1750,6 +1744,7 @@
         // 관련 없는 필드는 스킵
         if (purpose === 'chart' && isTableOnlyField && !hasValue) continue;
         if (purpose === 'table' && isChartOnlyField && !hasValue) continue;
+        if (purpose === 'scatter' && (isTableOnlyField || isChartOnlyField) && !hasValue) continue;
 
         // datasets 사용 시 data 필드는 required가 아님
         let isRequired = def.required;
@@ -1784,7 +1779,14 @@
 
       // options 하위 필드 처리
       if (config.options && typeof config.options === 'object') {
-        const optionsDefs = purpose === 'table' ? OPTIONS_TABLE_DEFINITIONS : OPTIONS_CHART_DEFINITIONS;
+        let optionsDefs;
+        if (purpose === 'table') {
+          optionsDefs = OPTIONS_TABLE_DEFINITIONS;
+        } else if (purpose === 'scatter') {
+          optionsDefs = OPTIONS_SCATTER_DEFINITIONS;
+        } else {
+          optionsDefs = OPTIONS_CHART_DEFINITIONS;
+        }
 
         for (const [key, def] of Object.entries(optionsDefs)) {
           const hasValue = config.options.hasOwnProperty(key);

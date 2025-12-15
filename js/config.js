@@ -581,7 +581,7 @@ const CONFIG = {
   // ============================================================
 
   // 산점도 기본 설정
-  SCATTER_PADDING: 60,                    // 캔버스 패딩
+  SCATTER_PADDING: 80,                    // 캔버스 패딩 (X축 라벨 공간 확보)
   SCATTER_POINT_RADIUS: 6,                // 점 반지름
   SCATTER_POINT_COLOR: '#93DA6A',         // 점 색상 (기본)
   SCATTER_GRID_COLOR: '#444444',          // 그리드선 색상
@@ -593,8 +593,8 @@ const CONFIG = {
   SCATTER_FONT_TITLE: "500 16px 'SCDream', sans-serif",
 
   // 산점도 캔버스 기본 크기
-  SCATTER_DEFAULT_WIDTH: 600,
-  SCATTER_DEFAULT_HEIGHT: 600,
+  SCATTER_DEFAULT_WIDTH: 650,
+  SCATTER_DEFAULT_HEIGHT: 700,
 
   // 산점도 그리드 설정
   SCATTER_GRID_LINE_WIDTH: 1,             // 그리드선 두께

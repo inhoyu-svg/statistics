@@ -8,7 +8,7 @@
   "additionalProperties": false,
   "properties": {
     "data": {
-      "description": "변량 데이터 (필수). purpose/tableType에 따라 형식이 다릅니다: chart는 숫자 배열, table은 tableType별 문자열 형식",
+      "description": "변량 데이터 (필수). purpose/tableType에 따라 형식이 다릅니다: chart는 숫자 배열, table은 tableType별 문자열 형식, scatter는 2D 배열 [[x,y], ...]",
       "oneOf": [
         {
           "type": "array",
@@ -20,21 +20,33 @@
           "type": "string",
           "minLength": 1,
           "description": "테이블용 문자열 (basic-table, stem-leaf, category-matrix)"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 2,
+          "description": "산점도용 2D 배열 [[x1, y1], [x2, y2], ...]"
         }
       ],
       "examples": [
         [62, 87, 97, 73, 81],
         "헤더: 항목, 값\nA: 10\nB: 20",
         "162 178 175 189",
-        "헤더: A, B, C\n행1: 1, 2, 3"
+        "헤더: A, B, C\n행1: 1, 2, 3",
+        [[50, 55], [60, 60], [70, 65], [80, 70]]
       ]
     },
     "purpose": {
-      "description": "렌더링 목적. 'table'을 원하면 반드시 명시해야 함 (기본값이 'chart'이므로)",
+      "description": "렌더링 목적. 'table'/'scatter'를 원하면 반드시 명시해야 함 (기본값이 'chart'이므로)",
       "type": "string",
-      "enum": ["chart", "table"],
+      "enum": ["chart", "table", "scatter"],
       "default": "chart",
-      "examples": ["table"]
+      "examples": ["table", "scatter"]
     },
     "tableType": {
       "description": "테이블 유형 (purpose가 'table'일 때만 유효). 기본값은 'basic-table'",
@@ -172,6 +184,29 @@
                 "minLength": 1
               }
             ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "purpose": { "const": "scatter" }
+        },
+        "required": ["purpose"]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 2,
+            "description": "산점도는 2D 배열 [[x1, y1], [x2, y2], ...] 형식 필수 (최소 2개 포인트)"
           }
         }
       }
@@ -398,6 +433,19 @@
           "type": "boolean",
           "description": "병합된 헤더 표시 (basic-table 전용)",
           "default": true
+        },
+        "pointSize": {
+          "type": "number",
+          "description": "산점도 점 반지름 (scatter 전용)",
+          "minimum": 1,
+          "default": 6,
+          "examples": [6, 8, 10]
+        },
+        "pointColor": {
+          "type": "string",
+          "description": "산점도 점 색상 (scatter 전용)",
+          "default": "#93DA6A",
+          "examples": ["#93DA6A", "#FF6B6B", "#4ECDC4"]
         }
       }
     },
