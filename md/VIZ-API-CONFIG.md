@@ -243,6 +243,15 @@ if (!valid) console.log(validate.errors);
 | **polygonColorPreset** | `options.polygonColorPreset` | 다각형 색상 프리셋 |
 | **polygonColor** | `options.polygonColor` | 다각형 커스텀 색상 |
 
+#### options 하위 객체 (산점도)
+
+| 용어 | JSON 경로 | 설명 |
+|:-----|:----------|:-----|
+| **axisLabels** | `options.axisLabels` | 축 제목 (`{ xAxis, yAxis }`) |
+| **pointSize** | `options.pointSize` | 점 반지름 (기본: 6) |
+| **pointColor** | `options.pointColor` | 점 색상 (기본: "#93DA6A") |
+| **corruption** | `options.corruption` | 찢김 효과 설정 (`{ enabled, cells, style }`) |
+
 #### options 하위 객체 (테이블)
 
 | 용어 | JSON 경로 | 설명 |
@@ -259,7 +268,7 @@ if (!valid) console.log(validate.errors);
 config (최상위)
 │
 ├── data                    (필수) 숫자 배열 또는 특수 문자열
-├── purpose                 "chart" | "table"
+├── purpose                 "chart" | "table" | "scatter"
 ├── tableType               "basic-table" | "category-matrix" | "stem-leaf" (기본: "basic-table")
 ├── classCount              계급 개수 (차트 전용, 기본: 5)
 ├── classWidth              계급 간격 (차트 전용, 자동 계산)
@@ -277,7 +286,6 @@ config (최상위)
 │   ├── dataType            "frequency" | "relativeFrequency"
 │   ├── histogramColorPreset / histogramColor   막대 색상
 │   ├── polygonColorPreset / polygonColor       다각형 색상
-│   ├── axisLabels          { xAxis, yAxis }
 │   ├── callout             { enabled, template, preset } 말풍선 설정
 │   ├── showDashedLines     수직 파선 표시 (다각형 점 → Y축)
 │   ├── grid                { showHorizontal, showVertical } 격자선 설정
@@ -288,8 +296,15 @@ config (최상위)
 │   ├── customBarLabels     ["A", null, "B"] 막대 내부 라벨 배열
 │   ├── polygon             { hidden } 다각형 숨김 옵션
 │   │
-│   │  [차트/테이블 공통]
-│   ├── corruption          { enabled, cells, maskAxisLabels, style } 찢김 효과
+│   │  [산점도 전용]
+│   ├── pointSize           점 반지름 (기본: 6)
+│   ├── pointColor          점 색상 (기본: "#93DA6A")
+│   │
+│   │  [차트/산점도 공통]
+│   ├── axisLabels          { xAxis, yAxis } 축 제목
+│   │
+│   │  [차트/테이블/산점도 공통]
+│   ├── corruption          { enabled, cells, style } 찢김 효과
 │   │
 │   │  [basic-table 전용]
 │   ├── showTotal           합계 행 표시
@@ -334,6 +349,7 @@ config (최상위)
 |:--------|:---------|:-----|:-----|
 | `"chart"` | `number[]` 또는 `string` | 숫자 배열 또는 숫자가 포함된 문자열 | `[62, 87, 97]` 또는 `"62, 87, 97"` |
 | `"table"` | `string` | `"헤더: ...\n행: ..."` 형식 | `"헤더: 항목, 값\nA: 10"` |
+| `"scatter"` | `array[]` | 2D 배열 `[[x, y], ...]` | `[[10, 20], [15, 35]]` |
 
 #### 차트 예시
 ```json
@@ -350,6 +366,14 @@ config (최상위)
 }
 ```
 
+#### 산점도 예시
+```json
+{
+  "purpose": "scatter",
+  "data": [[10, 20], [15, 35], [20, 40], [25, 55]]
+}
+```
+
 ### purpose
 
 렌더링 목적을 지정합니다.
@@ -357,10 +381,10 @@ config (최상위)
 | 항목 | 설명 |
 |:-----|:-----|
 | **타입** | `string` |
-| **필수 여부** | 선택 |
+| **필수 여부** | 선택 (scatter는 필수) |
 | **기본값** | `"chart"` |
-| **가능한 값** | `"chart"`, `"table"` |
-| **동작** | `"chart"`: 히스토그램 렌더링, `"table"`: 도수분포표 렌더링 |
+| **가능한 값** | `"chart"`, `"table"`, `"scatter"` |
+| **동작** | `"chart"`: 히스토그램, `"table"`: 도수분포표, `"scatter"`: 산점도 |
 
 ```json
 {
