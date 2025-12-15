@@ -51,6 +51,11 @@ JSON 생성 시 반드시 알아야 할 핵심 규칙입니다.
 { "purpose": "table", "tableType": "stem-leaf", "data": "162 178 175" }
 ```
 
+**테이블 (category-matrix):**
+```json
+{ "purpose": "table", "tableType": "category-matrix", "data": "헤더: A, B, C\n행1: 1, 2, 3" }
+```
+
 ## Quick Start (최소 설정)
 
 이것만 있으면 동작합니다.
