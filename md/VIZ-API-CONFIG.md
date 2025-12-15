@@ -23,6 +23,30 @@ JSON 생성 시 반드시 알아야 할 핵심 규칙입니다.
 | `"category-matrix"` | 카테고리 교차표 | `"헤더: A, B, C\n행1: 1, 2, 3"` |
 | `"stem-leaf"` | 줄기-잎 그림 | `"162 178 175"` 또는 `"남: 162 178\n여: 165 172"` |
 
+#### basic-table vs category-matrix 선택 기준
+
+| 조건 | 선택 | 이유 |
+|:-----|:-----|:-----|
+| 행 라벨이 의미 있는 이름 (자료 A, 남학생, 1반 등) | `category-matrix` | 행 라벨 컬럼이 자동 생성됨 |
+| 도수분포표 (계급, 도수, 상대도수 등) | `basic-table` | 첫 열이 헤더가 아닌 데이터 |
+| 이원분류표 (행/열 모두 카테고리) | `basic-table` | 첫 열 헤더가 "구분" 등 |
+| 헤더행 없음 | `category-matrix` | 헤더를 `null`로 처리 가능 |
+
+#### 헤더행 없음 처리
+
+원본 데이터에 헤더행이 없는 경우 `category-matrix` + `null` 헤더 사용:
+
+```json
+{
+  "purpose": "table",
+  "tableType": "category-matrix",
+  "data": "헤더: null, null, null, null, null\n자료 A: 14, a, 12, 16, b\n자료 B: 14, b-1, 18, 13, 11"
+}
+```
+
+- 헤더 개수는 데이터 열 개수와 일치해야 함
+- `null`은 빈 셀로 렌더링됨
+
 ### 3. 핵심 규칙 체크리스트
 
 | 규칙 | 상세 |
