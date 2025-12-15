@@ -1880,6 +1880,10 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `options.axisLabels` | `object` | X | `null` | 축 제목 설정 |
 | `options.pointSize` | `number` | X | `6` | 점 반지름 (px) |
 | `options.pointColor` | `string` | X | `"#93DA6A"` | 점 색상 |
+| `options.corruption` | `object` | X | `{ enabled: false }` | 찢김 효과 설정 |
+| `options.corruption.enabled` | `boolean` | X | `false` | 찢김 효과 활성화 |
+| `options.corruption.cells` | `string\|array` | X | `[]` | 마스킹할 셀 범위 |
+| `options.corruption.style` | `object` | X | - | 스타일 옵션 (edgeComplexity, seed 등) |
 
 ## 산점도 필드별 동작
 
@@ -1934,6 +1938,38 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
   }
 }
 ```
+
+### options.corruption
+
+산점도의 특정 영역에 "찢김" 효과를 적용합니다.
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[5, 5], [5, 15], [10, 30], ...],
+  "options": {
+    "corruption": {
+      "enabled": true,
+      "cells": "4-1:6-2, 5-3:6-4"
+    }
+  }
+}
+```
+
+#### 산점도 셀 좌표 시스템
+
+**셀 인덱스 (interval=10, 축 범위 0~50 기준):**
+| 셀 | X축 범위 | Y축 범위 |
+|:--:|:---------|:---------|
+| 0 | 압축 (≈) | 압축 (≈) |
+| 1 | 0~10 | 0~10 |
+| 2 | 10~20 | 10~20 |
+| 3 | 20~30 | 20~30 |
+| 4 | 30~40 | 30~40 |
+| 5 | 40~50 | 40~50 |
+| 6 | 여유 (50~60) | 여유 (50~60) |
+
+- **■**: 찢김 효과가 적용될 영역
 
 ## 산점도 축 레이아웃
 
