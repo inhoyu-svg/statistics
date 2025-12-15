@@ -96,7 +96,11 @@ class BasicTableParser {
 
       // 첫 번째 데이터 줄: 헤더 (첫 값 = 행 라벨 컬럼명, 나머지 = 열 헤더)
       if (i === startLineIndex && label.toLowerCase() === '헤더') {
-        const allHeaders = valuesStr.split(',').map(v => v.trim()).filter(v => v);
+        const allHeaders = valuesStr.split(',').map(v => {
+          const trimmed = v.trim();
+          // null 문자열 → 실제 null (빈 셀)
+          return trimmed === 'null' ? null : trimmed;
+        }).filter(v => v !== ''); // 빈 문자열만 필터링, null은 유지
         if (allHeaders.length < 2) {
           return {
             success: false,
@@ -160,8 +164,8 @@ class BasicTableParser {
       );
     }
 
-    // 행 라벨 컬럼명이 없으면 기본값
-    if (!result.rowLabelColumn) {
+    // 행 라벨 컬럼명이 없으면 기본값 (null은 빈칸이므로 유지)
+    if (result.rowLabelColumn === undefined || result.rowLabelColumn === '') {
       result.rowLabelColumn = '구분';
     }
 

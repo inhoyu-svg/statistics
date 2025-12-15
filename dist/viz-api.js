@@ -36,16 +36,27 @@
     CHART_ELLIPSIS_Y_OFFSET: 10,
     CHART_X_TITLE_Y_OFFSET: 10,
     CHART_Y_TITLE_X_OFFSET: 15,
+    CHART_LEGEND_X_OFFSET: 180,
+
+    // 범례 레이아웃
+    CHART_LEGEND_Y_START: 20,           // 첫 번째 범례 항목 Y 위치
+    CHART_LEGEND_BAR_HEIGHT: 15,        // 범례 막대 높이
+    CHART_LEGEND_ITEM_WIDTH: 20,        // 범례 아이템 너비 (박스/선)
+    CHART_LEGEND_TEXT_X_OFFSET: 25,     // 범례 텍스트 X 오프셋
+    CHART_LEGEND_TEXT_Y_OFFSET: 12,     // 범례 텍스트 Y 오프셋 (아이템 상단 기준)
+    CHART_LEGEND_ITEM_SPACING: 30,      // 범례 항목 간 Y 간격
+    CHART_LEGEND_POINT_RADIUS: 4,       // 범례 점 반지름
+    CHART_LEGEND_POINT_CENTER_X: 10,    // 범례 점 중심 X 오프셋 (아이템 시작점 기준)
 
     // 중략 판단 기준
     ELLIPSIS_THRESHOLD: 2,
     ELLIPSIS_POSITION_RATIO: 0.25, // 압축 구간에서 이중물결 기호 위치 (0~1 사이 값)
 
-    // 차트 폰트 설정 (500 = Medium, 300 = Light)
-    CHART_FONT_SMALL: "300 11px 'SCDream', sans-serif",
-    CHART_FONT_REGULAR: "300 12px 'SCDream', sans-serif",
-    CHART_FONT_BOLD: "300 14px 'SCDream', sans-serif",
-    CHART_FONT_LARGE: "300 16px 'SCDream', sans-serif",
+    // 차트 폰트 설정
+    CHART_FONT_SMALL: '11px sans-serif',
+    CHART_FONT_REGULAR: '12px sans-serif',
+    CHART_FONT_BOLD: 'bold 14px sans-serif',
+    CHART_FONT_LARGE: '16px sans-serif',
 
     // 소수점 자릿수
     DECIMAL_PLACES: 2,
@@ -57,28 +68,22 @@
     CANVAS_WIDTH: 700,
     CANVAS_HEIGHT: 450,
 
-    // 차트 폰트 스케일링 설정
-    BASE_CANVAS_SIZE: 600,              // 기준 캔버스 크기 (이 크기에서 폰트가 기본 크기)
-    _currentCanvasSize: 600,            // 현재 캔버스 크기 (동적으로 업데이트됨)
-
     // 테이블 타입 설정
     TABLE_TYPES: {
-      BASIC_TABLE: 'basic-table',          // 기본 테이블 (구 이원 분류표)
+      FREQUENCY: 'frequency',              // 도수분포표
       CATEGORY_MATRIX: 'category-matrix',  // 카테고리 행렬
-      STEM_LEAF: 'stem-leaf',              // 줄기-잎 그림
-      // deprecated (v3.0에서 제거 예정)
-      FREQUENCY: 'frequency',              // → chart로 자동 전환
-      CROSS_TABLE: 'cross-table'           // → BASIC_TABLE 별칭
+      CROSS_TABLE: 'cross-table',          // 이원 분류표
+      STEM_LEAF: 'stem-leaf'               // 줄기-잎 그림
     },
 
     // 테이블 타입별 정보
     TABLE_TYPE_INFO: {
-      'basic-table': {
-        name: '기본 테이블',
-        description: '행/열 헤더가 있는 기본 테이블',
-        placeholder: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24',
-        hint: '첫 줄에 "헤더: 행라벨명, 열이름들", 이후 "행이름: 값들" 형식으로 입력',
-        defaultData: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24'
+      'frequency': {
+        name: '도수분포표',
+        description: '숫자 데이터를 계급별로 분류',
+        placeholder: '62, 87, 97, 73, 59, 85, 80, 79, 65, 75',
+        hint: '숫자를 쉼표 또는 공백으로 구분하여 입력',
+        defaultData: '62 87 97 73 59 85 80 79 65 75'
       },
       'category-matrix': {
         name: '카테고리 행렬',
@@ -87,40 +92,35 @@
         hint: '첫 줄에 "헤더: 값들", 이후 "라벨: 값들" 형식으로 입력',
         defaultData: '헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90'
       },
+      'cross-table': {
+        name: '이원 분류표',
+        description: '두 변수의 교차 분류',
+        placeholder: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24',
+        hint: '첫 줄에 "헤더: 행라벨명, 열이름들", 이후 "행이름: 값들" 형식으로 입력',
+        defaultData: '헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2\nAB: 0.12, 0.16\nO: 0.26, 0.24'
+      },
       'stem-leaf': {
         name: '줄기-잎 그림',
         description: '데이터 분포를 줄기와 잎으로 시각화',
         placeholder: '숫자만 입력 (단일) 또는\n남학생: 162 178 175...\n여학생: 160 165 170... (비교)',
         hint: '숫자만: 단일 줄기-잎 / "라벨: 숫자들": 비교형 줄기-잎',
         defaultData: '남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207'
-      },
-      // deprecated - 하위 호환성용 (v3.0에서 제거 예정)
-      'frequency': {
-        name: '도수분포표',
-        description: '숫자 데이터를 계급별로 분류 (chart로 자동 전환)',
-        placeholder: '62, 87, 97, 73, 59, 85, 80, 79, 65, 75',
-        hint: '숫자를 쉼표 또는 공백으로 구분하여 입력',
-        defaultData: '62 87 97 73 59 85 80 79 65 75'
-      },
-      'cross-table': null  // → basic-table로 리다이렉트
+      }
     },
 
     // 기본 테이블 타입
-    DEFAULT_TABLE_TYPE: 'basic-table',
+    DEFAULT_TABLE_TYPE: 'frequency',
 
     // 테이블 Canvas 설정
     TABLE_CANVAS_WIDTH: 700,
-    TABLE_DEFAULT_WIDTH: 600,          // viz-api 테이블 기본 너비
-    TABLE_DEFAULT_HEIGHT: 400,         // viz-api 테이블 기본 높이
     TABLE_MIN_WIDTH: 300,              // 동적 너비 최소값
     TABLE_MAX_WIDTH: 700,              // 동적 너비 최대값 (TABLE_CANVAS_WIDTH와 동일)
     TABLE_ROW_HEIGHT: 40,
-    TABLE_ROW_HEIGHT_FRACTION: 52,    // 분수가 포함된 행 높이
     TABLE_HEADER_HEIGHT: 45,
     TABLE_PADDING: 10,
-    TABLE_FONT_HEADER: "500 18px 'SCDream', sans-serif",   // Medium (녹색 텍스트)
-    TABLE_FONT_DATA: "300 18px 'SCDream', sans-serif",     // Light (흰색 텍스트)
-    TABLE_FONT_SUMMARY: "300 18px 'SCDream', sans-serif",  // Light (흰색 텍스트)
+    TABLE_FONT_HEADER: 'bold 18px sans-serif',
+    TABLE_FONT_DATA: '18px sans-serif',
+    TABLE_FONT_SUMMARY: 'bold 18px sans-serif',
     TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
     TABLE_SHOW_SUMMARY_ROW: true, // 합계 행 표시 여부 (도수분포표, 이원분류표)
     TABLE_SUPERSCRIPT_Y_OFFSET: 4, // 상첨자 위치 오프셋 (위로 이동)
@@ -133,7 +133,7 @@
     TABLE_STEM_LEAF_PADDING: 20,            // 줄기-잎 데이터 셀 패딩 (세로선과의 간격)
     TABLE_GRID_DASH_PATTERN: [5, 3],        // 수직 점선 패턴 [선, 간격]
     TABLE_EMPTY_CANVAS_HEIGHT: 100,         // 빈 테이블 캔버스 높이
-    TABLE_FONT_SUPERSCRIPT: "300 11px 'SCDream', sans-serif", // 상첨자 폰트 (Light)
+    TABLE_FONT_SUPERSCRIPT: '11px sans-serif', // 상첨자 폰트
 
     // 테이블 문자열 상수
     TABLE_SUPERSCRIPT_MIN_TEXT: '이상',      // 상첨자 최솟값 텍스트
@@ -154,8 +154,9 @@
     CHART_LINE_WIDTH_DASHED: 1.5,           // 파선 너비
     CHART_DASHED_PATTERN: [5, 5],           // 파선 패턴 [선, 간격]
 
-    // 축 문자열 상수
+    // 축/범례 문자열 상수
     AXIS_ELLIPSIS_SYMBOL: '≈',              // 이중물결 기호
+    LEGEND_LABEL_HISTOGRAM: '히스토그램',    // 범례 히스토그램 라벨
 
     // 기본 라벨 (고급 설정) - 축 끝 라벨링용 괄호 포함
     DEFAULT_LABELS: {
@@ -219,8 +220,11 @@
     CALLOUT_HEIGHT: 36,                       // 말풍선 높이
     CALLOUT_OFFSET_X: 10,                     // 포인트에서 왼쪽으로 오프셋
     CALLOUT_OFFSET_Y: 10,                     // 포인트에서 위로 오프셋
+    CALLOUT_TAIL_WIDTH: 20,                   // 꼬리 너비 (미사용)
+    CALLOUT_TAIL_HEIGHT: 10,                  // 꼬리 높이 (미사용)
+    CALLOUT_BORDER_RADIUS: 0,                 // 모서리 둥글기 (0 = 둥글기 없음)
     CALLOUT_PADDING: 8,                       // 내부 패딩
-    CALLOUT_FONT: "500 20px 'SCDream', sans-serif",       // 폰트 (Medium)
+    CALLOUT_FONT: '20px sans-serif',          // 폰트
     CALLOUT_LINE_HEIGHT: 20,                  // 줄 간격
     CALLOUT_TEMPLATE: '남학생',                // 기본 템플릿
     CALLOUT_ACCENT_BAR_WIDTH: 4,              // 오른쪽 세로 막대 너비
@@ -257,12 +261,6 @@
     // 막대 라벨 설정
     SHOW_BAR_LABELS: false,                   // 막대 위 값 표시 여부 (기본값)
 
-    // 막대 내부 커스텀 라벨 설정
-    SHOW_BAR_CUSTOM_LABELS: false,            // 막대 내부 커스텀 라벨 표시 여부
-    BAR_CUSTOM_LABELS: {},                    // 인덱스별 라벨 (예: {0: 'A', 2: 'B'})
-    BAR_CUSTOM_LABEL_FONT_SIZE: 28,           // 라벨 폰트 크기 (기본: 28)
-    BAR_CUSTOM_LABEL_COLOR: '#FFFFFF',        // 라벨 색상 (기본: 흰색)
-
     // 합동 삼각형 설정
     SHOW_CONGRUENT_TRIANGLES: false,          // 합동 삼각형 표시 여부 (기본값)
     CONGRUENT_TRIANGLE_INDEX: 0,              // 표시할 구간 인덱스 (0부터 시작)
@@ -298,25 +296,6 @@
         gradientStart: '#F3A257',
         gradientEnd: '#FA716F',
         pointColor: '#F68D61'
-      }
-    },
-
-    // 히스토그램 색상 프리셋
-    HISTOGRAM_COLOR_PRESET: 'default',
-    HISTOGRAM_COLOR_PRESETS: {
-      default: {
-        fillStart: '#4141A3',
-        fillEnd: '#2CA0E8',
-        strokeStart: '#54A0F6',
-        strokeEnd: '#6DE0FC',
-        alpha: 0.5
-      },
-      green: {
-        fillStart: '#AEFF7E',
-        fillEnd: '#68994C',
-        strokeStart: '#AEFF7E',
-        strokeEnd: '#68994C',
-        alpha: 0.3
       }
     },
 
@@ -421,125 +400,6 @@
     },
 
     /**
-     * 캔버스 크기 설정 (폰트 스케일링용)
-     * @param {number} size - 캔버스 크기 (width 또는 height 중 큰 값)
-     */
-    setCanvasSize(size) {
-      this._currentCanvasSize = size || this.BASE_CANVAS_SIZE;
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 폰트 크기 반환
-     * @param {number} baseSize - 기준 폰트 크기 (BASE_CANVAS_SIZE 기준)
-     * @returns {number} 스케일된 폰트 크기
-     */
-    getScaledFontSize(baseSize) {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return Math.round(baseSize * scale);
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 패딩 반환
-     * @returns {number} 스케일된 패딩
-     */
-    getScaledPadding() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return Math.round(this.CHART_PADDING * scale);
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 값 반환 (범용)
-     * @param {number} baseValue - 기준 값 (BASE_CANVAS_SIZE 기준)
-     * @returns {number} 스케일된 값
-     */
-    getScaledValue(baseValue) {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return baseValue * scale;
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 선 너비 반환
-     * @param {string} type - 'thin', 'normal', 'thick', 'dashed'
-     * @returns {number} 스케일된 선 너비
-     */
-    getScaledLineWidth(type = 'normal') {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      const widths = {
-        thin: this.CHART_LINE_WIDTH_THIN,
-        normal: this.CHART_LINE_WIDTH_NORMAL,
-        thick: this.CHART_LINE_WIDTH_THICK,
-        dashed: this.CHART_LINE_WIDTH_DASHED
-      };
-      return (widths[type] || widths.normal) * scale;
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 점 반지름 반환
-     * @returns {number} 스케일된 점 반지름
-     */
-    getScaledPointRadius() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return this.CHART_POINT_RADIUS * scale;
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 파선 패턴 반환
-     * @returns {Array} 스케일된 파선 패턴
-     */
-    getScaledDashPattern() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return this.CHART_DASHED_PATTERN.map(v => v * scale);
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 말풍선 연결선 너비 반환
-     * @returns {number} 스케일된 선 너비
-     */
-    getScaledCalloutLineWidth() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return this.CALLOUT_CONNECTOR_LINE_WIDTH * scale;
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 말풍선 연결선 파선 패턴 반환
-     * @returns {Array} 스케일된 파선 패턴
-     */
-    getScaledCalloutDashPattern() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return this.CALLOUT_CONNECTOR_DASH_PATTERN.map(v => v * scale);
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 말풍선 세로 막대 너비 반환
-     * @returns {number} 스케일된 너비
-     */
-    getScaledCalloutAccentBarWidth() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return this.CALLOUT_ACCENT_BAR_WIDTH * scale;
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 말풍선 줄 높이 반환
-     * @returns {number} 스케일된 줄 높이
-     */
-    getScaledCalloutLineHeight() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return this.CALLOUT_LINE_HEIGHT * scale;
-    },
-
-    /**
-     * 캔버스 크기에 비례하여 스케일된 말풍선 크기 반환
-     * @returns {{width: number, height: number}} 스케일된 말풍선 크기
-     */
-    getScaledCalloutSize() {
-      const scale = this._currentCanvasSize / this.BASE_CANVAS_SIZE;
-      return {
-        width: this.CALLOUT_WIDTH * scale,
-        height: this.CALLOUT_HEIGHT * scale
-      };
-    },
-
-    /**
      * 그리드 설정 계산 (스마트 격자)
      * @param {number} maxValue - 최대값
      * @param {string} dataType - 데이터 타입
@@ -580,47 +440,6 @@
         maxY: fallbackDivisions,
         divisions: fallbackDivisions
       };
-    },
-
-    // ============================================================
-    // 산점도 (Scatter Plot) 설정
-    // ============================================================
-
-    // 산점도 기본 설정
-    SCATTER_PADDING: 80,                    // 캔버스 패딩 (X축 라벨 공간 확보)
-    SCATTER_POINT_RADIUS: 6,                // 점 반지름
-    SCATTER_POINT_COLOR: '#93DA6A',         // 점 색상 (기본)
-    SCATTER_GRID_COLOR: '#444444',          // 그리드선 색상
-    SCATTER_AXIS_COLOR: '#888888',          // 축선 색상
-    SCATTER_LABEL_COLOR: '#e5e7eb',         // 라벨 색상
-
-    // 산점도 폰트 설정
-    SCATTER_FONT_LABEL: "300 14px 'SCDream', sans-serif",
-    SCATTER_FONT_TITLE: "500 16px 'SCDream', sans-serif",
-
-    // 산점도 캔버스 기본 크기
-    SCATTER_DEFAULT_WIDTH: 650,
-    SCATTER_DEFAULT_HEIGHT: 700,
-
-    // 산점도 그리드 설정
-    SCATTER_GRID_LINE_WIDTH: 1,             // 그리드선 두께
-    SCATTER_AXIS_LINE_WIDTH: 2,             // 축선 두께
-
-    /**
-     * 두 숫자의 최대공약수(GCD) 계산
-     * @param {number} a - 첫 번째 숫자
-     * @param {number} b - 두 번째 숫자
-     * @returns {number} 최대공약수
-     */
-    gcd(a, b) {
-      a = Math.abs(a);
-      b = Math.abs(b);
-      while (b > 0) {
-        const temp = b;
-        b = a % b;
-        a = temp;
-      }
-      return a;
     }
   };
 
@@ -638,13 +457,15 @@
     }
 
     /**
-     * 숫자를 포맷하고 불필요한 뒤의 0 제거
+     * 숫자를 포맷하고 불필요한 .00 제거
      * @param {number} num - 포맷할 숫자
      * @param {number} decimals - 소수점 자릿수
-     * @returns {string} 포맷된 숫자 (뒤의 0 제거: 4.20 → 4.2, 4.00 → 4)
+     * @returns {string} 포맷된 숫자 (불필요한 .00 제거)
      */
     static formatNumberClean(num, decimals = CONFIG.DECIMAL_PLACES) {
-      return parseFloat(Number(num).toFixed(decimals)).toString();
+      const formatted = Number(num).toFixed(decimals);
+      // .00 제거 (예: 20.00 → 20, 33.33은 유지)
+      return formatted.replace(/\.00$/, '');
     }
 
     /**
@@ -750,16 +571,6 @@
     }
 
     /**
-     * LaTeX 분수 문자열 생성
-     * @param {number} numerator - 분자
-     * @param {number} denominator - 분모
-     * @returns {string} LaTeX 분수 문자열 (예: \frac{2}{9})
-     */
-    static toLatexFrac(numerator, denominator) {
-      return `\\frac{${numerator}}{${denominator}}`;
-    }
-
-    /**
      * 소수 값 포맷팅 (끝자리 0 생략, 무한소수 처리)
      * @param {number} value - 소수 값 (예: 0.15)
      * @returns {string} 포맷된 문자열
@@ -799,11 +610,6 @@
   class MessageManager {
     static show(message, type = 'error') {
       const messageBox = document.getElementById('messageBox');
-      if (!messageBox) {
-        // messageBox가 없으면 콘솔에만 출력
-        console.warn(`[MessageManager] ${type}: ${message}`);
-        return;
-      }
       messageBox.textContent = message;
       messageBox.className = `message-box show ${type}`;
 
@@ -815,7 +621,6 @@
 
     static hide() {
       const messageBox = document.getElementById('messageBox');
-      if (!messageBox) return;
       messageBox.classList.remove('show');
     }
 
@@ -1416,16 +1221,14 @@
 
     /**
      * 기본 통계 계산
-     * @precondition viz-api에서 ConfigValidator.validate()로 먼저 검증됨
      * @param {number[]} data - 숫자 배열
      * @returns {{min: number, max: number, range: number, mean: number, median: number, count: number}} 통계 객체
-     * @throws {Error} 데이터가 비어있는 경우 (방어적 검증)
+     * @throws {Error} 데이터가 비어있는 경우
      * @example
      * calculateBasicStats([1, 2, 3, 4, 5])
      * // { min: 1, max: 5, range: 4, mean: 3, median: 3, count: 5 }
      */
     static calculateBasicStats(data) {
-      // 방어적 검증: ConfigValidator에서 이미 검증되었지만, 직접 호출 시 안전장치
       if (Utils.isEmpty(data)) {
         throw new Error('데이터가 비어있습니다.');
       }
@@ -1448,7 +1251,7 @@
      * @param {Object} stats - 통계 객체 (calculateBasicStats 반환값)
      * @param {number} classCount - 생성할 계급 개수
      * @param {number|null} customWidth - 커스텀 계급 간격 (선택)
-     * @param {Object|null} customRange - 커스텀 범위 설정 { firstStart, secondStart, lastEnd }
+     * @param {Object|null} customRange - 커스텀 범위 설정 { firstEnd, secondEnd, lastStart }
      * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
      * @example
      * createClasses({ max: 100 }, 5)
@@ -1502,57 +1305,45 @@
 
     /**
      * 커스텀 범위로 계급 구간 생성
-     * @precondition viz-api에서 ConfigValidator.validate()로 classRange 검증됨
-     * @param {Object} customRange - { firstStart, secondStart, lastEnd }
+     * @param {Object} customRange - { firstEnd, secondEnd, lastStart }
      * @returns {{classes: Array, classWidth: number}} 계급 배열과 계급 간격
-     * @throws {Error} 범위 값이 논리적으로 올바르지 않은 경우 (방어적 검증)
      * @description
-     * - firstStart: 전체 구간의 시작값 (첫 계급 시작)
-     * - secondStart: 두 번째 계급의 시작값 (간격 결정용)
-     * - lastEnd: 전체 구간의 끝값 (마지막 계급 끝)
-     * @example
-     * // { firstStart: 12, secondStart: 14, lastEnd: 22 }
-     * // → 간격 2, 계급: 0~12(빈), 12~14, 14~16, 16~18, 18~20, 20~22
+     * - 첫 칸: 0 ~ firstEnd (비어있음)
+     * - 두 번째 칸: firstEnd ~ secondEnd (간격 결정)
+     * - 중간 칸들: 두 번째 칸의 간격으로 자동 생성
+     * - 마지막 칸: lastStart ~ (lastStart + 간격)
      */
     static createCustomRangeClasses(customRange) {
-      const { firstStart, secondStart, lastEnd } = customRange;
+      const { firstEnd, secondEnd, lastStart } = customRange;
 
-      // 방어적 검증: ConfigValidator에서 이미 검증되었지만, 직접 호출 시 안전장치
-      if (firstStart < 0) {
-        throw new Error('첫 계급의 시작값은 0 이상이어야 합니다.');
+      // 유효성 검사
+      if (firstEnd <= 0) {
+        throw new Error('첫 칸의 끝값은 0보다 커야 합니다.');
       }
-      if (secondStart <= firstStart) {
-        throw new Error('두 번째 계급의 시작값은 첫 계급의 시작값보다 커야 합니다.');
+      if (secondEnd <= firstEnd) {
+        throw new Error('두 번째 칸의 끝값은 첫 칸의 끝값보다 커야 합니다.');
       }
-      if (lastEnd <= secondStart) {
-        throw new Error('마지막 계급의 끝값은 두 번째 계급의 시작값보다 커야 합니다.');
+      if (lastStart <= secondEnd) {
+        throw new Error('마지막 칸의 시작값은 두 번째 칸의 끝값보다 커야 합니다.');
       }
 
-      // 간격 계산 (첫 번째와 두 번째 계급 시작값의 차이)
-      const classWidth = secondStart - firstStart;
-
-      // 간격으로 나누어 떨어지는지 검증
-      const totalRange = lastEnd - firstStart;
-      if (totalRange % classWidth !== 0) {
-        console.warn(`classRange 경고: 전체 범위(${totalRange})가 간격(${classWidth})으로 나누어 떨어지지 않습니다.`);
-      }
+      // 간격 계산 (두 번째 칸 기준)
+      const classWidth = secondEnd - firstEnd;
 
       const classes = [];
 
-      // firstStart가 0보다 크면 0~firstStart 빈 구간 추가 (중략 표시용)
-      if (firstStart > 0) {
-        classes.push({
-          min: 0,
-          max: firstStart,
-          frequency: 0,
-          data: [],
-          midpoint: firstStart / 2
-        });
-      }
+      // 첫 칸 추가 (0 ~ firstEnd)
+      classes.push({
+        min: 0,
+        max: firstEnd,
+        frequency: 0,
+        data: [],
+        midpoint: firstEnd / 2
+      });
 
-      // firstStart부터 lastEnd까지 classWidth 간격으로 계급 생성
-      let currentMin = firstStart;
-      while (currentMin < lastEnd) {
+      // 두 번째 칸부터 마지막 칸 직전까지
+      let currentMin = firstEnd;
+      while (currentMin < lastStart) {
         const currentMax = currentMin + classWidth;
         classes.push({
           min: currentMin,
@@ -1564,13 +1355,13 @@
         currentMin = currentMax;
       }
 
-      // lastEnd 이후에 빈 구간 추가 (축 라벨 표시용)
+      // 마지막 칸 추가 (lastStart ~ lastStart + classWidth)
       classes.push({
-        min: lastEnd,
-        max: lastEnd + classWidth,
+        min: lastStart,
+        max: lastStart + classWidth,
         frequency: 0,
         data: [],
-        midpoint: lastEnd + (classWidth / 2)
+        midpoint: lastStart + (classWidth / 2)
       });
 
       return { classes, classWidth };
@@ -1693,1100 +1484,6 @@
      */
     static importData(jsonData) {
       return DataImporter.importData(jsonData);
-    }
-  }
-
-  /**
-   * 도수분포표 파서
-   * 숫자 데이터를 파싱하여 배열로 반환
-   */
-
-
-  class FrequencyParser {
-    /**
-     * 입력 문자열을 숫자 배열로 파싱
-     * @param {string} input - 쉼표 또는 공백으로 구분된 숫자 문자열
-     * @returns {{ success: boolean, data: number[]|null, error: string|null }}
-     * @example
-     * parse("1, 2, 3") // { success: true, data: [1, 2, 3], error: null }
-     * parse("1 2 3")   // { success: true, data: [1, 2, 3], error: null }
-     * parse("")        // { success: false, data: null, error: "데이터가 비어있습니다" }
-     */
-    static parse(input) {
-      if (!input || typeof input !== 'string') {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      const trimmed = input.trim();
-      if (!trimmed) {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      // 쉼표 또는 공백으로 분리하여 숫자로 변환
-      const numbers = trimmed
-        .split(/[,\s]+/)
-        .map(Number)
-        .filter(n => !isNaN(n) && isFinite(n));
-
-      if (numbers.length === 0) {
-        return {
-          success: false,
-          data: null,
-          error: '유효한 숫자가 없습니다.'
-        };
-      }
-
-      if (numbers.length < CONFIG.MIN_DATA_POINTS) {
-        return {
-          success: false,
-          data: null,
-          error: `최소 ${CONFIG.MIN_DATA_POINTS}개 이상의 데이터가 필요합니다.`
-        };
-      }
-
-      if (numbers.length > CONFIG.MAX_DATA_POINTS) {
-        return {
-          success: false,
-          data: null,
-          error: `데이터 개수는 최대 ${CONFIG.MAX_DATA_POINTS}개까지 입력 가능합니다.`
-        };
-      }
-
-      return {
-        success: true,
-        data: numbers,
-        error: null
-      };
-    }
-
-    /**
-     * 파서 타입 반환
-     * @returns {string}
-     */
-    static getType() {
-      return CONFIG.TABLE_TYPES.FREQUENCY;
-    }
-  }
-
-  /**
-   * 카테고리 행렬 파서
-   * "헤더: A, B, C" + "라벨: 값들" 형식의 데이터를 파싱
-   */
-
-
-  class CategoryMatrixParser {
-    /**
-     * 입력 문자열을 카테고리 행렬 데이터로 파싱
-     * @param {string} input - 여러 줄의 "라벨: 값들" 형식 문자열
-     * @returns {{ success: boolean, data: Object|null, error: string|null }}
-     * @example
-     * parse("헤더: A, B, C\n전체: 200, 250, 300\nO형: 50, 60, 70")
-     * // { success: true, data: { headers: ['A','B','C'], rows: [{label:'전체', values:[200,250,300]}, ...] } }
-     */
-    static parse(input) {
-      if (!input || typeof input !== 'string') {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      const trimmed = input.trim();
-      if (!trimmed) {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      const lines = trimmed.split('\n').map(line => line.trim()).filter(line => line);
-
-      if (lines.length < 2) {
-        return {
-          success: false,
-          data: null,
-          error: '최소 헤더 1줄과 데이터 1줄이 필요합니다.'
-        };
-      }
-
-      const result = {
-        headers: [],
-        rows: []
-      };
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const colonIndex = line.indexOf(':');
-
-        if (colonIndex === -1) {
-          return {
-            success: false,
-            data: null,
-            error: `${i + 1}번째 줄: "라벨: 값" 형식이 아닙니다.`
-          };
-        }
-
-        const label = line.substring(0, colonIndex).trim();
-        const valuesStr = line.substring(colonIndex + 1).trim();
-
-        if (!label) {
-          return {
-            success: false,
-            data: null,
-            error: `${i + 1}번째 줄: 라벨이 비어있습니다.`
-          };
-        }
-
-        // 첫 번째 줄이 헤더인지 확인 (라벨이 '헤더'인 경우)
-        if (i === 0 && label.toLowerCase() === '헤더') {
-          result.headers = valuesStr.split(',').map(v => {
-            const trimmed = v.trim();
-            // null 문자열은 빈 문자열로 처리 (빈칸 표시)
-            return trimmed === 'null' ? '' : trimmed;
-          });
-        } else {
-          // 데이터 행
-          const values = valuesStr.split(',').map(v => {
-            const trimmedVal = v.trim();
-
-            // 1. null 표기 → 빈 값
-            if (trimmedVal === 'null' || trimmedVal === '') {
-              return null;
-            }
-
-            // 2. 탈리마크 표기 → { type: 'tally', count: N }
-            if (/^\/+$/.test(trimmedVal)) {
-              return { type: 'tally', count: trimmedVal.length };
-            }
-
-            // 3. 숫자 변환
-            const num = Number(trimmedVal);
-            return isNaN(num) ? trimmedVal : num;
-          });
-
-          // 헤더가 있으면 개수 확인
-          if (result.headers.length > 0 && values.length !== result.headers.length) {
-            return {
-              success: false,
-              data: null,
-              error: `${i + 1}번째 줄: 값 개수(${values.length})가 헤더 개수(${result.headers.length})와 일치하지 않습니다.`
-            };
-          }
-
-          result.rows.push({
-            label: label,
-            values: values
-          });
-        }
-      }
-
-      if (result.rows.length === 0) {
-        return {
-          success: false,
-          data: null,
-          error: '데이터 행이 없습니다.'
-        };
-      }
-
-      // 헤더가 없으면 자동 생성 (A, B, C, ...)
-      if (result.headers.length === 0) {
-        const columnCount = result.rows[0].values.length;
-        result.headers = Array.from({ length: columnCount }, (_, i) =>
-          String.fromCharCode(65 + i) // A, B, C, ...
-        );
-      }
-
-      return {
-        success: true,
-        data: result,
-        error: null
-      };
-    }
-
-    /**
-     * 파서 타입 반환
-     * @returns {string}
-     */
-    static getType() {
-      return CONFIG.TABLE_TYPES.CATEGORY_MATRIX;
-    }
-  }
-
-  /**
-   * 기본 테이블 파서 (구 이원 분류표)
-   * 행(카테고리) × 열(그룹) 형식의 교차 분류 데이터를 파싱
-   */
-
-
-  class BasicTableParser {
-    /**
-     * 입력 문자열을 기본 테이블 데이터로 파싱
-     * @param {string} input - 여러 줄의 "행이름: 값들" 형식 문자열
-     * @returns {{ success: boolean, data: Object|null, error: string|null }}
-     * @example
-     * parse("헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.4\nB: 0.22, 0.2")
-     * // { success: true, data: { rowLabelColumn: '혈액형', columnHeaders: ['남학생','여학생'], rows: [...], showTotal: true } }
-     */
-    static parse(input) {
-      if (!input || typeof input !== 'string') {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      const trimmed = input.trim();
-      if (!trimmed) {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      const lines = trimmed.split('\n').map(line => line.trim()).filter(line => line);
-
-      if (lines.length < 2) {
-        return {
-          success: false,
-          data: null,
-          error: '최소 헤더 1줄과 데이터 1줄이 필요합니다.'
-        };
-      }
-
-      // 커스텀 병합 헤더 감지: 첫 줄이 "헤더:"로 시작하지 않고 ":"도 없으면 커스텀 라벨
-      let mergedHeaderText = null;
-      let startLineIndex = 0;
-      const firstLine = lines[0];
-
-      if (!firstLine.toLowerCase().startsWith('헤더:') && !firstLine.includes(':')) {
-        mergedHeaderText = firstLine;
-        startLineIndex = 1;
-      }
-
-      // 남은 줄이 충분한지 확인
-      const remainingLines = lines.slice(startLineIndex);
-      if (remainingLines.length < 2) {
-        return {
-          success: false,
-          data: null,
-          error: '최소 헤더 1줄과 데이터 1줄이 필요합니다.'
-        };
-      }
-
-      const result = {
-        rowLabelColumn: '',    // 행 라벨 컬럼명 (혈액형)
-        columnHeaders: [],     // 열 헤더 (남학생, 여학생)
-        rowHeaders: [],        // 행 헤더 (A, B, AB, O)
-        rows: [],              // 데이터 행
-        showTotal: true,       // 합계 행 표시 여부
-        mergedHeaderText       // 커스텀 병합 헤더 텍스트 (null이면 기본값 '상대도수')
-      };
-
-      for (let i = startLineIndex; i < lines.length; i++) {
-        const line = lines[i];
-        const colonIndex = line.indexOf(':');
-
-        if (colonIndex === -1) {
-          return {
-            success: false,
-            data: null,
-            error: `${i + 1}번째 줄: "라벨: 값" 형식이 아닙니다.`
-          };
-        }
-
-        const label = line.substring(0, colonIndex).trim();
-        const valuesStr = line.substring(colonIndex + 1).trim();
-
-        if (!label) {
-          return {
-            success: false,
-            data: null,
-            error: `${i + 1}번째 줄: 라벨이 비어있습니다.`
-          };
-        }
-
-        // 첫 번째 데이터 줄: 헤더 (첫 값 = 행 라벨 컬럼명, 나머지 = 열 헤더)
-        if (i === startLineIndex && label.toLowerCase() === '헤더') {
-          const allHeaders = valuesStr.split(',').map(v => v.trim()).filter(v => v);
-          if (allHeaders.length < 2) {
-            return {
-              success: false,
-              data: null,
-              error: '헤더는 최소 2개 이상 필요합니다. (행 라벨명, 열 헤더들)'
-            };
-          }
-          // 첫 번째 값은 행 라벨 컬럼명, 나머지는 열 헤더
-          result.rowLabelColumn = allHeaders[0];
-          result.columnHeaders = allHeaders.slice(1);
-        } else {
-          // 데이터 행
-          const values = valuesStr.split(',').map(v => {
-            const trimmedVal = v.trim();
-
-            // 1. null 표기 → 빈 값
-            if (trimmedVal === 'null' || trimmedVal === '') {
-              return null;
-            }
-
-            // 2. 탈리마크 표기 → { type: 'tally', count: N }
-            if (/^\/+$/.test(trimmedVal)) {
-              return { type: 'tally', count: trimmedVal.length };
-            }
-
-            // 3. 숫자 변환
-            const num = Number(trimmedVal);
-            return isNaN(num) ? trimmedVal : num;
-          });
-
-          // 열 헤더가 있으면 개수 확인
-          if (result.columnHeaders.length > 0 && values.length !== result.columnHeaders.length) {
-            return {
-              success: false,
-              data: null,
-              error: `${i + 1}번째 줄: 값 개수(${values.length})가 열 개수(${result.columnHeaders.length})와 일치하지 않습니다.`
-            };
-          }
-
-          result.rowHeaders.push(label);
-          result.rows.push({
-            label: label,
-            values: values
-          });
-        }
-      }
-
-      if (result.rows.length === 0) {
-        return {
-          success: false,
-          data: null,
-          error: '데이터 행이 없습니다.'
-        };
-      }
-
-      // 열 헤더가 없으면 자동 생성
-      if (result.columnHeaders.length === 0) {
-        const columnCount = result.rows[0].values.length;
-        result.columnHeaders = Array.from({ length: columnCount }, (_, i) =>
-          `열${i + 1}`
-        );
-      }
-
-      // 행 라벨 컬럼명이 없으면 기본값
-      if (!result.rowLabelColumn) {
-        result.rowLabelColumn = '구분';
-      }
-
-      // 합계 계산 - 상대도수이므로 1로 고정 (실제 합계가 1에 가까운 경우)
-      const totals = [];
-      for (let col = 0; col < result.columnHeaders.length; col++) {
-        let sum = 0;
-        let allNumbers = true;
-        for (const row of result.rows) {
-          if (typeof row.values[col] === 'number') {
-            sum += row.values[col];
-          } else {
-            allNumbers = false;
-            break;
-          }
-        }
-        // 상대도수 합계는 1로 표시 (0.95 ~ 1.05 범위면 1로 반올림)
-        if (allNumbers && sum >= 0.95 && sum <= 1.05) {
-          totals.push(1);
-        } else {
-          totals.push(allNumbers ? Math.round(sum * 100) / 100 : '-');
-        }
-      }
-      result.totals = totals;
-
-      return {
-        success: true,
-        data: result,
-        error: null
-      };
-    }
-
-    /**
-     * 파서 타입 반환
-     * @returns {string}
-     */
-    static getType() {
-      return CONFIG.TABLE_TYPES.BASIC_TABLE;
-    }
-  }
-
-  /**
-   * 줄기-잎 그림 파서
-   * 단일 또는 두 그룹의 숫자 데이터를 파싱하여 줄기-잎 형식으로 변환
-   */
-
-
-  class StemLeafParser {
-    /**
-     * 입력 문자열을 줄기-잎 그림 데이터로 파싱
-     * 콜론(:)이 없으면 단일 모드, 있으면 비교 모드로 자동 감지
-     * @param {string} input - 숫자만 또는 "라벨: 숫자들" 형식
-     * @returns {{ success: boolean, data: Object|null, error: string|null }}
-     * @example
-     * // 단일 모드
-     * parse("15 6 23 25 32 33 19 21")
-     * // { success: true, data: { isSingleMode: true, stems: [...] } }
-     *
-     * // 비교 모드
-     * parse("왼쪽: 162, 175, 178\n오른쪽: 160, 165, 170")
-     * // { success: true, data: { isSingleMode: false, leftLabel, rightLabel, stems: [...] } }
-     */
-    static parse(input) {
-      if (!input || typeof input !== 'string') {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      const trimmed = input.trim();
-      if (!trimmed) {
-        return {
-          success: false,
-          data: null,
-          error: '데이터가 비어있습니다.'
-        };
-      }
-
-      // 콜론(:) 유무로 단일/비교 모드 자동 감지
-      const hasColon = trimmed.includes(':');
-
-      if (hasColon) {
-        return this._parseCompareMode(trimmed);
-      } else {
-        return this._parseSingleMode(trimmed);
-      }
-    }
-
-    /**
-     * 단일 모드 파싱 (숫자만 입력)
-     * @param {string} input - 공백 또는 쉼표로 구분된 숫자들
-     * @returns {{ success: boolean, data: Object|null, error: string|null }}
-     */
-    static _parseSingleMode(input) {
-      // 숫자만 추출
-      const values = input
-        .split(/[,\s]+/)
-        .map(Number)
-        .filter(n => !isNaN(n) && isFinite(n) && Number.isInteger(n));
-
-      if (values.length === 0) {
-        return {
-          success: false,
-          data: null,
-          error: '유효한 정수가 없습니다.'
-        };
-      }
-
-      if (values.length < 2) {
-        return {
-          success: false,
-          data: null,
-          error: '최소 2개 이상의 정수가 필요합니다.'
-        };
-      }
-
-      // 줄기-잎 데이터 생성
-      const stemLeafData = this._generateSingleStemLeaf(values);
-
-      return {
-        success: true,
-        data: {
-          isSingleMode: true,
-          stems: stemLeafData.stems,
-          minStem: stemLeafData.minStem,
-          maxStem: stemLeafData.maxStem
-        },
-        error: null
-      };
-    }
-
-    /**
-     * 비교 모드 파싱 (라벨: 숫자들 형식)
-     * @param {string} input - "왼쪽: 숫자들\n오른쪽: 숫자들" 형식
-     * @returns {{ success: boolean, data: Object|null, error: string|null }}
-     */
-    static _parseCompareMode(input) {
-      const lines = input.split('\n').map(line => line.trim()).filter(line => line);
-
-      if (lines.length < 2) {
-        return {
-          success: false,
-          data: null,
-          error: '"라벨: 숫자들" 형식으로 두 줄이 필요합니다.'
-        };
-      }
-
-      let leftData = null;
-      let rightData = null;
-      let leftLabel = '왼쪽';
-      let rightLabel = '오른쪽';
-
-      for (const line of lines) {
-        const colonIndex = line.indexOf(':');
-        if (colonIndex === -1) {
-          return {
-            success: false,
-            data: null,
-            error: `"라벨: 숫자들" 형식이 아닙니다: ${line}`
-          };
-        }
-
-        const label = line.substring(0, colonIndex).trim();
-        const valuesStr = line.substring(colonIndex + 1).trim();
-        const values = valuesStr
-          .split(/[,\s]+/)
-          .map(Number)
-          .filter(n => !isNaN(n) && isFinite(n) && Number.isInteger(n));
-
-        if (values.length === 0) {
-          return {
-            success: false,
-            data: null,
-            error: `"${label}" 데이터에 유효한 정수가 없습니다.`
-          };
-        }
-
-        // 라벨로 왼쪽/오른쪽 구분
-        const lowerLabel = label.toLowerCase();
-        if (lowerLabel.includes('왼쪽') || lowerLabel.includes('left') || lowerLabel === '남학생') {
-          leftData = values;
-          leftLabel = label;
-        } else if (lowerLabel.includes('오른쪽') || lowerLabel.includes('right') || lowerLabel === '여학생') {
-          rightData = values;
-          rightLabel = label;
-        } else {
-          // 순서대로 할당
-          if (leftData === null) {
-            leftData = values;
-            leftLabel = label;
-          } else if (rightData === null) {
-            rightData = values;
-            rightLabel = label;
-          }
-        }
-      }
-
-      if (!leftData || !rightData) {
-        return {
-          success: false,
-          data: null,
-          error: '왼쪽과 오른쪽 데이터가 모두 필요합니다.'
-        };
-      }
-
-      // 줄기-잎 데이터 생성
-      const stemLeafData = this._generateCompareStemLeaf(leftData, rightData);
-
-      return {
-        success: true,
-        data: {
-          isSingleMode: false,
-          leftLabel: leftLabel,
-          rightLabel: rightLabel,
-          leftData: leftData,
-          rightData: rightData,
-          stems: stemLeafData.stems,
-          minStem: stemLeafData.minStem,
-          maxStem: stemLeafData.maxStem
-        },
-        error: null
-      };
-    }
-
-    /**
-     * 단일 데이터의 줄기-잎 구조 생성
-     * @param {number[]} data - 숫자 데이터
-     * @returns {{ stems: Object[], minStem: number, maxStem: number }}
-     */
-    static _generateSingleStemLeaf(data) {
-      const minVal = Math.min(...data);
-      const maxVal = Math.max(...data);
-
-      // 줄기 = 십의 자리 (예: 25 → 2)
-      const minStem = Math.floor(minVal / 10);
-      const maxStem = Math.floor(maxVal / 10);
-
-      // 줄기별 잎 분류
-      const stems = [];
-      for (let stem = minStem; stem <= maxStem; stem++) {
-        const leaves = data
-          .filter(n => Math.floor(n / 10) === stem)
-          .map(n => n % 10)
-          .sort((a, b) => a - b); // 오름차순
-
-        stems.push({
-          stem: stem,
-          leaves: leaves
-        });
-      }
-
-      return {
-        stems: stems,
-        minStem: minStem,
-        maxStem: maxStem
-      };
-    }
-
-    /**
-     * 두 그룹의 데이터로 줄기-잎 구조 생성 (비교 모드)
-     * @param {number[]} leftData - 왼쪽 데이터
-     * @param {number[]} rightData - 오른쪽 데이터
-     * @returns {{ stems: Object[], minStem: number, maxStem: number }}
-     */
-    static _generateCompareStemLeaf(leftData, rightData) {
-      // 모든 데이터의 줄기 범위 계산
-      const allData = [...leftData, ...rightData];
-      const minVal = Math.min(...allData);
-      const maxVal = Math.max(...allData);
-
-      // 줄기 = 십의 자리 (예: 162 → 16)
-      const minStem = Math.floor(minVal / 10);
-      const maxStem = Math.floor(maxVal / 10);
-
-      // 줄기별 잎 분류
-      const stems = [];
-      for (let stem = minStem; stem <= maxStem; stem++) {
-        const leftLeaves = leftData
-          .filter(n => Math.floor(n / 10) === stem)
-          .map(n => n % 10)
-          .sort((a, b) => b - a); // 내림차순 (오른쪽으로 정렬)
-
-        const rightLeaves = rightData
-          .filter(n => Math.floor(n / 10) === stem)
-          .map(n => n % 10)
-          .sort((a, b) => a - b); // 오름차순
-
-        stems.push({
-          stem: stem,
-          leftLeaves: leftLeaves,
-          rightLeaves: rightLeaves
-        });
-      }
-
-      return {
-        stems: stems,
-        minStem: minStem,
-        maxStem: maxStem
-      };
-    }
-
-    /**
-     * 파서 타입 반환
-     * @returns {string}
-     */
-    static getType() {
-      return CONFIG.TABLE_TYPES.STEM_LEAF;
-    }
-  }
-
-  /**
-   * 파서 어댑터
-   * 각 파서의 출력을 공통 인터페이스(ParsedTableData)로 변환
-   *
-   * @typedef {Object} Cell
-   * @property {any} value - 셀 값
-   * @property {Object} [metadata] - 셀 메타데이터 (옵션)
-   *
-   * @typedef {Object} Row
-   * @property {string} label - 행 라벨
-   * @property {Cell[]} cells - 셀 배열
-   *
-   * @typedef {Object} ParsedTableData
-   * @property {string} type - 테이블 타입
-   * @property {string[]} headers - 헤더 배열
-   * @property {Row[]} rows - 행 배열
-   * @property {number} rowCount - 행 개수
-   * @property {number} columnCount - 열 개수
-   * @property {Object} metadata - 타입별 추가 데이터
-   */
-
-
-  class ParserAdapter {
-    /**
-     * 파서 출력을 공통 형식으로 변환
-     * @param {string} type - 테이블 타입
-     * @param {Object} parseResult - 파서 출력 결과 (parseResult.data)
-     * @param {Object} [options={}] - 변환 옵션
-     * @returns {ParsedTableData}
-     */
-    static adapt(type, parseResult, options = {}) {
-      // parseResult가 { success, data, error } 형식인 경우 data 추출
-      const data = parseResult?.data ?? parseResult;
-
-      if (!data) {
-        throw new Error('어댑터 변환 실패: 데이터가 없습니다.');
-      }
-
-      switch (type) {
-        case CONFIG.TABLE_TYPES.STEM_LEAF:
-          return this._adaptStemLeaf(data, options);
-
-        case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
-          return this._adaptCategoryMatrix(data, options);
-
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
-          return this._adaptBasicTable(data, options);
-
-        case CONFIG.TABLE_TYPES.FREQUENCY:
-          // 도수분포표는 별도 메서드 사용 (processor.js에서 계급 생성 후 호출)
-          throw new Error('도수분포표는 adaptFrequencyClasses() 메서드를 사용하세요.');
-
-        default:
-          throw new Error(`지원하지 않는 테이블 타입: ${type}`);
-      }
-    }
-
-    /**
-     * 줄기-잎 그림 데이터 변환
-     * @param {Object} data - StemLeafParser 출력
-     * @param {Object} options - 변환 옵션
-     * @returns {ParsedTableData}
-     * @private
-     */
-    static _adaptStemLeaf(data, options = {}) {
-      const { isSingleMode, stems, leftLabel, rightLabel, minStem, maxStem } = data;
-
-      if (isSingleMode) {
-        // 단일 모드: [줄기, 잎]
-        const headers = ['줄기', '잎'];
-        const rows = stems.map(stemData => ({
-          label: String(stemData.stem),
-          cells: [
-            { value: stemData.stem },
-            {
-              value: stemData.leaves.join(' '),
-              metadata: {
-                leaves: stemData.leaves,
-                leafCount: stemData.leaves.length
-              }
-            }
-          ]
-        }));
-
-        // 최대 잎 개수 계산 (동적 너비용)
-        const maxLeafCount = Math.max(...stems.map(s => s.leaves.length));
-
-        return {
-          type: CONFIG.TABLE_TYPES.STEM_LEAF,
-          headers,
-          rows,
-          rowCount: rows.length,
-          columnCount: 2,
-          metadata: {
-            isSingleMode: true,
-            minStem,
-            maxStem,
-            maxLeafCount
-          }
-        };
-      } else {
-        // 비교 모드: [왼쪽 잎, 줄기, 오른쪽 잎]
-        const headers = [leftLabel || '왼쪽', '줄기', rightLabel || '오른쪽'];
-        const rows = stems.map(stemData => ({
-          label: String(stemData.stem),
-          cells: [
-            {
-              value: stemData.leftLeaves.join(' '),
-              metadata: {
-                leaves: stemData.leftLeaves,
-                leafCount: stemData.leftLeaves.length,
-                isLeftSide: true
-              }
-            },
-            { value: stemData.stem },
-            {
-              value: stemData.rightLeaves.join(' '),
-              metadata: {
-                leaves: stemData.rightLeaves,
-                leafCount: stemData.rightLeaves.length,
-                isLeftSide: false
-              }
-            }
-          ]
-        }));
-
-        // 최대 잎 개수 계산
-        const maxLeftLeafCount = Math.max(...stems.map(s => s.leftLeaves.length));
-        const maxRightLeafCount = Math.max(...stems.map(s => s.rightLeaves.length));
-
-        return {
-          type: CONFIG.TABLE_TYPES.STEM_LEAF,
-          headers,
-          rows,
-          rowCount: rows.length,
-          columnCount: 3,
-          metadata: {
-            isSingleMode: false,
-            leftLabel,
-            rightLabel,
-            minStem,
-            maxStem,
-            maxLeftLeafCount,
-            maxRightLeafCount,
-            maxLeafCount: Math.max(maxLeftLeafCount, maxRightLeafCount)
-          }
-        };
-      }
-    }
-
-    /**
-     * 카테고리 행렬 데이터 변환
-     * @param {Object} data - CategoryMatrixParser 출력
-     * @param {Object} options - 변환 옵션
-     * @returns {ParsedTableData}
-     * @private
-     */
-    static _adaptCategoryMatrix(data, options = {}) {
-      const { headers, rows: rawRows } = data;
-
-      // 첫 번째 열에 라벨 추가
-      const fullHeaders = ['구분', ...headers];
-
-      const rows = rawRows.map(row => ({
-        label: row.label,
-        cells: [
-          { value: row.label },
-          ...row.values.map(v => ({ value: v }))
-        ]
-      }));
-
-      return {
-        type: CONFIG.TABLE_TYPES.CATEGORY_MATRIX,
-        headers: fullHeaders,
-        rows,
-        rowCount: rows.length,
-        columnCount: fullHeaders.length,
-        metadata: {
-          originalHeaders: headers
-        }
-      };
-    }
-
-    /**
-     * 기본 테이블 데이터 변환
-     * @param {Object} data - BasicTableParser 출력
-     * @param {Object} options - 변환 옵션
-     * @returns {ParsedTableData}
-     * @private
-     */
-    static _adaptBasicTable(data, options = {}) {
-      const {
-        rowLabelColumn,
-        columnHeaders,
-        rows: rawRows,
-        showTotal,
-        totals,
-        mergedHeaderText
-      } = data;
-
-      // 헤더: [행라벨컬럼명, 열헤더들, (합계)]
-      const fullHeaders = [rowLabelColumn, ...columnHeaders];
-      if (showTotal) {
-        fullHeaders.push('합계');
-      }
-
-      // 데이터 행 변환
-      const rows = rawRows.map(row => {
-        const cells = [
-          { value: row.label },
-          ...row.values.map(v => ({ value: v }))
-        ];
-
-        // 합계 열 추가
-        if (showTotal) {
-          const rowSum = row.values.reduce((sum, v) => {
-            return typeof v === 'number' ? sum + v : sum;
-          }, 0);
-          // 상대도수면 반올림
-          const total = rowSum >= 0.95 && rowSum <= 1.05 ? 1 : Math.round(rowSum * 100) / 100;
-          cells.push({ value: total });
-        }
-
-        return {
-          label: row.label,
-          cells
-        };
-      });
-
-      // 합계 행 추가
-      if (showTotal && totals) {
-        const totalRow = {
-          label: '합계',
-          cells: [
-            { value: '합계' },
-            ...totals.map(v => ({ value: v })),
-            { value: totals.reduce((sum, v) => typeof v === 'number' ? sum + v : sum, 0) }
-          ]
-        };
-        rows.push(totalRow);
-      }
-
-      return {
-        type: CONFIG.TABLE_TYPES.BASIC_TABLE,
-        headers: fullHeaders,
-        rows,
-        rowCount: rows.length,
-        columnCount: fullHeaders.length,
-        metadata: {
-          rowLabelColumn,
-          columnHeaders,
-          showTotal,
-          mergedHeaderText,
-          hasTotalRow: showTotal,
-          originalTotals: totals
-        }
-      };
-    }
-
-    /**
-     * 도수분포표 계급 데이터 변환
-     * @param {Object[]} classes - processor.js에서 생성된 계급 배열
-     * @param {number} total - 총 데이터 개수
-     * @param {Object} [options={}] - 변환 옵션
-     * @param {boolean[]} [options.visibleColumns] - 표시할 컬럼 여부
-     * @returns {ParsedTableData}
-     */
-    static adaptFrequencyClasses(classes, total, options = {}) {
-      const { visibleColumns } = options;
-
-      // 기본 헤더
-      const allHeaders = ['계급', '도수', '상대도수', '누적도수', '누적상대도수'];
-
-      // visibleColumns가 있으면 필터링
-      let headers = allHeaders;
-      if (visibleColumns && Array.isArray(visibleColumns)) {
-        headers = allHeaders.filter((_, i) => visibleColumns[i] !== false);
-      }
-
-      // 누적값 계산
-      let cumulativeFrequency = 0;
-      let cumulativeRelative = 0;
-
-      const rows = classes.map(cls => {
-        cumulativeFrequency += cls.frequency;
-        const relativeFrequency = cls.frequency / total;
-        cumulativeRelative += relativeFrequency;
-
-        // 모든 셀 데이터
-        const allCells = [
-          { value: `${cls.min}~${cls.max}`, metadata: { min: cls.min, max: cls.max } },
-          { value: cls.frequency },
-          { value: Math.round(relativeFrequency * 1000) / 1000 }, // 소수점 3자리
-          { value: cumulativeFrequency },
-          { value: Math.round(cumulativeRelative * 1000) / 1000 }
-        ];
-
-        // visibleColumns가 있으면 필터링
-        let cells = allCells;
-        if (visibleColumns && Array.isArray(visibleColumns)) {
-          cells = allCells.filter((_, i) => visibleColumns[i] !== false);
-        }
-
-        return {
-          label: `${cls.min}~${cls.max}`,
-          cells
-        };
-      });
-
-      return {
-        type: CONFIG.TABLE_TYPES.FREQUENCY,
-        headers,
-        rows,
-        rowCount: rows.length,
-        columnCount: headers.length,
-        metadata: {
-          total,
-          classCount: classes.length,
-          visibleColumns,
-          allHeaders
-        }
-      };
-    }
-  }
-
-  /**
-   * 파서 모듈 통합 export
-   */
-
-
-  /**
-   * 파서 팩토리
-   * 테이블 타입에 따라 적절한 파서 반환
-   */
-  class ParserFactory {
-    /**
-     * 타입에 맞는 파서로 데이터 파싱
-     * @param {string} type - 테이블 타입
-     * @param {string} input - 입력 문자열
-     * @returns {{ success: boolean, data: any, error: string|null }}
-     */
-    static parse(type, input) {
-      switch (type) {
-        case CONFIG.TABLE_TYPES.FREQUENCY:
-          return FrequencyParser.parse(input);
-
-        case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
-          return CategoryMatrixParser.parse(input);
-
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
-          return BasicTableParser.parse(input);
-
-        case CONFIG.TABLE_TYPES.STEM_LEAF:
-          return StemLeafParser.parse(input);
-
-        default:
-          return {
-            success: false,
-            data: null,
-            error: `알 수 없는 테이블 타입: ${type}`
-          };
-      }
-    }
-
-    /**
-     * 타입에 맞는 파서 클래스 반환
-     * @param {string} type - 테이블 타입
-     * @returns {Class|null}
-     */
-    static getParser(type) {
-      switch (type) {
-        case CONFIG.TABLE_TYPES.FREQUENCY:
-          return FrequencyParser;
-        case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
-          return CategoryMatrixParser;
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
-          return BasicTableParser;
-        case CONFIG.TABLE_TYPES.STEM_LEAF:
-          return StemLeafParser;
-        default:
-          return null;
-      }
-    }
-
-    /**
-     * 지원하는 모든 타입 반환
-     * @returns {string[]}
-     */
-    static getSupportedTypes() {
-      return Object.values(CONFIG.TABLE_TYPES);
     }
   }
 
@@ -4330,6 +3027,730 @@
   }
 
   /**
+   * 말풍선 렌더러
+   * 다각형 포인트에 정보 표시용 말풍선 렌더링
+   */
+
+
+  class CalloutRenderer {
+    /**
+     * @param {CanvasRenderingContext2D} ctx - 캔버스 컨텍스트
+     */
+    constructor(ctx) {
+      this.ctx = ctx;
+    }
+
+    /**
+     * 말풍선 레이어 렌더링
+     * @param {Layer} layer - 말풍선 레이어
+     */
+    render(layer) {
+      const { x, y, text, width, height, opacity, polygonPreset, pointX, pointY } = layer.data;
+
+      if (!text || opacity === 0) return;
+
+      this.ctx.save();
+      this.ctx.globalAlpha = opacity || 1.0;
+
+      // 말풍선 도형 그리기
+      this._drawCalloutShape(x, y, width, height);
+
+      // 말풍선에서 최고점까지 점선 연결
+      this._drawConnectorLine(x, y, width, height, pointX, pointY, polygonPreset);
+
+      // 오른쪽 세로 막대 그리기
+      this._drawAccentBar(x, y, width, height, polygonPreset);
+
+      // 텍스트 그리기
+      this._drawText(x, y, width, height, text, polygonPreset);
+
+      this.ctx.restore();
+    }
+
+    /**
+     * 말풍선 도형 그리기 (배경만, 테두리 없음)
+     * @param {number} x - 말풍선 왼쪽 상단 x
+     * @param {number} y - 말풍선 왼쪽 상단 y
+     * @param {number} width - 너비
+     * @param {number} height - 높이
+     */
+    _drawCalloutShape(x, y, width, height) {
+      const ctx = this.ctx;
+
+      // 일반 사각형 그리기 (둥글기 없음)
+      ctx.fillStyle = CONFIG.getColor('--chart-callout-bg-start');
+      ctx.fillRect(x, y, width, height);
+    }
+
+    /**
+     * 말풍선에서 최고점까지 점선 연결
+     * @param {number} x - 말풍선 왼쪽 상단 x
+     * @param {number} y - 말풍선 왼쪽 상단 y
+     * @param {number} width - 말풍선 너비
+     * @param {number} height - 말풍선 높이
+     * @param {number} pointX - 최고점 x 좌표
+     * @param {number} pointY - 최고점 y 좌표
+     * @param {string} polygonPreset - 다각형 색상 프리셋
+     */
+    _drawConnectorLine(x, y, width, height, pointX, pointY, polygonPreset) {
+      const ctx = this.ctx;
+
+      // 시작점: 말풍선 오른쪽 끝 세로 막대의 중앙
+      const startX = x + width;
+      const startY = y + height / 2;
+
+      // 끝점: 도수 다각형의 최고점
+      const endX = pointX;
+      const endY = pointY;
+
+      // 프리셋에 따른 선 색상
+      const preset = polygonPreset || 'default';
+      const lineColor = CONFIG.CALLOUT_ACCENT_COLORS[preset] || CONFIG.CALLOUT_ACCENT_COLORS.default;
+
+      // 점선 스타일 설정
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = CONFIG.CALLOUT_CONNECTOR_LINE_WIDTH;
+      ctx.setLineDash(CONFIG.CALLOUT_CONNECTOR_DASH_PATTERN);
+
+      // 점선 그리기
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // 점선 스타일 초기화 (다른 렌더링에 영향 없도록)
+      ctx.setLineDash([]);
+    }
+
+    /**
+     * 오른쪽 세로 막대 그리기
+     * @param {number} x - 말풍선 왼쪽 상단 x
+     * @param {number} y - 말풍선 왼쪽 상단 y
+     * @param {number} width - 말풍선 너비
+     * @param {number} height - 말풍선 높이
+     * @param {string} polygonPreset - 다각형 색상 프리셋
+     */
+    _drawAccentBar(x, y, width, height, polygonPreset) {
+      const ctx = this.ctx;
+      const barWidth = CONFIG.CALLOUT_ACCENT_BAR_WIDTH;
+
+      // 프리셋에 따른 색상 가져오기 (기본값: default)
+      const preset = polygonPreset || 'default';
+      const barColor = CONFIG.CALLOUT_ACCENT_COLORS[preset] || CONFIG.CALLOUT_ACCENT_COLORS.default;
+
+      // 오른쪽 끝에 세로 막대 그리기
+      ctx.fillStyle = barColor;
+      ctx.fillRect(x + width - barWidth, y, barWidth, height);
+    }
+
+    /**
+     * 텍스트 렌더링 (줄바꿈 지원)
+     * @param {number} x - 말풍선 x
+     * @param {number} y - 말풍선 y
+     * @param {number} width - 말풍선 너비
+     * @param {number} height - 말풍선 높이
+     * @param {string} text - 텍스트 (\\n으로 줄바꿈)
+     * @param {string} polygonPreset - 다각형 색상 프리셋
+     */
+    _drawText(x, y, width, height, text, polygonPreset) {
+      const ctx = this.ctx;
+      CONFIG.CALLOUT_PADDING;
+      const lineHeight = CONFIG.CALLOUT_LINE_HEIGHT;
+
+      // 프리셋에 따른 텍스트 색상
+      const preset = polygonPreset || 'default';
+      const textColor = CONFIG.CALLOUT_TEXT_COLORS[preset] || CONFIG.CALLOUT_TEXT_COLORS.default;
+
+      ctx.font = CONFIG.CALLOUT_FONT;
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      // 줄바꿈 분할
+      const lines = text.split('\n');
+
+      // 텍스트 시작 위치 (수직 중앙 정렬)
+      const totalTextHeight = lines.length * lineHeight;
+      const textY = y + (height - totalTextHeight) / 2;
+
+      lines.forEach((line, i) => {
+        const textX = x + width / 2; // 가로 중앙
+        const lineY = textY + i * lineHeight;
+        ctx.fillText(line, textX, lineY);
+      });
+    }
+
+    /**
+     * 템플릿 문자열을 실제 데이터로 치환
+     * @param {string} template - 템플릿 문자열
+     * @param {Object} classData - 계급 데이터
+     * @param {string} dataType - 데이터 타입
+     * @returns {string} 치환된 텍스트
+     */
+    static formatTemplate(template, classData, dataType = 'relativeFrequency') {
+      if (!template || !classData) return '';
+
+      // 데이터 타입에 따른 값 선택
+      let value = classData.relativeFreq;
+      let valueSuffix = '%';
+
+      if (dataType === 'frequency') {
+        value = classData.frequency;
+        valueSuffix = '';
+      }
+
+      return template
+        .replace(/{min}/g, classData.min)
+        .replace(/{max}/g, classData.max)
+        .replace(/{midpoint}/g, classData.midpoint)
+        .replace(/{frequency}/g, classData.frequency)
+        .replace(/{relativeFreq}/g, classData.relativeFreq)
+        .replace(/{cumulativeFreq}/g, classData.cumulativeFreq || 0)
+        .replace(/{cumulativeRelFreq}/g, classData.cumulativeRelFreq || 0)
+        .replace(/{value}/g, value)
+        .replace(/{valueSuffix}/g, valueSuffix)
+        .replace(/\\n/g, '\n'); // 줄바꿈 지원
+    }
+
+    /**
+     * 텍스트 너비 측정 (줄바꿈 고려하여 최대 너비 반환)
+     * @param {string} text - 텍스트 (\\n으로 줄바꿈)
+     * @param {string} font - 폰트
+     * @returns {number} 텍스트 너비 (px)
+     */
+    static measureTextWidth(text, font = CONFIG.CALLOUT_FONT) {
+      // 임시 캔버스 생성
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.font = font;
+
+      // 줄바꿈이 있는 경우 각 줄의 최대 너비 반환
+      const lines = text.split('\n');
+      let maxWidth = 0;
+
+      lines.forEach(line => {
+        const metrics = ctx.measureText(line);
+        maxWidth = Math.max(maxWidth, metrics.width);
+      });
+
+      return maxWidth;
+    }
+
+    /**
+     * 말풍선 너비 계산 (텍스트 너비 + 여백)
+     * 여백은 전체 너비의 1/5씩 양쪽 (총 2/5), 텍스트는 3/5
+     * @param {string} text - 텍스트
+     * @param {string} font - 폰트
+     * @returns {number} 말풍선 너비 (px)
+     */
+    static calculateCalloutWidth(text, font = CONFIG.CALLOUT_FONT) {
+      const textWidth = this.measureTextWidth(text, font);
+      const accentBarWidth = CONFIG.CALLOUT_ACCENT_BAR_WIDTH;
+
+      // 텍스트가 전체의 60%를 차지하도록
+      // 너비 = 텍스트너비 / 0.6
+      const totalWidth = textWidth / CONFIG.CALLOUT_TEXT_WIDTH_RATIO;
+
+      // 세로 막대 너비를 포함한 최종 너비
+      return Math.ceil(totalWidth) + accentBarWidth;
+    }
+  }
+
+  /**
+   * 레이어 팩토리
+   * 차트 레이어 생성 로직
+   */
+
+
+  class LayerFactory {
+    /**
+     * 레이어 생성
+     * @param {LayerManager} layerManager - 레이어 매니저
+     * @param {Array} classes - 계급 데이터
+     * @param {Array} values - 값 배열 (상대도수 또는 도수)
+     * @param {Object} coords - 좌표 시스템
+     * @param {Object} ellipsisInfo - 중략 정보
+     * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+     * @param {string} calloutTemplate - 말풍선 템플릿
+     */
+    static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null) {
+      // clearAll() 제거: 기존 레이어 유지하면서 새 레이어 추가
+      // layerManager.clearAll();
+
+      // 레이어 ID 중복 방지를 위한 타임스탬프
+      const timestamp = Date.now();
+
+      // 데이터 타입 정보 가져오기
+      const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
+      const polygonName = dataTypeInfo ? `${dataTypeInfo.legendSuffix} 다각형` : '상대도수 다각형';
+
+      // 히스토그램 그룹
+      const histogramGroup = new Layer({
+        id: `histogram-${timestamp}`,
+        name: '히스토그램',
+        type: 'group',
+        visible: true
+      });
+
+      // 다각형 그룹 (동적 이름)
+      const polygonGroup = new Layer({
+        id: `polygon-${timestamp}`,
+        name: polygonName,
+        type: 'group',
+        visible: true
+      });
+
+      // 막대 레이어 생성
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+        // 도수가 0인 막대는 레이어 생성하지 않음
+        if (classes[index].frequency === 0) return;
+
+        // 계급명 생성 (예: "140~145")
+        const className = Utils.getClassName(classes[index]);
+
+        const barLayer = new Layer({
+          id: `bar-${timestamp}-${index}`,
+          name: className,
+          type: 'bar',
+          visible: true,
+          data: {
+            index,
+            relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
+            frequency: classes[index].frequency
+          }
+        });
+
+        histogramGroup.addChild(barLayer);
+      });
+
+      // 점 그룹
+      const pointsGroup = new Layer({
+        id: `points-${timestamp}`,
+        name: '점',
+        type: 'group',
+        visible: true
+      });
+
+      // 선 그룹
+      const linesGroup = new Layer({
+        id: `lines-${timestamp}`,
+        name: '선',
+        type: 'group',
+        visible: true
+      });
+
+      // 파선 그룹 (독립 레이어)
+      const dashedLinesGroup = new Layer({
+        id: `dashed-lines-${timestamp}`,
+        name: '수직 파선',
+        type: 'group',
+        visible: CONFIG.SHOW_DASHED_LINES
+      });
+
+      // 점 레이어 생성 (도수 0인 계급도 포함)
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+        // 계급명 생성
+        const className = Utils.getClassName(classes[index]);
+
+        const pointLayer = new Layer({
+          id: `point-${timestamp}-${index}`,
+          name: `점(${className})`,
+          type: 'point',
+          visible: true,
+          data: {
+            index,
+            relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
+            colorPreset: CONFIG.POLYGON_COLOR_PRESET // 색상 프리셋 저장
+          }
+        });
+
+        pointsGroup.addChild(pointLayer);
+      });
+
+      // 선 레이어 생성
+      let prevIndex = null;
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+        if (prevIndex !== null) {
+          // 시작 계급명과 끝 계급명
+          const fromClassName = Utils.getClassName(classes[prevIndex]);
+          const toClassName = Utils.getClassName(classes[index]);
+
+          const lineLayer = new Layer({
+            id: `line-${timestamp}-${prevIndex}-${index}`,
+            name: `선(${fromClassName}→${toClassName})`,
+            type: 'line',
+            visible: true,
+            data: {
+              fromIndex: prevIndex,
+              toIndex: index,
+              fromFreq: values[prevIndex],
+              toFreq: value,
+              colorPreset: CONFIG.POLYGON_COLOR_PRESET // 색상 프리셋 저장
+            }
+          });
+
+          linesGroup.addChild(lineLayer);
+        }
+
+        prevIndex = index;
+      });
+
+      // 파선 레이어 생성 (점에서 Y축까지 수직 파선)
+      // SHOW_DASHED_LINES가 true일 때만 생성
+      if (CONFIG.SHOW_DASHED_LINES) {
+        values.forEach((value, index) => {
+          if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+          if (value === 0) return; // 값이 0인 파선은 생성하지 않음
+
+          const className = Utils.getClassName(classes[index]);
+
+          const dashedLineLayer = new Layer({
+            id: `dashed-line-${timestamp}-${index}`,
+            name: `파선(${className})`,
+            type: 'dashed-line',
+            visible: true,
+            data: {
+              index,
+              relativeFreq: value,
+              coords
+            }
+          });
+
+          dashedLinesGroup.addChild(dashedLineLayer);
+        });
+      }
+
+      // 렌더링 순서: 선 → 점 (점이 가장 위에 표시되도록)
+      polygonGroup.addChild(linesGroup);
+      polygonGroup.addChild(pointsGroup);
+
+      // 렌더링 순서: 히스토그램 → 파선 → 다각형 → 라벨(조건부) → 말풍선
+      // CONFIG에 따라 조건부 추가
+      if (CONFIG.SHOW_HISTOGRAM) {
+        layerManager.addLayer(histogramGroup);
+      }
+      if (CONFIG.SHOW_DASHED_LINES) {
+        layerManager.addLayer(dashedLinesGroup);
+      }
+      if (CONFIG.SHOW_POLYGON) {
+        layerManager.addLayer(polygonGroup);
+      }
+
+      // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
+      if (CONFIG.SHOW_BAR_LABELS) {
+        const labelsGroup = new Layer({
+          id: `bar-labels-${timestamp}`,
+          name: '막대 라벨',
+          type: 'group',
+          visible: true
+        });
+
+        // 막대 라벨 레이어 생성
+        values.forEach((value, index) => {
+          if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+          if (classes[index].frequency === 0) return;
+
+          const className = Utils.getClassName(classes[index]);
+
+          const labelLayer = new Layer({
+            id: `bar-label-${timestamp}-${index}`,
+            name: `라벨(${className})`,
+            type: 'bar-label',
+            visible: true,
+            data: {
+              index,
+              relativeFreq: value,
+              frequency: classes[index].frequency,
+              dataType
+            }
+          });
+
+          labelsGroup.addChild(labelLayer);
+        });
+
+        layerManager.addLayer(labelsGroup);
+      }
+
+      // 합동 삼각형 레이어 생성 (SHOW_CONGRUENT_TRIANGLES가 true일 때만)
+      if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
+        this._createCongruentTriangleLayers(layerManager, values, coords, timestamp);
+      }
+
+      // 말풍선 레이어 생성 (템플릿이 제공된 경우)
+      if (calloutTemplate) {
+        const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, timestamp, layerManager);
+        if (calloutLayer) {
+          layerManager.addLayer(calloutLayer);
+        }
+      }
+    }
+
+    /**
+     * 말풍선 레이어 생성
+     * @param {Array} classes - 계급 데이터
+     * @param {Array} values - 값 배열
+     * @param {Object} coords - 좌표 시스템
+     * @param {Object} ellipsisInfo - 중략 정보
+     * @param {string} dataType - 데이터 타입
+     * @param {string} template - 말풍선 템플릿
+     * @param {number} timestamp - 타임스탬프 (레이어 ID 중복 방지)
+     * @param {LayerManager} layerManager - 레이어 매니저 (기존 말풍선 개수 확인용)
+     * @returns {Layer|null} 말풍선 레이어
+     */
+    static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, timestamp, layerManager) {
+      // 최상단 포인트 찾기 (y값이 가장 큰 = 상대도수/도수가 가장 큰)
+      let maxValue = -Infinity;
+      let maxIndex = -1;
+
+      values.forEach((value, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+        if (value > maxValue) {
+          maxValue = value;
+          maxIndex = index;
+        }
+      });
+
+      if (maxIndex === -1) return null;
+
+      // 템플릿 치환
+      const text = CalloutRenderer.formatTemplate(template, classes[maxIndex], dataType);
+
+      // 말풍선 너비 동적 계산 (텍스트 길이 기반)
+      const calloutWidth = CalloutRenderer.calculateCalloutWidth(text);
+
+      // 기존 말풍선 개수 확인 (세로 배치용)
+      const existingCallouts = layerManager.getAllLayers().filter(({ layer }) => layer.type === 'callout');
+      const calloutCount = existingCallouts.length;
+      const calloutSpacing = 10; // 말풍선 간격
+
+      // 말풍선 위치 (차트 왼쪽 상단, 기존 말풍선 아래에 배치)
+      const calloutX = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_X;
+      const calloutY = CONFIG.CHART_PADDING + CONFIG.CALLOUT_POSITION_Y + (calloutCount * (CONFIG.CALLOUT_HEIGHT + calloutSpacing));
+
+      // 포인트 좌표 계산 (애니메이션 참조용)
+      const { toX, toY, xScale } = coords;
+      const pointX = toX(maxIndex) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
+      const pointY = toY(maxValue);
+
+      const calloutLayer = new Layer({
+        id: `callout-${timestamp}`,
+        name: '말풍선',
+        type: 'callout',
+        visible: true,
+        data: {
+          x: calloutX,
+          y: calloutY,
+          width: calloutWidth,
+          height: CONFIG.CALLOUT_HEIGHT,
+          text,
+          opacity: 0, // 초기 투명도 (애니메이션용)
+          pointX,
+          pointY,
+          classIndex: maxIndex,
+          polygonPreset: CONFIG.POLYGON_COLOR_PRESET // 다각형 프리셋 추가
+        }
+      });
+
+      return calloutLayer;
+    }
+
+    /**
+     * 합동 삼각형 레이어 생성
+     * @param {LayerManager} layerManager - 레이어 매니저
+     * @param {Array} values - 값 배열
+     * @param {Object} coords - 좌표 시스템
+     * @param {number} timestamp - 타임스탬프
+     */
+    static _createCongruentTriangleLayers(layerManager, values, coords, timestamp) {
+      const i = CONFIG.CONGRUENT_TRIANGLE_INDEX;
+
+      // 유효 범위 체크
+      if (i < 0 || i >= values.length - 1) return;
+
+      const { toX, toY, xScale } = coords;
+
+      // 좌표 계산
+      const p1x = CoordinateSystem.getBarCenterX(i, toX, xScale);
+      const p1y = toY(values[i]);
+      const p2x = CoordinateSystem.getBarCenterX(i + 1, toX, xScale);
+      const p2y = toY(values[i + 1]);
+
+      // 막대 경계 X (막대 i의 우측 = 막대 i+1의 좌측)
+      const boundaryX = toX(i + 1);
+
+      // 선과 막대 경계의 교점 Y 계산 (선형 보간)
+      const t = (boundaryX - p1x) / (p2x - p1x);
+      const intersectY = p1y + t * (p2y - p1y);
+
+      // 선 방향에 따라 색상 결정 (위=파랑, 아래=빨강)
+      const isLineGoingUp = p1y > p2y; // canvas Y좌표: 클수록 아래
+
+      // 위쪽 삼각형 색상 (파란색 = 히스토그램)
+      const upperColors = {
+        fill: { start: CONFIG.getColor('--chart-bar-color'), end: CONFIG.getColor('--chart-bar-color-end') },
+        stroke: { start: CONFIG.getColor('--chart-bar-stroke-start'), end: CONFIG.getColor('--chart-bar-stroke-end') },
+        fillAlpha: CONFIG.CHART_BAR_ALPHA
+      };
+
+      // 아래쪽 삼각형 색상 (빨간색)
+      const lowerColors = {
+        fill: { start: CONFIG.TRIANGLE_A_FILL_START, end: CONFIG.TRIANGLE_A_FILL_END },
+        stroke: { start: CONFIG.TRIANGLE_A_STROKE_START, end: CONFIG.TRIANGLE_A_STROKE_END }
+      };
+
+      // Triangle A: 선 상승 시 아래(빨강), 선 하강 시 위(파랑)
+      const colorsA = isLineGoingUp ? lowerColors : upperColors;
+      // Triangle B: 선 상승 시 위(파랑), 선 하강 시 아래(빨강)
+      const colorsB = isLineGoingUp ? upperColors : lowerColors;
+
+      // 삼각형 그룹
+      const trianglesGroup = new Layer({
+        id: `triangles-${timestamp}`,
+        name: '합동 삼각형',
+        type: 'group',
+        visible: true
+      });
+
+      // 삼각형 A (막대 i 우측)
+      const triangleA = new Layer({
+        id: `triangle-a-${timestamp}`,
+        name: '삼각형 A',
+        type: 'triangle',
+        visible: true,
+        data: {
+          points: [
+            { x: p1x, y: p1y },           // 막대 i 중앙 상단 (다각형 점)
+            { x: boundaryX, y: p1y },     // 막대 i 우측 상단 (막대 모서리)
+            { x: boundaryX, y: intersectY } // 교점
+          ],
+          fillColors: colorsA.fill,
+          strokeColors: colorsA.stroke,
+          fillAlpha: colorsA.fillAlpha
+        }
+      });
+
+      // 삼각형 B (막대 i+1 좌측)
+      const triangleB = new Layer({
+        id: `triangle-b-${timestamp}`,
+        name: '삼각형 B',
+        type: 'triangle',
+        visible: true,
+        data: {
+          points: [
+            { x: boundaryX, y: p2y },     // 막대 i+1 좌측 상단 (막대 모서리)
+            { x: p2x, y: p2y },           // 막대 i+1 중앙 상단 (다각형 점)
+            { x: boundaryX, y: intersectY } // 교점
+          ],
+          fillColors: colorsB.fill,
+          strokeColors: colorsB.stroke,
+          fillAlpha: colorsB.fillAlpha
+        }
+      });
+
+      trianglesGroup.addChild(triangleA);
+      trianglesGroup.addChild(triangleB);
+
+      // 라벨 오프셋 (라벨과 직각 모서리 사이 거리)
+      const labelOffset = 30;
+
+      // 라벨 위치 계산 (선 방향에 따라 결정)
+      let labelPosBlue, labelPosRed;
+      let rightAngleBlue, rightAngleRed;
+
+      if (isLineGoingUp) {
+        // 선 상승 시:
+        // 파란(B) = S₁: 직각(boundaryX, p2y) 좌측 상단
+        // 빨간(A) = S₂: 직각(boundaryX, p1y) 우측 하단
+        rightAngleBlue = { x: boundaryX, y: p2y };
+        rightAngleRed = { x: boundaryX, y: p1y };
+        labelPosBlue = { x: boundaryX - labelOffset, y: p2y - labelOffset };
+        labelPosRed = { x: boundaryX + labelOffset, y: p1y + labelOffset };
+      } else {
+        // 선 하강 시:
+        // 파란(A) = S₁: 직각(boundaryX, p1y) 우측 상단
+        // 빨간(B) = S₂: 직각(boundaryX, p2y) 좌측 하단
+        rightAngleBlue = { x: boundaryX, y: p1y };
+        rightAngleRed = { x: boundaryX, y: p2y };
+        labelPosBlue = { x: boundaryX + labelOffset, y: p1y - labelOffset };
+        labelPosRed = { x: boundaryX - labelOffset, y: p2y + labelOffset };
+      }
+
+      // S₁ 라벨 (파란 삼각형)
+      const labelS1 = new Layer({
+        id: `triangle-label-s1-${timestamp}`,
+        name: '라벨 S₁',
+        type: 'triangle-label',
+        visible: true,
+        data: {
+          text: 'S',
+          subscript: '1',
+          x: labelPosBlue.x,
+          y: labelPosBlue.y,
+          color: '#008AFF'
+        }
+      });
+
+      // S₂ 라벨 (빨간 삼각형)
+      const labelS2 = new Layer({
+        id: `triangle-label-s2-${timestamp}`,
+        name: '라벨 S₂',
+        type: 'triangle-label',
+        visible: true,
+        data: {
+          text: 'S',
+          subscript: '2',
+          x: labelPosRed.x,
+          y: labelPosRed.y,
+          color: '#E749AF'
+        }
+      });
+
+      // S₁ 점선 (라벨 → 직각 모서리)
+      const lineS1 = new Layer({
+        id: `triangle-label-line-s1-${timestamp}`,
+        name: '점선 S₁',
+        type: 'triangle-label-line',
+        visible: true,
+        data: {
+          fromX: labelPosBlue.x,
+          fromY: labelPosBlue.y,
+          toX: rightAngleBlue.x,
+          toY: rightAngleBlue.y,
+          color: '#008AFF'
+        }
+      });
+
+      // S₂ 점선 (라벨 → 직각 모서리)
+      const lineS2 = new Layer({
+        id: `triangle-label-line-s2-${timestamp}`,
+        name: '점선 S₂',
+        type: 'triangle-label-line',
+        visible: true,
+        data: {
+          fromX: labelPosRed.x,
+          fromY: labelPosRed.y,
+          toX: rightAngleRed.x,
+          toY: rightAngleRed.y,
+          color: '#E749AF'
+        }
+      });
+
+      trianglesGroup.addChild(lineS1);
+      trianglesGroup.addChild(lineS2);
+      trianglesGroup.addChild(labelS1);
+      trianglesGroup.addChild(labelS2);
+
+      layerManager.addLayer(trianglesGroup);
+    }
+  }
+
+  /**
    * KaTeX 웹폰트 Canvas 렌더링 유틸리티
    * KaTeX 폰트를 Canvas에서 직접 사용하여 수학 스타일 텍스트 렌더링
    */
@@ -4426,15 +3847,6 @@
   }
 
   /**
-   * 하이픈(-)을 유니코드 마이너스(−, U+2212)로 변환
-   * @param {string} text - 변환할 텍스트
-   * @returns {string} 변환된 텍스트
-   */
-  function convertHyphenToMinus(text) {
-    return text.replace(/-/g, '−');
-  }
-
-  /**
    * Canvas에 수학 스타일 텍스트 렌더링
    * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
    * @param {string} text - 렌더링할 텍스트
@@ -4454,43 +3866,7 @@
 
     ctx.save();
 
-    // 하이픈을 유니코드 마이너스로 변환
-    const str = convertHyphenToMinus(String(text).trim());
-
-    const textType = detectTextType(str);
-
-    // mixed 타입일 때 문자별로 분리하여 렌더링 (소문자는 이탤릭)
-    if (textType === 'mixed') {
-      ctx.fillStyle = color;
-      ctx.textBaseline = baseline;
-
-      const segments = splitByCharType(str);
-
-      // 전체 너비 계산
-      let totalWidth = 0;
-      segments.forEach(seg => {
-        ctx.font = getFontForCharType(seg.type, fontSize);
-        totalWidth += ctx.measureText(seg.text).width;
-      });
-
-      // 시작 위치 계산
-      let startX = x;
-      if (align === 'center') startX = x - totalWidth / 2;
-      else if (align === 'right') startX = x - totalWidth;
-
-      // 세그먼트별 렌더링
-      ctx.textAlign = 'left';
-      let currentX = startX;
-      segments.forEach(seg => {
-        ctx.font = getFontForCharType(seg.type, fontSize);
-        ctx.fillText(seg.text, currentX, y);
-        currentX += ctx.measureText(seg.text).width;
-      });
-
-      ctx.restore();
-      return { width: totalWidth, height: fontSize };
-    }
-
+    const textType = detectTextType(text);
     const useItalic = italic !== null ? italic : textType === 'variable';
 
     ctx.font = getFont(textType, fontSize, useItalic);
@@ -4498,9 +3874,9 @@
     ctx.textAlign = align;
     ctx.textBaseline = baseline;
 
-    ctx.fillText(str, x, y);
+    ctx.fillText(text, x, y);
 
-    const metrics = ctx.measureText(str);
+    const metrics = ctx.measureText(text);
     const width = metrics.width;
     const height = fontSize;
 
@@ -4571,7 +3947,7 @@
     // 아래 첨자 그리기
     if (subscript) {
       ctx.font = getFont('number', scriptFontSize);
-      const subOffset = fontSize * 0.1;
+      const subOffset = fontSize * 0.2;
       ctx.fillText(subscript, startX, y + subOffset);
     }
 
@@ -4688,886 +4064,14 @@
     return fontsLoaded;
   }
 
-  /**
-   * 문자 유형 분류
-   * @param {string} char - 단일 문자
-   * @returns {'lowercase'|'uppercase'|'korean'|'other'}
-   */
-  function getCharType(char) {
-    if (/[a-z]/.test(char)) return 'lowercase';
-    if (/[A-Z]/.test(char)) return 'uppercase';
-    if (/[가-힣]/.test(char)) return 'korean';
-    return 'other';
-  }
-
-  /**
-   * 텍스트를 문자 유형별로 분리
-   * @param {string} text - 분석할 텍스트
-   * @returns {Array<{text: string, type: string}>}
-   */
-  function splitByCharType(text) {
-    const result = [];
-    let current = { text: '', type: null };
-
-    for (const char of text) {
-      const type = getCharType(char);
-      if (type === current.type) {
-        current.text += char;
-      } else {
-        if (current.text) result.push(current);
-        current = { text: char, type };
-      }
-    }
-    if (current.text) result.push(current);
-    return result;
-  }
-
-  /**
-   * 문자 유형별 폰트 반환
-   * @param {string} type - 문자 유형 ('lowercase', 'uppercase', 'korean', 'other')
-   * @param {number} fontSize - 폰트 크기
-   * @returns {string} CSS 폰트 문자열
-   */
-  function getFontForCharType(type, fontSize) {
-    if (type === 'lowercase') {
-      // 영어 소문자: KaTeX_Math 이탤릭
-      return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
-    }
-    if (type === 'korean') {
-      // 한글: SCDream 폰트 사용
-      return `500 ${fontSize}px 'SCDream', sans-serif`;
-    }
-    // 대문자, 숫자, 기호 등: KaTeX_Main
-    return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;
-  }
-
-  /**
-   * 혼합 텍스트 렌더링 (축 라벨용)
-   * 소문자는 KaTeX_Math 이탤릭, 그 외는 KaTeX_Main으로 렌더링
-   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
-   * @param {string} text - 렌더링할 텍스트
-   * @param {number} x - X 좌표
-   * @param {number} y - Y 좌표
-   * @param {Object} options - 옵션
-   * @returns {{width: number, height: number}}
-   */
-  function renderMixedText(ctx, text, x, y, options = {}) {
-    const { fontSize = 14, color = '#e5e7eb', align = 'right', baseline = 'middle' } = options;
-
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.textBaseline = baseline;
-
-    // 전체 너비 계산
-    const segments = splitByCharType(text);
-    let totalWidth = 0;
-    segments.forEach(seg => {
-      ctx.font = getFontForCharType(seg.type, fontSize);
-      totalWidth += ctx.measureText(seg.text).width;
-    });
-
-    // 시작 위치 계산
-    let startX = x;
-    if (align === 'center') startX = x - totalWidth / 2;
-    else if (align === 'right') startX = x - totalWidth;
-
-    // 세그먼트별 렌더링
-    ctx.textAlign = 'left';
-    let currentX = startX;
-    segments.forEach(seg => {
-      ctx.font = getFontForCharType(seg.type, fontSize);
-      // 한글 폰트(SCDream)가 KaTeX 폰트보다 위에 있으므로 아래로 보정
-      const yOffset = seg.type === 'korean' ? fontSize * 0.12 : 0;
-      ctx.fillText(seg.text, currentX, y + yOffset);
-      currentX += ctx.measureText(seg.text).width;
-    });
-
-    ctx.restore();
-    return { width: totalWidth, height: fontSize };
-  }
-
   var KatexUtils = {
     waitForFonts,
     render: render$1,
     renderMathText,
     renderWithScript,
     renderFraction,
-    renderMixedText,
-    splitByCharType,
-    getFontForCharType,
     isFontsLoaded
   };
-
-  /**
-   * 말풍선 렌더러
-   * 다각형 포인트에 정보 표시용 말풍선 렌더링
-   */
-
-
-  class CalloutRenderer {
-    /**
-     * @param {CanvasRenderingContext2D} ctx - 캔버스 컨텍스트
-     */
-    constructor(ctx) {
-      this.ctx = ctx;
-    }
-
-    /**
-     * 말풍선 레이어 렌더링
-     * @param {Layer} layer - 말풍선 레이어
-     */
-    render(layer) {
-      const { x, y, text, width, height, opacity, polygonPreset, pointX, pointY } = layer.data;
-
-      if (!text || opacity === 0) return;
-
-      this.ctx.save();
-      this.ctx.globalAlpha = opacity || 1.0;
-
-      // 말풍선 도형 그리기
-      this._drawCalloutShape(x, y, width, height);
-
-      // 말풍선에서 최고점까지 점선 연결
-      this._drawConnectorLine(x, y, width, height, pointX, pointY, polygonPreset);
-
-      // 오른쪽 세로 막대 그리기
-      this._drawAccentBar(x, y, width, height, polygonPreset);
-
-      // 텍스트 그리기
-      this._drawText(x, y, width, height, text, polygonPreset);
-
-      this.ctx.restore();
-    }
-
-    /**
-     * 말풍선 도형 그리기 (배경만, 테두리 없음)
-     * @param {number} x - 말풍선 왼쪽 상단 x
-     * @param {number} y - 말풍선 왼쪽 상단 y
-     * @param {number} width - 너비
-     * @param {number} height - 높이
-     */
-    _drawCalloutShape(x, y, width, height) {
-      const ctx = this.ctx;
-
-      // 일반 사각형 그리기 (둥글기 없음)
-      ctx.fillStyle = CONFIG.getColor('--chart-callout-bg-start');
-      ctx.fillRect(x, y, width, height);
-    }
-
-    /**
-     * 말풍선에서 최고점까지 점선 연결
-     * @param {number} x - 말풍선 왼쪽 상단 x
-     * @param {number} y - 말풍선 왼쪽 상단 y
-     * @param {number} width - 말풍선 너비
-     * @param {number} height - 말풍선 높이
-     * @param {number} pointX - 최고점 x 좌표
-     * @param {number} pointY - 최고점 y 좌표
-     * @param {string} polygonPreset - 다각형 색상 프리셋
-     */
-    _drawConnectorLine(x, y, width, height, pointX, pointY, polygonPreset) {
-      const ctx = this.ctx;
-
-      // 시작점: 말풍선 오른쪽 끝 세로 막대의 중앙
-      const startX = x + width;
-      const startY = y + height / 2;
-
-      // 끝점: 도수 다각형의 최고점
-      const endX = pointX;
-      const endY = pointY;
-
-      // 프리셋에 따른 선 색상
-      const preset = polygonPreset || 'default';
-      const lineColor = CONFIG.CALLOUT_ACCENT_COLORS[preset] || CONFIG.CALLOUT_ACCENT_COLORS.default;
-
-      // 점선 스타일 설정
-      ctx.strokeStyle = lineColor;
-      ctx.lineWidth = CONFIG.getScaledCalloutLineWidth();
-      ctx.setLineDash(CONFIG.getScaledCalloutDashPattern());
-
-      // 점선 그리기
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.stroke();
-
-      // 점선 스타일 초기화 (다른 렌더링에 영향 없도록)
-      ctx.setLineDash([]);
-    }
-
-    /**
-     * 오른쪽 세로 막대 그리기
-     * @param {number} x - 말풍선 왼쪽 상단 x
-     * @param {number} y - 말풍선 왼쪽 상단 y
-     * @param {number} width - 말풍선 너비
-     * @param {number} height - 말풍선 높이
-     * @param {string} polygonPreset - 다각형 색상 프리셋
-     */
-    _drawAccentBar(x, y, width, height, polygonPreset) {
-      const ctx = this.ctx;
-      const barWidth = CONFIG.getScaledCalloutAccentBarWidth();
-
-      // 프리셋에 따른 색상 가져오기 (기본값: default)
-      const preset = polygonPreset || 'default';
-      const barColor = CONFIG.CALLOUT_ACCENT_COLORS[preset] || CONFIG.CALLOUT_ACCENT_COLORS.default;
-
-      // 오른쪽 끝에 세로 막대 그리기
-      ctx.fillStyle = barColor;
-      ctx.fillRect(x + width - barWidth, y, barWidth, height);
-    }
-
-    /**
-     * 텍스트 렌더링 (줄바꿈 지원)
-     * @param {number} x - 말풍선 x
-     * @param {number} y - 말풍선 y
-     * @param {number} width - 말풍선 너비
-     * @param {number} height - 말풍선 높이
-     * @param {string} text - 텍스트 (\\n으로 줄바꿈)
-     * @param {string} polygonPreset - 다각형 색상 프리셋
-     */
-    _drawText(x, y, width, height, text, polygonPreset) {
-      const lineHeight = CONFIG.getScaledCalloutLineHeight();
-
-      // 프리셋에 따른 텍스트 색상
-      const preset = polygonPreset || 'default';
-      const textColor = CONFIG.CALLOUT_TEXT_COLORS[preset] || CONFIG.CALLOUT_TEXT_COLORS.default;
-
-      // 줄바꿈 분할
-      const lines = text.split('\n');
-
-      // 텍스트 시작 위치 (수직 중앙 정렬)
-      const totalTextHeight = lines.length * lineHeight;
-      const textY = y + (height - totalTextHeight) / 2;
-
-      lines.forEach((line, i) => {
-        const textX = x + width / 2; // 가로 중앙
-        const lineY = textY + i * lineHeight;
-        // KaTeX 규칙 적용 렌더링 (소문자 이탤릭 등)
-        renderMixedText(this.ctx, line, textX, lineY, {
-          fontSize: CONFIG.getScaledFontSize(20),
-          color: textColor,
-          align: 'center',
-          baseline: 'top'
-        });
-      });
-    }
-
-    /**
-     * 템플릿 문자열을 실제 데이터로 치환
-     * @param {string} template - 템플릿 문자열
-     * @param {Object} classData - 계급 데이터
-     * @param {string} dataType - 데이터 타입
-     * @returns {string} 치환된 텍스트
-     */
-    static formatTemplate(template, classData, dataType = 'relativeFrequency') {
-      if (!template || !classData) return '';
-
-      // 데이터 타입에 따른 값 선택
-      let value = classData.relativeFreq;
-      let valueSuffix = '%';
-
-      if (dataType === 'frequency') {
-        value = classData.frequency;
-        valueSuffix = '';
-      }
-
-      return template
-        .replace(/{min}/g, classData.min)
-        .replace(/{max}/g, classData.max)
-        .replace(/{midpoint}/g, classData.midpoint)
-        .replace(/{frequency}/g, classData.frequency)
-        .replace(/{relativeFreq}/g, classData.relativeFreq)
-        .replace(/{cumulativeFreq}/g, classData.cumulativeFreq || 0)
-        .replace(/{cumulativeRelFreq}/g, classData.cumulativeRelFreq || 0)
-        .replace(/{value}/g, value)
-        .replace(/{valueSuffix}/g, valueSuffix)
-        .replace(/\\n/g, '\n'); // 줄바꿈 지원
-    }
-
-    /**
-     * 텍스트 너비 측정 (줄바꿈 고려하여 최대 너비 반환)
-     * @param {string} text - 텍스트 (\\n으로 줄바꿈)
-     * @param {string} font - 폰트
-     * @returns {number} 텍스트 너비 (px)
-     */
-    static measureTextWidth(text, font = CONFIG.CALLOUT_FONT) {
-      // 임시 캔버스 생성
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      ctx.font = font;
-
-      // 줄바꿈이 있는 경우 각 줄의 최대 너비 반환
-      const lines = text.split('\n');
-      let maxWidth = 0;
-
-      lines.forEach(line => {
-        const metrics = ctx.measureText(line);
-        maxWidth = Math.max(maxWidth, metrics.width);
-      });
-
-      return maxWidth;
-    }
-
-    /**
-     * 말풍선 너비 계산 (텍스트 너비 + 여백)
-     * 여백은 전체 너비의 1/5씩 양쪽 (총 2/5), 텍스트는 3/5
-     * @param {string} text - 텍스트
-     * @param {string} font - 폰트
-     * @returns {number} 말풍선 너비 (px)
-     */
-    static calculateCalloutWidth(text, font = CONFIG.CALLOUT_FONT) {
-      const textWidth = this.measureTextWidth(text, font);
-      const accentBarWidth = CONFIG.CALLOUT_ACCENT_BAR_WIDTH;
-
-      // 텍스트가 전체의 60%를 차지하도록
-      // 너비 = 텍스트너비 / 0.6
-      const totalWidth = textWidth / CONFIG.CALLOUT_TEXT_WIDTH_RATIO;
-
-      // 세로 막대 너비를 포함한 최종 너비
-      return Math.ceil(totalWidth) + accentBarWidth;
-    }
-  }
-
-  /**
-   * 레이어 팩토리
-   * 차트 레이어 생성 로직
-   */
-
-
-  class LayerFactory {
-    /**
-     * 레이어 생성
-     * @param {LayerManager} layerManager - 레이어 매니저
-     * @param {Array} classes - 계급 데이터
-     * @param {Array} values - 값 배열 (상대도수 또는 도수)
-     * @param {Object} coords - 좌표 시스템
-     * @param {Object} ellipsisInfo - 중략 정보
-     * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
-     * @param {string} calloutTemplate - 말풍선 템플릿
-     * @param {Array<number>} hiddenPolygonIndices - 숨길 다각형 점/선 인덱스 배열
-     */
-    static createLayers(layerManager, classes, values, coords, ellipsisInfo, dataType = 'relativeFrequency', calloutTemplate = null, hiddenPolygonIndices = []) {
-      // clearAll() 제거: 기존 레이어 유지하면서 새 레이어 추가
-      // layerManager.clearAll();
-
-      // 레이어 ID 중복 방지를 위한 타임스탬프
-      const timestamp = Date.now();
-
-      // 데이터 타입 정보 가져오기
-      const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
-      const polygonName = dataTypeInfo ? `${dataTypeInfo.legendSuffix} 다각형` : '상대도수 다각형';
-
-      // 히스토그램 그룹
-      const histogramGroup = new Layer({
-        id: `histogram-${timestamp}`,
-        name: '히스토그램',
-        type: 'group',
-        visible: true
-      });
-
-      // 다각형 그룹 (동적 이름)
-      const polygonGroup = new Layer({
-        id: `polygon-${timestamp}`,
-        name: polygonName,
-        type: 'group',
-        visible: true
-      });
-
-      // 막대 레이어 생성
-      values.forEach((value, index) => {
-        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-        // 도수가 0인 막대는 레이어 생성하지 않음
-        if (classes[index].frequency === 0) return;
-
-        // 계급명 생성 (예: "140~145")
-        const className = Utils.getClassName(classes[index]);
-
-        const barLayer = new Layer({
-          id: `bar-${timestamp}-${index}`,
-          name: className,
-          type: 'bar',
-          visible: true,
-          data: {
-            index,
-            relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
-            frequency: classes[index].frequency
-          }
-        });
-
-        histogramGroup.addChild(barLayer);
-      });
-
-      // 점 그룹
-      const pointsGroup = new Layer({
-        id: `points-${timestamp}`,
-        name: '점',
-        type: 'group',
-        visible: true
-      });
-
-      // 선 그룹
-      const linesGroup = new Layer({
-        id: `lines-${timestamp}`,
-        name: '선',
-        type: 'group',
-        visible: true
-      });
-
-      // 파선 그룹 (독립 레이어)
-      const dashedLinesGroup = new Layer({
-        id: `dashed-lines-${timestamp}`,
-        name: '수직 파선',
-        type: 'group',
-        visible: CONFIG.SHOW_DASHED_LINES
-      });
-
-      // 점 레이어 생성 (도수 0인 계급도 포함)
-      values.forEach((value, index) => {
-        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-        // 계급명 생성
-        const className = Utils.getClassName(classes[index]);
-
-        // hidden 배열에 포함된 인덱스는 숨김
-        const isHidden = hiddenPolygonIndices.includes(index);
-
-        const pointLayer = new Layer({
-          id: `point-${timestamp}-${index}`,
-          name: `점(${className})`,
-          type: 'point',
-          visible: !isHidden,
-          data: {
-            index,
-            relativeFreq: value, // 실제로는 value (상대도수 또는 도수)
-            colorPreset: CONFIG.POLYGON_COLOR_PRESET // 색상 프리셋 저장
-          }
-        });
-
-        pointsGroup.addChild(pointLayer);
-      });
-
-      // 선 레이어 생성
-      let prevIndex = null;
-      values.forEach((value, index) => {
-        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-        if (prevIndex !== null) {
-          // 시작 계급명과 끝 계급명
-          const fromClassName = Utils.getClassName(classes[prevIndex]);
-          const toClassName = Utils.getClassName(classes[index]);
-
-          // hidden 인덱스와 연결된 선은 숨김 (from 또는 to가 hidden이면)
-          const isLineHidden = hiddenPolygonIndices.includes(prevIndex) || hiddenPolygonIndices.includes(index);
-
-          const lineLayer = new Layer({
-            id: `line-${timestamp}-${prevIndex}-${index}`,
-            name: `선(${fromClassName}→${toClassName})`,
-            type: 'line',
-            visible: !isLineHidden,
-            data: {
-              fromIndex: prevIndex,
-              toIndex: index,
-              fromFreq: values[prevIndex],
-              toFreq: value,
-              colorPreset: CONFIG.POLYGON_COLOR_PRESET // 색상 프리셋 저장
-            }
-          });
-
-          linesGroup.addChild(lineLayer);
-        }
-
-        prevIndex = index;
-      });
-
-      // 파선 레이어 생성 (점에서 Y축까지 수직 파선)
-      // SHOW_DASHED_LINES가 true일 때만 생성
-      if (CONFIG.SHOW_DASHED_LINES) {
-        values.forEach((value, index) => {
-          if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-          if (value === 0) return; // 값이 0인 파선은 생성하지 않음
-
-          const className = Utils.getClassName(classes[index]);
-
-          const dashedLineLayer = new Layer({
-            id: `dashed-line-${timestamp}-${index}`,
-            name: `파선(${className})`,
-            type: 'dashed-line',
-            visible: true,
-            data: {
-              index,
-              relativeFreq: value,
-              coords,
-              dataType,
-              histogramPreset: CONFIG.HISTOGRAM_COLOR_PRESET
-            }
-          });
-
-          dashedLinesGroup.addChild(dashedLineLayer);
-        });
-      }
-
-      // 렌더링 순서: 선 → 점 (점이 가장 위에 표시되도록)
-      polygonGroup.addChild(linesGroup);
-      polygonGroup.addChild(pointsGroup);
-
-      // 렌더링 순서: 파선 → 히스토그램 → 다각형 → 라벨(조건부) → 말풍선
-      // (파선이 히스토그램 뒤에 그려지도록 먼저 추가)
-      if (CONFIG.SHOW_DASHED_LINES) {
-        layerManager.addLayer(dashedLinesGroup);
-      }
-      if (CONFIG.SHOW_HISTOGRAM) {
-        layerManager.addLayer(histogramGroup);
-      }
-      if (CONFIG.SHOW_POLYGON) {
-        layerManager.addLayer(polygonGroup);
-      }
-
-      // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
-      if (CONFIG.SHOW_BAR_LABELS) {
-        const labelsGroup = new Layer({
-          id: `bar-labels-${timestamp}`,
-          name: '막대 라벨',
-          type: 'group',
-          visible: true
-        });
-
-        // 막대 라벨 레이어 생성
-        values.forEach((value, index) => {
-          if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-          if (classes[index].frequency === 0) return;
-
-          const className = Utils.getClassName(classes[index]);
-
-          const labelLayer = new Layer({
-            id: `bar-label-${timestamp}-${index}`,
-            name: `라벨(${className})`,
-            type: 'bar-label',
-            visible: true,
-            data: {
-              index,
-              relativeFreq: value,
-              frequency: classes[index].frequency,
-              dataType
-            }
-          });
-
-          labelsGroup.addChild(labelLayer);
-        });
-
-        layerManager.addLayer(labelsGroup);
-      }
-
-      // 막대 커스텀 라벨 그룹 (SHOW_BAR_CUSTOM_LABELS가 true이고 라벨이 있을 때만)
-      if (CONFIG.SHOW_BAR_CUSTOM_LABELS && Object.keys(CONFIG.BAR_CUSTOM_LABELS).length > 0) {
-        const customLabelsGroup = new Layer({
-          id: `bar-custom-labels-${timestamp}`,
-          name: '막대 커스텀 라벨',
-          type: 'group',
-          visible: true
-        });
-
-        // 실제 표시되는 막대 기준 인덱스로 라벨 적용
-        let visibleBarIndex = 0;
-        values.forEach((value, index) => {
-          // 막대 생성 조건과 동일하게 체크
-          if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-          if (classes[index].frequency === 0) return;
-
-          // 표시되는 막대 인덱스 기준으로 라벨 조회
-          const customLabel = CONFIG.BAR_CUSTOM_LABELS[visibleBarIndex];
-          visibleBarIndex++;
-
-          if (!customLabel) return;  // 해당 인덱스에 라벨 없으면 스킵
-
-          const className = Utils.getClassName(classes[index]);
-
-          const customLabelLayer = new Layer({
-            id: `bar-custom-label-${timestamp}-${index}`,
-            name: `커스텀라벨(${className}): ${customLabel}`,
-            type: 'bar-custom-label',
-            visible: true,
-            data: { index, relativeFreq: value, customLabel, dataType, coords }
-          });
-
-          customLabelsGroup.addChild(customLabelLayer);
-        });
-
-        layerManager.addLayer(customLabelsGroup);
-      }
-
-      // 합동 삼각형 레이어 생성 (SHOW_CONGRUENT_TRIANGLES가 true일 때만)
-      if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
-        this._createCongruentTriangleLayers(layerManager, values, coords, timestamp);
-      }
-
-      // 말풍선 레이어 생성 (템플릿이 제공된 경우)
-      if (calloutTemplate) {
-        const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, timestamp, layerManager);
-        if (calloutLayer) {
-          layerManager.addLayer(calloutLayer);
-        }
-      }
-    }
-
-    /**
-     * 말풍선 레이어 생성
-     * @param {Array} classes - 계급 데이터
-     * @param {Array} values - 값 배열
-     * @param {Object} coords - 좌표 시스템
-     * @param {Object} ellipsisInfo - 중략 정보
-     * @param {string} dataType - 데이터 타입
-     * @param {string} template - 말풍선 템플릿
-     * @param {number} timestamp - 타임스탬프 (레이어 ID 중복 방지)
-     * @param {LayerManager} layerManager - 레이어 매니저 (기존 말풍선 개수 확인용)
-     * @returns {Layer|null} 말풍선 레이어
-     */
-    static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, timestamp, layerManager) {
-      // 최상단 포인트 찾기 (y값이 가장 큰 = 상대도수/도수가 가장 큰)
-      let maxValue = -Infinity;
-      let maxIndex = -1;
-
-      values.forEach((value, index) => {
-        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-        if (value > maxValue) {
-          maxValue = value;
-          maxIndex = index;
-        }
-      });
-
-      if (maxIndex === -1) return null;
-
-      // 템플릿 치환
-      const text = CalloutRenderer.formatTemplate(template, classes[maxIndex], dataType);
-
-      // 말풍선 너비 동적 계산 (텍스트 길이 기반)
-      const calloutWidth = CalloutRenderer.calculateCalloutWidth(text);
-
-      // 기존 말풍선 개수 확인 (세로 배치용)
-      const existingCallouts = layerManager.getAllLayers().filter(({ layer }) => layer.type === 'callout');
-      const calloutCount = existingCallouts.length;
-      const calloutSpacing = CONFIG.getScaledValue(10); // 말풍선 간격 (스케일링)
-      const scaledCalloutSize = CONFIG.getScaledCalloutSize();
-
-      // 말풍선 위치 (차트 왼쪽 상단, 기존 말풍선 아래에 배치)
-      const calloutX = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_X);
-      const calloutY = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_Y) + (calloutCount * (scaledCalloutSize.height + calloutSpacing));
-
-      // 포인트 좌표 계산 (애니메이션 참조용)
-      const { toX, toY, xScale } = coords;
-      const pointX = toX(maxIndex) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
-      const pointY = toY(maxValue);
-
-      const calloutLayer = new Layer({
-        id: `callout-${timestamp}`,
-        name: '말풍선',
-        type: 'callout',
-        visible: true,
-        data: {
-          x: calloutX,
-          y: calloutY,
-          width: CONFIG.getScaledValue(calloutWidth),
-          height: scaledCalloutSize.height,
-          text,
-          opacity: 0, // 초기 투명도 (애니메이션용)
-          pointX,
-          pointY,
-          classIndex: maxIndex,
-          polygonPreset: CONFIG.POLYGON_COLOR_PRESET // 다각형 프리셋 추가
-        }
-      });
-
-      return calloutLayer;
-    }
-
-    /**
-     * 합동 삼각형 레이어 생성
-     * @param {LayerManager} layerManager - 레이어 매니저
-     * @param {Array} values - 값 배열
-     * @param {Object} coords - 좌표 시스템
-     * @param {number} timestamp - 타임스탬프
-     */
-    static _createCongruentTriangleLayers(layerManager, values, coords, timestamp) {
-      const i = CONFIG.CONGRUENT_TRIANGLE_INDEX;
-
-      // 유효 범위 체크
-      if (i < 0 || i >= values.length - 1) return;
-
-      const { toX, toY, xScale } = coords;
-
-      // 좌표 계산
-      const p1x = CoordinateSystem.getBarCenterX(i, toX, xScale);
-      const p1y = toY(values[i]);
-      const p2x = CoordinateSystem.getBarCenterX(i + 1, toX, xScale);
-      const p2y = toY(values[i + 1]);
-
-      // 막대 경계 X (막대 i의 우측 = 막대 i+1의 좌측)
-      const boundaryX = toX(i + 1);
-
-      // 선과 막대 경계의 교점 Y 계산 (선형 보간)
-      const t = (boundaryX - p1x) / (p2x - p1x);
-      const intersectY = p1y + t * (p2y - p1y);
-
-      // 선 방향에 따라 색상 결정 (위=파랑, 아래=빨강)
-      const isLineGoingUp = p1y > p2y; // canvas Y좌표: 클수록 아래
-
-      // 위쪽 삼각형 색상 (파란색 = 히스토그램)
-      const upperColors = {
-        fill: { start: CONFIG.getColor('--chart-bar-color'), end: CONFIG.getColor('--chart-bar-color-end') },
-        stroke: { start: CONFIG.getColor('--chart-bar-stroke-start'), end: CONFIG.getColor('--chart-bar-stroke-end') },
-        fillAlpha: CONFIG.CHART_BAR_ALPHA
-      };
-
-      // 아래쪽 삼각형 색상 (빨간색)
-      const lowerColors = {
-        fill: { start: CONFIG.TRIANGLE_A_FILL_START, end: CONFIG.TRIANGLE_A_FILL_END },
-        stroke: { start: CONFIG.TRIANGLE_A_STROKE_START, end: CONFIG.TRIANGLE_A_STROKE_END }
-      };
-
-      // Triangle A: 선 상승 시 아래(빨강), 선 하강 시 위(파랑)
-      const colorsA = isLineGoingUp ? lowerColors : upperColors;
-      // Triangle B: 선 상승 시 위(파랑), 선 하강 시 아래(빨강)
-      const colorsB = isLineGoingUp ? upperColors : lowerColors;
-
-      // 삼각형 그룹
-      const trianglesGroup = new Layer({
-        id: `triangles-${timestamp}`,
-        name: '합동 삼각형',
-        type: 'group',
-        visible: true
-      });
-
-      // 삼각형 A (막대 i 우측)
-      const triangleA = new Layer({
-        id: `triangle-a-${timestamp}`,
-        name: '삼각형 A',
-        type: 'triangle',
-        visible: true,
-        data: {
-          points: [
-            { x: p1x, y: p1y },           // 막대 i 중앙 상단 (다각형 점)
-            { x: boundaryX, y: p1y },     // 막대 i 우측 상단 (막대 모서리)
-            { x: boundaryX, y: intersectY } // 교점
-          ],
-          fillColors: colorsA.fill,
-          strokeColors: colorsA.stroke,
-          fillAlpha: colorsA.fillAlpha
-        }
-      });
-
-      // 삼각형 B (막대 i+1 좌측)
-      const triangleB = new Layer({
-        id: `triangle-b-${timestamp}`,
-        name: '삼각형 B',
-        type: 'triangle',
-        visible: true,
-        data: {
-          points: [
-            { x: boundaryX, y: p2y },     // 막대 i+1 좌측 상단 (막대 모서리)
-            { x: p2x, y: p2y },           // 막대 i+1 중앙 상단 (다각형 점)
-            { x: boundaryX, y: intersectY } // 교점
-          ],
-          fillColors: colorsB.fill,
-          strokeColors: colorsB.stroke,
-          fillAlpha: colorsB.fillAlpha
-        }
-      });
-
-      trianglesGroup.addChild(triangleA);
-      trianglesGroup.addChild(triangleB);
-
-      // 라벨 오프셋 (라벨과 직각 모서리 사이 거리) - 스케일링 적용
-      const labelOffset = CONFIG.getScaledValue(30);
-
-      // 라벨 위치 계산 (선 방향에 따라 결정)
-      let labelPosBlue, labelPosRed;
-      let rightAngleBlue, rightAngleRed;
-
-      if (isLineGoingUp) {
-        // 선 상승 시:
-        // 파란(B) = S₁: 직각(boundaryX, p2y) 좌측 상단
-        // 빨간(A) = S₂: 직각(boundaryX, p1y) 우측 하단
-        rightAngleBlue = { x: boundaryX, y: p2y };
-        rightAngleRed = { x: boundaryX, y: p1y };
-        labelPosBlue = { x: boundaryX - labelOffset, y: p2y - labelOffset };
-        labelPosRed = { x: boundaryX + labelOffset, y: p1y + labelOffset };
-      } else {
-        // 선 하강 시:
-        // 파란(A) = S₁: 직각(boundaryX, p1y) 우측 상단
-        // 빨간(B) = S₂: 직각(boundaryX, p2y) 좌측 하단
-        rightAngleBlue = { x: boundaryX, y: p1y };
-        rightAngleRed = { x: boundaryX, y: p2y };
-        labelPosBlue = { x: boundaryX + labelOffset, y: p1y - labelOffset };
-        labelPosRed = { x: boundaryX - labelOffset, y: p2y + labelOffset };
-      }
-
-      // S₁ 라벨 (파란 삼각형)
-      const labelS1 = new Layer({
-        id: `triangle-label-s1-${timestamp}`,
-        name: '라벨 S₁',
-        type: 'triangle-label',
-        visible: true,
-        data: {
-          text: 'S',
-          subscript: '1',
-          x: labelPosBlue.x,
-          y: labelPosBlue.y,
-          color: '#008AFF'
-        }
-      });
-
-      // S₂ 라벨 (빨간 삼각형)
-      const labelS2 = new Layer({
-        id: `triangle-label-s2-${timestamp}`,
-        name: '라벨 S₂',
-        type: 'triangle-label',
-        visible: true,
-        data: {
-          text: 'S',
-          subscript: '2',
-          x: labelPosRed.x,
-          y: labelPosRed.y,
-          color: '#E749AF'
-        }
-      });
-
-      // S₁ 점선 (라벨 → 직각 모서리)
-      const lineS1 = new Layer({
-        id: `triangle-label-line-s1-${timestamp}`,
-        name: '점선 S₁',
-        type: 'triangle-label-line',
-        visible: true,
-        data: {
-          fromX: labelPosBlue.x,
-          fromY: labelPosBlue.y,
-          toX: rightAngleBlue.x,
-          toY: rightAngleBlue.y,
-          color: '#008AFF'
-        }
-      });
-
-      // S₂ 점선 (라벨 → 직각 모서리)
-      const lineS2 = new Layer({
-        id: `triangle-label-line-s2-${timestamp}`,
-        name: '점선 S₂',
-        type: 'triangle-label-line',
-        visible: true,
-        data: {
-          fromX: labelPosRed.x,
-          fromY: labelPosRed.y,
-          toX: rightAngleRed.x,
-          toY: rightAngleRed.y,
-          color: '#E749AF'
-        }
-      });
-
-      trianglesGroup.addChild(lineS1);
-      trianglesGroup.addChild(lineS2);
-      trianglesGroup.addChild(labelS1);
-      trianglesGroup.addChild(labelS2);
-
-      layerManager.addLayer(trianglesGroup);
-    }
-  }
 
   /**
    * 히스토그램 렌더러
@@ -5594,10 +4098,6 @@
     draw(values, freq, coords, ellipsisInfo, dataType = 'relativeFrequency') {
       const { toX, toY, xScale } = coords;
 
-      // 프리셋 색상 가져오기
-      const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[CONFIG.HISTOGRAM_COLOR_PRESET]
-                  || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
-
       values.forEach((value, index) => {
         if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
 
@@ -5608,10 +4108,10 @@
 
         // 그라디언트 막대
         const gradient = this.ctx.createLinearGradient(x, y, x, y + h);
-        gradient.addColorStop(0, preset.fillStart);
-        gradient.addColorStop(1, preset.fillEnd);
+        gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
+        gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
 
-        this.ctx.globalAlpha = preset.alpha;
+        this.ctx.globalAlpha = CONFIG.CHART_BAR_ALPHA;
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(x, y, barWidth, h);
         this.ctx.globalAlpha = CONFIG.CHART_DEFAULT_ALPHA;
@@ -5620,11 +4120,11 @@
         if (freq[index] > 0) {
           const strokeGradient = Utils.createVerticalGradient(
             this.ctx, x, y, h,
-            preset.strokeStart,
-            preset.strokeEnd
+            CONFIG.getColor('--chart-bar-stroke-start'),
+            CONFIG.getColor('--chart-bar-stroke-end')
           );
           this.ctx.strokeStyle = strokeGradient;
-          this.ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
+          this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
           this.ctx.strokeRect(x, y, barWidth, h);
         }
 
@@ -5643,10 +4143,6 @@
       // 애니메이션 progress 가져오기 (0~1)
       const progress = layer.data.animationProgress !== undefined ? layer.data.animationProgress : 1;
 
-      // 프리셋 색상 가져오기
-      const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[CONFIG.HISTOGRAM_COLOR_PRESET]
-                  || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
-
       const x = toX(index);
       const baseY = toY(0); // 바닥 (높이 0)
       const fullY = toY(relativeFreq); // 최종 높이
@@ -5659,10 +4155,10 @@
 
       // 그라디언트 막대
       const gradient = this.ctx.createLinearGradient(x, animatedY, x, animatedY + animatedH);
-      gradient.addColorStop(0, preset.fillStart);
-      gradient.addColorStop(1, preset.fillEnd);
+      gradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
+      gradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
 
-      this.ctx.globalAlpha = preset.alpha;
+      this.ctx.globalAlpha = CONFIG.CHART_BAR_ALPHA;
       this.ctx.fillStyle = gradient;
       this.ctx.fillRect(x, animatedY, barWidth, animatedH);
       this.ctx.globalAlpha = CONFIG.CHART_DEFAULT_ALPHA;
@@ -5671,11 +4167,11 @@
       if (frequency > 0 && animatedH > 0) {
         const strokeGradient = Utils.createVerticalGradient(
           this.ctx, x, animatedY, animatedH,
-          preset.strokeStart,
-          preset.strokeEnd
+          CONFIG.getColor('--chart-bar-stroke-start'),
+          CONFIG.getColor('--chart-bar-stroke-end')
         );
         this.ctx.strokeStyle = strokeGradient;
-        this.ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
+        this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
         this.ctx.strokeRect(x, animatedY, barWidth, animatedH);
       }
 
@@ -5709,8 +4205,8 @@
       this.ctx.globalAlpha = fadeProgress;
       render$1(this.ctx, labelValue,
         CoordinateSystem.getBarCenterX(index, toX, xScale),
-        y - CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET) - CONFIG.getScaledValue(5),
-        { fontSize: CONFIG.getScaledFontSize(12), color: CONFIG.getColor('--color-text'), align: 'center', baseline: 'middle' }
+        y - CONFIG.CHART_LABEL_OFFSET - 5,
+        { fontSize: 12, color: CONFIG.getColor('--color-text'), align: 'center', baseline: 'middle' }
       );
       this.ctx.restore();
     }
@@ -5733,80 +4229,6 @@
         return formatted.replace(/\.00$/, '');
       }
     }
-
-    /**
-     * 막대 내부 커스텀 라벨 렌더링
-     * @param {Layer} layer - 커스텀 라벨 레이어
-     */
-    renderBarCustomLabel(layer) {
-      const { index, relativeFreq, customLabel, coords } = layer.data;
-      const { toX, toY, xScale } = coords;
-
-      const progress = layer.data.animationProgress !== undefined ? layer.data.animationProgress : 1;
-      if (progress < 0.5) return;  // 막대가 어느 정도 그려진 후 표시
-
-      const fadeProgress = (progress - 0.5) * 2;
-
-      // 막대 중앙 좌표 계산
-      const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
-      const x = toX(index) + barWidth / 2;  // 가로 중앙
-
-      // 세로 중앙 (애니메이션 progress 반영)
-      const baseY = toY(0);
-      const fullY = toY(relativeFreq);
-      const animatedH = (baseY - fullY) * progress;
-      const y = baseY - animatedH / 2;  // 세로 중앙
-
-      this.ctx.save();
-      this.ctx.globalAlpha = fadeProgress;
-      render$1(this.ctx, customLabel, x, y, {
-        fontSize: CONFIG.getScaledFontSize(CONFIG.BAR_CUSTOM_LABEL_FONT_SIZE),
-        color: CONFIG.BAR_CUSTOM_LABEL_COLOR,
-        align: 'center',
-        baseline: 'middle'
-      });
-      this.ctx.restore();
-    }
-
-    /**
-     * 막대 내부 커스텀 라벨 정적 렌더링
-     * @param {Array} values - 값 배열 (상대도수 또는 도수)
-     * @param {Array} freq - 도수 배열
-     * @param {Object} coords - 좌표 시스템 객체
-     * @param {Object} ellipsisInfo - 중략 정보
-     */
-    drawCustomLabelsStatic(values, freq, coords, ellipsisInfo) {
-      const { toX, toY, xScale } = coords;
-      const barWidth = xScale * CONFIG.CHART_BAR_WIDTH_RATIO;
-
-      // 실제 표시되는 막대 기준 인덱스로 라벨 적용 (LayerFactory와 동일한 로직)
-      let visibleBarIndex = 0;
-
-      values.forEach((value, index) => {
-        // 막대 생성 조건과 동일하게 체크
-        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-        if (freq[index] === 0) return;  // 도수가 0인 막대는 스킵
-
-        // 표시되는 막대 인덱스 기준으로 라벨 조회
-        const customLabel = CONFIG.BAR_CUSTOM_LABELS[visibleBarIndex];
-        visibleBarIndex++;
-
-        if (!customLabel) return;
-
-        // 막대 중앙 좌표 계산
-        const x = toX(index) + barWidth / 2;
-        const baseY = toY(0);
-        const fullY = toY(value);
-        const y = (baseY + fullY) / 2;  // 세로 중앙
-
-        render$1(this.ctx, customLabel, x, y, {
-          fontSize: CONFIG.getScaledFontSize(CONFIG.BAR_CUSTOM_LABEL_FONT_SIZE),
-          color: CONFIG.BAR_CUSTOM_LABEL_COLOR,
-          align: 'center',
-          baseline: 'middle'
-        });
-      });
-    }
   }
 
   /**
@@ -5828,9 +4250,8 @@
      * @param {Array} relativeFreqs - 상대도수 배열
      * @param {Object} coords - 좌표 시스템 객체
      * @param {Object} ellipsisInfo - 중략 정보
-     * @param {Array<number>} hiddenIndices - 숨길 점/선 인덱스 배열
      */
-    draw(relativeFreqs, coords, ellipsisInfo, hiddenIndices = []) {
+    draw(relativeFreqs, coords, ellipsisInfo) {
       const { toX, toY, xScale } = coords;
 
       // 현재 프리셋의 색상 가져오기
@@ -5839,53 +4260,46 @@
       const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
       const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
 
-      // 선 그리기 (먼저 그려서 점 아래에 위치)
-      let prevIndex = null;
+      // 점 그리기
       relativeFreqs.forEach((relativeFreq, index) => {
         if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-        if (prevIndex !== null) {
-          // hidden 인덱스와 연결된 선은 스킵
-          const isLineHidden = hiddenIndices.includes(prevIndex) || hiddenIndices.includes(index);
-          if (!isLineHidden) {
-            const x1 = CoordinateSystem.getBarCenterX(prevIndex, toX, xScale);
-            const y1 = toY(relativeFreqs[prevIndex]);
-            const x2 = CoordinateSystem.getBarCenterX(index, toX, xScale);
-            const y2 = toY(relativeFreq);
-
-            // 그라디언트 선 (위에서 아래로)
-            const lineGradient = Utils.createLineGradient(
-              this.ctx, x1, y1, x2, y2,
-              gradientStart,
-              gradientEnd
-            );
-
-            this.ctx.strokeStyle = lineGradient;
-            this.ctx.lineWidth = CONFIG.getScaledLineWidth('thick');
-            this.ctx.beginPath();
-            this.ctx.moveTo(x1, y1);
-            this.ctx.lineTo(x2, y2);
-            this.ctx.stroke();
-          }
-        }
-
-        prevIndex = index;
-      });
-
-      // 점 그리기 (나중에 그려서 선 위에 위치)
-      relativeFreqs.forEach((relativeFreq, index) => {
-        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
-
-        // hidden 인덱스는 스킵
-        if (hiddenIndices.includes(index)) return;
 
         const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
         const centerY = toY(relativeFreq);
 
         this.ctx.beginPath();
-        this.ctx.arc(centerX, centerY, CONFIG.getScaledPointRadius(), 0, Math.PI * 2);
+        this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
         this.ctx.fillStyle = pointColor;
         this.ctx.fill();
+      });
+
+      // 선 그리기
+      let prevIndex = null;
+      relativeFreqs.forEach((relativeFreq, index) => {
+        if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+
+        if (prevIndex !== null) {
+          const x1 = CoordinateSystem.getBarCenterX(prevIndex, toX, xScale);
+          const y1 = toY(relativeFreqs[prevIndex]);
+          const x2 = CoordinateSystem.getBarCenterX(index, toX, xScale);
+          const y2 = toY(relativeFreq);
+
+          // 그라디언트 선 (위에서 아래로)
+          const lineGradient = Utils.createLineGradient(
+            this.ctx, x1, y1, x2, y2,
+            gradientStart,
+            gradientEnd
+          );
+
+          this.ctx.strokeStyle = lineGradient;
+          this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
+          this.ctx.beginPath();
+          this.ctx.moveTo(x1, y1);
+          this.ctx.lineTo(x2, y2);
+          this.ctx.stroke();
+        }
+
+        prevIndex = index;
       });
     }
 
@@ -5906,7 +4320,7 @@
       const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
 
       this.ctx.beginPath();
-      this.ctx.arc(centerX, centerY, CONFIG.getScaledPointRadius(), 0, Math.PI * 2);
+      this.ctx.arc(centerX, centerY, CONFIG.CHART_POINT_RADIUS, 0, Math.PI * 2);
       this.ctx.fillStyle = pointColor;
       this.ctx.fill();
     }
@@ -5938,7 +4352,7 @@
       );
 
       this.ctx.strokeStyle = lineGradient;
-      this.ctx.lineWidth = CONFIG.getScaledLineWidth('thick');
+      this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
       this.ctx.beginPath();
       this.ctx.moveTo(x1, y1);
       this.ctx.lineTo(x2, y2);
@@ -6001,49 +4415,24 @@
      * @param {string} yLabel - Y축 제목 (마지막 라벨 대체용)
      */
     drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS, yLabel = '') {
+      if (!CONFIG.AXIS_SHOW_Y_LABELS) return;
+
       const color = CONFIG.getColor('--color-text');
 
       for (let i = 0; i <= gridDivisions; i++) {
         const value = maxY * i / gridDivisions;
 
-        // 0과 최댓값(축제목)은 항상 표시, 나머지는 AXIS_SHOW_Y_LABELS에 따라
-        const isEndpoint = (i === 0 || i === gridDivisions);
-        if (!CONFIG.AXIS_SHOW_Y_LABELS && !isEndpoint) continue;
-
-        // 마지막 라벨은 축 제목으로 대체
+        // 마지막 라벨은 축 제목으로 대체 (4글자 초과 시 폰트 축소)
         if (i === gridDivisions && yLabel) {
-          const baseFontSize = 22;
-          if (yLabel.length >= 4) {
-            // 4글자 이상: Y축 상단 위에 가로로 표시
-            renderMixedText(this.ctx, yLabel,
-              this.padding,
-              toY(value) - CONFIG.getScaledValue(10),
-              { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom' }
-            );
-            // 최댓값 숫자도 표시
-            let formattedMax;
-            if (dataType === 'frequency') {
-              formattedMax = Math.round(value).toString();
-            } else {
-              if (CONFIG.AXIS_Y_LABEL_FORMAT === 'percent') {
-                formattedMax = Utils.formatNumberClean(value * 100) + '%';
-              } else {
-                formattedMax = Utils.formatNumberClean(value);
-              }
-            }
-            render$1(this.ctx, formattedMax,
-              this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
-              toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
-              { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
-            );
-          } else {
-            // 3글자 이하: 기존 위치 (Y축 왼쪽, 숫자 대신 제목)
-            renderMixedText(this.ctx, yLabel,
-              this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
-              toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
-              { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
-            );
-          }
+          const fontSize = yLabel.length > 4 ? 11 : 14;
+          this.ctx.font = `${fontSize}px sans-serif`;
+          this.ctx.fillStyle = color;
+          this.ctx.textAlign = 'right';
+          this.ctx.textBaseline = 'middle';
+          this.ctx.fillText(yLabel,
+            this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
+            toY(value) + CONFIG.CHART_LABEL_OFFSET
+          );
           continue;
         }
 
@@ -6055,17 +4444,18 @@
           // 상대도수: decimal (0.03) 또는 percent (3%)
           if (CONFIG.AXIS_Y_LABEL_FORMAT === 'percent') {
             const percentage = value * 100;
-            formattedValue = value === 0 ? '0' : Utils.formatNumberClean(percentage) + '%';
+            const formatted = Utils.formatNumber(percentage);
+            formattedValue = formatted.replace(/\.00$/, '') + '%';
           } else {
-            formattedValue = Utils.formatNumberClean(value);
+            formattedValue = Utils.formatNumber(value);
           }
         }
 
         // KaTeX 폰트로 렌더링
         render$1(this.ctx, formattedValue,
-          this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
-          toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
-          { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'right', baseline: 'middle' }
+          this.padding - CONFIG.CHART_Y_LABEL_OFFSET,
+          toY(value) + CONFIG.CHART_LABEL_OFFSET,
+          { fontSize: 18, color: color, align: 'right', baseline: 'middle' }
         );
       }
     }
@@ -6080,62 +4470,63 @@
      * @param {string} xLabel - X축 제목 (마지막 라벨 대체용)
      */
     drawXAxisLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel = '') {
+      if (!CONFIG.AXIS_SHOW_X_LABELS) return;
+
       const color = CONFIG.getColor('--color-text');
-      const labelY = this.canvas.height - this.padding + CONFIG.getScaledValue(CONFIG.CHART_X_LABEL_Y_OFFSET);
+      const labelY = this.canvas.height - this.padding + CONFIG.CHART_X_LABEL_Y_OFFSET;
 
       if (ellipsisInfo && ellipsisInfo.show) {
         const firstDataIdx = ellipsisInfo.firstDataIndex;
 
         // X축 0은 Y축 0과 중복되므로 렌더링하지 않음
 
-        // 중략 기호 (이중 물결, X축 위에 세로로) - 항상 표시
-        // 배치 순서: 0 - (중략) - (점) - 첫 데이터 라벨
-        const ellipsisX = toX(0) + xScale * 0.08;
+        // 중략 기호 (이중 물결, X축 위에 세로로)
+        const ellipsisX = toX(0) + (toX(1) - toX(0)) * CONFIG.ELLIPSIS_POSITION_RATIO;
         const ellipsisY = toY(0);
 
         this.ctx.save();
         this.ctx.translate(ellipsisX, ellipsisY);
         this.ctx.rotate(Math.PI / 2);
-        // 캔버스 크기에 따라 스케일링되는 폰트 사용
-        const scaledFontSize = CONFIG.getScaledFontSize(22);
-        this.ctx.font = `300 ${scaledFontSize}px 'SCDream', sans-serif`;
+        this.ctx.font = CONFIG.CHART_FONT_LARGE;
         this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
         this.ctx.textBaseline = 'bottom';
         this.ctx.textAlign = 'center';
         this.ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
         this.ctx.restore();
 
-        // 데이터 구간 라벨 (AXIS_SHOW_X_LABELS에 따라)
-        if (CONFIG.AXIS_SHOW_X_LABELS) {
-          for (let i = firstDataIdx; i < classes.length; i++) {
-            render$1(this.ctx, String(classes[i].min), toX(i), labelY,
-              { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'center', baseline: 'middle' }
-            );
-          }
+        // 데이터 구간 라벨 (KaTeX 폰트)
+        for (let i = firstDataIdx; i < classes.length; i++) {
+          render$1(this.ctx, String(classes[i].min), toX(i), labelY,
+            { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
+          );
         }
 
-        // 마지막 라벨(축제목): 항상 표시
-        renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
-          toX(classes.length - 1) + xScale, labelY,
-          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+        // 마지막 라벨: 축 제목으로 대체
+        this.ctx.font = '14px sans-serif';
+        this.ctx.fillStyle = color;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(xLabel || String(classes[classes.length - 1].max),
+          toX(classes.length - 1) + xScale, labelY
         );
       } else {
         // 중략 없이 전체 표시 (KaTeX 폰트)
-        if (CONFIG.AXIS_SHOW_X_LABELS) {
-          // 첫 번째 라벨(0)은 Y축과 중복되므로 건너뛰기
-          classes.forEach((c, i) => {
-            if (i === 0 && c.min === 0) return; // 0은 Y축에서 이미 표시됨
-            render$1(this.ctx, String(c.min), toX(i), labelY,
-              { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'center', baseline: 'middle' }
-            );
-          });
-        }
+        // 첫 번째 라벨(0)은 Y축과 중복되므로 건너뛰기
+        classes.forEach((c, i) => {
+          if (i === 0 && c.min === 0) return; // 0은 Y축에서 이미 표시됨
+          render$1(this.ctx, String(c.min), toX(i), labelY,
+            { fontSize: 18, color: color, align: 'center', baseline: 'middle' }
+          );
+        });
 
-        // 마지막 라벨(축제목): 항상 표시
+        // 마지막 라벨: 축 제목으로 대체
         if (classes.length > 0) {
-          renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
-            toX(classes.length), labelY,
-            { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+          this.ctx.font = '14px sans-serif';
+          this.ctx.fillStyle = color;
+          this.ctx.textAlign = 'center';
+          this.ctx.textBaseline = 'middle';
+          this.ctx.fillText(xLabel || String(classes[classes.length - 1].max),
+            toX(classes.length), labelY
           );
         }
       }
@@ -6171,7 +4562,7 @@
      * @param {number} gridDivisions - 그리드 분할 수
      */
     drawGrid(toX, toY, maxY, classCount, ellipsisInfo, gridDivisions = CONFIG.CHART_GRID_DIVISIONS) {
-      this.ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
+      this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
       this.ctx.globalAlpha = 1.0; // 투명도 제거
 
       // 가로 격자선 (Y축) - Y=0 제외
@@ -6223,6 +4614,70 @@
     }
 
     /**
+     * 범례 그리기
+     * @param {string} dataType - 데이터 타입 ('relativeFrequency', 'frequency', 등)
+     */
+    drawLegend(dataType = 'relativeFrequency') {
+      // 데이터 타입 정보 가져오기
+      const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
+      const legendSuffix = dataTypeInfo?.legendSuffix || '상대도수';
+
+      const legendX = this.canvas.width - CONFIG.CHART_LEGEND_X_OFFSET;
+      this.ctx.textAlign = 'left';
+      this.ctx.font = CONFIG.CHART_FONT_REGULAR;
+
+      // 히스토그램 범례
+      const y1 = CONFIG.CHART_LEGEND_Y_START;
+      const barGradient = this.ctx.createLinearGradient(
+        legendX,
+        y1,
+        legendX,
+        y1 + CONFIG.CHART_LEGEND_BAR_HEIGHT
+      );
+      barGradient.addColorStop(0, CONFIG.getColor('--chart-bar-color'));
+      barGradient.addColorStop(1, CONFIG.getColor('--chart-bar-color-end'));
+
+      this.ctx.fillStyle = barGradient;
+      this.ctx.fillRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
+      this.ctx.strokeStyle = CONFIG.getColor('--color-border');
+      this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THIN;
+      this.ctx.strokeRect(legendX, y1, CONFIG.CHART_LEGEND_ITEM_WIDTH, CONFIG.CHART_LEGEND_BAR_HEIGHT);
+      this.ctx.fillStyle = CONFIG.getColor('--color-text');
+      this.ctx.fillText(CONFIG.LEGEND_LABEL_HISTOGRAM, legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y1 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET);
+
+      // 다각형 범례 (동적 텍스트)
+      const y2 = y1 + CONFIG.CHART_LEGEND_ITEM_SPACING;
+
+      // 현재 프리셋의 색상 가져오기
+      const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.POLYGON_COLOR_PRESET];
+      const pointColor = preset?.pointColor || CONFIG.POLYGON_COLOR_PRESETS.default.pointColor;
+      const gradientStart = preset?.gradientStart || CONFIG.POLYGON_COLOR_PRESETS.default.gradientStart;
+      const gradientEnd = preset?.gradientEnd || CONFIG.POLYGON_COLOR_PRESETS.default.gradientEnd;
+
+      // 선 (그라디언트)
+      const lineGradient = Utils.createLineGradient(
+        this.ctx, legendX, y2, legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2,
+        gradientStart,
+        gradientEnd
+      );
+      this.ctx.strokeStyle = lineGradient;
+      this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_THICK;
+      this.ctx.beginPath();
+      this.ctx.moveTo(legendX, y2);
+      this.ctx.lineTo(legendX + CONFIG.CHART_LEGEND_ITEM_WIDTH, y2);
+      this.ctx.stroke();
+
+      // 점 (단색)
+      this.ctx.fillStyle = pointColor;
+      this.ctx.beginPath();
+      this.ctx.arc(legendX + CONFIG.CHART_LEGEND_POINT_CENTER_X, y2, CONFIG.CHART_LEGEND_POINT_RADIUS, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.fillStyle = CONFIG.getColor('--color-text');
+      this.ctx.fillText(`${legendSuffix} 다각형`, legendX + CONFIG.CHART_LEGEND_TEXT_X_OFFSET, y2 + CONFIG.CHART_LEGEND_TEXT_Y_OFFSET - 8);
+    }
+
+    /**
      * 데이터 없음 메시지
      */
     drawNoDataMessage() {
@@ -6261,7 +4716,7 @@
         return;
       }
 
-      const { index, relativeFreq, coords, animationProgress = 1.0, dataType = 'relativeFrequency', histogramPreset = 'default' } = layer.data;
+      const { index, relativeFreq, coords, animationProgress = 1.0 } = layer.data;
 
       if (!coords) {
         console.error('❌ coords가 없습니다:', layer.data);
@@ -6280,15 +4735,10 @@
       // 애니메이션 진행도에 따라 현재 끝점 계산 (우→좌)
       const currentEndX = pointX - (pointX - leftEdgeX) * animationProgress;
 
-      // 히스토그램 프리셋에서 색상 가져오기
-      const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[histogramPreset]
-                  || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
-      const dashedLineColor = preset.strokeEnd || preset.strokeStart || CONFIG.getColor('--chart-dashed-line-color');
-
       this.ctx.save();
-      this.ctx.strokeStyle = dashedLineColor;
-      this.ctx.lineWidth = CONFIG.getScaledLineWidth('dashed');
-      this.ctx.setLineDash(CONFIG.getScaledDashPattern());
+      this.ctx.strokeStyle = CONFIG.getColor('--chart-dashed-line-color');
+      this.ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_DASHED;
+      this.ctx.setLineDash(CONFIG.CHART_DASHED_PATTERN);
 
       this.ctx.beginPath();
       this.ctx.moveTo(pointX, pointY);
@@ -6296,88 +4746,6 @@
       this.ctx.stroke();
 
       this.ctx.restore(); // setLineDash 초기화
-
-      // 파선 끝점 라벨 (애니메이션 완료 시)
-      if (animationProgress >= 1.0) {
-        this._renderEndpointLabel(leftEdgeX, pointY, relativeFreq, dataType);
-      }
-    }
-
-    /**
-     * 정적 모드에서 모든 파선 렌더링
-     * @param {number[]} values - 상대도수/도수 배열
-     * @param {Object} coords - 좌표 시스템
-     * @param {string} dataType - 데이터 타입
-     */
-    drawStatic(values, coords, dataType = 'relativeFrequency') {
-      const histogramPreset = CONFIG.HISTOGRAM_COLOR_PRESET || 'default';
-
-      values.forEach((value, index) => {
-        // 도수 0인 계급은 스킵
-        if (value === 0) return;
-
-        const { toX, toY, xScale } = coords;
-
-        // 점의 위치 (우측 시작점)
-        const pointX = toX(index) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
-        const pointY = toY(value);
-
-        // Y축 위치 (좌측 끝점)
-        const leftEdgeX = toX(0);
-
-        // 히스토그램 프리셋에서 색상 가져오기
-        const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[histogramPreset]
-                    || CONFIG.HISTOGRAM_COLOR_PRESETS.default;
-        const dashedLineColor = preset.strokeEnd || preset.strokeStart || CONFIG.getColor('--chart-dashed-line-color');
-
-        this.ctx.save();
-        this.ctx.strokeStyle = dashedLineColor;
-        this.ctx.lineWidth = CONFIG.getScaledLineWidth('dashed');
-        this.ctx.setLineDash(CONFIG.getScaledDashPattern());
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(pointX, pointY);
-        this.ctx.lineTo(leftEdgeX, pointY);
-        this.ctx.stroke();
-
-        this.ctx.restore();
-
-        // 파선 끝점 라벨
-        this._renderEndpointLabel(leftEdgeX, pointY, value, dataType);
-      });
-    }
-
-    /**
-     * 파선 끝점(Y축)에 값 라벨 렌더링
-     * @param {number} x - X 좌표 (Y축 위치)
-     * @param {number} y - Y 좌표 (파선 높이)
-     * @param {number} value - 표시할 값 (상대도수 또는 도수)
-     * @param {string} dataType - 데이터 타입
-     */
-    _renderEndpointLabel(x, y, value, dataType) {
-      const color = CONFIG.getColor('--color-text');
-      const labelOffset = CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET || 10);
-
-      // 데이터 타입에 따라 포맷팅
-      let formattedValue;
-      if (dataType === 'frequency') {
-        formattedValue = Math.round(value).toString();
-      } else {
-        // 상대도수: decimal (0.03) 또는 percent (3%)
-        if (CONFIG.AXIS_Y_LABEL_FORMAT === 'percent') {
-          const percentage = value * 100;
-          formattedValue = Utils.formatNumberClean(percentage) + '%';
-        } else {
-          formattedValue = Utils.formatNumberClean(value);
-        }
-      }
-
-      // KaTeX 폰트로 렌더링 (Y축 라벨 왼쪽에 표시)
-      render$1(this.ctx, formattedValue,
-        x - labelOffset,
-        y,
-        { fontSize: CONFIG.getScaledFontSize(22), color: color, align: 'right', baseline: 'middle' }
-      );
     }
   }
 
@@ -6440,7 +4808,7 @@
         strokeGradient.addColorStop(0, strokeColors.start);
         strokeGradient.addColorStop(1, strokeColors.end);
         ctx.strokeStyle = strokeGradient;
-        ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
+        ctx.lineWidth = CONFIG.CHART_LINE_WIDTH_NORMAL;
         ctx.stroke();
       }
 
@@ -6464,7 +4832,7 @@
 
       // KaTeX_Main 폰트로 아래첨자 렌더링
       KatexUtils.renderWithScript(ctx, text, null, subscript, x, y, {
-        fontSize: CONFIG.getScaledFontSize(30),
+        fontSize: 30,
         color: color,
         align: 'center',
         baseline: 'middle'
@@ -6485,8 +4853,8 @@
       const currentAlpha = ctx.globalAlpha;
       if (currentAlpha <= 0) return;
 
-      // 라벨 반경 (30px 폰트 기준, 라벨과 겹치지 않도록) - 스케일링 적용
-      const labelRadius = CONFIG.getScaledValue(18);
+      // 라벨 반경 (30px 폰트 기준, 라벨과 겹치지 않도록)
+      const labelRadius = 18;
 
       // 방향 벡터 계산 (라벨 → 직각 모서리)
       const dx = toX - fromX;
@@ -6504,8 +4872,8 @@
       ctx.save();
       ctx.globalAlpha = currentAlpha;
       ctx.strokeStyle = color;
-      ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
-      ctx.setLineDash(CONFIG.getScaledDashPattern()); // 점선 패턴
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 3]); // 점선 패턴
 
       ctx.beginPath();
       ctx.moveTo(startX, startY);
@@ -6513,187 +4881,6 @@
       ctx.stroke();
 
       ctx.setLineDash([]); // 점선 패턴 해제
-      ctx.restore();
-    }
-
-    /**
-     * 정적 모드에서 합동 삼각형 렌더링 (애니메이션 없이)
-     * @param {Array} values - 값 배열 (상대도수 또는 도수)
-     * @param {Object} coords - 좌표 시스템 { toX, toY, xScale }
-     */
-    drawStatic(values, coords) {
-      if (!CONFIG.SHOW_CONGRUENT_TRIANGLES || !CONFIG.SHOW_POLYGON) return;
-
-      const i = CONFIG.CONGRUENT_TRIANGLE_INDEX;
-      if (i < 0 || i >= values.length - 1) return;
-
-      const { toX, toY, xScale } = coords;
-      const ctx = this.ctx;
-
-      // 투명도 초기화 (이전 렌더러에서 설정된 값 제거)
-      ctx.globalAlpha = 1;
-
-      // 좌표 계산
-      const p1x = CoordinateSystem.getBarCenterX(i, toX, xScale);
-      const p1y = toY(values[i]);
-      const p2x = CoordinateSystem.getBarCenterX(i + 1, toX, xScale);
-      const p2y = toY(values[i + 1]);
-
-      // 막대 경계 X (막대 i의 우측 = 막대 i+1의 좌측)
-      const boundaryX = toX(i + 1);
-
-      // 선과 막대 경계의 교점 Y 계산 (선형 보간)
-      const t = (boundaryX - p1x) / (p2x - p1x);
-      const intersectY = p1y + t * (p2y - p1y);
-
-      // 선 방향에 따라 색상 결정 (위=파랑, 아래=빨강)
-      const isLineGoingUp = p1y > p2y; // canvas Y좌표: 클수록 아래
-
-      // 위쪽 삼각형 색상 (파란색 = 히스토그램)
-      const upperColors = {
-        fill: { start: CONFIG.getColor('--chart-bar-color'), end: CONFIG.getColor('--chart-bar-color-end') },
-        stroke: { start: CONFIG.getColor('--chart-bar-stroke-start'), end: CONFIG.getColor('--chart-bar-stroke-end') },
-        fillAlpha: CONFIG.CHART_BAR_ALPHA
-      };
-
-      // 아래쪽 삼각형 색상 (빨간색)
-      const lowerColors = {
-        fill: { start: CONFIG.TRIANGLE_A_FILL_START, end: CONFIG.TRIANGLE_A_FILL_END },
-        stroke: { start: CONFIG.TRIANGLE_A_STROKE_START, end: CONFIG.TRIANGLE_A_STROKE_END }
-      };
-
-      // Triangle A: 선 상승 시 아래(빨강), 선 하강 시 위(파랑)
-      const colorsA = isLineGoingUp ? lowerColors : upperColors;
-      // Triangle B: 선 상승 시 위(파랑), 선 하강 시 아래(빨강)
-      const colorsB = isLineGoingUp ? upperColors : lowerColors;
-
-      // 삼각형 A (막대 i 우측)
-      const pointsA = [
-        { x: p1x, y: p1y },
-        { x: boundaryX, y: p1y },
-        { x: boundaryX, y: intersectY }
-      ];
-
-      // 삼각형 B (막대 i+1 좌측)
-      const pointsB = [
-        { x: boundaryX, y: p2y },
-        { x: p2x, y: p2y },
-        { x: boundaryX, y: intersectY }
-      ];
-
-      // 삼각형 렌더링
-      this._drawTriangleStatic(pointsA, colorsA);
-      this._drawTriangleStatic(pointsB, colorsB);
-
-      // 라벨 오프셋
-      const labelOffset = 30;
-
-      // 라벨 위치 계산 (선 방향에 따라 결정)
-      let labelPosBlue, labelPosRed;
-      let rightAngleBlue, rightAngleRed;
-
-      if (isLineGoingUp) {
-        rightAngleBlue = { x: boundaryX, y: p2y };
-        rightAngleRed = { x: boundaryX, y: p1y };
-        labelPosBlue = { x: boundaryX - labelOffset, y: p2y - labelOffset };
-        labelPosRed = { x: boundaryX + labelOffset, y: p1y + labelOffset };
-      } else {
-        rightAngleBlue = { x: boundaryX, y: p1y };
-        rightAngleRed = { x: boundaryX, y: p2y };
-        labelPosBlue = { x: boundaryX + labelOffset, y: p1y - labelOffset };
-        labelPosRed = { x: boundaryX - labelOffset, y: p2y + labelOffset };
-      }
-
-      // S₁, S₂ 라벨과 점선 렌더링 (LayerFactory와 동일한 색상 사용)
-      const blueColor = '#008AFF';
-      const redColor = '#E749AF';
-
-      this._drawLabelLineStatic(labelPosBlue, rightAngleBlue, blueColor);
-      this._drawLabelLineStatic(labelPosRed, rightAngleRed, redColor);
-      this._drawLabelStatic('S', '1', labelPosBlue.x, labelPosBlue.y, blueColor);
-      this._drawLabelStatic('S', '2', labelPosRed.x, labelPosRed.y, redColor);
-    }
-
-    /**
-     * 정적 삼각형 렌더링 헬퍼
-     * @private
-     */
-    _drawTriangleStatic(points, colors) {
-      const ctx = this.ctx;
-      const minY = Math.min(...points.map(p => p.y));
-      const maxY = Math.max(...points.map(p => p.y));
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      ctx.lineTo(points[1].x, points[1].y);
-      ctx.lineTo(points[2].x, points[2].y);
-      ctx.closePath();
-
-      if (colors.fill) {
-        const fillGradient = ctx.createLinearGradient(0, minY, 0, maxY);
-        fillGradient.addColorStop(0, colors.fill.start);
-        fillGradient.addColorStop(1, colors.fill.end);
-        ctx.fillStyle = fillGradient;
-        ctx.globalAlpha = colors.fillAlpha ?? 1;
-      }
-      ctx.fill();
-
-      if (colors.stroke) {
-        ctx.globalAlpha = 1;
-        const strokeGradient = ctx.createLinearGradient(0, minY, 0, maxY);
-        strokeGradient.addColorStop(0, colors.stroke.start);
-        strokeGradient.addColorStop(1, colors.stroke.end);
-        ctx.strokeStyle = strokeGradient;
-        ctx.lineWidth = CONFIG.getScaledLineWidth('normal');
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    /**
-     * 정적 라벨 점선 렌더링 헬퍼
-     * @private
-     */
-    _drawLabelLineStatic(from, to, color) {
-      const ctx = this.ctx;
-      const labelRadius = CONFIG.getScaledValue(18);
-
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const nx = dx / distance;
-      const ny = dy / distance;
-
-      const startX = from.x + nx * labelRadius;
-      const startY = from.y + ny * labelRadius;
-
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
-      ctx.setLineDash(CONFIG.getScaledDashPattern());
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(to.x, to.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.restore();
-    }
-
-    /**
-     * 정적 라벨 렌더링 헬퍼
-     * @private
-     */
-    _drawLabelStatic(text, subscript, x, y, color) {
-      const ctx = this.ctx;
-      ctx.save();
-      ctx.globalAlpha = 1; // 투명도 초기화
-      KatexUtils.renderWithScript(ctx, text, null, subscript, x, y, {
-        fontSize: CONFIG.getScaledFontSize(30),
-        color: color,
-        align: 'center',
-        baseline: 'middle'
-      });
       ctx.restore();
     }
   }
@@ -6748,7 +4935,6 @@
       this.currentAxisLabels = null;
       this.currentDataType = null;
       this.currentTableConfig = null;
-      this.currentEffectiveClassCount = null;
 
       // 테이블 렌더러 참조
       this.tableRenderer = null;
@@ -6782,15 +4968,12 @@
      * @param {number} unifiedMaxY - 통합 최대 Y값 (여러 데이터셋 사용 시, 없으면 자동 계산)
      * @param {number} unifiedClassCount - 통합 계급 개수 (여러 데이터셋 사용 시, 없으면 자동 계산)
      * @param {number} customYInterval - 커스텀 Y축 간격 (없으면 자동 계산)
-     * @param {Array<number>} hiddenPolygonIndices - 숨길 다각형 점/선 인덱스 배열
      */
-    draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null, customYInterval = null, hiddenPolygonIndices = []) {
-      // 캔버스 크기에 따라 패딩 스케일링
-      this.padding = CONFIG.getScaledPadding();
-      this.axisRenderer.padding = this.padding;
-
+    draw(classes, axisLabels = null, ellipsisInfo = null, dataType = 'relativeFrequency', tableConfig = null, calloutTemplate = null, clearCanvas = true, unifiedMaxY = null, unifiedClassCount = null, customYInterval = null) {
       if (clearCanvas) {
-        // 캔버스 초기화 (크기는 viz-api에서 설정하므로 여기서 덮어쓰지 않음)
+        // 캔버스 초기화
+        this.canvas.width = CONFIG.CANVAS_WIDTH;
+        this.canvas.height = CONFIG.CANVAS_HEIGHT;
         this.clear();
 
         // 레이어 매니저 초기화 (겹침 방지) - root의 자식 레이어 모두 제거
@@ -6848,7 +5031,6 @@
       this.currentDataType = dataType;
       this.currentGridDivisions = coords.gridDivisions;
       this.currentTableConfig = tableConfig;
-      this.currentEffectiveClassCount = effectiveClassCount;
 
       // 애니메이션 모드 분기
       if (this.animationMode) {
@@ -6860,8 +5042,7 @@
           coords,
           ellipsisInfo,
           dataType,
-          calloutTemplate,
-          hiddenPolygonIndices
+          calloutTemplate
         );
         this.setupAnimations(classes);
 
@@ -6870,39 +5051,17 @@
         this.renderFrame(); // 최종 상태 렌더링
       } else {
         // 정적 렌더링 모드
-        // 추가 렌더링(clearCanvas=false)일 때는 배경/축을 다시 그리지 않음 (기존 내용 유지)
-        if (clearCanvas) {
-          this.axisRenderer.drawGrid(
-            coords.toX,
-            coords.toY,
-            coords.adjustedMaxY,
-            effectiveClassCount,
-            ellipsisInfo,
-            coords.gridDivisions
-          );
-        }
-        // CONFIG 설정에 따라 조건부 렌더링
-        if (CONFIG.SHOW_HISTOGRAM) {
-          this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
-        }
-        if (CONFIG.SHOW_POLYGON) {
-          this.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenPolygonIndices);
-        }
-        // 합동 삼각형 렌더링 (정적 모드)
-        if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
-          this.triangleRenderer.drawStatic(values, coords);
-        }
-        // 파선 렌더링 (정적 모드)
-        if (CONFIG.SHOW_DASHED_LINES && CONFIG.SHOW_POLYGON) {
-          this.dashedLineRenderer.drawStatic(values, coords, dataType);
-        }
-        // 막대 내부 커스텀 라벨 렌더링 (정적 모드)
-        if (CONFIG.SHOW_BAR_CUSTOM_LABELS && CONFIG.SHOW_HISTOGRAM) {
-          this.histogramRenderer.drawCustomLabelsStatic(values, freq, coords, ellipsisInfo);
-        }
-        if (clearCanvas) {
-          this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
-        }
+        this.axisRenderer.drawGrid(
+          coords.toX,
+          coords.toY,
+          coords.adjustedMaxY,
+          classes.length,
+          ellipsisInfo,
+          coords.gridDivisions
+        );
+        this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
+        this.polygonRenderer.draw(values, coords, ellipsisInfo);
+        this.axisRenderer.drawAxes(classes, coords, coords.adjustedMaxY, axisLabels, ellipsisInfo, dataType, coords.gridDivisions);
       }
     }
 
@@ -6946,9 +5105,6 @@
           break;
         case 'bar-label':
           this.histogramRenderer.renderBarLabel(layer);
-          break;
-        case 'bar-custom-label':
-          this.histogramRenderer.renderBarCustomLabel(layer);
           break;
         case 'triangle':
           this.triangleRenderer.renderTriangle(layer);
@@ -7036,7 +5192,6 @@
       const histogramGroup = reversedLayers.find(l => l.id.startsWith('histogram'));
       const polygonGroup = reversedLayers.find(l => l.id.startsWith('polygon'));
       const labelsGroup = reversedLayers.find(l => l.id.startsWith('bar-labels'));
-      const customLabelsGroup = reversedLayers.find(l => l.id.startsWith('bar-custom-labels'));
       const dashedLinesGroup = reversedLayers.find(l => l.id.startsWith('dashed-lines'));
 
       const pointsGroup = polygonGroup?.children.find(c => c.id.startsWith('points'));
@@ -7047,7 +5202,6 @@
       const bars = histogramGroup?.children || [];
       const points = pointsGroup?.children || [];
       const labels = labelsGroup?.children || [];
-      const customLabels = customLabelsGroup?.children || [];
 
       // 계급별로 묶어서 순차 애니메이션
       // 기준: 막대와 점 중 더 많은 쪽 (보통 같지만 안전하게)
@@ -7071,12 +5225,6 @@
         pointIndexMap.set(point.data.index, idx);
       });
 
-      // 커스텀 라벨 인덱스 매핑 (customLabel.data.index → customLabels 배열 인덱스)
-      const customLabelIndexMap = new Map();
-      customLabels.forEach((customLabel, idx) => {
-        customLabelIndexMap.set(customLabel.data.index, idx);
-      });
-
       for (let i = 0; i < classCount; i++) {
         // ellipsis 범위 건너뛰기 (빈 계급에 대한 타이밍 낭비 방지)
         if (CoordinateSystem.shouldSkipEllipsis(i, this.currentEllipsisInfo)) continue;
@@ -7090,9 +5238,6 @@
 
         const labelIdx = labelIndexMap.get(i);
         const label = labelIdx !== undefined ? labels[labelIdx] : null;
-
-        const customLabelIdx = customLabelIndexMap.get(i);
-        const customLabel = customLabelIdx !== undefined ? customLabels[customLabelIdx] : null;
 
         // 막대 애니메이션 (있으면)
         if (bar) {
@@ -7116,17 +5261,6 @@
           });
         }
 
-        // 막대 커스텀 라벨 애니메이션 (막대와 동일한 타이밍)
-        if (customLabel) {
-          this.timeline.addAnimation(customLabel.id, {
-            startTime: currentTime,
-            duration: barDuration,
-            effect: 'none', // renderBarCustomLabel에서 progress 체크
-            effectOptions: {},
-            easing: 'easeOut'
-          });
-        }
-
         // 점 애니메이션 (항상)
         if (point) {
           this.timeline.addAnimation(point.id, {
@@ -7138,29 +5272,20 @@
           });
         }
 
+        // 파선 애니메이션 (점과 동일한 타이밍, 우→좌 그리기)
+        const dashedLine = dashedLinesGroup?.children.find(d => d.data?.index === i);
+        if (dashedLine && dashedLine.visible) {
+          this.timeline.addAnimation(dashedLine.id, {
+            startTime: currentTime,
+            duration: pointDuration,
+            effect: 'draw',
+            effectOptions: { direction: 'right-to-left' },
+            easing: 'easeOut'
+          });
+        }
+
         // 다음 계급으로
         currentTime += Math.max(barDuration, pointDuration) + classDelay;
-      }
-
-      // 파선 애니메이션 (히스토그램 완료 후, 순차적으로 그리기)
-      if (dashedLinesGroup && dashedLinesGroup.children && dashedLinesGroup.children.length > 0) {
-        const dashedLineDelay = CONFIG.ANIMATION_CLASS_DELAY || 150;
-        const dashedLineDuration = CONFIG.ANIMATION_LINE_DURATION || 400;
-
-        dashedLinesGroup.children.forEach((dashedLine, idx) => {
-          if (dashedLine && dashedLine.visible) {
-            this.timeline.addAnimation(dashedLine.id, {
-              startTime: currentTime + (idx * dashedLineDelay),
-              duration: dashedLineDuration,
-              effect: 'draw',
-              effectOptions: { direction: 'right-to-left' },
-              easing: 'easeOut'
-            });
-          }
-        });
-
-        // 파선 완료 후 시간 업데이트
-        currentTime += (dashedLinesGroup.children.length * dashedLineDelay) + dashedLineDuration;
       }
 
       // 연결선 그룹 애니메이션 (모든 계급 완료 후)
@@ -7298,12 +5423,10 @@
 
     /**
      * 애니메이션 모드 비활성화
-     * 주의: stopAnimation()을 호출하지 않음 (정적 렌더링된 내용 보존)
      */
     disableAnimation() {
       this.animationMode = false;
-      // stopAnimation() 호출 제거: renderFrame()이 캔버스를 지워서
-      // 정적 모드로 그려진 기존 내용(다각형 등)이 사라지는 문제 방지
+      this.stopAnimation();
     }
 
     /**
@@ -7320,7 +5443,7 @@
         this.currentCoords.toX,
         this.currentCoords.toY,
         this.currentMaxY,
-        this.currentEffectiveClassCount || this.currentClasses.length,
+        this.currentClasses.length,
         this.currentEllipsisInfo,
         this.currentGridDivisions
       );
@@ -7348,9 +5471,8 @@
         return { anim, layer, isActive, isCompleted };
       }).filter(item => item !== null);
 
-      // 렌더링 순서: dashed-line → bar → triangle → ... (타입 기준 정렬)
-      // 파선이 막대 뒤에 그려지도록 먼저 렌더링
-      const renderOrder = { 'dashed-line': 0, 'bar': 1, 'bar-custom-label': 2, 'triangle': 3, 'triangle-label-line': 4, 'triangle-label': 5, 'line': 6, 'point': 7, 'bar-label': 8, 'callout': 9 };
+      // 렌더링 순서: bar → triangle → triangle-label-line → triangle-label → line → dashed-line → point (타입 기준 정렬)
+      const renderOrder = { 'bar': 0, 'triangle': 1, 'triangle-label-line': 2, 'triangle-label': 3, 'line': 4, 'dashed-line': 5, 'point': 6, 'bar-label': 7, 'callout': 8 };
       allAnimations.sort((a, b) => {
         const orderA = renderOrder[a.layer.type] ?? 999;
         const orderB = renderOrder[b.layer.type] ?? 999;
@@ -7508,7 +5630,7 @@
      */
     static createTableLayers(layerManager, classes, total, config = null, tableId = 'table-1') {
       // 설정 가져오기
-      const tableLabels = { ...CONFIG.DEFAULT_LABELS.table, ...config?.labels };
+      const tableLabels = config?.labels || CONFIG.DEFAULT_LABELS.table;
       const visibleColumns = config?.visibleColumns || CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS;
       const columnOrder = config?.columnOrder || CONFIG.TABLE_DEFAULT_COLUMN_ORDER;
       const columnAlignment = config?.columnAlignment || CONFIG.TABLE_DEFAULT_ALIGNMENT;
@@ -8040,12 +6162,7 @@
      * @param {Layer} layer - 헤더 셀 레이어
      */
     renderHeaderCell(layer) {
-      const { x, y, width, height, cellText, alignment, headerTextColor, animating, animationProgress } = layer.data;
-
-      // 애니메이션 배경 렌더링 (펄스 효과)
-      if (animating && animationProgress > 0) {
-        this._renderAnimationBackground(x, y, width, height, animationProgress);
-      }
+      const { x, y, width, height, cellText, alignment, headerTextColor } = layer.data;
 
       const cellX = this._getCellXPosition(x, width, alignment);
       const cellY = y + height / 2;
@@ -8076,16 +6193,8 @@
         classData,
         showSuperscript,
         colLabel,
-        tallyCount,
-        animating,
-        animationProgress,
-        animationColor
+        tallyCount
       } = layer.data;
-
-      // 애니메이션 배경 렌더링 (펄스 효과)
-      if (animating && animationProgress > 0) {
-        this._renderAnimationBackground(x, y, width, height, animationProgress);
-      }
 
       // 하이라이트 배경 렌더링
       if (highlighted && highlightProgress > 0) {
@@ -8100,12 +6209,6 @@
       // 탈리마크 셀인 경우 Canvas로 직접 그리기
       if (colLabel === CONFIG.DEFAULT_LABELS.table.tally && tallyCount !== undefined) {
         this._renderTallyCanvas(tallyCount, x, y, width, height, CONFIG.getColor('--color-text'));
-        return;
-      }
-
-      // cellText가 탈리 객체인 경우 (파서에서 "/" 패턴으로 생성된 탈리마크)
-      if (cellText && typeof cellText === 'object' && cellText.type === 'tally') {
-        this._renderTallyCanvas(cellText.count, x, y, width, height, CONFIG.getColor('--color-text'));
         return;
       }
 
@@ -8124,12 +6227,7 @@
      * @param {Layer} layer - 합계 셀 레이어
      */
     renderSummaryCell(layer) {
-      const { x, y, width, height, cellText, alignment, animating, animationProgress } = layer.data;
-
-      // 애니메이션 배경 렌더링 (펄스 효과)
-      if (animating && animationProgress > 0) {
-        this._renderAnimationBackground(x, y, width, height, animationProgress);
-      }
+      const { x, y, width, height, cellText, alignment } = layer.data;
 
       const cellX = this._getCellXPosition(x, width, alignment);
       const cellY = y + height / 2;
@@ -8143,12 +6241,7 @@
      * @param {Layer} layer - 행 헤더 셀 레이어
      */
     renderRowHeaderCell(layer) {
-      const { x, y, width, height, cellText, alignment, textColor, animating, animationProgress } = layer.data;
-
-      // 애니메이션 배경 렌더링 (펄스 효과)
-      if (animating && animationProgress > 0) {
-        this._renderAnimationBackground(x, y, width, height, animationProgress);
-      }
+      const { x, y, width, height, cellText, alignment, textColor } = layer.data;
 
       const cellX = this._getCellXPosition(x, width, alignment);
       const cellY = y + height / 2;
@@ -8156,9 +6249,8 @@
       // 커스텀 색상이 있으면 사용, 없으면 헤더 색상 사용
       const color = textColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
 
-      // 행 라벨은 데이터 셀과 동일한 폰트 크기 사용 (isHeader = false)
-      // 상첨자가 있어도 기본 폰트 크기가 작아지지 않도록 함
-      this._renderCellText(cellText, cellX, cellY, alignment, color, false, false);
+      // 숫자/알파벳이면 KaTeX 폰트 적용
+      this._renderCellText(cellText, cellX, cellY, alignment, color);
     }
 
     /**
@@ -8257,16 +6349,15 @@
     }
 
     /**
-     * 기본 테이블 격자선 렌더링 (2행 헤더 구조)
+     * 이원분류표 격자선 렌더링 (2행 헤더 구조)
      * @param {Layer} layer - 격자선 레이어
      */
-    renderBasicTableGrid(layer) {
+    renderCrossTableGrid(layer) {
       const {
         x, y, width, height, rowCount, columnWidths, hasSummaryRow,
         mergedHeaderHeight, columnHeaderHeight,
         mergedHeaderLineColor, mergedHeaderLineWidth,
-        showMergedHeader = true,
-        rowHeights = []
+        showMergedHeader = true
       } = layer.data;
 
       const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
@@ -8299,12 +6390,8 @@
       this.ctx.stroke();
 
       // 데이터 행 구분선
-      let cumulativeY = 0;
       for (let i = 1; i <= rowCount; i++) {
-        // rowHeights가 있으면 누적 높이 사용, 없으면 기존 방식
-        const lineY = y + totalHeaderHeight + (rowHeights.length > 0
-          ? cumulativeY
-          : (i - 1) * CONFIG.TABLE_ROW_HEIGHT);
+        const lineY = y + totalHeaderHeight + (i - 1) * CONFIG.TABLE_ROW_HEIGHT;
 
         // 첫 번째 선(컬럼 헤더 아래) 또는 마지막 선(합계 위)은 두께 2, 밝은 회색
         const isHeaderLine = i === 1;
@@ -8322,11 +6409,6 @@
         this.ctx.moveTo(x, lineY);
         this.ctx.lineTo(x + width, lineY);
         this.ctx.stroke();
-
-        // 다음 행을 위해 현재 행 높이 누적
-        if (rowHeights.length > 0 && i <= rowHeights.length) {
-          cumulativeY += rowHeights[i - 1];
-        }
       }
 
       // 수직선 (점선, 컬럼 헤더 이후부터)
@@ -8405,12 +6487,15 @@
       }
       const cellY = y + height / 2;
 
-      // 고정 폰트 크기 (동적 너비로 조절되므로 폰트 축소 불필요)
-      const fontSize = 24;
+      // 전체 최대 잎 개수에 따라 폰트 크기 조정 (일관성 유지)
+      // 단일 모드: 11개 이상, 비교 모드: 7개 이상일 때 폰트 축소
+      const { maxLeafCount = 0, isSingleMode = false } = layer.data;
+      const threshold = isSingleMode ? 11 : 7;
+      const fontSize = maxLeafCount >= threshold ? 20 : 24;
 
       // 변수인 경우와 일반 잎 데이터 분기
       if (isVariable) {
-        // 변수인 경우: 이탤릭 강제
+        // 변수인 경우: 동적 폰트 크기 + 이탤릭 강제
         this._renderStemLeafText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'), fontSize, true);
       } else {
         // 잎 데이터인 경우: 기존 렌더링
@@ -8598,28 +6683,11 @@
      * @param {boolean} isHeader - 헤더 여부 (헤더는 더 작은 폰트)
      */
     _renderCellText(text, x, y, alignment, color, bold = false, isHeader = false) {
-      // null은 빈칸 처리 (cellVariables에서 null 사용)
-      if (text === null) {
-        return;
-      }
-
       const str = String(text).trim();
       const fontSize = isHeader ? 22 : 24;
 
-      // 빈 문자열은 렌더링 스킵
-      if (str === '') {
-        return;
-      }
-
-      // LaTeX 분수 표기법(\frac{}{})이 포함된 경우 특별 처리
-      const fracMatch = str.match(/^\\frac\{([^}]*)\}\{([^}]*)\}$/);
-      if (fracMatch) {
-        renderFraction(this.ctx, fracMatch[1], fracMatch[2], x, y, {
-          fontSize: fontSize,
-          color: color,
-          align: alignment,
-          baseline: 'middle'
-        });
+      // 언더바만 있는 경우 빈칸으로 처리 (렌더링 스킵)
+      if (str === '_' || str === '') {
         return;
       }
 
@@ -8637,7 +6705,7 @@
 
       if (hasKorean && parenMatch && parenMatch[1].trim()) {
         // mainText가 있을 때만 작은 괄호 렌더링 (예: "학생 수(명)" ✅, "(가)" ❌)
-        this._renderTextWithSmallParen(parenMatch[1], parenMatch[2], x, y, alignment, color, bold, fontSize, isHeader);
+        this._renderTextWithSmallParen(parenMatch[1], parenMatch[2], x, y, alignment, color, bold, fontSize);
         return;
       }
 
@@ -8651,13 +6719,12 @@
         });
       } else if (this._containsMixedKoreanAndNumeric(str)) {
         // 한글+숫자/알파벳 혼합인 경우 분리 렌더링 (예: "1반", "2반")
-        this._renderMixedText(str, x, y, alignment, color, bold, fontSize, isHeader);
+        this._renderMixedText(str, x, y, alignment, color, bold, fontSize);
       } else {
         // 한글 등은 기본 폰트 사용 (괄호 처리는 상단에서 이미 완료됨)
         this.ctx.fillStyle = color;
         this.ctx.textBaseline = 'middle';
-        // 헤더 → TABLE_FONT_HEADER, 합계 → TABLE_FONT_SUMMARY, 일반 → TABLE_FONT_DATA
-        this.ctx.font = isHeader ? CONFIG.TABLE_FONT_HEADER : (bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA);
+        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
         this.ctx.textAlign = alignment;
         this.ctx.fillText(str, x, y);
       }
@@ -8694,9 +6761,8 @@
      * @param {string} color - 텍스트 색상
      * @param {boolean} bold - 볼드 여부
      * @param {number} fontSize - 폰트 크기 (숫자/알파벳용)
-     * @param {boolean} isHeader - 헤더 여부
      */
-    _renderMixedText(text, x, y, alignment, color, bold, fontSize, isHeader = false) {
+    _renderMixedText(text, x, y, alignment, color, bold, fontSize) {
       const segments = this._splitByCharType(text);
       // 한글은 기존 테이블 폰트 크기(18px) 유지
       const koreanFontSize = 18;
@@ -8709,7 +6775,7 @@
       let totalWidth = 0;
       segments.forEach(seg => {
         const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
+        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
         totalWidth += this.ctx.measureText(seg.text).width;
       });
 
@@ -8722,7 +6788,7 @@
       this.ctx.textAlign = 'left';
       segments.forEach(seg => {
         const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
+        this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
         this.ctx.fillText(seg.text, currentX, y);
         currentX += this.ctx.measureText(seg.text).width;
       });
@@ -8741,14 +6807,13 @@
      * @param {string} color - 텍스트 색상
      * @param {boolean} bold - 볼드 여부
      * @param {number} fontSize - 폰트 크기
-     * @param {boolean} isHeader - 헤더 여부
      */
-    _renderTextWithSmallParen(mainText, parenText, x, y, alignment, color, bold, fontSize, isHeader = false) {
+    _renderTextWithSmallParen(mainText, parenText, x, y, alignment, color, bold, fontSize) {
       this.ctx.save();
       this.ctx.fillStyle = color;
       this.ctx.textBaseline = 'middle';
 
-      const smallFont = bold ? "bold 12px 'SCDream', sans-serif" : "300 12px 'SCDream', sans-serif";
+      const smallFont = bold ? 'bold 12px sans-serif' : '12px sans-serif';
       const koreanFontSize = 18;
 
       // 메인 텍스트 너비 계산
@@ -8760,12 +6825,12 @@
         const segments = this._splitByCharType(mainText);
         segments.forEach(seg => {
           const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-          this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
+          this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
           mainWidth += this.ctx.measureText(seg.text).width;
         });
       } else {
-        // 순수 한글: 헤더 → TABLE_FONT_HEADER, 합계 → TABLE_FONT_SUMMARY, 일반 → TABLE_FONT_DATA
-        this.ctx.font = isHeader ? CONFIG.TABLE_FONT_HEADER : (bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA);
+        // 순수 한글: 기본 폰트
+        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
         mainWidth = this.ctx.measureText(mainText).width;
       }
 
@@ -8812,13 +6877,13 @@
         let currentX = startX;
         segments.forEach(seg => {
           const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
-          this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
+          this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold);
           this.ctx.fillText(seg.text, currentX, y);
           currentX += this.ctx.measureText(seg.text).width;
         });
       } else {
-        // 순수 한글: 헤더 → TABLE_FONT_HEADER, 합계 → TABLE_FONT_SUMMARY, 일반 → TABLE_FONT_DATA
-        this.ctx.font = isHeader ? CONFIG.TABLE_FONT_HEADER : (bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA);
+        // 순수 한글
+        this.ctx.font = bold ? CONFIG.TABLE_FONT_SUMMARY : CONFIG.TABLE_FONT_DATA;
         this.ctx.fillText(mainText, startX, y);
       }
 
@@ -8914,14 +6979,13 @@
      * @param {string} type - 문자 유형 ('korean', 'lowercase', 'other')
      * @param {number} fontSize - 폰트 크기
      * @param {boolean} bold - 볼드 여부
-     * @param {boolean} isHeader - 헤더 여부 (헤더는 Medium 사용)
      * @returns {string} CSS 폰트 문자열
      */
-    _getFontForCharType(type, fontSize, bold = false, isHeader = false) {
+    _getFontForCharType(type, fontSize, bold = false) {
       if (type === 'korean') {
-        // 한글: SCDream 폰트 사용 (헤더 또는 볼드면 Medium)
-        const fontWeight = (bold || isHeader) ? '500 ' : '300 ';
-        return `${fontWeight}${fontSize}px 'SCDream', sans-serif`;
+        // 한글만 볼드 적용
+        const fontWeight = bold ? 'bold ' : '';
+        return `${fontWeight}${fontSize}px sans-serif`;
       } else if (type === 'lowercase') {
         return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
       } else {
@@ -8941,10 +7005,10 @@
      * @param {boolean} isHeader - 헤더 여부 (헤더는 더 작은 폰트)
      */
     _renderWithSuperscript(parts, x, y, alignment, color, bold = false, isHeader = false) {
-      // 헤더인 경우 더 작은 폰트 사용 (_renderCellText와 동일한 기준)
-      const normalFontSize = isHeader ? 22 : 24;
-      const superFontSize = isHeader ? 12 : 14;
-      const superYOffset = isHeader ? -7 : -8;
+      // 헤더인 경우 더 작은 폰트 사용
+      const normalFontSize = isHeader ? 18 : 24;
+      const superFontSize = isHeader ? 11 : 14;
+      const superYOffset = isHeader ? -6 : -8;
 
       this.ctx.save();
       this.ctx.fillStyle = color;
@@ -9072,33 +7136,6 @@
       this.ctx.moveTo(x - spacing * 0.3, y - height / 2);  // 왼쪽 위
       this.ctx.lineTo(x + 3 * spacing + spacing * 0.3, y + height / 2);  // 오른쪽 아래
       this.ctx.stroke();
-    }
-
-    /**
-     * 애니메이션 배경 렌더링 (펄스 효과)
-     * @param {number} x - 셀 X 좌표
-     * @param {number} y - 셀 Y 좌표
-     * @param {number} width - 셀 너비
-     * @param {number} height - 셀 높이
-     * @param {number} progress - 애니메이션 진행도 (0~1)
-     */
-    _renderAnimationBackground(x, y, width, height, progress) {
-      // 색상: #89EC4E (RGB: 137, 236, 78)
-      const fillAlpha = progress * 0.3; // fill: 30% opacity
-      const strokeAlpha = progress; // stroke: 100% opacity
-
-      this.ctx.save();
-
-      // Fill (30% opacity)
-      this.ctx.fillStyle = `rgba(137, 236, 78, ${fillAlpha})`;
-      this.ctx.fillRect(x, y, width, height);
-
-      // Stroke (100% opacity)
-      this.ctx.strokeStyle = `rgba(137, 236, 78, ${strokeAlpha})`;
-      this.ctx.lineWidth = 2;
-      this.ctx.strokeRect(x + 1, y + 1, width - 2, height - 2);
-
-      this.ctx.restore();
     }
   }
 
@@ -9339,22 +7376,7 @@
      */
     static measureTextWidth(ctx, text, font) {
       ctx.font = font;
-      // 상첨자 표기 제거 후 측정 (^{...} 또는 ^x)
-      const cleanText = this.stripSuperscript(String(text));
-      return ctx.measureText(cleanText).width;
-    }
-
-    /**
-     * 상첨자 표기 제거
-     * @param {string} text - 원본 텍스트
-     * @returns {string} 상첨자 표기가 제거된 텍스트
-     */
-    static stripSuperscript(text) {
-      // ^{...} 형식 제거
-      let result = text.replace(/\^{[^}]*}/g, '');
-      // ^x (단일 문자) 형식 제거
-      result = result.replace(/\^[^\s{]/g, '');
-      return result;
+      return ctx.measureText(String(text)).width;
     }
 
     /**
@@ -9385,11 +7407,7 @@
         let maxDataWidth = 0;
         for (const row of rows) {
           if (row[col] !== undefined && row[col] !== null) {
-            const cellText = String(row[col]);
-            // 상첨자가 있으면 추가 패딩 (상첨자 텍스트도 렌더링되므로)
-            const hasSuperscript = /\^/.test(cellText);
-            const superscriptPadding = hasSuperscript ? 40 : 0;
-            const dataWidth = this.measureTextWidth(ctx, cellText, dataFont) + cellPadding + superscriptPadding;
+            const dataWidth = this.measureTextWidth(ctx, row[col], dataFont) + cellPadding;
             maxDataWidth = Math.max(maxDataWidth, dataWidth);
           }
         }
@@ -9492,32 +7510,6 @@
 
       // LayerManager에 추가
       layerManager.addLayer(rootLayer, 'root');
-    }
-
-    /**
-     * ParserAdapter의 통일된 출력 형식으로 테이블 레이어 생성
-     * @param {LayerManager} layerManager - 레이어 매니저
-     * @param {Object} adaptedData - ParserAdapter.adapt() 출력
-     * @param {Object} config - 테이블 설정
-     * @param {string} tableId - 테이블 고유 ID
-     */
-    static createFromAdaptedData(layerManager, adaptedData, config = null, tableId = 'table-1') {
-      const { headers, rows, metadata } = adaptedData;
-      const { originalHeaders } = metadata;
-
-      // adaptedData를 기존 파서 형식으로 변환
-      // adaptedData.headers = ['구분', ...originalHeaders]
-      // adaptedData.rows = [{ label, cells: [{ value: label }, { value }, ...] }]
-      const legacyData = {
-        headers: originalHeaders,
-        rows: rows.map(row => ({
-          label: row.label,
-          values: row.cells.slice(1).map(cell => cell.value)  // 첫 번째 셀(라벨) 제외
-        }))
-      };
-
-      // 기존 메서드 호출
-      this.createTableLayers(layerManager, legacyData, config, tableId);
     }
 
     /**
@@ -9637,23 +7629,23 @@
   }
 
   /**
-   * 기본 테이블 팩토리 (구 이원 분류표)
+   * 이원 분류표 테이블 팩토리
    * 행: 카테고리 (혈액형 등), 열: 그룹 (남학생, 여학생 등)
    * 2행 헤더 구조: 병합 헤더(상대도수) + 컬럼 헤더
    */
 
 
-  // 기본 테이블 전용 상수
-  const BASIC_TABLE_CONFIG = {
+  // 이원분류표 전용 상수
+  const CROSS_TABLE_CONFIG = {
     MERGED_HEADER_HEIGHT: 35,           // 병합 헤더 높이
     MERGED_HEADER_TEXT: '상대도수',      // 병합 헤더 텍스트
     MERGED_HEADER_LINE_COLOR: '#8DCF66', // 병합 헤더 아래 구분선 색상
     MERGED_HEADER_LINE_WIDTH: 1          // 구분선 두께
   };
 
-  class BasicTableFactory {
+  class CrossTableFactory {
     /**
-     * 기본 테이블 레이어 생성
+     * 이원 분류표 레이어 생성
      * @param {LayerManager} layerManager - 레이어 매니저
      * @param {Object} data - 파싱된 데이터 { rowLabelColumn, columnHeaders, rows, totals, showTotal, showMergedHeader }
      * @param {Object} config - 테이블 설정
@@ -9663,7 +7655,7 @@
       const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true, mergedHeaderText = null } = data;
 
       // 커스텀 병합 헤더 텍스트 (없으면 기본값 '상대도수')
-      const headerText = mergedHeaderText || BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT;
+      const headerText = mergedHeaderText || CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT;
 
       // 열 개수: 행 라벨 열 + 데이터 열들
       const columnCount = columnHeaders.length + 1;
@@ -9673,25 +7665,21 @@
       const padding = CONFIG.TABLE_PADDING;
       const canvasWidth = config?.canvasWidth || CONFIG.TABLE_CANVAS_WIDTH;
 
-      // 각 행의 높이 계산 (분수 포함 여부에 따라)
-      const rowHeights = this._calculateRowHeights(rows, totals, showTotal);
-      const totalRowHeight = rowHeights.reduce((sum, h) => sum + h, 0);
-
       // Canvas 높이 계산 (병합 헤더 조건부 + 컬럼 헤더 + 데이터 행들)
-      const mergedHeaderHeight = showMergedHeader ? BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
+      const mergedHeaderHeight = showMergedHeader ? CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
       const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-      const canvasHeight = totalHeaderHeight + totalRowHeight + padding * 2;
+      const canvasHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + padding * 2;
 
       // 열 너비 계산 (config에서 전달받거나 자동 계산)
       const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
 
       // 테이블 타입
-      const tableType = CONFIG.TABLE_TYPES.BASIC_TABLE;
+      const tableType = CONFIG.TABLE_TYPES.CROSS_TABLE;
 
       // 루트 레이어 생성
       const rootLayer = new Layer({
         id: `${tableType}-${tableId}-table-root`,
-        name: '기본 테이블',
+        name: '이원 분류표',
         type: 'group',
         visible: true,
         order: 0,
@@ -9701,7 +7689,7 @@
           padding,
           columnCount,
           rowCount,
-          tableType: CONFIG.TABLE_TYPES.BASIC_TABLE
+          tableType: CONFIG.TABLE_TYPES.CROSS_TABLE
         }
       });
 
@@ -9714,8 +7702,7 @@
         tableId,
         hasSummaryRow: showTotal,
         mergedHeaderHeight,
-        showMergedHeader,
-        rowHeights
+        showMergedHeader
       });
       rootLayer.addChild(gridLayer);
 
@@ -9749,8 +7736,7 @@
           columnWidths,
           padding,
           tableId,
-          mergedHeaderHeight,
-          rowHeights
+          mergedHeaderHeight
         );
         rootLayer.addChild(rowLayer);
       });
@@ -9763,104 +7749,13 @@
           columnWidths,
           padding,
           tableId,
-          mergedHeaderHeight,
-          rowHeights
+          mergedHeaderHeight
         );
         rootLayer.addChild(summaryLayer);
       }
 
       // LayerManager에 추가
       layerManager.addLayer(rootLayer, 'root');
-    }
-
-    /**
-     * ParserAdapter의 통일된 출력 형식으로 테이블 레이어 생성
-     * @param {LayerManager} layerManager - 레이어 매니저
-     * @param {Object} adaptedData - ParserAdapter.adapt() 출력
-     * @param {Object} config - 테이블 설정
-     * @param {string} tableId - 테이블 고유 ID
-     */
-    static createFromAdaptedData(layerManager, adaptedData, config = null, tableId = 'table-1') {
-      const { rows, rowCount, metadata } = adaptedData;
-      const { rowLabelColumn, columnHeaders, showTotal, mergedHeaderText, hasTotalRow, originalTotals } = metadata;
-
-      // adaptedData를 기존 파서 형식으로 변환
-      // adaptedData.rows에는 합계 행이 포함되어 있을 수 있음
-      const dataRows = hasTotalRow ? rows.slice(0, -1) : rows;
-
-      const legacyData = {
-        rowLabelColumn,
-        columnHeaders,
-        showTotal,
-        mergedHeaderText,
-        totals: originalTotals,
-        rows: dataRows.map(row => ({
-          label: row.label,
-          values: row.cells.slice(1, -1).map(cell => cell.value)  // 첫 번째(라벨)와 마지막(합계) 제외
-        }))
-      };
-
-      // showTotal이 false면 values에서 마지막 제외 안함
-      if (!showTotal) {
-        legacyData.rows = dataRows.map(row => ({
-          label: row.label,
-          values: row.cells.slice(1).map(cell => cell.value)
-        }));
-      }
-
-      // 기존 메서드 호출
-      this.createTableLayers(layerManager, legacyData, config, tableId);
-    }
-
-    /**
-     * 행별 높이 계산 (분수 포함 여부에 따라)
-     * 테이블에 분수가 하나라도 있으면 모든 행을 동일한 높이로 통일
-     * @param {Array} rows - 데이터 행 배열
-     * @param {Array} totals - 합계 배열
-     * @param {boolean} showTotal - 합계 행 표시 여부
-     * @returns {Array<number>} 각 행의 높이 배열
-     */
-    static _calculateRowHeights(rows, totals, showTotal) {
-      // 테이블 전체에서 분수가 있는지 확인
-      const hasAnyFraction = rows.some(row => this._rowContainsFraction(row.values)) ||
-        (showTotal && totals && this._arrayContainsFraction(totals));
-
-      // 분수가 있으면 모든 행을 분수 높이로 통일
-      const rowHeight = hasAnyFraction ? CONFIG.TABLE_ROW_HEIGHT_FRACTION : CONFIG.TABLE_ROW_HEIGHT;
-
-      const heights = [];
-
-      // 데이터 행들
-      rows.forEach(() => {
-        heights.push(rowHeight);
-      });
-
-      // 합계 행
-      if (showTotal && totals) {
-        heights.push(rowHeight);
-      }
-
-      return heights;
-    }
-
-    /**
-     * 행에 분수가 포함되어 있는지 확인
-     */
-    static _rowContainsFraction(values) {
-      return this._arrayContainsFraction(values);
-    }
-
-    /**
-     * 배열에 분수가 포함되어 있는지 확인
-     */
-    static _arrayContainsFraction(arr) {
-      if (!arr) return false;
-      return arr.some(val => {
-        if (typeof val === 'string') {
-          return /\\frac\{[^}]*\}\{[^}]*\}/.test(val);
-        }
-        return false;
-      });
     }
 
     /**
@@ -9876,7 +7771,7 @@
     }
 
     /**
-     * 격자선 레이어 생성 (기본 테이블 전용)
+     * 격자선 레이어 생성 (이원분류표 전용)
      */
     static _createGridLayer(options) {
       const {
@@ -9887,21 +7782,17 @@
         tableId,
         hasSummaryRow,
         mergedHeaderHeight,
-        showMergedHeader = true,
-        rowHeights = []
+        showMergedHeader = true
       } = options;
 
       const totalWidth = canvasWidth - padding * 2;
       const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-      const totalRowHeight = rowHeights.length > 0
-        ? rowHeights.reduce((sum, h) => sum + h, 0)
-        : rowCount * CONFIG.TABLE_ROW_HEIGHT;
-      const totalHeight = totalHeaderHeight + totalRowHeight;
+      const totalHeight = totalHeaderHeight + (rowCount * CONFIG.TABLE_ROW_HEIGHT);
 
       return new Layer({
-        id: `basic-table-${tableId}-table-grid`,
+        id: `cross-table-${tableId}-table-grid`,
         name: '격자선',
-        type: 'basic-table-grid',  // 기본 테이블 전용 타입
+        type: 'cross-table-grid',  // 이원분류표 전용 타입
         visible: true,
         order: 0,
         data: {
@@ -9914,10 +7805,9 @@
           hasSummaryRow,
           mergedHeaderHeight,
           columnHeaderHeight: CONFIG.TABLE_HEADER_HEIGHT,
-          mergedHeaderLineColor: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
-          mergedHeaderLineWidth: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
-          showMergedHeader,
-          rowHeights
+          mergedHeaderLineColor: CROSS_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
+          mergedHeaderLineWidth: CROSS_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
+          showMergedHeader
         }
       });
     }
@@ -9929,9 +7819,9 @@
      * @param {string} tableId - 테이블 ID
      * @param {string} headerText - 병합 헤더 텍스트
      */
-    static _createMergedHeaderLayer(columnWidths, padding, tableId, headerText = BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT) {
+    static _createMergedHeaderLayer(columnWidths, padding, tableId, headerText = CROSS_TABLE_CONFIG.MERGED_HEADER_TEXT) {
       const mergedHeaderGroup = new Layer({
-        id: `basic-table-${tableId}-table-merged-header`,
+        id: `cross-table-${tableId}-table-merged-header`,
         name: '병합 헤더',
         type: 'group',
         visible: true,
@@ -9943,7 +7833,7 @@
 
       // 첫 번째 열은 빈 칸
       const emptyCell = new Layer({
-        id: `basic-table-${tableId}-table-merged-header-empty`,
+        id: `cross-table-${tableId}-table-merged-header-empty`,
         name: '(빈 셀)',
         type: 'cell',
         visible: true,
@@ -9956,7 +7846,7 @@
           x: padding,
           y,
           width: columnWidths[0],
-          height: BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
+          height: CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0
@@ -9967,7 +7857,7 @@
       // 나머지 열은 커스텀 텍스트 병합
       const mergedWidth = columnWidths.slice(1).reduce((a, b) => a + b, 0);
       const mergedCell = new Layer({
-        id: `basic-table-${tableId}-table-merged-header-title`,
+        id: `cross-table-${tableId}-table-merged-header-title`,
         name: headerText,
         type: 'cell',
         visible: true,
@@ -9980,7 +7870,7 @@
           x: padding + columnWidths[0],
           y,
           width: mergedWidth,
-          height: BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
+          height: CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0,
@@ -9996,9 +7886,9 @@
     /**
      * 컬럼 헤더 레이어 생성 (혈액형 | 남학생 | 여학생)
      */
-    static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
+    static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
       const headerGroup = new Layer({
-        id: `basic-table-${tableId}-table-header`,
+        id: `cross-table-${tableId}-table-header`,
         name: '컬럼 헤더',
         type: 'group',
         visible: true,
@@ -10014,7 +7904,7 @@
 
       allHeaders.forEach((header, i) => {
         const cellLayer = new Layer({
-          id: `basic-table-${tableId}-table-header-col${i}`,
+          id: `cross-table-${tableId}-table-header-col${i}`,
           name: header,
           type: 'cell',
           visible: true,
@@ -10046,9 +7936,9 @@
     /**
      * 데이터 행 레이어 생성
      */
-    static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = []) {
+    static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
       const rowGroup = new Layer({
-        id: `basic-table-${tableId}-table-row-${rowIndex}`,
+        id: `cross-table-${tableId}-table-row-${rowIndex}`,
         name: `데이터 행 ${rowIndex}`,
         type: 'group',
         visible: true,
@@ -10058,11 +7948,7 @@
 
       // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 이후)
       const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-      // rowHeights가 있으면 이전 행들의 높이 합산, 없으면 기존 방식
-      const y = padding + totalHeaderHeight + (rowHeights.length > 0
-        ? rowHeights.slice(0, rowIndex).reduce((sum, h) => sum + h, 0)
-        : rowIndex * CONFIG.TABLE_ROW_HEIGHT);
-      const currentRowHeight = rowHeights[rowIndex] || CONFIG.TABLE_ROW_HEIGHT;
+      const y = padding + totalHeaderHeight + (rowIndex * CONFIG.TABLE_ROW_HEIGHT);
       let x = padding;
 
       // 첫 번째 열은 행 라벨 (혈액형 값: A, B, AB, O)
@@ -10071,18 +7957,15 @@
       cells.forEach((cellText, colIndex) => {
         const isLabelColumn = colIndex === 0;
 
-        // 값 포맷팅 (소수점인 경우, null은 그대로 유지)
+        // 값 포맷팅 (소수점인 경우)
         let displayText = cellText;
         if (typeof cellText === 'number' && !isLabelColumn) {
           displayText = cellText.toFixed(2).replace(/\.?0+$/, '');
         }
 
-        // null은 그대로 유지 (빈칸 처리용)
-        const cellTextValue = displayText === null ? null : String(displayText);
-
         const cellLayer = new Layer({
-          id: `basic-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
-          name: cellTextValue ?? '',
+          id: `cross-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
+          name: String(displayText),
           type: 'cell',
           visible: true,
           order: colIndex,
@@ -10091,11 +7974,11 @@
             rowIndex,
             colIndex,
             colLabel: '',
-            cellText: cellTextValue,
+            cellText: String(displayText),
             x,
             y,
             width: columnWidths[colIndex],
-            height: currentRowHeight,
+            height: CONFIG.TABLE_ROW_HEIGHT,
             alignment: 'center',
             highlighted: false,
             highlightProgress: 0,
@@ -10115,9 +7998,9 @@
     /**
      * 합계 행 레이어 생성
      */
-    static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = []) {
+    static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = CROSS_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
       const summaryGroup = new Layer({
-        id: `basic-table-${tableId}-table-summary`,
+        id: `cross-table-${tableId}-table-summary`,
         name: '합계 행',
         type: 'group',
         visible: true,
@@ -10127,12 +8010,7 @@
 
       // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 + 데이터 행들 이후)
       const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-      // rowHeights가 있으면 데이터 행들의 높이 합산
-      const dataRowsHeight = rowHeights.length > 0
-        ? rowHeights.slice(0, dataRowCount).reduce((sum, h) => sum + h, 0)
-        : dataRowCount * CONFIG.TABLE_ROW_HEIGHT;
-      const y = padding + totalHeaderHeight + dataRowsHeight;
-      const summaryRowHeight = rowHeights[dataRowCount] || CONFIG.TABLE_ROW_HEIGHT;
+      const y = padding + totalHeaderHeight + (dataRowCount * CONFIG.TABLE_ROW_HEIGHT);
       let x = padding;
 
       // 첫 번째 열은 "합계"
@@ -10140,16 +8018,14 @@
 
       cells.forEach((cellText, colIndex) => {
         let displayText = cellText;
-        if (cellText === null) {
-          displayText = null;  // null은 그대로 유지 (빈칸 처리용)
-        } else if (typeof cellText === 'number') {
+        if (typeof cellText === 'number') {
           // 1인 경우 그대로 1로 표시, 그 외는 소수점 처리
           displayText = cellText === 1 ? '1' : cellText.toFixed(2).replace(/\.?0+$/, '');
         }
 
         const cellLayer = new Layer({
-          id: `basic-table-${tableId}-table-summary-col${colIndex}`,
-          name: displayText === null ? '' : String(displayText),
+          id: `cross-table-${tableId}-table-summary-col${colIndex}`,
+          name: String(displayText),
           type: 'cell',
           visible: true,
           order: colIndex,
@@ -10158,11 +8034,11 @@
             rowIndex: dataRowCount,
             colIndex,
             colLabel: '',
-            cellText: displayText === null ? null : String(displayText),
+            cellText: String(displayText),
             x,
             y,
             width: columnWidths[colIndex],
-            height: summaryRowHeight,
+            height: CONFIG.TABLE_ROW_HEIGHT,
             alignment: 'center',
             highlighted: false,
             highlightProgress: 0
@@ -10201,119 +8077,9 @@
       }
     }
 
-    /**
-     * 동적 너비 계산 (외부 호출용)
-     * @param {Object} data - 파싱된 데이터 { isSingleMode, stems, leftLabel, rightLabel }
-     * @returns {Object} { canvasWidth, columnWidths }
-     */
-    static calculateDynamicWidths(data) {
-      if (data.isSingleMode) {
-        return this._calculateSingleModeDynamicWidths(data.stems);
-      } else {
-        return this._calculateCompareModeDynamicWidths(data.stems, data.leftLabel, data.rightLabel);
-      }
-    }
-
-    /**
-     * ParserAdapter의 통일된 출력 형식으로 테이블 레이어 생성
-     * @param {LayerManager} layerManager - 레이어 매니저
-     * @param {Object} adaptedData - ParserAdapter.adapt() 출력
-     * @param {Object} config - 테이블 설정
-     * @param {string} tableId - 테이블 고유 ID
-     */
-    static createFromAdaptedData(layerManager, adaptedData, config = null, tableId = 'table-1') {
-      const { rows, rowCount, columnCount, metadata } = adaptedData;
-      const { isSingleMode, leftLabel, rightLabel, minStem, maxStem, maxLeafCount, maxLeftLeafCount, maxRightLeafCount } = metadata;
-
-      // adaptedData를 기존 파서 형식으로 변환
-      const stems = rows.map(row => {
-        if (isSingleMode) {
-          return {
-            stem: row.cells[0].value,
-            leaves: row.cells[1].metadata.leaves
-          };
-        } else {
-          return {
-            leftLeaves: row.cells[0].metadata.leaves,
-            stem: row.cells[1].value,
-            rightLeaves: row.cells[2].metadata.leaves
-          };
-        }
-      });
-
-      // 기존 형식으로 변환된 데이터
-      const legacyData = {
-        isSingleMode,
-        stems,
-        minStem,
-        maxStem,
-        leftLabel,
-        rightLabel
-      };
-
-      // 기존 메서드 호출
-      this.createTableLayers(layerManager, legacyData, config, tableId);
-    }
-
-    /**
-     * 텍스트 측정용 임시 캔버스 컨텍스트 생성
-     * @returns {CanvasRenderingContext2D}
-     */
-    static _createMeasureContext() {
-      const tempCanvas = document.createElement('canvas');
-      return tempCanvas.getContext('2d');
-    }
-
     // =============================================
     // 단일 모드 (줄기 | 잎) - 2열
     // =============================================
-
-    /**
-     * 단일 모드 동적 너비 계산
-     * @param {Array} stems - 줄기 데이터 배열
-     * @returns {Object} { canvasWidth, columnWidths }
-     */
-    static _calculateSingleModeDynamicWidths(stems) {
-      const ctx = this._createMeasureContext();
-      const padding = CONFIG.TABLE_PADDING;
-      const cellPadding = 32;
-      const headerExtraPadding = 16;
-
-      // 줄기 컬럼 너비 계산
-      ctx.font = CONFIG.TABLE_FONT_HEADER;
-      const stemHeaderWidth = ctx.measureText('줄기').width + cellPadding + headerExtraPadding;
-
-      ctx.font = '24px KaTeX_Main, Times New Roman, serif';
-      let maxStemDataWidth = 0;
-      stems.forEach(s => {
-        const width = ctx.measureText(String(s.stem)).width + cellPadding;
-        maxStemDataWidth = Math.max(maxStemDataWidth, width);
-      });
-      const stemColWidth = Math.max(stemHeaderWidth, maxStemDataWidth);
-
-      // 잎 컬럼 너비 계산
-      ctx.font = CONFIG.TABLE_FONT_HEADER;
-      const leafHeaderWidth = ctx.measureText('잎').width + cellPadding + headerExtraPadding;
-
-      ctx.font = '24px KaTeX_Main, Times New Roman, serif';
-      let maxLeafDataWidth = 0;
-      stems.forEach(s => {
-        // 잎 데이터는 공백으로 구분 (6칸 간격)
-        const leafStr = s.leaves.join('      ');
-        const width = ctx.measureText(leafStr).width + cellPadding;
-        maxLeafDataWidth = Math.max(maxLeafDataWidth, width);
-      });
-      const leafColWidth = Math.max(leafHeaderWidth, maxLeafDataWidth);
-
-      // 총 너비 계산 (제한 없음)
-      const contentWidth = stemColWidth + leafColWidth;
-      const canvasWidth = contentWidth + padding * 2;
-
-      return {
-        canvasWidth,
-        columnWidths: [stemColWidth, leafColWidth]
-      };
-    }
 
     /**
      * 단일 모드 테이블 레이어 생성
@@ -10325,13 +8091,14 @@
       const rowCount = stems.length;
 
       const padding = CONFIG.TABLE_PADDING;
-
-      // 동적 너비 계산
-      const { canvasWidth, columnWidths } = this._calculateSingleModeDynamicWidths(stems);
+      const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
       const canvasHeight = BaseTableFactory.calculateCanvasHeight(rowCount, padding);
 
       // 전체 잎 중 최대 개수 계산 (폰트 크기 일관성용)
       const maxLeafCount = Math.max(...stems.map(s => s.leaves.length));
+
+      // 열 너비 계산 (줄기 30% | 잎 70%)
+      const columnWidths = this._calculateSingleModeColumnWidths(canvasWidth, padding);
 
       // 루트 레이어 생성
       const rootLayer = BaseTableFactory.createRootLayer({
@@ -10361,6 +8128,17 @@
 
       // LayerManager에 추가
       layerManager.addLayer(rootLayer, 'root');
+    }
+
+    /**
+     * 단일 모드 열 너비 계산 (줄기 30% | 잎 70%)
+     */
+    static _calculateSingleModeColumnWidths(canvasWidth, padding) {
+      const totalWidth = canvasWidth - padding * 2;
+      return [
+        totalWidth * 0.3,  // 줄기
+        totalWidth * 0.7   // 잎
+      ];
     }
 
     /**
@@ -10486,10 +8264,6 @@
 
       // 잎 (왼쪽 정렬, 오름차순)
       const leavesText = stemData.leaves.join('      ');
-      // 비숫자 값이 포함되어 있으면 isVariable = true (_, x, A 등)
-      const hasVariable = stemData.leaves.some(leaf =>
-        typeof leaf === 'string' && !/^\d+$/.test(String(leaf).trim())
-      );
       const leavesCell = new Layer({
         id: `stem-leaf-${tableId}-table-row-${rowIndex}-col1`,
         name: `잎: ${leavesText}`,
@@ -10512,8 +8286,7 @@
           isEvenRow: rowIndex % 2 === 1,
           leaves: stemData.leaves,
           maxLeafCount,
-          isSingleMode: true,
-          isVariable: hasVariable
+          isSingleMode: true
         }
       });
       rowGroup.addChild(leavesCell);
@@ -10524,70 +8297,6 @@
     // =============================================
     // 비교 모드 (잎 | 줄기 | 잎) - 3열
     // =============================================
-
-    /**
-     * 비교 모드 동적 너비 계산
-     * @param {Array} stems - 줄기 데이터 배열 (leftLeaves, stem, rightLeaves)
-     * @param {string} leftLabel - 왼쪽 라벨
-     * @param {string} rightLabel - 오른쪽 라벨
-     * @returns {Object} { canvasWidth, columnWidths }
-     */
-    static _calculateCompareModeDynamicWidths(stems, leftLabel, rightLabel) {
-      const ctx = this._createMeasureContext();
-      const padding = CONFIG.TABLE_PADDING;
-      const cellPadding = 32;
-      const headerExtraPadding = 16;
-
-      // 왼쪽 잎 컬럼 너비 계산
-      ctx.font = CONFIG.TABLE_FONT_HEADER;
-      const leftHeaderWidth = ctx.measureText(`잎(${leftLabel})`).width + cellPadding + headerExtraPadding;
-
-      ctx.font = '24px KaTeX_Main, Times New Roman, serif';
-      let maxLeftLeafWidth = 0;
-      stems.forEach(s => {
-        const leafStr = s.leftLeaves.join('      ');
-        const width = ctx.measureText(leafStr).width + cellPadding;
-        maxLeftLeafWidth = Math.max(maxLeftLeafWidth, width);
-      });
-      const leftColWidth = Math.max(leftHeaderWidth, maxLeftLeafWidth);
-
-      // 줄기 컬럼 너비 계산
-      ctx.font = CONFIG.TABLE_FONT_HEADER;
-      const stemHeaderWidth = ctx.measureText('줄기').width + cellPadding + headerExtraPadding;
-
-      ctx.font = '24px KaTeX_Main, Times New Roman, serif';
-      let maxStemDataWidth = 0;
-      stems.forEach(s => {
-        const width = ctx.measureText(String(s.stem)).width + cellPadding;
-        maxStemDataWidth = Math.max(maxStemDataWidth, width);
-      });
-      const stemColWidth = Math.max(stemHeaderWidth, maxStemDataWidth);
-
-      // 오른쪽 잎 컬럼 너비 계산
-      ctx.font = CONFIG.TABLE_FONT_HEADER;
-      const rightHeaderWidth = ctx.measureText(`잎(${rightLabel})`).width + cellPadding + headerExtraPadding;
-
-      ctx.font = '24px KaTeX_Main, Times New Roman, serif';
-      let maxRightLeafWidth = 0;
-      stems.forEach(s => {
-        const leafStr = s.rightLeaves.join('      ');
-        const width = ctx.measureText(leafStr).width + cellPadding;
-        maxRightLeafWidth = Math.max(maxRightLeafWidth, width);
-      });
-      const rightColWidth = Math.max(rightHeaderWidth, maxRightLeafWidth);
-
-      // 왼쪽/오른쪽 잎 컬럼 너비를 동일하게 맞춤 (대칭)
-      const leafColWidth = Math.max(leftColWidth, rightColWidth);
-
-      // 총 너비 계산 (제한 없음)
-      const contentWidth = leafColWidth + stemColWidth + leafColWidth;
-      const canvasWidth = contentWidth + padding * 2;
-
-      return {
-        canvasWidth,
-        columnWidths: [leafColWidth, stemColWidth, leafColWidth]
-      };
-    }
 
     /**
      * 비교 모드 테이블 레이어 생성
@@ -10601,9 +8310,7 @@
       const rowCount = stems.length;
 
       const padding = CONFIG.TABLE_PADDING;
-
-      // 동적 너비 계산
-      const { canvasWidth, columnWidths } = this._calculateCompareModeDynamicWidths(stems, leftLabel, rightLabel);
+      const canvasWidth = CONFIG.TABLE_CANVAS_WIDTH;
       const canvasHeight = BaseTableFactory.calculateCanvasHeight(rowCount, padding);
 
       // 전체 잎 중 최대 개수 계산 (왼쪽/오른쪽 모두 고려, 폰트 크기 일관성용)
@@ -10611,6 +8318,9 @@
         ...stems.map(s => s.leftLeaves.length),
         ...stems.map(s => s.rightLeaves.length)
       );
+
+      // 열 너비 계산 (왼쪽 잎 | 줄기 | 오른쪽 잎)
+      const columnWidths = this._calculateCompareModeColumnWidths(canvasWidth, padding);
 
       // 루트 레이어 생성
       const rootLayer = BaseTableFactory.createRootLayer({
@@ -10647,6 +8357,18 @@
 
       // LayerManager에 추가
       layerManager.addLayer(rootLayer, 'root');
+    }
+
+    /**
+     * 비교 모드 열 너비 계산 (왼쪽 40% | 줄기 20% | 오른쪽 40%)
+     */
+    static _calculateCompareModeColumnWidths(canvasWidth, padding) {
+      const totalWidth = canvasWidth - padding * 2;
+      return [
+        totalWidth * 0.4,  // 왼쪽 잎
+        totalWidth * 0.2,  // 줄기
+        totalWidth * 0.4   // 오른쪽 잎
+      ];
     }
 
     /**
@@ -10746,10 +8468,6 @@
 
       // 왼쪽 잎 (오른쪽 정렬, 내림차순)
       const leftLeavesText = stemData.leftLeaves.join('      ');
-      // 비숫자 값이 포함되어 있으면 isVariable = true
-      const leftHasVariable = stemData.leftLeaves.some(leaf =>
-        typeof leaf === 'string' && !/^\d+$/.test(String(leaf).trim())
-      );
       const leftCell = new Layer({
         id: `stem-leaf-${tableId}-table-row-${rowIndex}-col0`,
         name: `왼쪽 잎: ${leftLeavesText}`,
@@ -10772,8 +8490,7 @@
           isEvenRow: rowIndex % 2 === 1,
           leaves: stemData.leftLeaves,
           maxLeafCount,
-          isSingleMode: false,
-          isVariable: leftHasVariable
+          isSingleMode: false
         }
       });
       rowGroup.addChild(leftCell);
@@ -10808,10 +8525,6 @@
 
       // 오른쪽 잎 (왼쪽 정렬, 오름차순)
       const rightLeavesText = stemData.rightLeaves.join('      ');
-      // 비숫자 값이 포함되어 있으면 isVariable = true
-      const rightHasVariable = stemData.rightLeaves.some(leaf =>
-        typeof leaf === 'string' && !/^\d+$/.test(String(leaf).trim())
-      );
       const rightCell = new Layer({
         id: `stem-leaf-${tableId}-table-row-${rowIndex}-col2`,
         name: `오른쪽 잎: ${rightLeavesText}`,
@@ -10834,8 +8547,7 @@
           isEvenRow: rowIndex % 2 === 1,
           leaves: stemData.rightLeaves,
           maxLeafCount,
-          isSingleMode: false,
-          isVariable: rightHasVariable
+          isSingleMode: false
         }
       });
       rowGroup.addChild(rightCell);
@@ -10867,8 +8579,8 @@
         case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
           return CategoryMatrixFactory.createTableLayers(layerManager, data, config, tableId);
 
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
-          return BasicTableFactory.createTableLayers(layerManager, data, config, tableId);
+        case CONFIG.TABLE_TYPES.CROSS_TABLE:
+          return CrossTableFactory.createTableLayers(layerManager, data, config, tableId);
 
         case CONFIG.TABLE_TYPES.STEM_LEAF:
           return StemLeafFactory.createTableLayers(layerManager, data, config, tableId);
@@ -10876,39 +8588,6 @@
         case CONFIG.TABLE_TYPES.FREQUENCY:
         default:
           // 도수분포표는 기존 TableLayerFactory 사용 (별도 처리)
-          return null;
-      }
-    }
-
-    /**
-     * ParserAdapter의 통일된 출력 형식(ParsedTableData)으로 테이블 레이어 생성
-     * @param {LayerManager} layerManager - 레이어 매니저
-     * @param {Object} adaptedData - ParserAdapter.adapt() 출력
-     * @param {Object} config - 테이블 설정
-     * @param {string} tableId - 테이블 고유 ID
-     */
-    static createFromAdaptedData(layerManager, adaptedData, config = null, tableId = 'table-1') {
-      const { type, metadata } = adaptedData;
-
-      // config에 adaptedData 정보 병합
-      const mergedConfig = {
-        ...config,
-        adaptedData  // 팩토리에서 rowCount, columnCount 등 활용 가능
-      };
-
-      switch (type) {
-        case CONFIG.TABLE_TYPES.STEM_LEAF:
-          return StemLeafFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
-
-        case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
-          return CategoryMatrixFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
-
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
-          return BasicTableFactory.createFromAdaptedData(layerManager, adaptedData, mergedConfig, tableId);
-
-        case CONFIG.TABLE_TYPES.FREQUENCY:
-        default:
-          // 도수분포표는 별도 처리 (기존 TableLayerFactory 사용)
           return null;
       }
     }
@@ -10922,8 +8601,8 @@
       switch (type) {
         case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
           return CategoryMatrixFactory;
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
-          return BasicTableFactory;
+        case CONFIG.TABLE_TYPES.CROSS_TABLE:
+          return CrossTableFactory;
         case CONFIG.TABLE_TYPES.STEM_LEAF:
           return StemLeafFactory;
         default:
@@ -10944,19 +8623,97 @@
 
   /**
    * 테이블 저장소
-   * 테이블의 셀 변수, 합계 행, 병합 헤더 등 표시 설정을 관리
+   * 도수분포표의 표시 설정을 관리
    */
 
 
   /**
    * @class TableStore
-   * @description 테이블 관련 설정을 저장하는 저장소
+   * @description 테이블 관련 설정(컬럼 표시, 순서, 라벨)을 저장하는 저장소
    */
   class TableStore {
     constructor() {
-      this.cellVariables = new Map();          // 셀 변수 치환 정보
-      this.summaryRowVisible = new Map();      // 테이블별 합계 행 표시 여부
-      this.mergedHeaderVisible = new Map();    // 테이블별 병합 헤더 표시 여부 (basic-table)
+      this.visibleColumns = [...CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS]; // 6개 컬럼 표시 여부
+      this.columnOrder = [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER];       // 컬럼 순서
+      this.labels = null;                                               // 테이블 라벨
+      this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };     // 컬럼별 정렬
+      this.cellVariables = new Map();                                   // 셀 변수 치환 정보
+      this.summaryRowVisible = new Map();                               // 테이블별 합계 행 표시 여부
+      this.mergedHeaderVisible = new Map();                             // 테이블별 병합 헤더 표시 여부 (이원분류표)
+    }
+
+    /**
+     * 테이블 설정 저장
+     * @param {Array} visibleColumns - 표시할 컬럼 배열
+     * @param {Array} columnOrder - 컬럼 순서 배열
+     * @param {Object} labels - 테이블 라벨 객체
+     */
+    setConfig(visibleColumns, columnOrder, labels) {
+      this.visibleColumns = visibleColumns;
+      this.columnOrder = columnOrder;
+      this.labels = labels;
+    }
+
+    /**
+     * 테이블 설정 가져오기
+     * @returns {Object} 테이블 설정 객체
+     */
+    getConfig() {
+      return {
+        visibleColumns: this.visibleColumns,
+        columnOrder: this.columnOrder,
+        labels: this.labels || CONFIG.DEFAULT_LABELS.table
+      };
+    }
+
+    /**
+     * 표시할 컬럼 설정
+     * @param {Array} visibleColumns - 표시할 컬럼 배열
+     */
+    setVisibleColumns(visibleColumns) {
+      this.visibleColumns = visibleColumns;
+    }
+
+    /**
+     * 컬럼 순서 설정
+     * @param {Array} columnOrder - 컬럼 순서 배열
+     */
+    setColumnOrder(columnOrder) {
+      this.columnOrder = columnOrder;
+    }
+
+    /**
+     * 테이블 라벨 설정
+     * @param {Object} labels - 테이블 라벨 객체
+     */
+    setLabels(labels) {
+      this.labels = labels;
+    }
+
+    /**
+     * 컬럼 정렬 설정
+     * @param {string} columnName - 컬럼 이름
+     * @param {string} alignment - 정렬 방식 ('left', 'center', 'right')
+     */
+    setColumnAlignment(columnName, alignment) {
+      this.columnAlignment[columnName] = alignment;
+    }
+
+    /**
+     * 컬럼 정렬 가져오기
+     * @param {string} columnName - 컬럼 이름
+     * @returns {string} 정렬 방식
+     */
+    getColumnAlignment(columnName) {
+      return this.columnAlignment[columnName] || 'center';
+    }
+
+    /**
+     * 모든 컬럼 정렬 가져오기
+     * @returns {Object} 컬럼별 정렬 객체
+     */
+    getAllAlignments() {
+      return { ...this.columnAlignment };
     }
 
     // =============================================
@@ -11055,11 +8812,11 @@
     }
 
     // =============================================
-    // 병합 헤더 표시 관련 메서드 (basic-table 전용)
+    // 병합 헤더 표시 관련 메서드 (이원분류표 전용)
     // =============================================
 
     /**
-     * 병합 헤더 표시 여부 설정 (basic-table)
+     * 병합 헤더 표시 여부 설정 (이원분류표)
      * @param {string} tableId - 테이블 ID
      * @param {boolean} visible - 표시 여부
      */
@@ -11068,7 +8825,7 @@
     }
 
     /**
-     * 병합 헤더 표시 여부 조회 (basic-table)
+     * 병합 헤더 표시 여부 조회 (이원분류표)
      * @param {string} tableId - 테이블 ID
      * @returns {boolean} 표시 여부 (기본값: true)
      */
@@ -11083,9 +8840,26 @@
      * 기본값으로 초기화
      */
     reset() {
+      this.visibleColumns = [...CONFIG.TABLE_DEFAULT_VISIBLE_COLUMNS];
+      this.columnOrder = [...CONFIG.TABLE_DEFAULT_COLUMN_ORDER];
+      this.labels = null;
+      this.columnAlignment = { ...CONFIG.TABLE_DEFAULT_ALIGNMENT };
       this.cellVariables.clear();
       this.summaryRowVisible.clear();
       this.mergedHeaderVisible.clear();
+    }
+
+    /**
+     * JSON 형식으로 변환 (Export용)
+     * @returns {Object} JSON 객체
+     */
+    toJSON() {
+      return {
+        visibleColumns: this.visibleColumns,
+        columnOrder: this.columnOrder,
+        labels: this.labels,
+        columnAlignment: this.columnAlignment
+      };
     }
   }
 
@@ -11528,9 +9302,6 @@
       // 셀 렌더러
       this.cellRenderer = new TableCellRenderer(this.ctx);
 
-      // 스케일 비율 (canvasWidth/canvasHeight 설정 시 사용)
-      this.scaleRatio = 1;
-
       // 현재 설정 저장 (renderFrame에서 사용)
       this.currentClasses = null;
       this.currentTotal = null;
@@ -11538,19 +9309,6 @@
 
       // 타임라인 콜백
       this.timeline.onUpdate = () => this.renderFrame();
-
-      // 셀 애니메이션 상태
-      this.cellAnimationActive = false;
-      this.cellAnimationStart = 0;
-      this.cellAnimationDuration = 1000;
-      this.cellAnimationRepeat = 3;
-      this.cellAnimationTargets = []; // [{row, col}, ...]
-      this.cellAnimationFrameId = null;
-      this.cellAnimationBlinkEnabled = true;
-
-      // 복수 애니메이션 저장
-      this.savedAnimations = []; // [{rowIndex, colIndex, duration, repeat}, ...]
-      this.activeAnimations = []; // 현재 재생 중인 애니메이션들
 
       // 편집 모달 관리자
       this.editModal = new TableEditModal(this);
@@ -11561,14 +9319,18 @@
 
     /**
      * canvasId에서 tableId 추출
-     * @param {string} canvasId - Canvas ID (예: 'viz-table-1', 'viz-table-2')
-     * @returns {string} 테이블 ID (예: 'viz-table-1', 'table-1')
+     * @param {string} canvasId - Canvas ID (예: 'frequencyTable', 'frequencyTable-2')
+     * @returns {string} 테이블 ID (예: 'table-1', 'table-2')
      */
     extractTableId(canvasId) {
-      // viz-api 형식: viz-table-1, viz-table-2 등 → 그대로 사용
-      const vizMatch = canvasId.match(/viz-table-\d+/);
-      if (vizMatch) {
-        return canvasId;
+      // 'frequencyTable' → 'table-1'
+      // 'frequencyTable-2' → 'table-2'
+      if (canvasId === 'frequencyTable') {
+        return 'table-1';
+      }
+      const match = canvasId.match(/frequencyTable-(\d+)/);
+      if (match) {
+        return `table-${match[1]}`;
       }
       // 기본값
       return 'table-1';
@@ -11595,33 +9357,21 @@
       this.currentTotal = total;
       this.currentConfig = config;
 
-      // 합계 행 표시 여부 (config 우선, 없으면 tableStore에서 가져오기)
-      const showSummaryRow = config?.showSummaryRow ?? tableStore.getSummaryRowVisible(this.tableId);
+      // 합계 행 표시 여부 (tableStore에서 가져오기)
+      const showSummaryRow = tableStore.getSummaryRowVisible(this.tableId);
 
       // Canvas 크기 계산
       const rowCount = visibleClasses.length + (showSummaryRow ? 1 : 0); // 합계 행 조건부
-      const autoHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
+      const canvasHeight = CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
       // 동적 너비 계산
       const dynamicConfig = this._calculateFrequencyTableDynamicWidth(visibleClasses, total, config, showSummaryRow);
 
-      // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
-      let ratio = 1;
-      if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
-        ratio = config.canvasWidth / dynamicConfig.canvasWidth;
-      } else if (config?.canvasHeight && autoHeight > 0) {
-        ratio = config.canvasHeight / autoHeight;
-      }
-
-      // 최종 canvas 크기 계산 (비율 적용)
-      const finalCanvasWidth = config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio);
-      const finalCanvasHeight = config?.canvasHeight || Math.round(autoHeight * ratio);
-      this.canvas.width = finalCanvasWidth;
-      this.canvas.height = finalCanvasHeight;
-      this.scaleRatio = ratio; // renderFrame에서 사용
+      this.canvas.width = dynamicConfig.canvasWidth;
+      this.canvas.height = canvasHeight;
       this.clear();
 
-      // 레이어 생성 (원래 크기로 생성, renderFrame에서 scale 적용)
+      // 레이어 생성
       this.layerManager.clearAll();
       const layerConfig = {
         ...config,
@@ -11671,8 +9421,8 @@
         case 'grid':
           this.cellRenderer.renderGrid(layer);
           break;
-        case 'basic-table-grid':
-          this.cellRenderer.renderBasicTableGrid(layer);
+        case 'cross-table-grid':
+          this.cellRenderer.renderCrossTableGrid(layer);
           break;
         case 'stem-leaf-grid':
           this.cellRenderer.renderStemLeafGrid(layer);
@@ -11740,48 +9490,27 @@
       this.currentData = data;
 
       // 이원분류표인 경우 합계 행 및 병합 헤더 표시 여부 적용
-      // config에서 명시적으로 설정된 값이 있으면 유지, 없으면 tableStore 사용
-      if (type === CONFIG.TABLE_TYPES.BASIC_TABLE) {
-        if (data.showTotal === undefined) {
-          data.showTotal = tableStore.getSummaryRowVisible(this.tableId);
-        }
-        if (data.showMergedHeader === undefined) {
-          data.showMergedHeader = tableStore.getMergedHeaderVisible(this.tableId);
-        }
+      if (type === CONFIG.TABLE_TYPES.CROSS_TABLE) {
+        data.showTotal = tableStore.getSummaryRowVisible(this.tableId);
+        data.showMergedHeader = tableStore.getMergedHeaderVisible(this.tableId);
       }
 
-      // 행 수 계산 (adaptedData가 있으면 직접 사용, 없으면 타입별 계산)
-      const rowCount = config?.adaptedData?.rowCount ?? this._calculateRowCount(type, data);
+      // 행 수 계산 (타입별)
+      const rowCount = this._calculateRowCount(type, data);
 
       // Canvas 크기 계산 (이원분류표는 병합 헤더 조건부 추가)
-      const showMergedHeader = type === CONFIG.TABLE_TYPES.BASIC_TABLE && data.showMergedHeader !== false;
+      const showMergedHeader = type === CONFIG.TABLE_TYPES.CROSS_TABLE && data.showMergedHeader !== false;
       const mergedHeaderHeight = showMergedHeader ? 35 : 0;
-
-      // 분수가 포함된 경우 행 높이 조정
-      const hasFraction = this._checkTableHasFraction(type, data);
-      const rowHeight = hasFraction ? CONFIG.TABLE_ROW_HEIGHT_FRACTION : CONFIG.TABLE_ROW_HEIGHT;
-      const autoHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * rowHeight) + this.padding * 2;
+      const canvasHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * CONFIG.TABLE_ROW_HEIGHT) + this.padding * 2;
 
       // 동적 너비 계산 (줄기-잎 제외)
       const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
 
-      // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
-      let ratio = 1;
-      if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
-        ratio = config.canvasWidth / dynamicConfig.canvasWidth;
-      } else if (config?.canvasHeight && autoHeight > 0) {
-        ratio = config.canvasHeight / autoHeight;
-      }
-
-      // 최종 canvas 크기 계산 (비율 적용)
-      const finalCanvasWidth = config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio);
-      const finalCanvasHeight = config?.canvasHeight || Math.round(autoHeight * ratio);
-      this.canvas.width = finalCanvasWidth;
-      this.canvas.height = finalCanvasHeight;
-      this.scaleRatio = ratio; // renderFrame에서 사용
+      this.canvas.width = dynamicConfig.canvasWidth;
+      this.canvas.height = canvasHeight;
       this.clear();
 
-      // 레이어 생성 (원래 크기로 생성, renderFrame에서 scale 적용)
+      // 레이어 생성 (TableFactoryRouter 사용)
       this.layerManager.clearAll();
       const layerConfig = {
         ...config,
@@ -11810,7 +9539,7 @@
         case CONFIG.TABLE_TYPES.CATEGORY_MATRIX:
           return data.rows ? data.rows.length : 0;
 
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        case CONFIG.TABLE_TYPES.CROSS_TABLE:
           // 데이터 행 + 합계 행 (옵션)
           const crossRows = data.rows ? data.rows.length : 0;
           return crossRows + (data.showTotal !== false ? 1 : 0);
@@ -11821,39 +9550,6 @@
         default:
           return 0;
       }
-    }
-
-    /**
-     * 테이블 데이터에 분수(\frac{}{})가 포함되어 있는지 확인
-     * @param {string} type - 테이블 타입
-     * @param {Object} data - 파싱된 데이터
-     * @returns {boolean} 분수 포함 여부
-     */
-    _checkTableHasFraction(type, data) {
-      const fracPattern = /\\frac\{[^}]*\}\{[^}]*\}/;
-
-      if (type === CONFIG.TABLE_TYPES.BASIC_TABLE && data.rows) {
-        // 데이터 행 검사
-        for (const row of data.rows) {
-          if (row.values) {
-            for (const val of row.values) {
-              if (typeof val === 'string' && fracPattern.test(val)) {
-                return true;
-              }
-            }
-          }
-        }
-        // 합계 행 검사
-        if (data.totals) {
-          for (const val of data.totals) {
-            if (typeof val === 'string' && fracPattern.test(val)) {
-              return true;
-            }
-          }
-        }
-      }
-
-      return false;
     }
 
     /**
@@ -11949,9 +9645,12 @@
      * @returns {Object} { columnWidths, canvasWidth }
      */
     _calculateCustomTableDynamicWidth(type, data, config) {
-      // 줄기-잎 동적 너비 계산
+      // 줄기-잎은 기존 고정 너비 사용
       if (type === CONFIG.TABLE_TYPES.STEM_LEAF) {
-        return StemLeafFactory.calculateDynamicWidths(data);
+        return {
+          columnWidths: null,
+          canvasWidth: CONFIG.TABLE_CANVAS_WIDTH
+        };
       }
 
       let headers = [];
@@ -11964,7 +9663,7 @@
           rows = (data.rows || []).map(row => [row.label, ...row.values.map(String)]);
           break;
 
-        case CONFIG.TABLE_TYPES.BASIC_TABLE:
+        case CONFIG.TABLE_TYPES.CROSS_TABLE:
           // 이원분류표
           headers = [data.rowLabelColumn || '', ...(data.columnHeaders || [])];
           rows = (data.rows || []).map(row => {
@@ -11997,55 +9696,11 @@
      */
     renderFrame() {
       this.clear();
-
-      // 스케일 적용
-      this.ctx.save();
-      if (this.scaleRatio !== 1) {
-        this.ctx.scale(this.scaleRatio, this.scaleRatio);
-      }
-
-      // 셀 애니메이션 진행도 계산 및 적용
-      this.processTableAnimations();
-
       const rootLayer = this.layerManager.root;
       if (rootLayer && rootLayer.children.length > 0) {
-        const tableLayer = rootLayer.children[0];
-        if (tableLayer && tableLayer.children) {
-          // 1. 그리드 레이어 먼저 렌더링
-          tableLayer.children.forEach(child => {
-            if (child.type === 'grid' || child.type === 'basic-table-grid' ||
-                child.type === 'stem-leaf-grid' || child.type === 'stem-leaf-single-grid') {
-              this.renderLayer(child);
-            }
-          });
-
-          // 2. 하이라이트 렌더링 (그리드 위, 텍스트 아래)
-          if (this.cellAnimationActive) {
-            let renderProgress;
-            const elapsed = Date.now() - this.cellAnimationStart;
-
-            if (this.cellAnimationBlinkEnabled) {
-              const progress = Math.min(elapsed / this.cellAnimationDuration, 1);
-              renderProgress = Math.sin(progress * Math.PI * 2 * this.cellAnimationRepeat) * 0.5 + 0.5;
-            } else {
-              const fadeInDuration = 300;
-              renderProgress = Math.min(elapsed / fadeInDuration, 1);
-            }
-            this._renderMergedAnimations(renderProgress);
-          }
-
-          // 3. 셀 레이어 렌더링 (텍스트)
-          tableLayer.children.forEach(child => {
-            if (child.type !== 'grid' && child.type !== 'basic-table-grid' &&
-                child.type !== 'stem-leaf-grid' && child.type !== 'stem-leaf-single-grid') {
-              this.renderLayer(child);
-            }
-          });
-        }
+        // root의 자식들(도수분포표)을 렌더링
+        rootLayer.children.forEach(child => this.renderLayer(child));
       }
-
-      // 스케일 복원
-      this.ctx.restore();
     }
 
     /**
@@ -12188,906 +9843,6 @@
       this.renderFrame();
     }
 
-    // =============================================
-    // 셀 애니메이션 API
-    // =============================================
-
-    /**
-     * 셀 애니메이션 실행
-     * @param {Object} options - 애니메이션 옵션
-     * @param {number} [options.rowIndex] - 행 인덱스 (null이면 전체 행)
-     * @param {number} [options.colIndex] - 열 인덱스 (null이면 전체 열)
-     * @param {number} [options.rowStart] - 행 범위 시작 (colIndex와 함께 사용)
-     * @param {number} [options.rowEnd] - 행 범위 끝 (colIndex와 함께 사용)
-     * @param {number} [options.colStart] - 열 범위 시작 (rowIndex와 함께 사용)
-     * @param {number} [options.colEnd] - 열 범위 끝 (rowIndex와 함께 사용)
-     * @param {Array} [options.cells] - 복수 셀 [{row, col}, ...]
-     * @param {number} [options.duration=1500] - 애니메이션 시간 (ms)
-     * @param {number} [options.repeat=3] - 반복 횟수
-     * @param {string} [options.color] - 애니메이션 색상 (CSS rgba 또는 hex)
-     */
-    animateCells(options = {}) {
-      const {
-        rowIndex = null,
-        colIndex = null,
-        rowStart = null,
-        rowEnd = null,
-        colStart = null,
-        colEnd = null,
-        cells = null,
-        duration = 1500,
-        repeat = 3,
-        color = null
-      } = options;
-
-      // 기존 애니메이션 중지
-      this.stopCellAnimation();
-
-      // 대상 셀 결정
-      this.cellAnimationTargets = this._resolveAnimationTargets({
-        rowIndex, colIndex, rowStart, rowEnd, colStart, colEnd, cells
-      });
-
-      if (this.cellAnimationTargets.length === 0) {
-        console.warn('animateCells: 대상 셀이 없습니다.');
-        return;
-      }
-
-      // 애니메이션 상태 설정
-      this.cellAnimationActive = true;
-      this.cellAnimationStart = Date.now();
-      this.cellAnimationDuration = duration;
-      this.cellAnimationRepeat = repeat;
-      this.cellAnimationColor = color;
-
-      // 애니메이션 루프 시작
-      this._runCellAnimationLoop();
-    }
-
-    /**
-     * 셀 애니메이션 중지
-     */
-    stopCellAnimation() {
-      this.cellAnimationActive = false;
-
-      if (this.cellAnimationFrameId) {
-        cancelAnimationFrame(this.cellAnimationFrameId);
-        this.cellAnimationFrameId = null;
-      }
-
-      // 모든 셀의 애니메이션 상태 초기화
-      this._clearAnimationFromAllCells();
-      this.cellAnimationTargets = [];
-
-      this.renderFrame();
-    }
-
-    /**
-     * 셀 애니메이션 대상 결정
-     * @param {Object} anim - 애니메이션 설정 객체
-     * @param {number|null} anim.rowIndex - 행 인덱스 (0: 헤더, 1+: 데이터행, 마지막: 합계)
-     * @param {number|null} anim.colIndex - 열 인덱스
-     * @param {number|null} anim.rowStart - 행 범위 시작 (colIndex와 함께 사용)
-     * @param {number|null} anim.rowEnd - 행 범위 끝 (colIndex와 함께 사용)
-     * @param {number|null} anim.colStart - 열 범위 시작 (rowIndex와 함께 사용)
-     * @param {number|null} anim.colEnd - 열 범위 끝 (rowIndex와 함께 사용)
-     * @param {Array|null} anim.cells - 복수 셀 배열
-     * @returns {Array} 대상 셀 배열 [{row, col}, ...]
-     */
-    _resolveAnimationTargets(anim) {
-      const {
-        rowIndex = null,
-        colIndex = null,
-        rowStart = null,
-        rowEnd = null,
-        colStart = null,
-        colEnd = null,
-        cells = null
-      } = anim || {};
-
-      // 복수 셀이 지정된 경우
-      if (cells && Array.isArray(cells) && cells.length > 0) {
-        return cells.map(c => ({ row: c.row, col: c.col }));
-      }
-
-      const targets = [];
-      const rootLayer = this.layerManager.root;
-      if (!rootLayer || rootLayer.children.length === 0) return targets;
-
-      const tableLayer = rootLayer.children[0];
-      if (!tableLayer) return targets;
-
-      const prefix = this._getLayerIdPrefix();
-
-      // 테이블 구조 파악: 헤더, 데이터 행들, 합계
-      const rowStructure = this._getTableRowStructure(tableLayer, prefix);
-
-      // 1. colIndex + rowStart/rowEnd: 특정 열의 행 범위
-      if (colIndex !== null && rowStart !== null && rowEnd !== null) {
-        for (let r = rowStart; r <= rowEnd; r++) {
-          if (r >= 0 && r < rowStructure.length) {
-            targets.push({ row: r, col: colIndex });
-          }
-        }
-      }
-      // 2. rowIndex + colStart/colEnd: 특정 행의 열 범위
-      else if (rowIndex !== null && colStart !== null && colEnd !== null) {
-        const rowInfo = rowStructure[rowIndex];
-        if (rowInfo) {
-          const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
-          if (rowLayer) {
-            const maxCol = rowLayer.children.length - 1;
-            for (let c = colStart; c <= colEnd; c++) {
-              if (c >= 0 && c <= maxCol) {
-                targets.push({ row: rowIndex, col: c });
-              }
-            }
-          }
-        }
-      }
-      // 3. 행만 지정: 해당 행의 모든 셀
-      else if (rowIndex !== null && colIndex === null) {
-        const rowInfo = rowStructure[rowIndex];
-        if (rowInfo) {
-          const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
-          if (rowLayer) {
-            rowLayer.children.forEach((_, idx) => {
-              targets.push({ row: rowIndex, col: idx });
-            });
-          }
-        }
-      }
-      // 4. 열만 지정: 해당 열의 모든 행
-      else if (rowIndex === null && colIndex !== null) {
-        rowStructure.forEach((rowInfo, idx) => {
-          targets.push({ row: idx, col: colIndex });
-        });
-      }
-      // 5. 둘 다 지정: 특정 셀
-      else if (rowIndex !== null && colIndex !== null) {
-        targets.push({ row: rowIndex, col: colIndex });
-      }
-
-      return targets;
-    }
-
-    /**
-     * 테이블 행 구조 파악
-     * @param {Layer} tableLayer - 테이블 레이어
-     * @param {string} prefix - 레이어 ID 접두사
-     * @returns {Array} 행 정보 배열 [{type, layerId}, ...]
-     */
-    _getTableRowStructure(tableLayer, prefix) {
-      const structure = [];
-
-      tableLayer.children.forEach(child => {
-        if (child.type === 'group') {
-          if (child.id === `${prefix}-table-header`) {
-            structure.push({ type: 'header', layerId: child.id });
-          } else if (child.id.startsWith(`${prefix}-table-row-`)) {
-            structure.push({ type: 'data', layerId: child.id });
-          } else if (child.id === `${prefix}-table-summary`) {
-            structure.push({ type: 'summary', layerId: child.id });
-          }
-        }
-      });
-
-      return structure;
-    }
-
-    /**
-     * 셀 애니메이션 루프
-     */
-    _runCellAnimationLoop() {
-      if (!this.cellAnimationActive) return;
-
-      const elapsed = Date.now() - this.cellAnimationStart;
-
-      // 애니메이션 종료 체크 (블링크 활성화 시에만)
-      if (this.cellAnimationBlinkEnabled && elapsed >= this.cellAnimationDuration) {
-        this.stopCellAnimation();
-        return;
-      }
-
-      // 다음 프레임 예약 (블링크 비활성화 시 페이드인 완료 후에도 계속)
-      this.cellAnimationFrameId = requestAnimationFrame(() => this._runCellAnimationLoop());
-
-      // 렌더링은 processTableAnimations()에서 처리
-      this.renderFrame();
-    }
-
-    /**
-     * 테이블 애니메이션 진행도 계산 및 적용
-     */
-    processTableAnimations() {
-      if (!this.cellAnimationActive) return;
-
-      const elapsed = Date.now() - this.cellAnimationStart;
-      const progress = Math.min(elapsed / this.cellAnimationDuration, 1);
-
-      // 펄스 효과: 사인파 곡선 (repeat 횟수만큼 반복)
-      // progress가 0~1일 때, repeat 횟수만큼 사인파가 반복됨
-      const pulseProgress = Math.sin(progress * Math.PI * 2 * this.cellAnimationRepeat) * 0.5 + 0.5;
-
-      // 대상 셀들에 애니메이션 진행도 적용
-      this._applyAnimationToTargetCells(pulseProgress);
-    }
-
-    /**
-     * 대상 셀들에 애니메이션 진행도 적용
-     * @param {number} progress - 애니메이션 진행도 (0~1)
-     */
-    _applyAnimationToTargetCells(progress) {
-      const rootLayer = this.layerManager.root;
-      if (!rootLayer || rootLayer.children.length === 0) return;
-
-      const tableLayer = rootLayer.children[0];
-      if (!tableLayer) return;
-
-      const prefix = this._getLayerIdPrefix();
-      const rowStructure = this._getTableRowStructure(tableLayer, prefix);
-
-      // 디버그: 첫 프레임에서만 로그
-      if (!this._debugLogged) {
-        console.log('[DEBUG] _applyAnimationToTargetCells - rowStructure:', rowStructure);
-        console.log('[DEBUG] targets:', this.cellAnimationTargets);
-        this._debugLogged = true;
-      }
-
-      this.cellAnimationTargets.forEach(target => {
-        const rowInfo = rowStructure[target.row];
-        if (!rowInfo) {
-          if (!this._debugLogged2) {
-            console.log('[DEBUG] rowInfo not found for row:', target.row);
-            this._debugLogged2 = true;
-          }
-          return;
-        }
-        if (rowInfo.type === 'header') {
-          `${prefix}-table-header-col${target.col}`;
-        } else if (rowInfo.type === 'summary') {
-          `${prefix}-table-summary-col${target.col}`;
-        } else {
-          // 데이터 행: layerId에서 row 번호 추출
-          const match = rowInfo.layerId.match(/row-(\d+)$/);
-          const dataRowIdx = match ? match[1] : (target.row - 1);
-          `${prefix}-table-row-${dataRowIdx}-col${target.col}`;
-        }
-
-        // _renderMergedAnimations가 그룹 규칙에 따라 색상을 적용하므로
-        // 여기서는 개별 셀의 animating 플래그를 설정하지 않음
-        // (설정하면 _renderAnimationBackground가 초록색을 중복 렌더링함)
-      });
-    }
-
-    /**
-     * 모든 셀의 애니메이션 상태 초기화
-     */
-    _clearAnimationFromAllCells() {
-      const rootLayer = this.layerManager.root;
-      if (!rootLayer || rootLayer.children.length === 0) return;
-
-      const tableLayer = rootLayer.children[0];
-      if (!tableLayer) return;
-
-      const prefix = this._getLayerIdPrefix();
-
-      // 헤더, 데이터 행, 합계 행 모두 초기화
-      tableLayer.children.forEach(child => {
-        if (child.type === 'group') {
-          const isRow = child.id.startsWith(`${prefix}-table-row-`);
-          const isHeader = child.id === `${prefix}-table-header`;
-          const isSummary = child.id === `${prefix}-table-summary`;
-
-          if (isRow || isHeader || isSummary) {
-            child.children.forEach(cellLayer => {
-              if (cellLayer.type === 'cell') {
-                cellLayer.data.animating = false;
-                cellLayer.data.animationProgress = 0;
-                delete cellLayer.data.animationColor;
-              }
-            });
-          }
-        }
-      });
-
-      // 행/열 전체 애니메이션 상태도 초기화
-      this.rowColumnAnimations = [];
-    }
-
-    // =============================================
-    // 복수 애니메이션 저장/재생 API
-    // =============================================
-
-    /**
-     * 애니메이션 추가 (저장)
-     * @param {Object} options - 애니메이션 옵션
-     * @param {number|null} options.rowIndex - 행 인덱스 (null이면 전체)
-     * @param {number|null} options.colIndex - 열 인덱스 (null이면 전체)
-     * @param {number|null} options.rowStart - 행 범위 시작 (colIndex와 함께 사용)
-     * @param {number|null} options.rowEnd - 행 범위 끝 (colIndex와 함께 사용)
-     * @param {number|null} options.colStart - 열 범위 시작 (rowIndex와 함께 사용)
-     * @param {number|null} options.colEnd - 열 범위 끝 (rowIndex와 함께 사용)
-     * @param {number} options.duration - 애니메이션 시간 (ms)
-     * @param {number} options.repeat - 반복 횟수
-     */
-    addAnimation(options) {
-      const animation = {
-        id: Date.now() + Math.random(), // 고유 ID
-        rowIndex: options.rowIndex ?? null,
-        colIndex: options.colIndex ?? null,
-        rowStart: options.rowStart ?? null,
-        rowEnd: options.rowEnd ?? null,
-        colStart: options.colStart ?? null,
-        colEnd: options.colEnd ?? null,
-        duration: options.duration || 1500,
-        repeat: options.repeat || 3
-      };
-      this.savedAnimations.push(animation);
-      return animation;
-    }
-
-    /**
-     * 저장된 애니메이션 목록 반환
-     * @returns {Array} 저장된 애니메이션 배열
-     */
-    getSavedAnimations() {
-      return [...this.savedAnimations];
-    }
-
-    /**
-     * 저장된 애니메이션 삭제
-     * @param {number} id - 애니메이션 ID
-     */
-    removeAnimation(id) {
-      this.savedAnimations = this.savedAnimations.filter(a => a.id !== id);
-    }
-
-    /**
-     * 저장된 모든 애니메이션 초기화
-     */
-    clearSavedAnimations() {
-      this.savedAnimations = [];
-    }
-
-    /**
-     * 저장된 모든 애니메이션 동시 재생
-     * @param {Object} options - 재생 옵션
-     * @param {boolean} [options.blinkEnabled=false] - 블링크 효과 활성화
-     */
-    playAllAnimations(options = {}) {
-      const { blinkEnabled = false } = options;
-
-      if (this.savedAnimations.length === 0) {
-        console.warn('playAllAnimations: 저장된 애니메이션이 없습니다.');
-        return;
-      }
-
-      // 기존 애니메이션 중지
-      this.stopCellAnimation();
-
-      // savedAnimations에서 대상 셀 목록 생성
-      this.cellAnimationTargets = [];
-      this.savedAnimations.forEach(anim => {
-        const targets = this._resolveAnimationTargets(anim);
-        this.cellAnimationTargets.push(...targets);
-      });
-
-      // 최대 duration과 repeat 계산
-      const maxDuration = Math.max(...this.savedAnimations.map(a => a.duration));
-      const maxRepeat = Math.max(...this.savedAnimations.map(a => a.repeat));
-
-      // 애니메이션 상태 설정
-      this.cellAnimationActive = true;
-      this.cellAnimationStart = Date.now();
-      this.cellAnimationDuration = blinkEnabled ? maxDuration : 300; // 블링크 비활성화 시 페이드인 시간
-      this.cellAnimationRepeat = maxRepeat;
-      this.cellAnimationBlinkEnabled = blinkEnabled;
-
-      // 애니메이션 루프 시작 (블링크/페이드인 모두)
-      this._runCellAnimationLoop();
-    }
-
-    /**
-     * 행/열 전체 애니메이션 영역 계산
-     * @param {string} type - 'row' 또는 'column'
-     * @param {number} index - 행 또는 열 인덱스
-     * @returns {Object|null} {x, y, width, height}
-     */
-    _getRowColumnBounds(type, index) {
-      const rootLayer = this.layerManager.root;
-      if (!rootLayer || rootLayer.children.length === 0) return null;
-
-      const tableLayer = rootLayer.children[0];
-      if (!tableLayer) return null;
-
-      const prefix = this._getLayerIdPrefix();
-      const rowStructure = this._getTableRowStructure(tableLayer, prefix);
-
-      if (type === 'row') {
-        // 행 전체 영역 계산
-        const rowInfo = rowStructure[index];
-        if (!rowInfo) return null;
-
-        const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
-        if (!rowLayer || rowLayer.children.length === 0) return null;
-
-        // 첫 번째 셀과 마지막 셀로 영역 계산
-        const firstCell = rowLayer.children[0];
-        const lastCell = rowLayer.children[rowLayer.children.length - 1];
-
-        if (!firstCell || !lastCell) return null;
-
-        return {
-          x: firstCell.x,
-          y: firstCell.y,
-          width: (lastCell.x + lastCell.width) - firstCell.x,
-          height: firstCell.height
-        };
-      } else if (type === 'column') {
-        // 열 전체 영역 계산
-        let minY = Infinity, maxY = -Infinity;
-        let x = 0, width = 0;
-
-        rowStructure.forEach((rowInfo) => {
-          const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
-          if (rowLayer && rowLayer.children[index]) {
-            const cell = rowLayer.children[index];
-            x = cell.x;
-            width = cell.width;
-            minY = Math.min(minY, cell.y);
-            maxY = Math.max(maxY, cell.y + cell.height);
-          }
-        });
-
-        if (minY === Infinity) return null;
-
-        return {
-          x,
-          y: minY,
-          width,
-          height: maxY - minY
-        };
-      }
-
-      return null;
-    }
-
-    /**
-     * 행/열 전체 애니메이션 렌더링 (하나의 박스)
-     * @param {number} progress - 애니메이션 진행도 (0~1)
-     */
-    _renderRowColumnAnimations(progress) {
-      if (!this.rowColumnAnimations || this.rowColumnAnimations.length === 0) return;
-
-      this.rowColumnAnimations.forEach(anim => {
-        const bounds = this._getRowColumnBounds(anim.type, anim.index);
-        if (!bounds) return;
-
-        // 개별 애니메이션의 진행도 계산
-        const elapsed = Date.now() - this.cellAnimationStart;
-        const animProgress = Math.min(elapsed / anim.duration, 1);
-        const pulseProgress = Math.sin(animProgress * Math.PI * 2 * anim.repeat) * 0.5 + 0.5;
-
-        // 하나의 박스로 렌더링
-        const fillAlpha = pulseProgress * 0.3;
-        const strokeAlpha = pulseProgress;
-
-        this.ctx.save();
-        this.ctx.fillStyle = `rgba(137, 236, 78, ${fillAlpha})`;
-        this.ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        this.ctx.strokeStyle = `rgba(137, 236, 78, ${strokeAlpha})`;
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(bounds.x + 1, bounds.y + 1, bounds.width - 2, bounds.height - 2);
-        this.ctx.restore();
-      });
-    }
-
-    // =============================================
-    // 인접 셀 병합 렌더링
-    // =============================================
-
-    /**
-     * 모든 애니메이션 대상 셀 수집
-     * @returns {Array} [{row, col, bounds}, ...]
-     */
-    _collectAllAnimationCells() {
-      const cells = new Map(); // "row-col" -> {row, col, bounds}
-
-      this.savedAnimations.forEach(anim => {
-        const targets = this._resolveAnimationTargets(anim);
-        targets.forEach(t => {
-          const key = `${t.row}-${t.col}`;
-          if (!cells.has(key)) {
-            const bounds = this._getCellBounds(t.row, t.col);
-            if (bounds) cells.set(key, { ...t, bounds });
-          }
-        });
-      });
-
-      return Array.from(cells.values());
-    }
-
-    /**
-     * 단일 애니메이션의 셀만 수집
-     * @param {Object} anim - 애니메이션 객체 {rowIndex, colIndex, ...}
-     * @returns {Array} [{row, col, bounds}, ...]
-     */
-    _collectAnimationCellsForSingleAnim(anim) {
-      const cells = [];
-      const targets = this._resolveAnimationTargets(anim);
-
-      targets.forEach(t => {
-        const bounds = this._getCellBounds(t.row, t.col);
-        if (bounds) {
-          cells.push({ row: t.row, col: t.col, bounds });
-        }
-      });
-
-      return cells;
-    }
-
-    /**
-     * 단일 애니메이션 내에서 인접 셀 그룹화 (방향 제약 적용)
-     * @param {Array} cells - 셀 배열 [{row, col, bounds}, ...]
-     * @returns {Array} 그룹 배열 [[cell1, cell2, ...], ...]
-     */
-    _groupCellsWithDirection(cells) {
-      if (cells.length === 0) return [];
-
-      const groups = [];
-      const cellToGroup = new Map();
-      const cellMap = new Map();
-      cells.forEach(c => cellMap.set(`${c.row}-${c.col}`, c));
-
-      cells.forEach(cell => {
-        const key = `${cell.row}-${cell.col}`;
-        if (cellToGroup.has(key)) return;
-
-        const neighbors = [
-          { key: `${cell.row - 1}-${cell.col}`, dir: 'vertical' },
-          { key: `${cell.row + 1}-${cell.col}`, dir: 'vertical' },
-          { key: `${cell.row}-${cell.col - 1}`, dir: 'horizontal' },
-          { key: `${cell.row}-${cell.col + 1}`, dir: 'horizontal' }
-        ];
-
-        let targetGroupIdx = null;
-        let mergeDirection = null;
-
-        for (const n of neighbors) {
-          if (!cellToGroup.has(n.key)) continue;
-          if (!cellMap.has(n.key)) continue;
-
-          const groupIdx = cellToGroup.get(n.key);
-          const group = groups[groupIdx];
-
-          if (group.direction === 'undetermined' || group.direction === n.dir) {
-            targetGroupIdx = groupIdx;
-            mergeDirection = n.dir;
-            break;
-          }
-        }
-
-        if (targetGroupIdx !== null) {
-          const group = groups[targetGroupIdx];
-          group.cells.add(key);
-          cellToGroup.set(key, targetGroupIdx);
-
-          if (group.direction === 'undetermined' && group.cells.size >= 2) {
-            group.direction = mergeDirection;
-          }
-        } else {
-          const newGroup = { cells: new Set([key]), direction: 'undetermined' };
-          const newIdx = groups.length;
-          groups.push(newGroup);
-          cellToGroup.set(key, newIdx);
-        }
-      });
-
-      return groups.map(g => {
-        return Array.from(g.cells).map(key => cellMap.get(key)).filter(Boolean);
-      }).filter(g => g.length > 0);
-    }
-
-    /**
-     * 인접한 셀들을 그룹으로 묶기 (방향 제약 적용)
-     * - 행 그룹: 같은 행의 셀만 병합 가능 (가로 방향)
-     * - 열 그룹: 같은 열의 셀만 병합 가능 (세로 방향)
-     * - 단일 셀: 방향 미정, 다음 셀 추가 시 방향 결정
-     * @param {Array} cells - 셀 배열 [{row, col, bounds}, ...]
-     * @returns {Array} 그룹 배열 [[cell1, cell2, ...], ...]
-     */
-    _groupAdjacentCells(cells) {
-      // 그룹 구조: { cells: Set<"row-col">, direction: 'undetermined' | 'horizontal' | 'vertical' }
-      const groups = [];
-      const cellToGroup = new Map(); // "row-col" -> group index
-      const cellMap = new Map();
-      cells.forEach(c => cellMap.set(`${c.row}-${c.col}`, c));
-
-      // savedAnimations 순서대로 처리 (추가 순서 유지)
-      this.savedAnimations.forEach(anim => {
-        const targets = this._resolveAnimationTargets(anim);
-
-        targets.forEach(t => {
-          const key = `${t.row}-${t.col}`;
-          if (cellToGroup.has(key)) return; // 이미 그룹에 있음
-          if (!cellMap.has(key)) return; // bounds 없음
-
-          // 인접한 기존 그룹 찾기
-          const neighbors = [
-            { key: `${t.row - 1}-${t.col}`, dir: 'vertical' },   // 위
-            { key: `${t.row + 1}-${t.col}`, dir: 'vertical' },   // 아래
-            { key: `${t.row}-${t.col - 1}`, dir: 'horizontal' }, // 왼쪽
-            { key: `${t.row}-${t.col + 1}`, dir: 'horizontal' }  // 오른쪽
-          ];
-
-          let targetGroupIdx = null;
-          let mergeDirection = null;
-
-          for (const n of neighbors) {
-            if (!cellToGroup.has(n.key)) continue;
-
-            const groupIdx = cellToGroup.get(n.key);
-            const group = groups[groupIdx];
-
-            // 병합 가능 여부 확인
-            if (group.direction === 'undetermined' || group.direction === n.dir) {
-              targetGroupIdx = groupIdx;
-              mergeDirection = n.dir;
-              break; // 첫 번째 병합 가능한 그룹 선택
-            }
-          }
-
-          if (targetGroupIdx !== null) {
-            // 기존 그룹에 추가
-            const group = groups[targetGroupIdx];
-            group.cells.add(key);
-            cellToGroup.set(key, targetGroupIdx);
-
-            // 방향 결정 (그룹에 셀이 2개 이상이면)
-            if (group.direction === 'undetermined' && group.cells.size >= 2) {
-              group.direction = mergeDirection;
-            }
-          } else {
-            // 새 그룹 생성
-            const newGroup = { cells: new Set([key]), direction: 'undetermined' };
-            const newIdx = groups.length;
-            groups.push(newGroup);
-            cellToGroup.set(key, newIdx);
-          }
-        });
-      });
-
-      // 결과 변환: Set<key> → Array<cell>
-      return groups.map(g => {
-        return Array.from(g.cells).map(key => cellMap.get(key)).filter(Boolean);
-      }).filter(g => g.length > 0);
-    }
-
-    /**
-     * 인접 셀 그룹화 (겹침 허용)
-     * - savedAnimations 순서대로 처리
-     * - 인접하고 방향 맞으면 기존 그룹에 추가
-     * - 방향이 다르면 새 그룹 생성, 겹치는 셀도 포함
-     * @returns {Array} 그룹 배열 [[cell1, cell2, ...], ...]
-     */
-    _groupAdjacentCellsWithOverlap() {
-      const groups = [];
-
-      this.savedAnimations.forEach((anim, idx) => {
-        const targets = this._resolveAnimationTargets(anim);
-        if (targets.length === 0) return;
-
-        // 셀에 bounds 추가
-        const cells = targets.map(t => {
-          const bounds = this._getCellBounds(t.row, t.col);
-          return bounds ? { row: t.row, col: t.col, bounds } : null;
-        }).filter(Boolean);
-
-        if (cells.length === 0) return;
-
-        // 방향 추론
-        let direction = 'undetermined';
-        if (cells.length >= 2) {
-          direction = cells[0].row === cells[1].row ? 'horizontal' : 'vertical';
-        }
-
-        // 인접한 기존 그룹 찾기 (방향 맞는 것만)
-        let targetGroup = null;
-        for (const group of groups) {
-          // 둘 다 방향이 정해져 있고 다르면 스킵
-          if (group.direction !== 'undetermined' && direction !== 'undetermined'
-              && group.direction !== direction) {
-            continue;
-          }
-
-          // 인접 여부 체크
-          outer:
-          for (const c1 of cells) {
-            for (const c2 of group.cells) {
-              const rowDiff = Math.abs(c1.row - c2.row);
-              const colDiff = Math.abs(c1.col - c2.col);
-              if ((rowDiff + colDiff) === 1) {
-                const adjacencyDir = rowDiff === 0 ? 'horizontal' : 'vertical';
-
-                // 그룹 방향이 정해져 있으면, 인접 방향이 그룹 방향과 맞아야 함
-                if (group.direction !== 'undetermined' && adjacencyDir !== group.direction) {
-                  continue;
-                }
-
-                // 그룹 방향이 미정이면 인접 방향으로 설정
-                if (group.direction === 'undetermined') {
-                  group.direction = adjacencyDir;
-                }
-
-                targetGroup = group;
-                break outer;
-              }
-            }
-          }
-          if (targetGroup) break;
-        }
-
-        if (targetGroup) {
-          // 기존 그룹에 추가 (중복 체크)
-          cells.forEach(c => {
-            if (!targetGroup.cells.some(tc => tc.row === c.row && tc.col === c.col)) {
-              targetGroup.cells.push(c);
-            }
-          });
-          if (targetGroup.direction === 'undetermined') targetGroup.direction = direction;
-
-          // 다른 방향 그룹에도 인접하면 추가 (겹침 처리)
-          for (const otherGroup of groups) {
-            if (otherGroup === targetGroup) continue;
-            if (otherGroup.direction === 'undetermined') continue;
-            if (otherGroup.direction === targetGroup.direction) continue;
-
-            cells.forEach(c => {
-              // 이미 있으면 스킵
-              if (otherGroup.cells.some(tc => tc.row === c.row && tc.col === c.col)) return;
-
-              // 인접 여부 체크
-              for (const oc of otherGroup.cells) {
-                const rowDiff = Math.abs(c.row - oc.row);
-                const colDiff = Math.abs(c.col - oc.col);
-                if ((rowDiff + colDiff) === 1) {
-                  const adjacencyDir = rowDiff === 0 ? 'horizontal' : 'vertical';
-                  if (adjacencyDir === otherGroup.direction) {
-                    otherGroup.cells.push({ ...c });
-                    break;
-                  }
-                }
-              }
-            });
-          }
-        } else {
-          // 새 그룹 생성
-          groups.push({ cells: [...cells], direction });
-        }
-      });
-
-      return groups.map(g => g.cells);
-    }
-
-    /**
-     * 셀 좌표로 bounds 가져오기
-     * @param {number} row - 행 인덱스
-     * @param {number} col - 열 인덱스
-     * @returns {Object|null} {x, y, width, height}
-     */
-    _getCellBounds(row, col) {
-      const prefix = this._getLayerIdPrefix();
-      const rootLayer = this.layerManager.root;
-      if (!rootLayer?.children[0]) {
-        return null;
-      }
-
-      const tableLayer = rootLayer.children[0];
-      const rowStructure = this._getTableRowStructure(tableLayer, prefix);
-      const rowInfo = rowStructure[row];
-      if (!rowInfo) {
-        return null;
-      }
-
-      // 행 타입에 따른 셀 ID 생성 (기존 _applyAnimationToTargetCells와 동일한 로직)
-      let layerId;
-      if (rowInfo.type === 'header') {
-        layerId = `${prefix}-table-header-col${col}`;
-      } else if (rowInfo.type === 'summary') {
-        layerId = `${prefix}-table-summary-col${col}`;
-      } else {
-        // 데이터 행: layerId에서 row 번호 추출
-        const match = rowInfo.layerId.match(/row-(\d+)$/);
-        const dataRowIdx = match ? match[1] : (row - 1);
-        layerId = `${prefix}-table-row-${dataRowIdx}-col${col}`;
-      }
-
-      const cellLayer = this.layerManager.findLayer(layerId);
-      if (!cellLayer) {
-        return null;
-      }
-
-      // 레이어 데이터에서 위치 정보 가져오기
-      const data = cellLayer.data;
-      if (!data) {
-        return null;
-      }
-
-      return { x: data.x, y: data.y, width: data.width, height: data.height };
-    }
-
-    /**
-     * 병합된 셀 그룹 렌더링 (인접 셀 병합, 겹침 허용)
-     * @param {number} progress - 애니메이션 진행도 (0~1)
-     */
-    _renderMergedAnimations(progress) {
-      if (this.savedAnimations.length === 0) return;
-
-      // 인접 셀 그룹화 (겹침 허용, 직접 bounds 수집)
-      const allGroups = this._groupAdjacentCellsWithOverlap();
-      if (allGroups.length === 0) return;
-
-      // 색상: 그룹 1개면 초록색, 2개 이상이면 파랑/분홍/주황
-      const colors = allGroups.length === 1
-        ? ['#89EC4E']
-        : ['#008aff', '#e749af', '#ff764f'];
-
-      allGroups.forEach((group, groupIndex) => {
-        const color = colors[groupIndex % colors.length];
-        const fillAlpha = progress * 0.3;
-        const strokeAlpha = progress;
-
-        // hex to rgb 변환
-        const r = parseInt(color.slice(1, 3), 16);
-        const g = parseInt(color.slice(3, 5), 16);
-        const b = parseInt(color.slice(5, 7), 16);
-
-        const cellSet = new Set(group.map(c => `${c.row}-${c.col}`));
-
-        this.ctx.save();
-
-        // 1. 모든 셀에 fill
-        this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${fillAlpha})`;
-        group.forEach(c => {
-          this.ctx.fillRect(c.bounds.x, c.bounds.y, c.bounds.width, c.bounds.height);
-        });
-
-        // 2. 외곽 변만 stroke (인접 셀과 공유하는 변은 제외)
-        this.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${strokeAlpha})`;
-        this.ctx.lineWidth = 2;
-
-        group.forEach(c => {
-          const { x, y, width, height } = c.bounds;
-          const hasTop = cellSet.has(`${c.row - 1}-${c.col}`);
-          const hasBottom = cellSet.has(`${c.row + 1}-${c.col}`);
-          const hasLeft = cellSet.has(`${c.row}-${c.col - 1}`);
-          const hasRight = cellSet.has(`${c.row}-${c.col + 1}`);
-
-          this.ctx.beginPath();
-          if (!hasTop) { // 위쪽 변
-            this.ctx.moveTo(x, y);
-            this.ctx.lineTo(x + width, y);
-          }
-          if (!hasBottom) { // 아래쪽 변
-            this.ctx.moveTo(x, y + height);
-            this.ctx.lineTo(x + width, y + height);
-          }
-          if (!hasLeft) { // 왼쪽 변
-            this.ctx.moveTo(x, y);
-            this.ctx.lineTo(x, y + height);
-          }
-          if (!hasRight) { // 오른쪽 변
-            this.ctx.moveTo(x + width, y);
-            this.ctx.lineTo(x + width, y + height);
-          }
-          this.ctx.stroke();
-        });
-
-        this.ctx.restore();
-      });
-    }
-
     /**
      * LayerManager 접근자 (레이어 패널에서 사용)
      * @returns {LayerManager} 레이어 매니저
@@ -13174,1576 +9929,6 @@
   }
 
   /**
-   * 산점도 렌더러
-   * X-Y 좌표 데이터를 점으로 시각화
-   */
-
-
-  class ScatterRenderer {
-    /**
-     * 산점도 렌더링
-     * @param {HTMLCanvasElement} canvas - Canvas 요소
-     * @param {Object} config - 설정 객체
-     * @returns {Object} 렌더링 결과
-     */
-    static render(canvas, config) {
-      const ctx = canvas.getContext('2d');
-      const data = config.data; // [[x1, y1], [x2, y2], ...]
-      const options = config.options || {};
-
-      // 캔버스 크기 설정
-      const width = config.canvasWidth || CONFIG.SCATTER_DEFAULT_WIDTH;
-      const height = config.canvasHeight || CONFIG.SCATTER_DEFAULT_HEIGHT;
-      canvas.width = width;
-      canvas.height = height;
-
-      // 캔버스 크기 설정 (폰트 스케일링용)
-      CONFIG.setCanvasSize(Math.max(width, height));
-
-      // 배경 투명 (클리어)
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // 데이터 검증
-      if (!data || !Array.isArray(data) || data.length < 2) {
-        this._drawNoDataMessage(ctx, canvas);
-        return { error: '최소 2개의 데이터 포인트가 필요합니다.' };
-      }
-
-      // 데이터 범위 추출
-      const range = this._extractRange(data);
-
-      // 좌표계 생성
-      const padding = CONFIG.getScaledValue(CONFIG.SCATTER_PADDING);
-      const coords = this._createCoordinateSystem(canvas, padding, range);
-
-      // 렌더링
-      this._drawGrid(ctx, canvas, padding, coords, range);
-      this._drawAxes(ctx, canvas, padding, coords, range, options.axisLabels);
-      this._drawPoints(ctx, data, coords, options);
-
-      return { success: true, coords, range, padding, canvasHeight: canvas.height };
-    }
-
-    /**
-     * 데이터에서 범위 추출
-     */
-    static _extractRange(data) {
-      const xValues = data.map(p => p[0]);
-      const yValues = data.map(p => p[1]);
-
-      const xDataMin = Math.min(...xValues);
-      const xDataMax = Math.max(...xValues);
-      const yDataMin = Math.min(...yValues);
-      const yDataMax = Math.max(...yValues);
-
-      // 데이터 범위 기반 깔끔한 간격 계산
-      const xRange = xDataMax - xDataMin;
-      const yRange = yDataMax - yDataMin;
-
-      const xInterval = this._calculateNiceInterval(xRange);
-      const yInterval = this._calculateNiceInterval(yRange);
-
-      // 축 시작/끝을 간격의 배수로 맞춤
-      const xMin = Math.floor(xDataMin / xInterval) * xInterval;
-      const xMax = Math.ceil(xDataMax / xInterval) * xInterval;
-      const yMin = Math.floor(yDataMin / yInterval) * yInterval;
-      const yMax = Math.ceil(yDataMax / yInterval) * yInterval;
-
-      return {
-        xMin,
-        xMax,
-        yMin,
-        yMax,
-        xDataMin,
-        xDataMax,
-        yDataMin,
-        yDataMax,
-        xInterval,
-        yInterval
-      };
-    }
-
-    /**
-     * 깔끔한 축 간격 계산 (1, 2, 5, 10, 20, 50, 100 등)
-     */
-    static _calculateNiceInterval(range) {
-      if (range <= 0) return 1;
-
-      // 대략 4~6개의 눈금을 목표로 함
-      const roughInterval = range / 5;
-
-      // 10의 거듭제곱 찾기
-      const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
-
-      // 깔끔한 간격 후보: 1, 2, 5, 10 배수
-      const candidates = [1, 2, 5, 10];
-
-      for (const c of candidates) {
-        const interval = c * magnitude;
-        if (interval >= roughInterval) {
-          return interval;
-        }
-      }
-
-      return 10 * magnitude;
-    }
-
-    /**
-     * 좌표계 생성
-     * 왼쪽/아래: 압축 구간 1칸, 오른쪽/위: 여유 공간 1칸
-     */
-    static _createCoordinateSystem(canvas, padding, range) {
-      const chartW = canvas.width - padding * 2;
-      const chartH = canvas.height - padding * 2;
-
-      // 데이터 구간 수 계산
-      const xDataCells = Math.round((range.xMax - range.xMin) / range.xInterval);
-      const yDataCells = Math.round((range.yMax - range.yMin) / range.yInterval);
-
-      // 전체 구간 수 = 압축(1) + 데이터 구간 + 여유(1)
-      const xTotalCells = 1 + xDataCells + 1;
-      const yTotalCells = 1 + yDataCells + 1;
-
-      const xCellWidth = chartW / xTotalCells;
-      const yCellHeight = chartH / yTotalCells;
-
-      // X축 좌표 변환: 값 → 캔버스 x좌표
-      // 압축 구간(1칸) 이후부터 데이터 시작
-      const toX = (value) => {
-        const dataOffset = (value - range.xMin) / range.xInterval;
-        return padding + (1 + dataOffset) * xCellWidth;
-      };
-
-      // Y축 좌표 변환: 값 → 캔버스 y좌표 (위아래 반전)
-      // 위쪽 여유 공간(1칸) 이후부터 데이터 시작
-      const toY = (value) => {
-        const dataOffset = (value - range.yMin) / range.yInterval;
-        return canvas.height - padding - (1 + dataOffset) * yCellHeight;
-      };
-
-      return { toX, toY, chartW, chartH, xCellWidth, yCellHeight, xTotalCells, yTotalCells };
-    }
-
-    /**
-     * 그리드 렌더링
-     */
-    static _drawGrid(ctx, canvas, padding, coords, range) {
-      const { toX, toY, xCellWidth, yCellHeight, xTotalCells, yTotalCells } = coords;
-      ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
-
-      // 가로 격자선 (Y축) - 모든 칸에 그리기
-      ctx.strokeStyle = CONFIG.getColor('--color-grid-horizontal');
-      for (let i = 1; i < yTotalCells; i++) {
-        const y = canvas.height - padding - i * yCellHeight;
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(canvas.width - padding, y);
-        ctx.stroke();
-      }
-
-      // 세로 격자선 (X축) - 모든 칸에 그리기
-      ctx.strokeStyle = CONFIG.getColor('--color-grid-vertical');
-      for (let i = 1; i < xTotalCells; i++) {
-        const x = padding + i * xCellWidth;
-        ctx.beginPath();
-        ctx.moveTo(x, padding);
-        ctx.lineTo(x, canvas.height - padding);
-        ctx.stroke();
-      }
-
-      // 축선 (사각형 테두리 - 하단, 좌측, 상단, 우측)
-      ctx.strokeStyle = CONFIG.getColor('--color-axis');
-      ctx.lineWidth = CONFIG.getScaledLineWidth('medium');
-
-      // X축선 (하단)
-      ctx.beginPath();
-      ctx.moveTo(padding, canvas.height - padding);
-      ctx.lineTo(canvas.width - padding, canvas.height - padding);
-      ctx.stroke();
-
-      // Y축선 (좌측)
-      ctx.beginPath();
-      ctx.moveTo(padding, padding);
-      ctx.lineTo(padding, canvas.height - padding);
-      ctx.stroke();
-
-      // 상단 테두리
-      ctx.beginPath();
-      ctx.moveTo(padding, padding);
-      ctx.lineTo(canvas.width - padding, padding);
-      ctx.stroke();
-
-      // 우측 테두리
-      ctx.beginPath();
-      ctx.moveTo(canvas.width - padding, padding);
-      ctx.lineTo(canvas.width - padding, canvas.height - padding);
-      ctx.stroke();
-
-      // X축 압축 기호 (≈) - 축 위에 위치
-      this._drawEllipsisSymbol(ctx, padding + xCellWidth / 2, canvas.height - padding, true);
-
-      // Y축 압축 기호 (≈) - 축 위에 위치
-      this._drawEllipsisSymbol(ctx, padding, canvas.height - padding - yCellHeight / 2, false);
-    }
-
-    /**
-     * 압축 기호 (≈) 렌더링 - 축 위에 배치
-     */
-    static _drawEllipsisSymbol(ctx, x, y, isHorizontal) {
-      ctx.save();
-      // 산점도에서 중략 기호 크기 키움
-      ctx.font = `400 ${CONFIG.getScaledFontSize(28)}px 'SCDream', sans-serif`;
-      ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
-      ctx.textBaseline = 'middle';
-      ctx.textAlign = 'center';
-
-      if (isHorizontal) {
-        // X축용: 축 선 위에 90도 회전하여 수직으로 표시
-        ctx.translate(x, y);
-        ctx.rotate(Math.PI / 2);
-        ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
-      } else {
-        // Y축용: 축 선 위에 수평으로 표시
-        ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, x, y);
-      }
-      ctx.restore();
-    }
-
-    /**
-     * 축 및 라벨 렌더링
-     */
-    static _drawAxes(ctx, canvas, padding, coords, range, axisLabels = {}) {
-      const { toX, toY } = coords;
-      const color = CONFIG.getColor('--color-text');
-      // 숫자 라벨 크기 키움
-      const fontSize = CONFIG.getScaledFontSize(25);
-
-      // X축 라벨 - xMin부터 xMax + interval까지 (여유 칸 라벨 포함)
-      const xLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
-      const xLabelMax = range.xMax + range.xInterval; // 여유 칸까지
-      for (let value = range.xMin; value <= xLabelMax + 0.001; value += range.xInterval) {
-        const x = toX(value);
-        // 정수면 정수로, 소수면 소수로 표시
-        const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
-        render$1(ctx, label, x, xLabelY, {
-          fontSize, color, align: 'center', baseline: 'top'
-        });
-      }
-
-      // Y축 라벨 - yMin부터 yMax + interval까지 (여유 칸 라벨 포함)
-      const yLabelX = padding - CONFIG.getScaledValue(12);
-      const yLabelMax = range.yMax + range.yInterval; // 여유 칸까지
-      for (let value = range.yMin; value <= yLabelMax + 0.001; value += range.yInterval) {
-        const y = toY(value);
-        // 정수면 정수로, 소수면 소수로 표시
-        const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
-        render$1(ctx, label, yLabelX, y, {
-          fontSize, color, align: 'right', baseline: 'middle'
-        });
-      }
-
-      // 축 제목
-      const xTitle = axisLabels?.xAxis || '';
-      const yTitle = axisLabels?.yAxis || '';
-
-      // X축 제목: 오른쪽 끝, 숫자 라벨 아래로 더 내림
-      if (xTitle) {
-        renderMixedText(ctx, xTitle,
-          canvas.width - padding,
-          canvas.height - padding + CONFIG.getScaledValue(55),
-          { fontSize: CONFIG.getScaledFontSize(18), color, align: 'right', baseline: 'top' }
-        );
-      }
-
-      // Y축 제목: 상단
-      if (yTitle) {
-        renderMixedText(ctx, yTitle,
-          padding,
-          padding - CONFIG.getScaledValue(15),
-          { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom' }
-        );
-      }
-    }
-
-    /**
-     * 데이터 점 렌더링
-     */
-    static _drawPoints(ctx, data, coords, options) {
-      const { toX, toY } = coords;
-      const pointSize = CONFIG.getScaledValue(options.pointSize || CONFIG.SCATTER_POINT_RADIUS);
-      const pointColor = options.pointColor || CONFIG.SCATTER_POINT_COLOR;
-
-      ctx.fillStyle = pointColor;
-
-      data.forEach(([x, y]) => {
-        const cx = toX(x);
-        const cy = toY(y);
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, pointSize, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 테두리 (어둡게)
-        ctx.strokeStyle = this._darkenColor(pointColor, 0.3);
-        ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
-        ctx.stroke();
-      });
-    }
-
-    /**
-     * 색상을 어둡게
-     */
-    static _darkenColor(color, amount) {
-      const hex = color.replace('#', '');
-      const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - Math.round(255 * amount));
-      const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - Math.round(255 * amount));
-      const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - Math.round(255 * amount));
-      return `rgb(${r}, ${g}, ${b})`;
-    }
-
-    /**
-     * 데이터 없음 메시지
-     */
-    static _drawNoDataMessage(ctx, canvas) {
-      ctx.fillStyle = CONFIG.getColor('--color-text');
-      ctx.font = CONFIG.CHART_FONT_BOLD;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('데이터가 없습니다.', canvas.width / 2, canvas.height / 2);
-    }
-
-    /**
-     * 데이터 유효성 검사
-     * @param {Array} data - 데이터 배열
-     * @returns {{ valid: boolean, error: string|null }}
-     */
-    static validate(data) {
-      if (!data || !Array.isArray(data)) {
-        return { valid: false, error: 'data는 배열이어야 합니다.' };
-      }
-      if (data.length < 2) {
-        return { valid: false, error: '최소 2개의 데이터 포인트가 필요합니다.' };
-      }
-      for (let i = 0; i < data.length; i++) {
-        const point = data[i];
-        if (!Array.isArray(point) || point.length !== 2) {
-          return { valid: false, error: `${i}번째 포인트는 [x, y] 형식이어야 합니다.` };
-        }
-        if (typeof point[0] !== 'number' || typeof point[1] !== 'number') {
-          return { valid: false, error: `${i}번째 포인트의 x, y는 숫자여야 합니다.` };
-        }
-      }
-      return { valid: true, error: null };
-    }
-  }
-
-  /**
-   * Corruption (찢김) 효과 유틸리티
-   * 차트와 테이블에서 "일부가 찢어져 보이지 않는" 효과 구현
-   */
-
-  // ==========================================
-  // Noise 함수
-  // ==========================================
-
-  /**
-   * 간단한 Pseudo-random Noise
-   */
-  function simpleNoise(x, seed = 0) {
-    const n = Math.sin(x * 12.9898 + seed * 78.233) * 43758.5453;
-    return (n - Math.floor(n)) * 2 - 1;
-  }
-
-  /**
-   * Smoothstep 보간이 적용된 부드러운 Noise
-   */
-  function smoothNoise(x, seed = 0) {
-    const x0 = Math.floor(x);
-    const x1 = x0 + 1;
-    const t = x - x0;
-
-    const n0 = simpleNoise(x0, seed);
-    const n1 = simpleNoise(x1, seed);
-
-    // Smoothstep 보간
-    const st = t * t * (3 - 2 * t);
-    return n0 + (n1 - n0) * st;
-  }
-
-  // ==========================================
-  // 찢김 경로 생성
-  // ==========================================
-
-  /**
-   * 찢김 경로 생성
-   * @param {number} startX - 시작 X
-   * @param {number} startY - 시작 Y
-   * @param {number} endX - 끝 X
-   * @param {number} endY - 끝 Y
-   * @param {number} complexity - 불규칙성 (0~1)
-   * @param {number} seed - 랜덤 시드
-   * @returns {Array} 경로 점 배열
-   */
-  function generateTearPath(startX, startY, endX, endY, complexity = 0.7, seed = 42) {
-    const points = [];
-    const dx = endX - startX;
-    const dy = endY - startY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const segments = Math.max(15, Math.floor(distance / 4));
-
-    // 수직선인지 수평선인지 판단
-    const isVertical = Math.abs(dx) < Math.abs(dy);
-    const amplitude = complexity * 8; // 최대 8px 변위 (inset보다 작게)
-
-    for (let i = 0; i <= segments; i++) {
-      const t = i / segments;
-      const baseX = startX + dx * t;
-      const baseY = startY + dy * t;
-
-      // 여러 주파수의 노이즈 합성 (Fractal Noise)
-      let noise = 0;
-      noise += smoothNoise(t * 8, seed) * 1.0;
-      noise += smoothNoise(t * 16, seed + 1) * 0.5;
-      noise += smoothNoise(t * 32, seed + 2) * 0.25;
-      noise = noise / 1.75; // 정규화
-
-      const offset = noise * amplitude;
-
-      if (isVertical) {
-        points.push({ x: baseX + offset, y: baseY });
-      } else {
-        points.push({ x: baseX, y: baseY + offset });
-      }
-    }
-
-    return points;
-  }
-
-  // ==========================================
-  // 시각적 질감 효과
-  // ==========================================
-
-  /**
-   * 종이 섬유 효과 렌더링
-   */
-  function renderFibers(ctx, allEdges, options = {}) {
-    const {
-      fiberCount = 20,
-      fiberLength = 10,
-      color = 'rgba(180, 150, 100, 0.5)'
-    } = options;
-
-    // 모든 가장자리 점 합치기
-    const allPoints = [...allEdges.top, ...allEdges.right, ...allEdges.bottom, ...allEdges.left];
-
-    ctx.save();
-    // 랜덤 시드 고정을 위한 간단한 방법
-    let randIndex = 0;
-    const pseudoRandom = () => {
-      randIndex++;
-      return (Math.sin(randIndex * 12.9898) * 43758.5453) % 1;
-    };
-
-    allPoints.forEach((point, i) => {
-      if (pseudoRandom() > 0.25) return; // 25%만 섬유 그리기
-
-      const angle = (pseudoRandom() - 0.5) * Math.PI; // -90도 ~ 90도
-      const length = fiberLength * (0.4 + pseudoRandom() * 0.6);
-
-      ctx.beginPath();
-      ctx.moveTo(point.x, point.y);
-      ctx.lineTo(
-        point.x + Math.cos(angle) * length,
-        point.y + Math.sin(angle) * length
-      );
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 0.3 + pseudoRandom() * 0.7;
-      ctx.stroke();
-    });
-    ctx.restore();
-  }
-
-  // ==========================================
-  // 차트용 셀 파싱/변환
-  // ==========================================
-
-  /**
-   * 차트 셀 범위 파싱 (x-y 형식)
-   * 형식: "0-2, 1-2:2-4, 3-0:3-4"
-   * - "0-2" → 단일 셀 (x=0, y=2)
-   * - "1-2:2-4" → 범위 (x=1~2, y=2~4)
-   * @param {string} input - 셀 범위 문자열
-   * @returns {Array} [{x1, y1, x2, y2}, ...]
-   */
-  function parseChartCells(input) {
-    const ranges = [];
-    const parts = input.split(',').map(s => s.trim()).filter(s => s);
-
-    parts.forEach(part => {
-      if (part.includes(':')) {
-        // 범위: "1-2:2-4"
-        const [start, end] = part.split(':').map(s => s.trim());
-        const [x1, y1] = start.split('-').map(n => parseInt(n.trim()));
-        const [x2, y2] = end.split('-').map(n => parseInt(n.trim()));
-        if (!isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
-          ranges.push({
-            x1: Math.min(x1, x2),
-            y1: Math.min(y1, y2),
-            x2: Math.max(x1, x2),
-            y2: Math.max(y1, y2)
-          });
-        }
-      } else if (part.includes('-')) {
-        // 단일 셀: "0-2"
-        const [x, y] = part.split('-').map(n => parseInt(n.trim()));
-        if (!isNaN(x) && !isNaN(y)) {
-          ranges.push({ x1: x, y1: y, x2: x, y2: y });
-        }
-      }
-    });
-
-    return ranges;
-  }
-
-  /**
-   * 셀 좌표 → 픽셀 좌표 변환
-   * @param {number} cellX - X축 셀 인덱스 (막대 인덱스)
-   * @param {number} cellY - Y축 셀 인덱스 (0=하단, gridDivisions-1=상단)
-   * @param {Object} chartInfo - 차트 정보
-   * @returns {{x, y, width, height}} 픽셀 좌표 및 크기
-   */
-  function cellToPixel(cellX, cellY, chartInfo) {
-    const { padding, barWidth, gap, chartHeight, gridDivisions, canvasHeight } = chartInfo;
-
-    // X: 막대 시작 위치
-    const pixelX = padding + (barWidth + gap) * cellX + gap / 2;
-
-    // 셀 높이
-    const cellHeight = chartHeight / gridDivisions;
-
-    // Y: 아래에서부터 계산 (cellY=0이 하단)
-    const pixelY = canvasHeight - padding - cellHeight * (cellY + 1);
-
-    return {
-      x: pixelX,
-      y: pixelY,
-      width: barWidth,
-      height: cellHeight
-    };
-  }
-
-  // ==========================================
-  // 테이블용 셀 파싱
-  // ==========================================
-
-  /**
-   * 테이블 셀 범위 파싱
-   * 형식: "row:2, col:1, 3-1, 2-1:2-3"
-   * @param {string} input - 셀 범위 문자열
-   * @param {number} totalRows - 총 행 수
-   * @param {number} totalCols - 총 열 수
-   * @returns {Array} [{rowStart, rowEnd, colStart, colEnd}, ...]
-   */
-  function parseTableCells(input, totalRows, totalCols) {
-    const ranges = [];
-    const parts = input.split(',').map(s => s.trim()).filter(s => s);
-
-    parts.forEach(part => {
-      // row:N - 행 전체
-      if (part.startsWith('row:')) {
-        const row = parseInt(part.substring(4));
-        if (!isNaN(row)) {
-          ranges.push({ rowStart: row, rowEnd: row, colStart: 0, colEnd: totalCols - 1 });
-        }
-      }
-      // col:N - 열 전체
-      else if (part.startsWith('col:')) {
-        const col = parseInt(part.substring(4));
-        if (!isNaN(col)) {
-          ranges.push({ rowStart: 0, rowEnd: totalRows - 1, colStart: col, colEnd: col });
-        }
-      }
-      // R1-C1:R2-C2 - 범위
-      else if (part.includes(':')) {
-        const [start, end] = part.split(':');
-        const [r1, c1] = start.split('-').map(n => parseInt(n));
-        const [r2, c2] = end.split('-').map(n => parseInt(n));
-        if (!isNaN(r1) && !isNaN(c1) && !isNaN(r2) && !isNaN(c2)) {
-          ranges.push({
-            rowStart: Math.min(r1, r2),
-            rowEnd: Math.max(r1, r2),
-            colStart: Math.min(c1, c2),
-            colEnd: Math.max(c1, c2)
-          });
-        }
-      }
-      // R-C - 단일 셀
-      else if (part.includes('-')) {
-        const [row, col] = part.split('-').map(n => parseInt(n));
-        if (!isNaN(row) && !isNaN(col)) {
-          ranges.push({ rowStart: row, rowEnd: row, colStart: col, colEnd: col });
-        }
-      }
-    });
-
-    return ranges;
-  }
-
-  /**
-   * 범위들을 셀 집합으로 변환
-   * @param {Array} ranges - [{rowStart, rowEnd, colStart, colEnd}, ...]
-   * @returns {Set} "row-col" 형태의 셀 키 집합
-   */
-  function rangesToCellSet(ranges) {
-    const cells = new Set();
-    ranges.forEach(range => {
-      for (let row = range.rowStart; row <= range.rowEnd; row++) {
-        for (let col = range.colStart; col <= range.colEnd; col++) {
-          cells.add(`${row}-${col}`);
-        }
-      }
-    });
-    return cells;
-  }
-
-  // ==========================================
-  // 차트 Corruption 효과
-  // ==========================================
-
-  /**
-   * 차트 범위를 셀 집합으로 변환
-   * @param {Array} ranges - [{x1, y1, x2, y2}, ...]
-   * @returns {Set} "x-y" 형식의 셀 집합
-   */
-  function chartRangesToCellSet(ranges) {
-    const cells = new Set();
-    ranges.forEach(range => {
-      for (let x = range.x1; x <= range.x2; x++) {
-        for (let y = range.y1; y <= range.y2; y++) {
-          cells.add(`${x}-${y}`);
-        }
-      }
-    });
-    return cells;
-  }
-
-  /**
-   * 차트에 corruption 효과 적용 (인접 셀 병합 지원)
-   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
-   * @param {Object} corruptionOptions - corruption 설정
-   * @param {Object} chartInfo - 차트 정보 (좌표 변환용)
-   */
-  function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
-    if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
-
-    const cellsInput = Array.isArray(corruptionOptions.cells)
-      ? corruptionOptions.cells.join(', ')
-      : corruptionOptions.cells;
-
-    const ranges = parseChartCells(cellsInput);
-    if (ranges.length === 0) return;
-
-    const style = corruptionOptions.style || {};
-    const edgeComplexity = style.edgeComplexity || 0.7;
-    const seed = style.seed || 42;
-    const inset = 0;
-    const overlap = 2;
-    const maskAxisLabels = corruptionOptions.maskAxisLabels !== false;
-
-    // 범위를 셀 집합으로 변환
-    const cellSet = chartRangesToCellSet(ranges);
-
-    // 축에 닿는 셀 확인 (maskAxisLabels용)
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    cellSet.forEach(key => {
-      const [x, y] = key.split('-').map(Number);
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    });
-    const touchesYAxis = minX === 0;
-    const touchesXAxis = minY === 0;
-    const touchesTop = maxY >= (chartInfo.gridDivisions - 1);  // 차트 상단에 닿는지
-    const touchesRight = chartInfo.barCount && maxX >= (chartInfo.barCount - 1);  // 차트 오른쪽 끝에 닿는지
-
-    // 인접 여부 확인 헬퍼 (차트는 Y=0이 하단)
-    const getAdjacency = (x, y) => ({
-      hasTop: cellSet.has(`${x}-${y + 1}`),     // Y가 클수록 위
-      hasBottom: cellSet.has(`${x}-${y - 1}`),  // Y가 작을수록 아래
-      hasLeft: cellSet.has(`${x - 1}-${y}`),
-      hasRight: cellSet.has(`${x + 1}-${y}`)
-    });
-
-    // 각 셀의 4변 경로를 미리 생성 (외곽은 찢김, 인접은 직선+오버랩)
-    const cellEdges = new Map();
-    const allEdgePoints = { top: [], right: [], bottom: [], left: [] };
-
-    cellSet.forEach(key => {
-      const [x, y] = key.split('-').map(Number);
-      const cell = cellToPixel(x, y, chartInfo);
-      const adj = getAdjacency(x, y);
-
-      // 외곽: inset 적용, 인접: 오버랩 (셀 경계를 넘어감)
-      let topY = adj.hasTop ? cell.y - overlap : cell.y + inset;
-      let bottomY = adj.hasBottom ? cell.y + cell.height + overlap : cell.y + cell.height - inset;
-      let leftX = adj.hasLeft ? cell.x - overlap : cell.x + inset;
-      let rightX = adj.hasRight ? cell.x + cell.width + overlap : cell.x + cell.width - inset;
-
-      // maskAxisLabels: 축 라벨까지 확장 (X축, Y축)
-      if (maskAxisLabels) {
-        if (touchesXAxis && y === minY && !adj.hasBottom) {
-          // X축 라벨까지 확장 (아래로 30px)
-          bottomY = cell.y + cell.height + 30;
-        }
-        if (touchesYAxis && x === minX && !adj.hasLeft) {
-          // Y축 라벨까지 확장 (왼쪽으로)
-          leftX = 5;
-        }
-      }
-
-      // 차트 상단 찢김: maskAxisLabels와 관계없이 항상 차트 상단 테두리까지 확장
-      if (touchesTop && y === maxY && !adj.hasTop) {
-        topY = cell.y - 15;
-      }
-
-      // 차트 오른쪽 끝 찢김: maskAxisLabels와 관계없이 항상 차트 오른쪽 테두리까지 확장
-      if (touchesRight && x === maxX && !adj.hasRight) {
-        rightX = cell.x + cell.width + 15;
-      }
-
-      // 각 변의 경로 생성 (외곽은 찢김, 인접은 직선)
-      const edges = {
-        top: adj.hasTop
-          ? [{ x: leftX, y: topY }, { x: rightX, y: topY }]
-          : generateTearPath(leftX, topY, rightX, topY, edgeComplexity, seed + x * 100 + y),
-        bottom: adj.hasBottom
-          ? [{ x: rightX, y: bottomY }, { x: leftX, y: bottomY }]
-          : generateTearPath(rightX, bottomY, leftX, bottomY, edgeComplexity, seed + x * 100 + y + 10),
-        left: adj.hasLeft
-          ? [{ x: leftX, y: bottomY }, { x: leftX, y: topY }]
-          : generateTearPath(leftX, bottomY, leftX, topY, edgeComplexity, seed + x * 100 + y + 20),
-        right: adj.hasRight
-          ? [{ x: rightX, y: topY }, { x: rightX, y: bottomY }]
-          : generateTearPath(rightX, topY, rightX, bottomY, edgeComplexity, seed + x * 100 + y + 30)
-      };
-
-      cellEdges.set(key, { cell, adj, edges });
-
-      // 외곽 엣지 포인트 수집 (fiber용)
-      if (!adj.hasTop) allEdgePoints.top.push(...edges.top);
-      if (!adj.hasBottom) allEdgePoints.bottom.push(...edges.bottom);
-      if (!adj.hasLeft) allEdgePoints.left.push(...edges.left);
-      if (!adj.hasRight) allEdgePoints.right.push(...edges.right);
-    });
-
-    // 1단계: 마스킹 (각 셀을 찢김 경로로 마스킹)
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-
-    cellSet.forEach(key => {
-      const { edges } = cellEdges.get(key);
-
-      ctx.beginPath();
-      // top → right → bottom → left 순서로 경로 연결
-      ctx.moveTo(edges.top[0].x, edges.top[0].y);
-      edges.top.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.right.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.left.forEach(p => ctx.lineTo(p.x, p.y));
-      ctx.closePath();
-      ctx.fill();
-    });
-
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.restore();
-
-    // 2단계: 가장자리 색상 (외곽 면에만)
-    if (style.edgeColorEnabled) {
-      const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
-
-      ctx.save();
-      ctx.strokeStyle = edgeColor;
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      cellSet.forEach(key => {
-        const { adj, edges } = cellEdges.get(key);
-
-        if (!adj.hasTop && edges.top.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.top[0].x, edges.top[0].y);
-          edges.top.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasBottom && edges.bottom.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.bottom[0].x, edges.bottom[0].y);
-          edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasLeft && edges.left.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.left[0].x, edges.left[0].y);
-          edges.left.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasRight && edges.right.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.right[0].x, edges.right[0].y);
-          edges.right.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-      });
-
-      ctx.restore();
-    }
-
-    // 3단계: 종이 섬유 효과
-    if (style.fiberEnabled) {
-      const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
-      const fiberCount = style.fiberCount || 20;
-      renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
-    }
-  }
-
-  // ==========================================
-  // 테이블 Corruption 효과 (셀 기반)
-  // ==========================================
-
-  /**
-   * 테이블에 corruption 효과 적용
-   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
-   * @param {Object} corruptionOptions - corruption 설정 { enabled, cells, style }
-   * @param {Object} tableInfo - 테이블 정보 { startX, startY, cellHeight, columnWidths, totalRows, totalCols, inset }
-   */
-  function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
-    if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
-
-    const cellsInput = Array.isArray(corruptionOptions.cells)
-      ? corruptionOptions.cells.join(', ')
-      : corruptionOptions.cells;
-
-    const { totalRows, totalCols } = tableInfo;
-    const ranges = parseTableCells(cellsInput, totalRows, totalCols);
-    if (ranges.length === 0) return;
-
-    // 범위를 셀 집합으로 변환
-    const cellSet = rangesToCellSet(ranges);
-
-    const style = corruptionOptions.style || {};
-    const { startX, startY, cellHeight, columnWidths, rowHeights, cellWidth, inset = 3 } = tableInfo;
-    const edgeComplexity = style.edgeComplexity || 0.7;
-    const seed = style.seed || 42;
-
-    // 셀 좌표 계산 헬퍼
-    const getCellCoords = (row, col) => {
-      let x, w;
-      if (columnWidths && Array.isArray(columnWidths)) {
-        x = startX + columnWidths.slice(0, col).reduce((sum, cw) => sum + cw, 0);
-        w = columnWidths[col] || cellWidth;
-      } else {
-        x = startX + col * cellWidth;
-        w = cellWidth;
-      }
-      // rowHeights가 있으면 각 행의 높이 합산, 없으면 균일 높이
-      let y, h;
-      if (rowHeights && Array.isArray(rowHeights)) {
-        y = startY + rowHeights.slice(0, row).reduce((sum, rh) => sum + rh, 0);
-        h = rowHeights[row] || cellHeight;
-      } else {
-        y = startY + row * cellHeight;
-        h = cellHeight;
-      }
-      return { x, y, w, h };
-    };
-
-    // 인접 여부 확인 헬퍼
-    const getAdjacency = (row, col) => ({
-      hasTop: cellSet.has(`${row - 1}-${col}`),
-      hasBottom: cellSet.has(`${row + 1}-${col}`),
-      hasLeft: cellSet.has(`${row}-${col - 1}`),
-      hasRight: cellSet.has(`${row}-${col + 1}`)
-    });
-
-    // 인접한 셀 사이의 경계선(grid line)도 마스킹하기 위해 약간 오버랩
-    const overlap = 2;
-
-    // 각 셀의 4변 경로를 미리 생성 (외곽은 찢김, 인접은 직선+오버랩)
-    const cellEdges = new Map();
-    const allEdgePoints = { top: [], right: [], bottom: [], left: [] };
-
-    cellSet.forEach(key => {
-      const [row, col] = key.split('-').map(Number);
-      const { x, y, w, h } = getCellCoords(row, col);
-      const adj = getAdjacency(row, col);
-
-      // 외곽: inset 적용, 인접: 오버랩 (셀 경계를 넘어감)
-      const topY = adj.hasTop ? y - overlap : y + inset;
-      const bottomY = adj.hasBottom ? y + h + overlap : y + h - inset;
-      const leftX = adj.hasLeft ? x - overlap : x + inset;
-      const rightX = adj.hasRight ? x + w + overlap : x + w - inset;
-
-      // 각 변의 경로 생성 (외곽은 찢김, 인접은 직선)
-      const edges = {
-        top: adj.hasTop
-          ? [{ x: leftX, y: topY }, { x: rightX, y: topY }]
-          : generateTearPath(leftX, topY, rightX, topY, edgeComplexity, seed + row * 100 + col),
-        bottom: adj.hasBottom
-          ? [{ x: rightX, y: bottomY }, { x: leftX, y: bottomY }]
-          : generateTearPath(rightX, bottomY, leftX, bottomY, edgeComplexity, seed + row * 100 + col + 10),
-        left: adj.hasLeft
-          ? [{ x: leftX, y: bottomY }, { x: leftX, y: topY }]
-          : generateTearPath(leftX, bottomY, leftX, topY, edgeComplexity, seed + row * 100 + col + 20),
-        right: adj.hasRight
-          ? [{ x: rightX, y: topY }, { x: rightX, y: bottomY }]
-          : generateTearPath(rightX, topY, rightX, bottomY, edgeComplexity, seed + row * 100 + col + 30)
-      };
-
-      cellEdges.set(key, { adj, edges });
-
-      // 외곽 엣지 포인트 수집 (fiber용)
-      if (!adj.hasTop) allEdgePoints.top.push(...edges.top);
-      if (!adj.hasBottom) allEdgePoints.bottom.push(...edges.bottom);
-      if (!adj.hasLeft) allEdgePoints.left.push(...edges.left);
-      if (!adj.hasRight) allEdgePoints.right.push(...edges.right);
-    });
-
-    // 1단계: 마스킹 (각 셀을 찢김 경로로 마스킹)
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-
-    cellSet.forEach(key => {
-      const { edges } = cellEdges.get(key);
-
-      ctx.beginPath();
-      // top → right → bottom → left 순서로 경로 연결
-      ctx.moveTo(edges.top[0].x, edges.top[0].y);
-      edges.top.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.right.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.left.forEach(p => ctx.lineTo(p.x, p.y));
-      ctx.closePath();
-      ctx.fill();
-    });
-
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.restore();
-
-    // 2단계: 가장자리 색상 (외곽 면에만)
-    if (style.edgeColorEnabled) {
-      const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
-
-      ctx.save();
-      ctx.strokeStyle = edgeColor;
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      cellSet.forEach(key => {
-        const { adj, edges } = cellEdges.get(key);
-
-        if (!adj.hasTop && edges.top.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.top[0].x, edges.top[0].y);
-          edges.top.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasBottom && edges.bottom.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.bottom[0].x, edges.bottom[0].y);
-          edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasLeft && edges.left.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.left[0].x, edges.left[0].y);
-          edges.left.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasRight && edges.right.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.right[0].x, edges.right[0].y);
-          edges.right.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-      });
-
-      ctx.restore();
-    }
-
-    // 3단계: 종이 섬유 효과 (fiberEnabled)
-    if (style.fiberEnabled) {
-      const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
-      const fiberCount = style.fiberCount || 20;
-      renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
-    }
-  }
-
-  // ==========================================
-  // 산점도 Corruption 효과
-  // ==========================================
-
-  /**
-   * 산점도 셀 좌표 → 픽셀 좌표 변환
-   * @param {number} cellX - X 셀 인덱스 (0 = 압축 구간)
-   * @param {number} cellY - Y 셀 인덱스 (0 = 압축 구간, 하단부터)
-   * @param {Object} scatterInfo - 산점도 정보
-   * @returns {{x, y, width, height}} 픽셀 좌표 및 크기
-   */
-  function scatterCellToPixel(cellX, cellY, scatterInfo) {
-    const { padding, xCellWidth, yCellHeight, canvasHeight } = scatterInfo;
-
-    const pixelX = padding + cellX * xCellWidth;
-    // Y축은 반전 (cellY=0이 하단)
-    const pixelY = canvasHeight - padding - (cellY + 1) * yCellHeight;
-
-    return {
-      x: pixelX,
-      y: pixelY,
-      width: xCellWidth,
-      height: yCellHeight
-    };
-  }
-
-  /**
-   * 산점도에 corruption 효과 적용
-   * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
-   * @param {Object} corruptionOptions - corruption 설정
-   * @param {Object} scatterInfo - 산점도 정보 (좌표 변환용)
-   */
-  function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
-    if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
-
-    const cellsInput = Array.isArray(corruptionOptions.cells)
-      ? corruptionOptions.cells.join(', ')
-      : corruptionOptions.cells;
-
-    const ranges = parseChartCells(cellsInput);
-    if (ranges.length === 0) return;
-
-    const style = corruptionOptions.style || {};
-    const edgeComplexity = style.edgeComplexity || 0.7;
-    const seed = style.seed || 42;
-    const inset = 0;
-    const overlap = 2;
-
-    // 범위를 셀 집합으로 변환
-    const cellSet = chartRangesToCellSet(ranges);
-
-    // 경계 셀 확인
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    cellSet.forEach(key => {
-      const [x, y] = key.split('-').map(Number);
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-    });
-
-    const touchesLeft = minX === 0;
-    const touchesBottom = minY === 0;
-    const touchesTop = maxY >= (scatterInfo.yTotalCells - 1);
-    const touchesRight = maxX >= (scatterInfo.xTotalCells - 1);
-
-    // 인접 여부 확인 헬퍼
-    const getAdjacency = (x, y) => ({
-      hasTop: cellSet.has(`${x}-${y + 1}`),
-      hasBottom: cellSet.has(`${x}-${y - 1}`),
-      hasLeft: cellSet.has(`${x - 1}-${y}`),
-      hasRight: cellSet.has(`${x + 1}-${y}`)
-    });
-
-    // 각 셀의 4변 경로를 미리 생성
-    const cellEdges = new Map();
-    const allEdgePoints = { top: [], right: [], bottom: [], left: [] };
-
-    cellSet.forEach(key => {
-      const [x, y] = key.split('-').map(Number);
-      const cell = scatterCellToPixel(x, y, scatterInfo);
-      const adj = getAdjacency(x, y);
-
-      // 외곽: inset 적용, 인접: 오버랩
-      let topY = adj.hasTop ? cell.y - overlap : cell.y + inset;
-      let bottomY = adj.hasBottom ? cell.y + cell.height + overlap : cell.y + cell.height - inset;
-      let leftX = adj.hasLeft ? cell.x - overlap : cell.x + inset;
-      let rightX = adj.hasRight ? cell.x + cell.width + overlap : cell.x + cell.width - inset;
-
-      // 경계 확장 (축 라벨까지)
-      if (touchesBottom && y === minY && !adj.hasBottom) {
-        bottomY = cell.y + cell.height + 30;
-      }
-      if (touchesLeft && x === minX && !adj.hasLeft) {
-        leftX = 5;
-      }
-      if (touchesTop && y === maxY && !adj.hasTop) {
-        topY = cell.y - 15;
-      }
-      if (touchesRight && x === maxX && !adj.hasRight) {
-        rightX = cell.x + cell.width + 15;
-      }
-
-      // 각 변의 경로 생성
-      const edges = {
-        top: adj.hasTop
-          ? [{ x: leftX, y: topY }, { x: rightX, y: topY }]
-          : generateTearPath(leftX, topY, rightX, topY, edgeComplexity, seed + x * 100 + y),
-        bottom: adj.hasBottom
-          ? [{ x: rightX, y: bottomY }, { x: leftX, y: bottomY }]
-          : generateTearPath(rightX, bottomY, leftX, bottomY, edgeComplexity, seed + x * 100 + y + 10),
-        left: adj.hasLeft
-          ? [{ x: leftX, y: bottomY }, { x: leftX, y: topY }]
-          : generateTearPath(leftX, bottomY, leftX, topY, edgeComplexity, seed + x * 100 + y + 20),
-        right: adj.hasRight
-          ? [{ x: rightX, y: topY }, { x: rightX, y: bottomY }]
-          : generateTearPath(rightX, topY, rightX, bottomY, edgeComplexity, seed + x * 100 + y + 30)
-      };
-
-      cellEdges.set(key, { cell, adj, edges });
-
-      // 외곽 엣지 포인트 수집
-      if (!adj.hasTop) allEdgePoints.top.push(...edges.top);
-      if (!adj.hasBottom) allEdgePoints.bottom.push(...edges.bottom);
-      if (!adj.hasLeft) allEdgePoints.left.push(...edges.left);
-      if (!adj.hasRight) allEdgePoints.right.push(...edges.right);
-    });
-
-    // 1단계: 마스킹
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-
-    cellSet.forEach(key => {
-      const { edges } = cellEdges.get(key);
-
-      ctx.beginPath();
-      ctx.moveTo(edges.top[0].x, edges.top[0].y);
-      edges.top.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.right.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
-      edges.left.forEach(p => ctx.lineTo(p.x, p.y));
-      ctx.closePath();
-      ctx.fill();
-    });
-
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.restore();
-
-    // 2단계: 가장자리 색상
-    if (style.edgeColorEnabled) {
-      const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
-
-      ctx.save();
-      ctx.strokeStyle = edgeColor;
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      cellSet.forEach(key => {
-        const { adj, edges } = cellEdges.get(key);
-
-        if (!adj.hasTop && edges.top.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.top[0].x, edges.top[0].y);
-          edges.top.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasBottom && edges.bottom.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.bottom[0].x, edges.bottom[0].y);
-          edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasLeft && edges.left.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.left[0].x, edges.left[0].y);
-          edges.left.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-        if (!adj.hasRight && edges.right.length > 1) {
-          ctx.beginPath();
-          ctx.moveTo(edges.right[0].x, edges.right[0].y);
-          edges.right.forEach(p => ctx.lineTo(p.x, p.y));
-          ctx.stroke();
-        }
-      });
-
-      ctx.restore();
-    }
-
-    // 3단계: 종이 섬유 효과
-    if (style.fiberEnabled) {
-      const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
-      const fiberCount = style.fiberCount || 20;
-      renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
-    }
-  }
-
-  /**
-   * 입력 검증 레이어
-   */
-
-
-  /**
-   * 표준화된 에러 코드
-   */
-  const ERROR_CODES = {
-    REQUIRED: 'REQUIRED',
-    TYPE_ERROR: 'TYPE_ERROR',
-    INVALID_FORMAT: 'INVALID_FORMAT',
-    RANGE_ERROR: 'RANGE_ERROR',
-    MIN_LENGTH: 'MIN_LENGTH',
-    UNSUPPORTED_TYPE: 'UNSUPPORTED_TYPE',
-    CUSTOM_RANGE_ERROR: 'CUSTOM_RANGE_ERROR'
-  };
-
-  /**
-   * viz-api 설정 검증 클래스
-   * 모든 검증을 중앙에서 처리하고 표준화된 에러 형식 반환
-   *
-   * @typedef {Object} ValidationError
-   * @property {string} field - 에러 발생 필드
-   * @property {string} code - 에러 코드 (ERROR_CODES)
-   * @property {string} message - 사용자 친화적 메시지
-   *
-   * @typedef {Object} ValidationResult
-   * @property {boolean} valid - 검증 성공 여부
-   * @property {any} data - 성공 시 파싱된 데이터
-   * @property {ValidationError[]} errors - 에러 목록
-   */
-  class ConfigValidator {
-    /**
-     * viz-api config 객체 전체 검증
-     * @param {Object} config - viz-api 설정 객체
-     * @param {'chart'|'table'|'scatter'} purpose - 렌더링 목적
-     * @returns {ValidationResult}
-     */
-    static validate(config, purpose = 'chart') {
-      const errors = [];
-      let parsedData = null;
-
-      // 1. config 객체 자체 검증
-      if (!config || typeof config !== 'object') {
-        this._addError(errors, 'config', ERROR_CODES.REQUIRED, 'config 객체가 필요합니다.');
-        return { valid: false, data: null, errors };
-      }
-
-      // 2. 필수 필드 검증
-      this._validateRequired(config, errors);
-
-      // 조기 반환: 필수 필드 누락 시
-      if (errors.length > 0) {
-        return { valid: false, data: null, errors };
-      }
-
-      // 산점도는 별도 검증 로직
-      if (purpose === 'scatter') {
-        return this._validateScatter(config, errors);
-      }
-
-      // 2.5. 테이블 데이터인데 purpose가 chart인 경우 경고
-      if (purpose === 'chart' && typeof config.data === 'string') {
-        const tablePatterns = ['헤더:', '헤더 :', 'Header:', 'header:'];
-        const looksLikeTable = tablePatterns.some(p => config.data.includes(p));
-        if (looksLikeTable) {
-          console.warn('[viz-api] 테이블 데이터 형식("헤더:")인데 purpose가 "chart"입니다. 테이블을 원하면 "purpose": "table"을 추가하세요.');
-        }
-      }
-
-      // 3. 테이블 타입 검증
-      // 차트는 tableType 무시하고 frequency 데이터로 처리
-      const tableType = purpose === 'chart' ? 'frequency' : (config.tableType || 'basic-table');
-      if (!this._isValidTableType(tableType)) {
-        this._addError(
-          errors,
-          'tableType',
-          ERROR_CODES.UNSUPPORTED_TYPE,
-          `지원하지 않는 테이블 타입: ${tableType}`
-        );
-      }
-
-      // 4. 데이터 파싱 및 검증
-      const parseResult = this._validateAndParseData(config, tableType, errors);
-      if (parseResult && parseResult.success) {
-        parsedData = {
-          tableType,
-          rawData: parseResult.data,
-          parseResult
-        };
-      }
-
-      // 5. 계급 설정 검증 (차트인 경우)
-      if (purpose === 'chart') {
-        this._validateClassSettings(config, errors);
-      }
-
-      // 6. 커스텀 범위 검증
-      if (config.classRange) {
-        this._validateCustomRange(config.classRange, errors);
-      }
-
-      // 7. 옵션 검증
-      if (config.options) {
-        this._validateOptions(config.options, purpose, errors);
-      }
-
-      return {
-        valid: errors.length === 0,
-        data: errors.length === 0 ? parsedData : null,
-        errors
-      };
-    }
-
-    /**
-     * 산점도 데이터 검증
-     * @private
-     */
-    static _validateScatter(config, errors) {
-      const data = config.data;
-
-      // data가 2D 배열인지 검증
-      if (!Array.isArray(data)) {
-        this._addError(errors, 'data', ERROR_CODES.TYPE_ERROR, 'scatter data는 2D 배열이어야 합니다. 예: [[x1, y1], [x2, y2], ...]');
-        return { valid: false, data: null, errors };
-      }
-
-      // 최소 2개 포인트 필요
-      if (data.length < 2) {
-        this._addError(errors, 'data', ERROR_CODES.MIN_LENGTH, '최소 2개의 데이터 포인트가 필요합니다.');
-        return { valid: false, data: null, errors };
-      }
-
-      // 각 포인트가 [x, y] 형식인지 검증
-      for (let i = 0; i < data.length; i++) {
-        const point = data[i];
-        if (!Array.isArray(point) || point.length !== 2) {
-          this._addError(errors, 'data', ERROR_CODES.INVALID_FORMAT, `${i}번째 포인트는 [x, y] 형식이어야 합니다.`);
-          return { valid: false, data: null, errors };
-        }
-        if (typeof point[0] !== 'number' || typeof point[1] !== 'number') {
-          this._addError(errors, 'data', ERROR_CODES.TYPE_ERROR, `${i}번째 포인트의 x, y는 숫자여야 합니다.`);
-          return { valid: false, data: null, errors };
-        }
-      }
-
-      return {
-        valid: true,
-        data: { rawData: data },
-        errors
-      };
-    }
-
-    // =====================
-    // 내부 검증 메서드들
-    // =====================
-
-    /**
-     * 필수 필드 검증
-     * @private
-     */
-    static _validateRequired(config, errors) {
-      // datasets 배열이 있으면 data는 필수가 아님
-      const hasDatasets = Array.isArray(config.datasets) && config.datasets.length > 0;
-      if (!config.data && !hasDatasets) {
-        this._addError(errors, 'data', ERROR_CODES.REQUIRED, 'data 필드는 필수입니다.');
-      }
-    }
-
-    /**
-     * 데이터 파싱 및 검증
-     * @private
-     */
-    static _validateAndParseData(config, tableType, errors) {
-      // datasets 배열이 있으면 data 검증 스킵
-      const hasDatasets = Array.isArray(config.datasets) && config.datasets.length > 0;
-      if (hasDatasets) {
-        return { success: true, data: null };
-      }
-
-      // 데이터 문자열 변환 (배열 지원)
-      const dataString = Array.isArray(config.data)
-        ? config.data.join(', ')
-        : config.data;
-
-      // 빈 문자열 체크
-      if (!dataString || (typeof dataString === 'string' && !dataString.trim())) {
-        this._addError(errors, 'data', ERROR_CODES.REQUIRED, '데이터가 비어있습니다.');
-        return null;
-      }
-
-      // 파서를 통한 검증
-      const parseResult = ParserFactory.parse(tableType, dataString);
-
-      if (!parseResult.success) {
-        this._addError(
-          errors,
-          'data',
-          ERROR_CODES.INVALID_FORMAT,
-          parseResult.error || '데이터 형식이 올바르지 않습니다.'
-        );
-      }
-
-      return parseResult;
-    }
-
-    /**
-     * 계급 설정 검증 (도수분포표 전용)
-     * @private
-     */
-    static _validateClassSettings(config, errors) {
-      // classCount 검증
-      if (config.classCount !== undefined && config.classCount !== null) {
-        const count = config.classCount;
-
-        if (!Number.isInteger(count)) {
-          this._addError(
-            errors,
-            'classCount',
-            ERROR_CODES.TYPE_ERROR,
-            '계급 개수는 정수여야 합니다.'
-          );
-        } else if (count < CONFIG.MIN_CLASS_COUNT || count > CONFIG.MAX_CLASS_COUNT) {
-          this._addError(
-            errors,
-            'classCount',
-            ERROR_CODES.RANGE_ERROR,
-            `계급 개수는 ${CONFIG.MIN_CLASS_COUNT}~${CONFIG.MAX_CLASS_COUNT} 사이여야 합니다.`
-          );
-        }
-      }
-
-      // classWidth 검증
-      if (config.classWidth !== undefined && config.classWidth !== null && config.classWidth !== '') {
-        const width = config.classWidth;
-
-        if (isNaN(width) || width <= 0) {
-          this._addError(
-            errors,
-            'classWidth',
-            ERROR_CODES.RANGE_ERROR,
-            '계급 간격은 0보다 큰 숫자여야 합니다.'
-          );
-        } else if (width < CONFIG.MIN_CLASS_WIDTH) {
-          this._addError(
-            errors,
-            'classWidth',
-            ERROR_CODES.RANGE_ERROR,
-            `계급 간격은 최소 ${CONFIG.MIN_CLASS_WIDTH} 이상이어야 합니다.`
-          );
-        }
-      }
-    }
-
-    /**
-     * 커스텀 범위 검증
-     * @private
-     */
-    static _validateCustomRange(range, errors) {
-      const { firstStart, secondStart, lastEnd } = range;
-
-      // 필수 필드 체크
-      if (firstStart === undefined || secondStart === undefined || lastEnd === undefined) {
-        this._addError(
-          errors,
-          'classRange',
-          ERROR_CODES.REQUIRED,
-          'classRange는 firstStart, secondStart, lastEnd가 모두 필요합니다.'
-        );
-        return;
-      }
-
-      // 논리적 순서 검증
-      if (firstStart < 0) {
-        this._addError(
-          errors,
-          'classRange.firstStart',
-          ERROR_CODES.CUSTOM_RANGE_ERROR,
-          '첫 계급의 시작값은 0 이상이어야 합니다.'
-        );
-      }
-
-      if (secondStart <= firstStart) {
-        this._addError(
-          errors,
-          'classRange.secondStart',
-          ERROR_CODES.CUSTOM_RANGE_ERROR,
-          '두 번째 계급의 시작값은 첫 계급의 시작값보다 커야 합니다.'
-        );
-      }
-
-      if (lastEnd <= secondStart) {
-        this._addError(
-          errors,
-          'classRange.lastEnd',
-          ERROR_CODES.CUSTOM_RANGE_ERROR,
-          '마지막 계급의 끝값은 두 번째 계급의 시작값보다 커야 합니다.'
-        );
-      }
-
-      // 간격으로 나누어 떨어지는지 검증
-      const classWidth = secondStart - firstStart;
-      const totalRange = lastEnd - firstStart;
-      if (classWidth > 0 && totalRange % classWidth !== 0) {
-        this._addError(
-          errors,
-          'classRange',
-          ERROR_CODES.CUSTOM_RANGE_ERROR,
-          `전체 범위(${totalRange})가 간격(${classWidth})으로 나누어 떨어지지 않습니다.`
-        );
-      }
-    }
-
-    /**
-     * 옵션 검증
-     * @private
-     */
-    static _validateOptions(options, purpose, errors) {
-      // cellAnimations 검증
-      if (options.cellAnimations && !Array.isArray(options.cellAnimations)) {
-        this._addError(
-          errors,
-          'options.cellAnimations',
-          ERROR_CODES.TYPE_ERROR,
-          'cellAnimations는 배열이어야 합니다.'
-        );
-      }
-
-      // corruption 옵션 검증
-      if (options.corruption?.enabled && !options.corruption.cells) {
-        this._addError(
-          errors,
-          'options.corruption.cells',
-          ERROR_CODES.REQUIRED,
-          'corruption.enabled가 true일 때 cells는 필수입니다.'
-        );
-      }
-    }
-
-    // =====================
-    // 헬퍼 메서드
-    // =====================
-
-    /**
-     * 테이블 타입 유효성 확인
-     * @private
-     */
-    static _isValidTableType(type) {
-      return Object.values(CONFIG.TABLE_TYPES).includes(type);
-    }
-
-    /**
-     * 에러 추가 헬퍼
-     * @private
-     */
-    static _addError(errors, field, code, message) {
-      errors.push({ field, code, message });
-    }
-  }
-
-  /**
    * Visualization API
    * External API for creating charts and tables easily
    */
@@ -14754,262 +9939,11 @@
   let tableInstanceCounter = 0;
 
   /**
-   * Collect all configs that will render to the same canvas
-   * (current element + all elements with data-viz-canvas pointing to current)
-   * @param {string} containerId - Current container ID
-   * @param {Object} currentConfig - Current config object
-   * @returns {Array} Array of { config, classes, maxFrequency }
-   */
-  function collectRelatedConfigs(containerId, currentConfig) {
-    const results = [];
-
-    // 1. Add current config
-    const currentResult = analyzeConfig(currentConfig);
-    if (currentResult) {
-      results.push(currentResult);
-    }
-
-    // 2. Find all elements with data-viz-canvas pointing to this container
-    const relatedElements = document.querySelectorAll(`[data-viz-canvas="${containerId}"]`);
-
-    relatedElements.forEach(el => {
-      const configStr = el.getAttribute('data-viz-config');
-      if (!configStr) return;
-
-      try {
-        const config = JSON.parse(configStr);
-        const result = analyzeConfig(config);
-        if (result) {
-          results.push(result);
-        }
-      } catch (e) {
-        console.warn(`[viz-api] Failed to parse config for ${el.id}:`, e);
-      }
-    });
-
-    return results;
-  }
-
-  /**
-   * Analyze config to extract class count and max frequency
-   * @param {Object} config - Configuration object
-   * @returns {Object|null} { classCount, maxFrequency } or null
-   */
-  function analyzeConfig(config) {
-    if (!config || !config.data) return null;
-
-    try {
-      // Parse data
-      const dataString = Array.isArray(config.data)
-        ? config.data.join(', ')
-        : config.data;
-      const rawData = DataProcessor.parseInput(dataString);
-      if (rawData.length === 0) return null;
-
-      // Calculate stats and classes
-      const stats = DataProcessor.calculateBasicStats(rawData);
-      const classCount = config.classCount || 5;
-      const classWidth = config.classWidth || null;
-      const customRange = config.classRange || null;
-      const { classes } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
-
-      // Calculate frequencies
-      DataProcessor.calculateFrequencies(rawData, classes);
-
-      // Find max frequency
-      const maxFrequency = Math.max(...classes.map(c => c.frequency));
-
-      return {
-        classCount: classes.length,
-        maxFrequency,
-        classes
-      };
-    } catch (e) {
-      console.warn('[viz-api] Failed to analyze config:', e);
-      return null;
-    }
-  }
-
-  /**
-   * Calculate unified values from all related configs
-   * @param {Array} configs - Array from collectRelatedConfigs
-   * @returns {Object} { unifiedMaxY, unifiedClassCount }
-   */
-  function calculateUnifiedValues(configs) {
-    if (!configs || configs.length === 0) {
-      return { unifiedMaxY: null, unifiedClassCount: null };
-    }
-
-    const maxFrequency = Math.max(...configs.map(c => c.maxFrequency));
-    const maxClassCount = Math.max(...configs.map(c => c.classCount));
-
-    // Add some padding to maxY (round up to next integer + 1)
-    const unifiedMaxY = Math.ceil(maxFrequency) + 1;
-    const unifiedClassCount = maxClassCount;
-
-    console.log(`[viz-api] Unified values calculated: maxY=${unifiedMaxY}, classCount=${unifiedClassCount}`);
-
-    return { unifiedMaxY, unifiedClassCount };
-  }
-
-  /**
-   * Parse CSS linear-gradient string to color stops
-   * @param {string} gradientStr - CSS linear-gradient string
-   * @returns {Object|null} { colors: [startColor, endColor], angle: number } or null if invalid
-   * @example
-   * parseLinearGradient('linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)')
-   * // returns { colors: ['#AEFF7E', '#68994C'], angle: 180 }
-   */
-  function parseLinearGradient(gradientStr) {
-    if (!gradientStr || typeof gradientStr !== 'string') return null;
-
-    // Match linear-gradient pattern
-    const match = gradientStr.match(/linear-gradient\s*\(\s*([^,]+)\s*,\s*(.+)\s*\)/i);
-    if (!match) return null;
-
-    const [, angleOrDirection, colorStops] = match;
-
-    // Parse angle (180deg, to bottom, etc.)
-    let angle = 180; // default: top to bottom
-    if (angleOrDirection.includes('deg')) {
-      angle = parseFloat(angleOrDirection);
-    } else if (angleOrDirection.includes('to bottom')) {
-      angle = 180;
-    } else if (angleOrDirection.includes('to top')) {
-      angle = 0;
-    } else if (angleOrDirection.includes('to right')) {
-      angle = 90;
-    } else if (angleOrDirection.includes('to left')) {
-      angle = 270;
-    }
-
-    // Parse color stops
-    // Match: #hex, rgb(), rgba(), color names with optional percentage
-    const colorPattern = /(#[0-9A-Fa-f]{3,8}|rgba?\s*\([^)]+\)|[a-zA-Z]+)\s*(\d+%)?/g;
-    const colors = [];
-    let colorMatch;
-
-    while ((colorMatch = colorPattern.exec(colorStops)) !== null) {
-      colors.push(colorMatch[1].trim());
-    }
-
-    if (colors.length < 2) return null;
-
-    return {
-      colors: [colors[0], colors[colors.length - 1]], // start and end colors
-      angle
-    };
-  }
-
-  /**
-   * Apply custom colors from config to CONFIG object
-   * @param {Object} options - Options object from config
-   */
-  function applyCustomColors(options) {
-    // Histogram colors
-    if (options.histogramColor) {
-      const hc = options.histogramColor;
-
-      // Create custom preset
-      const customHistogram = { ...CONFIG.HISTOGRAM_COLOR_PRESETS.default };
-
-      if (typeof hc === 'string') {
-        // Single color or gradient string
-        const parsed = parseLinearGradient(hc);
-        if (parsed) {
-          customHistogram.fillStart = parsed.colors[0];
-          customHistogram.fillEnd = parsed.colors[1];
-          customHistogram.strokeStart = parsed.colors[0];
-          customHistogram.strokeEnd = parsed.colors[1];
-        } else {
-          // Single color
-          customHistogram.fillStart = hc;
-          customHistogram.fillEnd = hc;
-          customHistogram.strokeStart = hc;
-          customHistogram.strokeEnd = hc;
-        }
-      } else if (typeof hc === 'object') {
-        // Object with fill, stroke, and alpha
-        if (hc.fill) {
-          const parsed = parseLinearGradient(hc.fill);
-          if (parsed) {
-            customHistogram.fillStart = parsed.colors[0];
-            customHistogram.fillEnd = parsed.colors[1];
-          } else if (typeof hc.fill === 'string') {
-            customHistogram.fillStart = hc.fill;
-            customHistogram.fillEnd = hc.fill;
-          }
-        }
-        if (hc.stroke) {
-          const parsed = parseLinearGradient(hc.stroke);
-          if (parsed) {
-            customHistogram.strokeStart = parsed.colors[0];
-            customHistogram.strokeEnd = parsed.colors[1];
-          } else if (typeof hc.stroke === 'string') {
-            customHistogram.strokeStart = hc.stroke;
-            customHistogram.strokeEnd = hc.stroke;
-          }
-        }
-        // Alpha (opacity) support
-        if (hc.alpha !== undefined) {
-          customHistogram.alpha = hc.alpha;
-        }
-      }
-
-      // Register custom preset and use it
-      CONFIG.HISTOGRAM_COLOR_PRESETS.custom = customHistogram;
-      CONFIG.HISTOGRAM_COLOR_PRESET = 'custom';
-    }
-
-    // Polygon colors
-    if (options.polygonColor) {
-      const pc = options.polygonColor;
-
-      // Create custom preset
-      const customPolygon = { ...CONFIG.POLYGON_COLOR_PRESETS.default };
-
-      if (typeof pc === 'string') {
-        // Single color or gradient string
-        const parsed = parseLinearGradient(pc);
-        if (parsed) {
-          customPolygon.gradientStart = parsed.colors[0];
-          customPolygon.gradientEnd = parsed.colors[1];
-          customPolygon.pointColor = parsed.colors[0];
-        } else {
-          customPolygon.gradientStart = pc;
-          customPolygon.gradientEnd = pc;
-          customPolygon.pointColor = pc;
-        }
-      } else if (typeof pc === 'object') {
-        // Object with line and point
-        if (pc.line) {
-          const parsed = parseLinearGradient(pc.line);
-          if (parsed) {
-            customPolygon.gradientStart = parsed.colors[0];
-            customPolygon.gradientEnd = parsed.colors[1];
-          } else if (typeof pc.line === 'string') {
-            customPolygon.gradientStart = pc.line;
-            customPolygon.gradientEnd = pc.line;
-          }
-        }
-        if (pc.point) {
-          customPolygon.pointColor = pc.point;
-        }
-      }
-
-      // Register custom preset and use it
-      CONFIG.POLYGON_COLOR_PRESETS.custom = customPolygon;
-      CONFIG.POLYGON_COLOR_PRESET = 'custom';
-    }
-  }
-
-  /**
    * Main Rendering API
    * @param {HTMLElement} element - Container element to append canvas
    * @param {Object} config - Configuration object
    * @param {string} [config.purpose='chart'] - Rendering purpose ('chart' | 'table')
    * @param {string} config.data - Raw data string (comma/space separated)
-   * @param {Array} [config.datasets] - Multiple datasets for overlay rendering
    * @param {number} [config.classCount=5] - Number of classes
    * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
    * @param {Object} [config.options] - Additional options
@@ -15022,17 +9956,11 @@
     const purpose = config.purpose || 'chart';
 
     if (purpose === 'chart') {
-      // datasets 배열이 있으면 복수 도수다각형 렌더링
-      if (Array.isArray(config.datasets) && config.datasets.length > 0) {
-        return renderMultiplePolygons(element, config);
-      }
       return renderChart(element, config);
     } else if (purpose === 'table') {
       return renderTable(element, config);
-    } else if (purpose === 'scatter') {
-      return renderScatter(element, config);
     } else {
-      return { error: `Invalid purpose: ${purpose}. Use 'chart', 'table', or 'scatter'.` };
+      return { error: `Invalid purpose: ${purpose}. Use 'chart' or 'table'.` };
     }
   }
 
@@ -15040,65 +9968,54 @@
    * Chart Rendering API
    * @param {HTMLElement} element - Container element to append canvas
    * @param {Object} config - Configuration object
-   * @param {string} [config.tableType] - Table type (ignored for chart, used internally)
+   * @param {string} config.tableType - Table type ('frequency', 'stem-leaf', etc.)
    * @param {string} config.data - Raw data string (comma/space separated)
    * @param {number} [config.classCount=5] - Number of classes (for frequency table)
    * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
-   * @param {Object} [config.classRange] - Custom class range (overrides classCount/classWidth)
-   * @param {number} config.classRange.firstStart - First class start value (e.g., 12 for 12~14)
-   * @param {number} config.classRange.secondStart - Second class start value (determines interval)
-   * @param {number} config.classRange.lastEnd - Last class end value
    * @param {Object} [config.options] - Additional options
    * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
    * @param {string} [config.options.dataType='relativeFrequency'] - Data type ('frequency' | 'relativeFrequency')
    * @param {boolean} [config.options.showHistogram=true] - Show histogram bars
    * @param {boolean} [config.options.showPolygon=true] - Show frequency polygon
    * @param {boolean} [config.options.animation=true] - Enable animation
-   * @param {Object} [config.options.callout] - Callout (label) settings
-   * @param {boolean} [config.options.callout.enabled=false] - Enable callout on highest point
-   * @param {string} [config.options.callout.template] - Template string (e.g., '{min}~{max}\n{frequency}')
-   * @param {string} [config.options.callout.preset='default'] - Color preset ('default'|'primary'|'secondary'|'tertiary')
    * @returns {Promise<Object>} { chartRenderer, canvas, classes } or { error }
    */
-
   async function renderChart(element, config) {
     try {
       // Wait for KaTeX fonts to load
       await waitForFonts();
-
-      // 1. Element validation
+      // 1. Parameter validation
       if (!element || !(element instanceof HTMLElement)) {
-        return {
-          error: 'element must be a valid HTMLElement',
-          errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
-        };
+        return { error: 'element must be a valid HTMLElement' };
       }
 
-      // datasets 배열이 있으면 복수 도수다각형 렌더링
-      if (Array.isArray(config.datasets) && config.datasets.length > 0) {
-        return renderMultiplePolygons(element, config);
+      if (!config || !config.data) {
+        return { error: 'config.data is required' };
       }
 
-      // 2. Config validation (ConfigValidator 중앙 집중 검증)
-      const validation = ConfigValidator.validate(config, 'chart');
-      if (!validation.valid) {
-        return {
-          error: validation.errors[0]?.message || 'Validation failed',
-          errors: validation.errors
-        };
+      const tableType = config.tableType || 'frequency';
+
+      // Currently only frequency type supports chart
+      if (tableType !== 'frequency') {
+        return { error: `'${tableType}' type does not support chart. Only 'frequency' type is supported.` };
       }
 
-      // 검증 통과 시 파싱된 데이터 사용
-      const { tableType, rawData } = validation.data;
+      // 2. Parse data (support both array and string format)
+      const dataString = Array.isArray(config.data)
+        ? config.data.join(', ')
+        : config.data;
+      const rawData = DataProcessor.parseInput(dataString);
+      if (rawData.length === 0) {
+        return { error: 'No valid numeric data found' };
+      }
 
       // 3. Calculate statistics
       const stats = DataProcessor.calculateBasicStats(rawData);
 
-      // 4. Create classes (support custom range)
+      // 4. Create classes
       const classCount = config.classCount || 5;
       const classWidth = config.classWidth || null;
-      const customRange = config.classRange || null;
-      const { classes, classInterval } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
+      const { classes, classInterval } = DataProcessor.createClasses(stats, classCount, classWidth);
 
       // 5. Calculate frequencies
       DataProcessor.calculateFrequencies(rawData, classes);
@@ -15106,84 +10023,25 @@
       // 6. Generate ellipsis info
       const ellipsisInfo = DataProcessor.shouldShowEllipsis(classes);
 
-      // 7. data-viz-canvas 속성으로 타겟 캔버스 확인
-      const canvasContainerId = element.getAttribute('data-viz-canvas');
-      let targetContainer = element;
-      let isAdditionalRender = false;
+      // 7. Create canvas element (support custom canvasSize)
+      const canvasId = `viz-chart-${++chartInstanceCounter}`;
+      const canvas = document.createElement('canvas');
+      canvas.id = canvasId;
+      const canvasSize = config.canvasSize || CONFIG.CANVAS_WIDTH;
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', 'Frequency histogram and relative frequency polygon');
 
-      if (canvasContainerId) {
-        const existingContainer = document.getElementById(canvasContainerId);
-        if (existingContainer) {
-          targetContainer = existingContainer;
-          isAdditionalRender = true;
-          console.log(`[viz-api] data-viz-canvas 발견: ${element.id} → ${canvasContainerId}`);
-        } else {
-          console.warn(`[viz-api] data-viz-canvas 대상을 찾을 수 없음: ${canvasContainerId}, 기본 컨테이너 사용`);
-        }
-      }
+      element.appendChild(canvas);
 
-      // 8. 캔버스 생성 또는 재사용
-      let canvas, canvasId, chartRenderer;
-
-      if (isAdditionalRender) {
-        // 기존 캔버스 및 ChartRenderer 인스턴스 재사용
-        canvas = targetContainer.querySelector('canvas');
-        if (!canvas) {
-          return { error: `No canvas found in target container: ${canvasContainerId}` };
-        }
-        canvasId = canvas.id;
-
-        // 기존 ChartRenderer 인스턴스 재사용 (레이어/애니메이션 유지)
-        if (canvas.__chartRenderer) {
-          chartRenderer = canvas.__chartRenderer;
-          console.log(`[viz-api] 기존 ChartRenderer 재사용: ${canvasId}`);
-        } else {
-          // 인스턴스가 없으면 새로 생성 (fallback)
-          chartRenderer = new ChartRenderer(canvasId);
-          canvas.__chartRenderer = chartRenderer;
-          console.warn(`[viz-api] ChartRenderer 인스턴스가 없어 새로 생성: ${canvasId}`);
-        }
-      } else {
-        // 새 캔버스 생성
-        canvasId = `viz-chart-${++chartInstanceCounter}`;
-        canvas = document.createElement('canvas');
-        canvas.id = canvasId;
-        // canvasSize는 정사각형 단축 옵션, canvasWidth/canvasHeight는 개별 설정
-        if (config.canvasSize) {
-          canvas.width = config.canvasSize;
-          canvas.height = config.canvasSize;
-        } else {
-          canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
-          canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
-        }
-
-        // 차트 폰트 스케일링을 위한 캔버스 크기 설정
-        CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
-
-        canvas.setAttribute('role', 'img');
-        canvas.setAttribute('aria-label', 'Frequency histogram and relative frequency polygon');
-        element.appendChild(canvas);
-        chartRenderer = new ChartRenderer(canvasId);
-
-        // ChartRenderer 인스턴스를 캔버스에 저장 (추가 렌더링 시 재사용)
-        canvas.__chartRenderer = chartRenderer;
-
-        // 통합 좌표 시스템 자동 계산 (복수 도수다각형 지원)
-        // 현재 컨테이너를 참조하는 모든 config 수집 및 분석
-        const relatedConfigs = collectRelatedConfigs(element.id, config);
-        if (relatedConfigs.length > 1) {
-          const { unifiedMaxY, unifiedClassCount } = calculateUnifiedValues(relatedConfigs);
-          canvas.__unifiedMaxY = unifiedMaxY;
-          canvas.__unifiedClassCount = unifiedClassCount;
-          console.log(`[viz-api] 복수 도수다각형 감지: ${relatedConfigs.length}개, 통합 값 저장됨`);
-        }
-      }
+      // 8. Create ChartRenderer and render
+      const chartRenderer = new ChartRenderer(canvasId);
 
       // Process options (support both config.animation object and options.animation boolean)
       const options = config.options || {};
       const axisLabels = options.axisLabels || null;
-      // Support both camelCase and lowercase for dataType
-      const dataType = options.dataType || options.datatype || 'relativeFrequency';
+      const dataType = options.dataType || 'relativeFrequency';
       const animationConfig = config.animation !== undefined ? config.animation : options.animation;
       const animation = typeof animationConfig === 'object'
         ? animationConfig.enabled !== false
@@ -15195,131 +10053,14 @@
       CONFIG.SHOW_HISTOGRAM = showHistogram;
       CONFIG.SHOW_POLYGON = showPolygon;
 
-      // Dashed lines (vertical lines from polygon points to x-axis)
-      CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
-
-      // Grid settings
-      const gridOptions = options.grid || {};
-      CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;
-      CONFIG.GRID_SHOW_VERTICAL = gridOptions.showVertical !== false;
-
-      // Axis label visibility settings
-      const axisOptions = options.axis || {};
-      CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
-      CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
-      if (axisOptions.yLabelFormat) {
-        CONFIG.AXIS_Y_LABEL_FORMAT = axisOptions.yLabelFormat;
-      }
-
-      // Congruent triangles settings
-      const triangleOptions = options.congruentTriangles || {};
-      CONFIG.SHOW_CONGRUENT_TRIANGLES = triangleOptions.enabled || false;
-      if (triangleOptions.boundary !== undefined && triangleOptions.boundary !== null) {
-        // 경계값 → 인덱스 변환
-        for (let j = 0; j < classes.length; j++) {
-          if (classes[j].max === triangleOptions.boundary) {
-            CONFIG.CONGRUENT_TRIANGLE_INDEX = j;
-            break;
-          }
-        }
-      }
-
-      // Color presets (support both camelCase and lowercase)
-      const histogramColorPreset = options.histogramColorPreset || options.histogramcolorpreset || 'default';
-      const polygonColorPreset = options.polygonColorPreset || options.polygoncolorpreset || 'default';
-      CONFIG.HISTOGRAM_COLOR_PRESET = histogramColorPreset;
-      CONFIG.POLYGON_COLOR_PRESET = polygonColorPreset;
-
-      // Apply custom colors (overrides presets if specified)
-      applyCustomColors(options);
-
-      // Callout options
-      const calloutOptions = options.callout || {};
-      const calloutEnabled = calloutOptions.enabled || false;
-      const calloutTemplate = calloutEnabled
-        ? (calloutOptions.template || CONFIG.CALLOUT_TEMPLATE)
-        : null;
-      const calloutPreset = calloutOptions.preset || 'default';
-
-      // Apply callout preset to polygon color (callout uses polygon preset colors)
-      if (calloutEnabled && calloutPreset !== 'default') {
-        CONFIG.POLYGON_COLOR_PRESET = calloutPreset;
-      }
-
-      // Custom bar labels (막대 내부 커스텀 라벨)
-      // 배열 형식: ["A", null, "B"] - null은 해당 막대 스킵
-      const customBarLabels = options.customBarLabels;
-      if (Array.isArray(customBarLabels) && customBarLabels.length > 0) {
-        CONFIG.SHOW_BAR_CUSTOM_LABELS = true;
-        CONFIG.BAR_CUSTOM_LABELS = {};
-        customBarLabels.forEach((label, idx) => {
-          if (label !== null && label !== undefined) {
-            CONFIG.BAR_CUSTOM_LABELS[idx] = label;
-          }
-        });
-      } else {
-        CONFIG.SHOW_BAR_CUSTOM_LABELS = false;
-        CONFIG.BAR_CUSTOM_LABELS = {};
-      }
-
-      // Y축 간격 커스텀 설정
-      const customYInterval = options.customYInterval || null;
-
-      // 다각형 숨김 옵션 (점/선)
-      const polygonOptions = options.polygon || {};
-      const hiddenPolygonIndices = polygonOptions.hidden || [];
-
       if (!animation) {
         chartRenderer.disableAnimation();
       }
 
       // 9. Draw chart
-      // 통합 좌표 시스템 값 (config 지정 > 캔버스 저장 값 > null)
-      const unifiedMaxY = config.unifiedMaxY || canvas.__unifiedMaxY || null;
-      const unifiedClassCount = config.unifiedClassCount || canvas.__unifiedClassCount || null;
-      const clearCanvas = !isAdditionalRender;  // 추가 렌더링이면 캔버스 지우지 않음
+      chartRenderer.draw(classes, axisLabels, ellipsisInfo, dataType);
 
-      // 추가 렌더링 시: 기존 타임라인 끝 시점 저장 (새 애니메이션 시작 시점)
-      const previousDuration = isAdditionalRender ? chartRenderer.timeline.duration : 0;
-
-      chartRenderer.draw(
-        classes,
-        axisLabels,
-        ellipsisInfo,
-        dataType,
-        null,
-        calloutTemplate,
-        clearCanvas,
-        unifiedMaxY,
-        unifiedClassCount,
-        customYInterval,
-        hiddenPolygonIndices
-      );
-
-      // 10. Apply corruption effect (if enabled)
-      if (options.corruption?.enabled) {
-        const coords = chartRenderer.currentCoords;
-        const chartInfo = {
-          padding: chartRenderer.padding,
-          barWidth: coords.xScale,
-          gap: 0,
-          chartHeight: coords.chartH,
-          gridDivisions: coords.gridDivisions,
-          canvasHeight: canvas.height,
-          barCount: classes.length
-        };
-        applyChartCorruption(chartRenderer.ctx, options.corruption, chartInfo);
-      }
-
-      // 11. Play animation
-      if (animation) {
-        // 추가 렌더링: 새 애니메이션 시작 시점으로 seek (기존 레이어는 완료 상태 유지)
-        // 첫 렌더링: 처음부터 재생
-        chartRenderer.timeline.seekTo(previousDuration);
-        chartRenderer.playAnimation();
-      }
-
-      // 11. Return result
+      // 10. Return result
       return {
         chartRenderer,
         canvas,
@@ -15338,66 +10079,65 @@
    * Table Rendering API
    * @param {HTMLElement} element - Container element to append canvas
    * @param {Object} config - Configuration object
-   * @param {string} [config.tableType='basic-table'] - Table type
-   *   ('basic-table' | 'category-matrix' | 'stem-leaf')
-   * @param {string} config.data - Raw data string (format depends on tableType)
-   * @param {Array<Object>} [config.cellVariables] - Cell variable replacements
+   * @param {string} config.data - Raw data string (comma/space separated)
+   * @param {number} [config.classCount=5] - Number of classes
+   * @param {number} [config.classWidth] - Class width (auto-calculated if not specified)
    * @param {Object} [config.options] - Additional options
+   * @param {Object} [config.options.tableConfig] - Table configuration
    * @param {boolean} [config.options.animation=true] - Enable animation
-   * @param {boolean} [config.options.showTotal=true] - Show total row (basic-table only)
-   * @param {boolean} [config.options.showMergedHeader=true] - Show merged header (basic-table only)
-   * @returns {Promise<Object>} { tableRenderer, canvas, parsedData? } or { error }
+   * @returns {Promise<Object>} { tableRenderer, canvas, classes, stats } or { error }
    */
   async function renderTable(element, config) {
     try {
       // Wait for KaTeX fonts to load
       await waitForFonts();
-
-      // 1. Element validation
+      // 1. Parameter validation
       if (!element || !(element instanceof HTMLElement)) {
-        return {
-          error: 'element must be a valid HTMLElement',
-          errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
-        };
+        return { error: 'element must be a valid HTMLElement' };
       }
 
-      // 2. Config validation (ConfigValidator 중앙 집중 검증)
-      const validation = ConfigValidator.validate(config, 'table');
-      if (!validation.valid) {
-        return {
-          error: validation.errors[0]?.message || 'Validation failed',
-          errors: validation.errors
-        };
+      if (!config || !config.data) {
+        return { error: 'config.data is required' };
       }
 
-      // 검증 통과 시 파싱된 데이터 사용
-      const { tableType, rawData, parseResult } = validation.data;
-      const options = config.options || {};
-
-      // 3. Parse data (support both array and string format)
+      // 2. Parse data (support both array and string format)
       const dataString = Array.isArray(config.data)
         ? config.data.join(', ')
         : config.data;
+      const rawData = DataProcessor.parseInput(dataString);
+      if (rawData.length === 0) {
+        return { error: 'No valid numeric data found' };
+      }
 
-      // 4. Create canvas element
+      // 3. Calculate statistics
+      const stats = DataProcessor.calculateBasicStats(rawData);
+
+      // 4. Create classes
+      const classCount = config.classCount || 5;
+      const classWidth = config.classWidth || null;
+      const { classes } = DataProcessor.createClasses(stats, classCount, classWidth);
+
+      // 5. Calculate frequencies
+      DataProcessor.calculateFrequencies(rawData, classes);
+      DataProcessor.calculateRelativeAndCumulative(classes, rawData.length);
+
+      // 6. Create canvas element
       const canvasId = `viz-table-${++tableInstanceCounter}`;
       const canvas = document.createElement('canvas');
       canvas.id = canvasId;
       canvas.width = config.canvasWidth || CONFIG.TABLE_DEFAULT_WIDTH || 600;
       canvas.height = config.canvasHeight || CONFIG.TABLE_DEFAULT_HEIGHT || 400;
       canvas.setAttribute('role', 'img');
-      canvas.setAttribute('aria-label', 'Data table');
+      canvas.setAttribute('aria-label', 'Frequency distribution table');
 
       element.appendChild(canvas);
 
-      // 5. Create TableRenderer
+      // 7. Create TableRenderer and render
       const tableRenderer = new TableRenderer(canvasId);
 
-      // 테이블 설정 구성
-      const tableConfig = {
-        canvasWidth: config.canvasWidth,
-        canvasHeight: config.canvasHeight
-      };
+      // Process options
+      const options = config.options || {};
+      const tableConfig = options.tableConfig || null;
       const animationConfig = config.animation !== undefined ? config.animation : options.animation;
       const animation = typeof animationConfig === 'object'
         ? animationConfig.enabled !== false
@@ -15407,58 +10147,15 @@
         tableRenderer.animationMode = false;
       }
 
-      // 6. parseResult는 validator에서 이미 파싱됨 (validation.data.parseResult)
+      // 8. Draw table
+      tableRenderer.draw(classes, rawData.length, tableConfig);
 
-      // Apply basic-table specific options (평탄화된 구조)
-      if (tableType === 'basic-table') {
-        if (options.showTotal !== undefined) {
-          parseResult.data.showTotal = options.showTotal;
-        }
-        if (options.showMergedHeader !== undefined) {
-          parseResult.data.showMergedHeader = options.showMergedHeader;
-        }
-      }
-
-      // Apply cell variables if specified
-      let finalParseResult = parseResult;
-      if (config.cellVariables && Array.isArray(config.cellVariables)) {
-        finalParseResult = applyCellVariablesGeneric(config.cellVariables, parseResult, tableType);
-      }
-
-      // ParserAdapter로 통일된 형식 생성 (팩토리에서 활용 가능)
-      let adaptedData = null;
-      try {
-        adaptedData = ParserAdapter.adapt(tableType, finalParseResult);
-      } catch (e) {
-        // ParserAdapter 실패 시 기존 방식으로 fallback
-        console.warn('[viz-api] ParserAdapter 변환 실패, 기존 방식 사용:', e.message);
-      }
-
-      // tableConfig에 adaptedData 포함 (팩토리에서 rowCount, columnCount 등 활용)
-      const enhancedTableConfig = {
-        ...tableConfig,
-        adaptedData
-      };
-
-      tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
-
-      // Apply cell animations if specified
-      applyCellAnimationsFromConfig(tableRenderer, config);
-
-      // Apply corruption effect (if enabled)
-      if (options.corruption?.enabled) {
-        const scale = tableRenderer.scaleRatio || 1;
-        // 테이블 렌더러에서 실제 계산된 columnWidths와 rowHeights 가져오기
-        const actualTableInfo = getActualTableInfo(tableRenderer, tableType, finalParseResult.data, canvas, scale);
-        if (actualTableInfo) {
-          applyTableCorruption(tableRenderer.ctx, options.corruption, actualTableInfo);
-        }
-      }
-
+      // 9. Return result
       return {
         tableRenderer,
         canvas,
-        parsedData: parseResult.data
+        classes,
+        stats
       };
 
     } catch (error) {
@@ -15467,754 +10164,12 @@
     }
   }
 
-  /**
-   * Scatter Plot Rendering API
-   * @param {HTMLElement} element - Container element to append canvas
-   * @param {Object} config - Configuration object
-   * @param {Array<Array<number>>} config.data - Data points [[x1, y1], [x2, y2], ...]
-   * @param {number} [config.canvasWidth=600] - Canvas width
-   * @param {number} [config.canvasHeight=600] - Canvas height
-   * @param {Object} [config.options] - Additional options
-   * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
-   * @param {number} [config.options.pointSize=6] - Point radius
-   * @param {string} [config.options.pointColor='#93DA6A'] - Point color
-   * @returns {Promise<Object>} { canvas, coords, range } or { error }
-   */
-  async function renderScatter(element, config) {
-    try {
-      // Wait for KaTeX fonts to load
-      await waitForFonts();
+  var vizApi = { render, renderChart, renderTable };
 
-      // 1. Element validation
-      if (!element || !(element instanceof HTMLElement)) {
-        return {
-          error: 'element must be a valid HTMLElement',
-          errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
-        };
-      }
-
-      // 2. Data validation
-      const validation = ScatterRenderer.validate(config.data);
-      if (!validation.valid) {
-        return {
-          error: validation.error,
-          errors: [{ field: 'data', code: 'VALIDATION_ERROR', message: validation.error }]
-        };
-      }
-
-      // 3. Create canvas
-      const canvas = document.createElement('canvas');
-      element.appendChild(canvas);
-
-      // 4. Render scatter plot
-      const result = ScatterRenderer.render(canvas, config);
-
-      if (result.error) {
-        return { error: result.error };
-      }
-
-      // 5. Apply corruption effect
-      const options = config.options || {};
-      if (options.corruption?.enabled) {
-        const ctx = canvas.getContext('2d');
-        const scatterInfo = {
-          padding: result.padding,
-          xCellWidth: result.coords.xCellWidth,
-          yCellHeight: result.coords.yCellHeight,
-          xTotalCells: result.coords.xTotalCells,
-          yTotalCells: result.coords.yTotalCells,
-          canvasHeight: result.canvasHeight
-        };
-        applyScatterCorruption(ctx, options.corruption, scatterInfo);
-      }
-
-      return {
-        canvas,
-        coords: result.coords,
-        range: result.range
-      };
-
-    } catch (error) {
-      console.error('renderScatter error:', error);
-      return { error: error.message };
-    }
-  }
-
-  /**
-   * Apply cell animations from config
-   * @param {TableRenderer} tableRenderer - Table renderer instance
-   * @param {Object} config - Configuration object
-   */
-  function applyCellAnimationsFromConfig(tableRenderer, config) {
-    if (!config.cellAnimations || !Array.isArray(config.cellAnimations)) {
-      return;
-    }
-
-    config.cellAnimations.forEach(anim => {
-      tableRenderer.addAnimation({
-        rowIndex: anim.rowIndex,
-        colIndex: anim.colIndex,
-        rowStart: anim.rowStart,
-        rowEnd: anim.rowEnd,
-        colStart: anim.colStart,
-        colEnd: anim.colEnd,
-        duration: anim.duration,
-        repeat: anim.repeat
-      });
-    });
-
-    // Auto play if animations were added
-    if (config.cellAnimations.length > 0) {
-      const playOptions = config.cellAnimationOptions || {};
-      tableRenderer.playAllAnimations(playOptions);
-    }
-  }
-
-  /**
-   * Apply cell variables using rowIndex/colIndex (generic for all table types)
-   * Modifies the parsed data directly so the factory uses modified values
-   * @param {Array} cellVariables - Cell variable definitions [{ rowIndex, colIndex, value }, ...]
-   * @param {Object} parseResult - Parsed data result from parser
-   * @param {string} tableType - Table type
-   * @returns {Object} Modified parseResult
-   */
-  function applyCellVariablesGeneric(cellVariables, parseResult, tableType) {
-    if (!cellVariables || !Array.isArray(cellVariables)) return parseResult;
-    if (!parseResult || !parseResult.data) return parseResult;
-
-    // Create a deep copy to avoid mutating original
-    const data = JSON.parse(JSON.stringify(parseResult.data));
-
-    cellVariables.forEach(cv => {
-      if (cv.rowIndex === undefined || cv.colIndex === undefined) return;
-      if (cv.value === undefined) return;
-
-      // rowIndex 0 is header, data starts from rowIndex 1
-      const dataRowIndex = cv.rowIndex - 1;
-      if (dataRowIndex < 0) return; // Can't modify header
-
-      if (tableType === 'stem-leaf') {
-        applyCellVariableToStemLeaf(data, dataRowIndex, cv.colIndex, cv.value);
-      } else if (tableType === 'category-matrix') {
-        applyCellVariableToCategoryMatrix(data, dataRowIndex, cv.colIndex, cv.value);
-      } else if (tableType === 'basic-table') {
-        applyCellVariableToBasicTable(data, dataRowIndex, cv.colIndex, cv.value);
-      }
-    });
-
-    return { ...parseResult, data };
-  }
-
-  /**
-   * Apply cell variable to stem-leaf data
-   * Single mode: colIndex 0=stem, 1=leaves
-   * Compare mode: colIndex 0=leftLeaves, 1=stem, 2=rightLeaves
-   * @param {Object} data - Parsed stem-leaf data
-   * @param {number} dataRowIndex - Data row index (0-based, excluding header)
-   * @param {number} colIndex - Column index
-   * @param {string|Array} value - Value to set (array for leaves, string for stem)
-   */
-  function applyCellVariableToStemLeaf(data, dataRowIndex, colIndex, value) {
-    if (!data.stems || dataRowIndex >= data.stems.length) return;
-
-    const stemData = data.stems[dataRowIndex];
-    // 잎 값은 배열 또는 단일 값 지원
-    const leavesValue = Array.isArray(value) ? value : [value];
-
-    if (data.isSingleMode === false) {
-      // Compare mode: col0=leftLeaves, col1=stem, col2=rightLeaves
-      if (colIndex === 0) {
-        stemData.leftLeaves = leavesValue;
-      } else if (colIndex === 1) {
-        stemData.stem = Array.isArray(value) ? value[0] : value;
-      } else if (colIndex === 2) {
-        stemData.rightLeaves = leavesValue;
-      }
-    } else {
-      // Single mode: col0=stem, col1=leaves
-      if (colIndex === 0) {
-        stemData.stem = Array.isArray(value) ? value[0] : value;
-      } else if (colIndex === 1) {
-        stemData.leaves = leavesValue;
-      }
-    }
-  }
-
-  /**
-   * Apply cell variable to category-matrix data
-   */
-  function applyCellVariableToCategoryMatrix(data, dataRowIndex, colIndex, value) {
-    if (!data.rows || dataRowIndex >= data.rows.length) return;
-
-    const row = data.rows[dataRowIndex];
-    if (colIndex === 0) {
-      row.label = value;
-    } else {
-      const valueIndex = colIndex - 1;
-      if (row.values && valueIndex < row.values.length) {
-        row.values[valueIndex] = value;
-      }
-    }
-  }
-
-  /**
-   * Apply cell variable to basic-table data
-   * 합계 행도 편집 가능 (dataRowIndex === data.rows.length)
-   */
-  function applyCellVariableToBasicTable(data, dataRowIndex, colIndex, value) {
-    if (!data.rows) return;
-
-    // 합계 행 처리 (dataRowIndex === data.rows.length)
-    if (dataRowIndex === data.rows.length) {
-      if (data.totals && colIndex > 0) {
-        const valueIndex = colIndex - 1;
-        if (valueIndex < data.totals.length) {
-          data.totals[valueIndex] = value;
-        }
-      }
-      return;
-    }
-
-    // 일반 데이터 행 처리
-    if (dataRowIndex >= data.rows.length) return;
-
-    const row = data.rows[dataRowIndex];
-    if (colIndex === 0) {
-      row.label = value;
-    } else {
-      const valueIndex = colIndex - 1;
-      if (row.values && valueIndex < row.values.length) {
-        row.values[valueIndex] = value;
-      }
-    }
-  }
-
-  /**
-   * 테이블 렌더러의 레이어 매니저에서 실제 테이블 정보 추출 (corruption용)
-   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
-   * @param {string} tableType - 테이블 타입
-   * @param {Object} data - 파싱된 테이블 데이터
-   * @param {HTMLCanvasElement} canvas - Canvas 요소
-   * @param {number} scale - 스케일 비율
-   * @returns {Object|null} tableInfo for corruption
-   */
-  function getActualTableInfo(tableRenderer, tableType, data, canvas, scale = 1) {
-    const padding = CONFIG.TABLE_PADDING * scale;
-
-    // 레이어 매니저에서 grid 레이어 찾기
-    const rootLayer = tableRenderer.layerManager?.root;
-    if (!rootLayer) {
-      return calculateCustomTableInfo(tableType, data, canvas, null, scale);
-    }
-
-    // basic-table의 경우 rootLayer.children[0]이 table-root이고, 그 안에 grid가 있음
-    const tableRoot = rootLayer?.children?.[0];
-
-    // grid 레이어 찾기 (tableRoot.children에서 검색)
-    let gridLayer = null;
-    const searchChildren = tableRoot?.children || rootLayer.children || [];
-    for (const child of searchChildren) {
-      if (child.type?.includes('grid')) {
-        gridLayer = child;
-        break;
-      }
-    }
-
-    if (!gridLayer?.data) {
-      // grid 레이어가 없으면 기존 방식 사용
-      return calculateCustomTableInfo(tableType, data, canvas, null, scale);
-    }
-
-    const gridData = gridLayer.data;
-
-    // 실제 columnWidths 추출 (scale 적용)
-    let columnWidths = null;
-    if (gridData.columnWidths && Array.isArray(gridData.columnWidths)) {
-      columnWidths = gridData.columnWidths.map(w => w * scale);
-    }
-
-    // 행 높이 계산
-    const showMergedHeader = gridData.showMergedHeader !== false;
-    const mergedHeaderHeight = showMergedHeader ? (gridData.mergedHeaderHeight || 35) * scale : 0;
-    const columnHeaderHeight = (gridData.columnHeaderHeight || CONFIG.TABLE_HEADER_HEIGHT) * scale;
-
-    // rowHeights 계산: 개별 행 높이 배열
-    const rowHeights = [];
-    if (showMergedHeader) rowHeights.push(mergedHeaderHeight);
-    rowHeights.push(columnHeaderHeight);
-
-    // 데이터 행 높이 (gridData.rowHeights가 있으면 사용, 없으면 균일 높이)
-    const dataRowCount = gridData.rowCount || (data.rows?.length || 0) + (data.showTotal !== false ? 1 : 0);
-    if (gridData.rowHeights && Array.isArray(gridData.rowHeights)) {
-      gridData.rowHeights.forEach(h => rowHeights.push(h * scale));
-    } else {
-      const defaultRowHeight = CONFIG.TABLE_ROW_HEIGHT * scale;
-      for (let i = 0; i < dataRowCount; i++) {
-        rowHeights.push(defaultRowHeight);
-      }
-    }
-
-    const totalRows = rowHeights.length;
-    const totalCols = columnWidths ? columnWidths.length : (data.columnHeaders?.length || 0) + 1;
-
-    return {
-      startX: padding,
-      startY: padding,
-      cellWidth: columnWidths ? columnWidths[0] : (canvas.width - padding * 2) / totalCols,
-      cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
-      columnWidths,
-      rowHeights,
-      totalRows,
-      totalCols,
-      inset: 3 * scale
-    };
-  }
-
-  /**
-   * Calculate tableInfo for custom table types (corruption용) - fallback
-   * @param {string} tableType - Table type
-   * @param {Object} data - Parsed table data
-   * @param {HTMLCanvasElement} canvas - Canvas element
-   * @param {Object} tableConfig - Table configuration
-   * @param {number} scale - Scale ratio from table renderer
-   * @returns {Object|null} tableInfo for corruption
-   */
-  function calculateCustomTableInfo(tableType, data, canvas, tableConfig, scale = 1) {
-    let totalRows, totalCols;
-    let columnWidths = null;
-    let rowHeights = null;  // 각 행의 높이 배열
-    let startY = CONFIG.TABLE_PADDING * scale;
-    const padding = CONFIG.TABLE_PADDING * scale;
-    const totalWidth = canvas.width - padding * 2;
-
-    if (tableType === 'stem-leaf') {
-      // stem-leaf: stems 배열 + header
-      totalRows = (data.stems?.length || 0) + 1;
-      totalCols = data.isSingleMode === false ? 3 : 2; // compare: 3, single: 2
-    } else if (tableType === 'category-matrix') {
-      // category-matrix: rows + header
-      totalRows = (data.rows?.length || 0) + 1;
-      totalCols = (data.headers?.length || 0) + 1; // label column + value columns
-    } else if (tableType === 'basic-table') {
-      // basic-table: 병합헤더(선택적) + 컬럼헤더 + 데이터행 + 합계행(선택적)
-      const showTotal = data.showTotal !== false;
-      const showMergedHeader = data.showMergedHeader !== false;
-      const mergedHeaderHeight = 35 * scale;
-      const columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT * scale;
-      const dataRowHeight = CONFIG.TABLE_ROW_HEIGHT * scale;
-
-      // 행 계산: 병합헤더 + 컬럼헤더 + 데이터행 + 합계행
-      const dataRowCount = data.rows?.length || 0;
-      totalRows = (showMergedHeader ? 1 : 0) + 1 + dataRowCount + (showTotal ? 1 : 0);
-      // 열 계산: 행라벨열 + 데이터열들 (합계는 행이지 열이 아님)
-      totalCols = (data.columnHeaders?.length || 0) + 1;
-
-      // BasicTableFactory와 동일한 열 너비 계산: 첫 열 20%, 나머지 80% 균등
-      const labelColumnWidth = totalWidth * 0.2;
-      const dataColumnWidth = totalCols > 1 ? (totalWidth * 0.8) / (totalCols - 1) : totalWidth * 0.8;
-      columnWidths = [labelColumnWidth, ...Array(totalCols - 1).fill(dataColumnWidth)];
-
-      // 각 행의 높이 배열 생성 (행마다 다른 높이 적용)
-      rowHeights = [];
-      if (showMergedHeader) rowHeights.push(mergedHeaderHeight);  // row 0: 병합헤더
-      rowHeights.push(columnHeaderHeight);  // row 1 (또는 0): 컬럼헤더
-      for (let i = 0; i < dataRowCount; i++) {
-        rowHeights.push(dataRowHeight);  // 데이터 행
-      }
-      if (showTotal) rowHeights.push(dataRowHeight);  // 합계 행
-    } else {
-      return null;
-    }
-
-    if (totalRows === 0 || totalCols === 0) return null;
-
-    return {
-      startX: padding,
-      startY,
-      cellWidth: totalWidth / totalCols,
-      cellHeight: CONFIG.TABLE_ROW_HEIGHT * scale,
-      columnWidths,
-      rowHeights,  // 각 행의 높이 배열 추가
-      totalRows,
-      totalCols,
-      inset: 3 * scale
-    };
-  }
-
-  // ============================================
-  // Multiple Polygon Rendering (Static Mode)
-  // ============================================
-
-  /**
-   * 복수 도수다각형 정적 렌더링
-   * datasets 배열을 받아 하나의 캔버스에 여러 다각형을 동시 렌더링
-   * @param {HTMLElement} element - 컨테이너 요소
-   * @param {Object} config - 설정 객체
-   * @param {Array} config.datasets - 데이터셋 배열 [{ data, callout, polygonColorPreset }, ...]
-   * @param {Object} [config.classRange] - 공통 계급 범위
-   * @param {Object} [config.options] - 공통 옵션
-   * @returns {Promise<Object>} { chartRenderer, canvas, allClasses }
-   */
-  async function renderMultiplePolygons(element, config) {
-    try {
-      await waitForFonts();
-
-      // 1. Element validation
-      if (!element || !(element instanceof HTMLElement)) {
-        return {
-          error: 'element must be a valid HTMLElement',
-          errors: [{ field: 'element', code: 'TYPE_ERROR', message: 'element must be a valid HTMLElement' }]
-        };
-      }
-
-      const datasets = config.datasets;
-      if (!Array.isArray(datasets) || datasets.length === 0) {
-        return { error: 'datasets array is required and must not be empty' };
-      }
-
-      // 2. 각 dataset 분석 및 classes 생성
-      const allAnalyzed = [];
-      for (const dataset of datasets) {
-        if (!dataset.data) {
-          console.warn('[viz-api] Dataset missing data field, skipping');
-          continue;
-        }
-
-        const dataString = Array.isArray(dataset.data)
-          ? dataset.data.join(', ')
-          : dataset.data;
-        const rawData = DataProcessor.parseInput(dataString);
-        if (rawData.length === 0) continue;
-
-        const stats = DataProcessor.calculateBasicStats(rawData);
-        const classCount = config.classCount || 5;
-        const classWidth = config.classWidth || null;
-        const customRange = config.classRange || null;
-        const { classes, classWidth: classInterval } = DataProcessor.createClasses(stats, classCount, classWidth, customRange);
-
-        DataProcessor.calculateFrequencies(rawData, classes);
-
-        const freq = classes.map(c => c.frequency);
-        const total = freq.reduce((a, b) => a + b, 0);
-        const relativeFreqs = freq.map(f => f / total);
-
-        allAnalyzed.push({
-          dataset,
-          classes,
-          classInterval,
-          freq,
-          relativeFreqs,
-          total,
-          maxRelativeFreq: Math.max(...relativeFreqs),
-          maxFrequency: Math.max(...freq)
-        });
-      }
-
-      if (allAnalyzed.length === 0) {
-        return { error: 'No valid datasets found' };
-      }
-
-      // 3. 통합 값 계산
-      const options = config.options || {};
-      const dataType = options.dataType || 'relativeFrequency';
-
-      // config에서 unifiedMaxY 지정 가능, 없으면 자동 계산
-      // CoordinateSystem에서 customYInterval이 있으면 자동으로 2칸 여백 추가하므로 여기선 최대값만 전달
-      let unifiedMaxY = config.unifiedMaxY;
-      if (unifiedMaxY === undefined || unifiedMaxY === null) {
-        if (dataType === 'frequency') {
-          unifiedMaxY = Math.max(...allAnalyzed.map(a => a.maxFrequency));
-        } else {
-          const maxRelFreq = Math.max(...allAnalyzed.map(a => a.maxRelativeFreq));
-          unifiedMaxY = maxRelFreq * CONFIG.CHART_Y_SCALE_MULTIPLIER;
-        }
-      }
-
-      const unifiedClassCount = Math.max(...allAnalyzed.map(a => a.classes.length));
-
-      console.log(`[viz-api] Multiple polygons: ${allAnalyzed.length} datasets, unifiedMaxY=${unifiedMaxY}, unifiedClassCount=${unifiedClassCount}`);
-
-      // 4. 캔버스 생성
-      const canvasId = `viz-chart-${++chartInstanceCounter}`;
-      const canvas = document.createElement('canvas');
-      canvas.id = canvasId;
-
-      if (config.canvasSize) {
-        canvas.width = config.canvasSize;
-        canvas.height = config.canvasSize;
-      } else {
-        canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
-        canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
-      }
-
-      CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
-
-      canvas.setAttribute('role', 'img');
-      canvas.setAttribute('aria-label', 'Multiple frequency polygons');
-      element.appendChild(canvas);
-
-      // 5. ChartRenderer 생성 및 정적 모드 설정
-      const chartRenderer = new ChartRenderer(canvasId);
-      chartRenderer.disableAnimation();
-
-      // 6. 공통 옵션 적용
-      CONFIG.SHOW_HISTOGRAM = options.showHistogram === true;  // 기본 false
-      CONFIG.SHOW_POLYGON = options.showPolygon !== false;     // 기본 true
-      CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
-
-      const gridOptions = options.grid || {};
-      CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;
-      CONFIG.GRID_SHOW_VERTICAL = gridOptions.showVertical !== false;
-
-      const axisOptions = options.axis || {};
-      CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
-      CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
-
-      // 7. 각 데이터셋 순서대로 그리기
-      const axisLabels = options.axisLabels || null;
-      const customYInterval = options.customYInterval || null;
-      const ellipsisInfo = DataProcessor.shouldShowEllipsis(allAnalyzed[0].classes);
-
-      // 첫 번째 데이터셋으로 축/그리드 그리기
-      const firstAnalyzed = allAnalyzed[0];
-      CONFIG.POLYGON_COLOR_PRESET = firstAnalyzed.dataset.polygonColorPreset || 'default';
-
-      // 첫 번째 dataset의 다각형 숨김 인덱스
-      const firstHiddenIndices = firstAnalyzed.dataset.polygon?.hidden || [];
-
-      console.log(`[viz-api] Drawing dataset 0: preset=${CONFIG.POLYGON_COLOR_PRESET}, isFirst=true`);
-
-      chartRenderer.draw(
-        firstAnalyzed.classes,
-        axisLabels,
-        ellipsisInfo,
-        dataType,
-        null,  // tableConfig
-        null,  // calloutTemplate
-        true,  // clearCanvas
-        unifiedMaxY,
-        unifiedClassCount,
-        customYInterval,
-        firstHiddenIndices
-      );
-
-      // 저장된 coords 사용 (나머지 데이터셋에서 재사용)
-      const coords = chartRenderer.currentCoords;
-
-      // callout 인덱스 (세로 배치용)
-      let calloutIndex = 0;
-
-      // 첫 번째 callout
-      if (firstAnalyzed.dataset.callout?.template) {
-        const calloutPreset = firstAnalyzed.dataset.callout.preset || CONFIG.POLYGON_COLOR_PRESET;
-        const values = dataType === 'frequency' ? firstAnalyzed.freq : firstAnalyzed.relativeFreqs;
-        console.log(`[viz-api] Drawing callout for dataset 0: template=${firstAnalyzed.dataset.callout.template}, index=${calloutIndex}`);
-        renderStaticCallout(chartRenderer, firstAnalyzed.classes, values, coords, firstAnalyzed.dataset.callout.template, calloutPreset, dataType, calloutIndex);
-        calloutIndex++;
-      }
-
-      // 나머지 데이터셋은 다각형만 직접 그리기 (draw() 호출 안 함)
-      for (let i = 1; i < allAnalyzed.length; i++) {
-        const analyzed = allAnalyzed[i];
-        const colorPreset = analyzed.dataset.polygonColorPreset || 'default';
-
-        console.log(`[viz-api] Drawing dataset ${i}: preset=${colorPreset}, isFirst=false`);
-
-        // 색상 프리셋 설정
-        CONFIG.POLYGON_COLOR_PRESET = colorPreset;
-
-        // 값 배열
-        const values = dataType === 'frequency' ? analyzed.freq : analyzed.relativeFreqs;
-
-        // 다각형 숨김 인덱스 (dataset별)
-        const hiddenIndices = analyzed.dataset.polygon?.hidden || [];
-
-        // 다각형 직접 그리기 (축/그리드 건드리지 않음)
-        if (CONFIG.SHOW_POLYGON) {
-          chartRenderer.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenIndices);
-        }
-
-        // callout 그리기
-        if (analyzed.dataset.callout?.template) {
-          const calloutPreset = analyzed.dataset.callout.preset || colorPreset;
-          console.log(`[viz-api] Drawing callout for dataset ${i}: template=${analyzed.dataset.callout.template}, index=${calloutIndex}`);
-          renderStaticCallout(chartRenderer, analyzed.classes, values, coords, analyzed.dataset.callout.template, calloutPreset, dataType, calloutIndex);
-          calloutIndex++;
-        }
-      }
-
-      return {
-        chartRenderer,
-        canvas,
-        allClasses: allAnalyzed.map(a => a.classes)
-      };
-
-    } catch (error) {
-      console.error('renderMultiplePolygons error:', error);
-      return { error: error.message };
-    }
-  }
-
-  /**
-   * 정적 모드에서 Callout 렌더링 (왼쪽 상단에 세로로 쌓임)
-   * @param {ChartRenderer} chartRenderer - 차트 렌더러
-   * @param {Array} classes - 계급 배열
-   * @param {Array} values - 값 배열
-   * @param {Object} coords - 좌표 시스템
-   * @param {string} template - 템플릿 문자열
-   * @param {string} colorPreset - 색상 프리셋
-   * @param {string} dataType - 데이터 타입
-   * @param {number} calloutIndex - 말풍선 인덱스 (0부터, 세로 배치용)
-   */
-  function renderStaticCallout(chartRenderer, classes, values, coords, template, colorPreset, dataType, calloutIndex = 0) {
-    // 최고점 찾기
-    let maxIndex = 0;
-    let maxValue = values[0];
-    values.forEach((v, i) => {
-      if (v > maxValue) {
-        maxValue = v;
-        maxIndex = i;
-      }
-    });
-
-    const classData = classes[maxIndex];
-    if (!classData) return;
-
-    // 상대도수 계산 (백분율)
-    const total = classes.reduce((sum, c) => sum + c.frequency, 0);
-    classData.relativeFreq = ((classData.frequency / total) * 100).toFixed(1);
-
-    // 템플릿 치환
-    const CalloutRenderer = chartRenderer.calloutRenderer.constructor;
-    const text = CalloutRenderer.formatTemplate(template, classData, dataType);
-    if (!text) return;
-
-    // 말풍선 크기 계산
-    const scaledCalloutSize = CONFIG.getScaledCalloutSize();
-    const font = `${CONFIG.getScaledFontSize(20)}px KaTeX_Main`;
-    const calloutWidth = CalloutRenderer.calculateCalloutWidth(text, font);
-    const calloutHeight = scaledCalloutSize.height;
-
-    // 위치 계산 - 왼쪽 상단에 세로로 쌓임 (LayerFactory와 동일한 로직)
-    const calloutSpacing = CONFIG.getScaledValue(10);
-    const calloutX = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_X);
-    const calloutY = CONFIG.getScaledPadding() + CONFIG.getScaledValue(CONFIG.CALLOUT_POSITION_Y) + (calloutIndex * (calloutHeight + calloutSpacing));
-
-    // 포인트 좌표 (연결선용)
-    const { toX, toY, xScale } = coords;
-    const pointX = toX(maxIndex) + xScale * CONFIG.CHART_BAR_WIDTH_RATIO / 2;
-    const pointY = toY(maxValue);
-
-    // 레이어 데이터 구성
-    const layerData = {
-      x: calloutX,
-      y: calloutY,
-      width: calloutWidth,
-      height: calloutHeight,
-      text,
-      opacity: 1,
-      polygonPreset: colorPreset,
-      pointX,
-      pointY
-    };
-
-    // 렌더링
-    chartRenderer.calloutRenderer.render({ data: layerData });
-  }
-
-  // ============================================
-  // Cell Animation API
-  // ============================================
-
-  /**
-   * 셀 애니메이션 추가
-   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
-   * @param {Object} options - 애니메이션 옵션
-   * @param {number} [options.rowIndex] - 행 인덱스 (null이면 열 전체)
-   * @param {number} [options.colIndex] - 열 인덱스 (null이면 행 전체)
-   * @param {number} [options.duration=1500] - 애니메이션 시간 (ms)
-   * @param {number} [options.repeat=3] - 반복 횟수
-   * @returns {Object} 추가된 애니메이션 객체 { id, rowIndex, colIndex, duration, repeat }
-   */
-  function addCellAnimation(tableRenderer, options) {
-    if (!tableRenderer) return { error: 'tableRenderer is required' };
-    return tableRenderer.addAnimation(options);
-  }
-
-  /**
-   * 특정 셀 애니메이션 삭제
-   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
-   * @param {number} id - 삭제할 애니메이션 ID
-   */
-  function removeCellAnimation(tableRenderer, id) {
-    if (!tableRenderer) return;
-    tableRenderer.removeAnimation(id);
-  }
-
-  /**
-   * 저장된 셀 애니메이션 목록 조회
-   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
-   * @returns {Array} 애니메이션 배열 [{ id, rowIndex, colIndex, duration, repeat }, ...]
-   */
-  function getCellAnimations(tableRenderer) {
-    if (!tableRenderer) return [];
-    return tableRenderer.getSavedAnimations();
-  }
-
-  /**
-   * 저장된 모든 셀 애니메이션 재생
-   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
-   * @param {Object} [options] - 재생 옵션
-   * @param {boolean} [options.blinkEnabled=false] - 블링크 효과 활성화
-   */
-  function playCellAnimations(tableRenderer, options = {}) {
-    if (!tableRenderer) return;
-    tableRenderer.playAllAnimations(options);
-  }
-
-  /**
-   * 셀 애니메이션 재생 중지 (목록은 유지)
-   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
-   */
-  function stopCellAnimations(tableRenderer) {
-    if (!tableRenderer) return;
-    tableRenderer.stopCellAnimation();
-  }
-
-  /**
-   * 모든 셀 애니메이션 초기화 (중지 + 목록 삭제)
-   * @param {TableRenderer} tableRenderer - 테이블 렌더러 인스턴스
-   */
-  function clearCellAnimations(tableRenderer) {
-    if (!tableRenderer) return;
-    tableRenderer.stopCellAnimation();
-    tableRenderer.clearSavedAnimations();
-  }
-
-  var vizApi = {
-    render,
-    renderChart,
-    renderTable,
-    // Cell Animation API
-    addCellAnimation,
-    removeCellAnimation,
-    getCellAnimations,
-    playCellAnimations,
-    stopCellAnimations,
-    clearCellAnimations
-  };
-
-  exports.addCellAnimation = addCellAnimation;
-  exports.clearCellAnimations = clearCellAnimations;
   exports.default = vizApi;
-  exports.getCellAnimations = getCellAnimations;
-  exports.playCellAnimations = playCellAnimations;
-  exports.removeCellAnimation = removeCellAnimation;
   exports.render = render;
   exports.renderChart = renderChart;
-  exports.renderScatter = renderScatter;
   exports.renderTable = renderTable;
-  exports.stopCellAnimations = stopCellAnimations;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
