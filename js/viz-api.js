@@ -10,7 +10,7 @@ import ChartRenderer from './renderers/chart.js';
 import TableRenderer from './renderers/table.js';
 import ScatterRenderer from './renderers/scatter.js';
 import { waitForFonts } from './utils/katex.js';
-import { applyChartCorruption, applyTableCorruption } from './utils/corruption.js';
+import { applyChartCorruption, applyTableCorruption, applyScatterCorruption } from './utils/corruption.js';
 import { ConfigValidator } from './utils/validator.js';
 
 // Counter for unique ID generation
@@ -775,6 +775,21 @@ export async function renderScatter(element, config) {
 
     if (result.error) {
       return { error: result.error };
+    }
+
+    // 5. Apply corruption effect
+    const options = config.options || {};
+    if (options.corruption?.enabled) {
+      const ctx = canvas.getContext('2d');
+      const scatterInfo = {
+        padding: result.padding,
+        xCellWidth: result.coords.xCellWidth,
+        yCellHeight: result.coords.yCellHeight,
+        xTotalCells: result.coords.xTotalCells,
+        yTotalCells: result.coords.yTotalCells,
+        canvasHeight: result.canvasHeight
+      };
+      applyScatterCorruption(ctx, options.corruption, scatterInfo);
     }
 
     return {

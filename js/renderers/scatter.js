@@ -48,7 +48,7 @@ class ScatterRenderer {
     this._drawAxes(ctx, canvas, padding, coords, range, options.axisLabels);
     this._drawPoints(ctx, data, coords, options);
 
-    return { success: true, coords, range };
+    return { success: true, coords, range, padding, canvasHeight: canvas.height };
   }
 
   /**

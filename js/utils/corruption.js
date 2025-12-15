@@ -915,6 +915,205 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
   }
 }
 
+// ==========================================
+// 산점도 Corruption 효과
+// ==========================================
+
+/**
+ * 산점도 셀 좌표 → 픽셀 좌표 변환
+ * @param {number} cellX - X 셀 인덱스 (0 = 압축 구간)
+ * @param {number} cellY - Y 셀 인덱스 (0 = 압축 구간, 하단부터)
+ * @param {Object} scatterInfo - 산점도 정보
+ * @returns {{x, y, width, height}} 픽셀 좌표 및 크기
+ */
+export function scatterCellToPixel(cellX, cellY, scatterInfo) {
+  const { padding, xCellWidth, yCellHeight, canvasHeight } = scatterInfo;
+
+  const pixelX = padding + cellX * xCellWidth;
+  // Y축은 반전 (cellY=0이 하단)
+  const pixelY = canvasHeight - padding - (cellY + 1) * yCellHeight;
+
+  return {
+    x: pixelX,
+    y: pixelY,
+    width: xCellWidth,
+    height: yCellHeight
+  };
+}
+
+/**
+ * 산점도에 corruption 효과 적용
+ * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
+ * @param {Object} corruptionOptions - corruption 설정
+ * @param {Object} scatterInfo - 산점도 정보 (좌표 변환용)
+ */
+export function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
+  if (!corruptionOptions?.enabled || !corruptionOptions.cells) return;
+
+  const cellsInput = Array.isArray(corruptionOptions.cells)
+    ? corruptionOptions.cells.join(', ')
+    : corruptionOptions.cells;
+
+  const ranges = parseChartCells(cellsInput);
+  if (ranges.length === 0) return;
+
+  const style = corruptionOptions.style || {};
+  const edgeComplexity = style.edgeComplexity || 0.7;
+  const seed = style.seed || 42;
+  const inset = 0;
+  const overlap = 2;
+
+  // 범위를 셀 집합으로 변환
+  const cellSet = chartRangesToCellSet(ranges);
+
+  // 경계 셀 확인
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  cellSet.forEach(key => {
+    const [x, y] = key.split('-').map(Number);
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  });
+
+  const touchesLeft = minX === 0;
+  const touchesBottom = minY === 0;
+  const touchesTop = maxY >= (scatterInfo.yTotalCells - 1);
+  const touchesRight = maxX >= (scatterInfo.xTotalCells - 1);
+
+  // 인접 여부 확인 헬퍼
+  const getAdjacency = (x, y) => ({
+    hasTop: cellSet.has(`${x}-${y + 1}`),
+    hasBottom: cellSet.has(`${x}-${y - 1}`),
+    hasLeft: cellSet.has(`${x - 1}-${y}`),
+    hasRight: cellSet.has(`${x + 1}-${y}`)
+  });
+
+  // 각 셀의 4변 경로를 미리 생성
+  const cellEdges = new Map();
+  const allEdgePoints = { top: [], right: [], bottom: [], left: [] };
+
+  cellSet.forEach(key => {
+    const [x, y] = key.split('-').map(Number);
+    const cell = scatterCellToPixel(x, y, scatterInfo);
+    const adj = getAdjacency(x, y);
+
+    // 외곽: inset 적용, 인접: 오버랩
+    let topY = adj.hasTop ? cell.y - overlap : cell.y + inset;
+    let bottomY = adj.hasBottom ? cell.y + cell.height + overlap : cell.y + cell.height - inset;
+    let leftX = adj.hasLeft ? cell.x - overlap : cell.x + inset;
+    let rightX = adj.hasRight ? cell.x + cell.width + overlap : cell.x + cell.width - inset;
+
+    // 경계 확장 (축 라벨까지)
+    if (touchesBottom && y === minY && !adj.hasBottom) {
+      bottomY = cell.y + cell.height + 30;
+    }
+    if (touchesLeft && x === minX && !adj.hasLeft) {
+      leftX = 5;
+    }
+    if (touchesTop && y === maxY && !adj.hasTop) {
+      topY = cell.y - 15;
+    }
+    if (touchesRight && x === maxX && !adj.hasRight) {
+      rightX = cell.x + cell.width + 15;
+    }
+
+    // 각 변의 경로 생성
+    const edges = {
+      top: adj.hasTop
+        ? [{ x: leftX, y: topY }, { x: rightX, y: topY }]
+        : generateTearPath(leftX, topY, rightX, topY, edgeComplexity, seed + x * 100 + y),
+      bottom: adj.hasBottom
+        ? [{ x: rightX, y: bottomY }, { x: leftX, y: bottomY }]
+        : generateTearPath(rightX, bottomY, leftX, bottomY, edgeComplexity, seed + x * 100 + y + 10),
+      left: adj.hasLeft
+        ? [{ x: leftX, y: bottomY }, { x: leftX, y: topY }]
+        : generateTearPath(leftX, bottomY, leftX, topY, edgeComplexity, seed + x * 100 + y + 20),
+      right: adj.hasRight
+        ? [{ x: rightX, y: topY }, { x: rightX, y: bottomY }]
+        : generateTearPath(rightX, topY, rightX, bottomY, edgeComplexity, seed + x * 100 + y + 30)
+    };
+
+    cellEdges.set(key, { cell, adj, edges });
+
+    // 외곽 엣지 포인트 수집
+    if (!adj.hasTop) allEdgePoints.top.push(...edges.top);
+    if (!adj.hasBottom) allEdgePoints.bottom.push(...edges.bottom);
+    if (!adj.hasLeft) allEdgePoints.left.push(...edges.left);
+    if (!adj.hasRight) allEdgePoints.right.push(...edges.right);
+  });
+
+  // 1단계: 마스킹
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+
+  cellSet.forEach(key => {
+    const { edges } = cellEdges.get(key);
+
+    ctx.beginPath();
+    ctx.moveTo(edges.top[0].x, edges.top[0].y);
+    edges.top.forEach(p => ctx.lineTo(p.x, p.y));
+    edges.right.forEach(p => ctx.lineTo(p.x, p.y));
+    edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
+    edges.left.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+
+  // 2단계: 가장자리 색상
+  if (style.edgeColorEnabled) {
+    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+
+    ctx.save();
+    ctx.strokeStyle = edgeColor;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    cellSet.forEach(key => {
+      const { adj, edges } = cellEdges.get(key);
+
+      if (!adj.hasTop && edges.top.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.top[0].x, edges.top[0].y);
+        edges.top.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+      if (!adj.hasBottom && edges.bottom.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.bottom[0].x, edges.bottom[0].y);
+        edges.bottom.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+      if (!adj.hasLeft && edges.left.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.left[0].x, edges.left[0].y);
+        edges.left.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+      if (!adj.hasRight && edges.right.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(edges.right[0].x, edges.right[0].y);
+        edges.right.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.stroke();
+      }
+    });
+
+    ctx.restore();
+  }
+
+  // 3단계: 종이 섬유 효과
+  if (style.fiberEnabled) {
+    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    const fiberCount = style.fiberCount || 20;
+    renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+  }
+}
+
 export default {
   simpleNoise,
   smoothNoise,
@@ -927,5 +1126,7 @@ export default {
   parseTableCells,
   rangesToCellSet,
   applyChartCorruption,
-  applyTableCorruption
+  applyTableCorruption,
+  applyScatterCorruption,
+  scatterCellToPixel
 };
