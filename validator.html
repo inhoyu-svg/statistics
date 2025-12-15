@@ -1582,6 +1582,19 @@
 
       // 2. ConfigValidator로 전체 검증
       const purpose = config.purpose || 'chart';
+
+      // scatter는 별도 검증 (ConfigValidator 미지원)
+      if (purpose === 'scatter') {
+        // 간단한 scatter 검증
+        if (!config.data || !Array.isArray(config.data) || config.data.length < 2) {
+          fieldResults.innerHTML = `<div style="color:#ff6b6b;">scatter 데이터는 최소 2개 이상의 [x, y] 배열이 필요합니다.</div>`;
+          hidePreview();
+          return;
+        }
+        renderPreview(config, purpose);
+        return;
+      }
+
       const result = ConfigValidator.validate(config, purpose);
 
       // 3. 권장사항 체크
@@ -1926,6 +1939,10 @@
         if (purpose === 'chart') {
           previewConfig.canvasSize = 400;
           await VizAPI.renderChart(previewContainer, previewConfig);
+        } else if (purpose === 'scatter') {
+          previewConfig.canvasWidth = 400;
+          previewConfig.canvasHeight = 400;
+          await VizAPI.renderScatter(previewContainer, previewConfig);
         } else {
           // 테이블은 canvasSize 제한 없이 자동 높이
           await VizAPI.renderTable(previewContainer, previewConfig);
