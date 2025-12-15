@@ -98,6 +98,15 @@ function getFont(textType, fontSize, italic = false) {
 }
 
 /**
+ * 하이픈(-)을 유니코드 마이너스(−, U+2212)로 변환
+ * @param {string} text - 변환할 텍스트
+ * @returns {string} 변환된 텍스트
+ */
+function convertHyphenToMinus(text) {
+  return text.replace(/-/g, '−');
+}
+
+/**
  * Canvas에 수학 스타일 텍스트 렌더링
  * @param {CanvasRenderingContext2D} ctx - Canvas 컨텍스트
  * @param {string} text - 렌더링할 텍스트
@@ -117,7 +126,43 @@ export function renderMathText(ctx, text, x, y, options = {}) {
 
   ctx.save();
 
-  const textType = detectTextType(text);
+  // 하이픈을 유니코드 마이너스로 변환
+  const str = convertHyphenToMinus(String(text).trim());
+
+  const textType = detectTextType(str);
+
+  // mixed 타입일 때 문자별로 분리하여 렌더링 (소문자는 이탤릭)
+  if (textType === 'mixed') {
+    ctx.fillStyle = color;
+    ctx.textBaseline = baseline;
+
+    const segments = splitByCharType(str);
+
+    // 전체 너비 계산
+    let totalWidth = 0;
+    segments.forEach(seg => {
+      ctx.font = getFontForCharType(seg.type, fontSize);
+      totalWidth += ctx.measureText(seg.text).width;
+    });
+
+    // 시작 위치 계산
+    let startX = x;
+    if (align === 'center') startX = x - totalWidth / 2;
+    else if (align === 'right') startX = x - totalWidth;
+
+    // 세그먼트별 렌더링
+    ctx.textAlign = 'left';
+    let currentX = startX;
+    segments.forEach(seg => {
+      ctx.font = getFontForCharType(seg.type, fontSize);
+      ctx.fillText(seg.text, currentX, y);
+      currentX += ctx.measureText(seg.text).width;
+    });
+
+    ctx.restore();
+    return { width: totalWidth, height: fontSize };
+  }
+
   const useItalic = italic !== null ? italic : textType === 'variable';
 
   ctx.font = getFont(textType, fontSize, useItalic);
@@ -125,9 +170,9 @@ export function renderMathText(ctx, text, x, y, options = {}) {
   ctx.textAlign = align;
   ctx.textBaseline = baseline;
 
-  ctx.fillText(text, x, y);
+  ctx.fillText(str, x, y);
 
-  const metrics = ctx.measureText(text);
+  const metrics = ctx.measureText(str);
   const width = metrics.width;
   const height = fontSize;
 

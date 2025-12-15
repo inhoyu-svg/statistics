@@ -72,8 +72,13 @@ class CategoryMatrixParser {
 
       // 첫 번째 줄이 헤더인지 확인 (라벨이 '헤더'인 경우)
       if (i === 0 && label.toLowerCase() === '헤더') {
-        result.headers = valuesStr.split(',').map(v => v.trim()).filter(v => v);
-        if (result.headers.length === 0) {
+        result.headers = valuesStr.split(',').map(v => {
+          const trimmed = v.trim();
+          // null 문자열은 빈 문자열로 처리 (빈칸 표시)
+          return trimmed === 'null' ? '' : trimmed;
+        });
+        // 모든 헤더가 빈 문자열인지 확인
+        if (result.headers.every(h => h === '')) {
           return {
             success: false,
             data: null,
