@@ -243,7 +243,7 @@ class ScatterRenderer {
     const { toX, toY } = coords;
     const color = CONFIG.getColor('--color-text');
     // 숫자 라벨 크기 키움
-    const fontSize = CONFIG.getScaledFontSize(22);
+    const fontSize = CONFIG.getScaledFontSize(25);
 
     // X축 라벨 - xMin부터 xMax + interval까지 (여유 칸 라벨 포함)
     const xLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
