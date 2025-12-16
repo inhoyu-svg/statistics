@@ -1069,6 +1069,16 @@ export function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
     const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = scatterInfo.padding;
+    const clipY = scatterInfo.canvasHeight - scatterInfo.padding - scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    const clipWidth = scatterInfo.xTotalCells * scatterInfo.xCellWidth;
+    const clipHeight = scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    ctx.beginPath();
+    ctx.rect(clipX, clipY, clipWidth, clipHeight);
+    ctx.clip();
+
     ctx.strokeStyle = edgeColor;
     ctx.lineWidth = 1;
     ctx.lineCap = 'round';
@@ -1108,9 +1118,22 @@ export function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
 
   // 3단계: 종이 섬유 효과
   if (style.fiberEnabled) {
+    ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = scatterInfo.padding;
+    const clipY = scatterInfo.canvasHeight - scatterInfo.padding - scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    const clipWidth = scatterInfo.xTotalCells * scatterInfo.xCellWidth;
+    const clipHeight = scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    ctx.beginPath();
+    ctx.rect(clipX, clipY, clipWidth, clipHeight);
+    ctx.clip();
+
     const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+
+    ctx.restore();
   }
 }
 
