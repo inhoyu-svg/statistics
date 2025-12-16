@@ -139,6 +139,8 @@ interface BasicTableData {
     values: number[];           // 해당 행의 값들
   }>;
   showTotal: boolean;           // 합계 행/열 표시 여부
+  showMergedHeader?: boolean;   // 병합 헤더 표시 여부 (기본: true)
+  showGrid?: boolean;           // 격자선 표시 여부 (기본: true, false시 둥근 테두리)
   mergedHeaderText?: string;    // 커스텀 병합 헤더
 }
 

@@ -2462,6 +2462,7 @@ data 형식과 최소 예시는 [2. basic-table (기본 테이블)](#2-basic-tab
 **옵션 조합 예시:**
 - 도수분포표: `showMergedHeader: false`, `showTotal: true`
 - 이원분류표: `showMergedHeader: true`, `showTotal: true`
+- 변량 테이블: `showGrid: false` (showMergedHeader, showTotal 자동 false)
 
 #### 필드 설명
 
@@ -2475,6 +2476,7 @@ data 형식과 최소 예시는 [2. basic-table (기본 테이블)](#2-basic-tab
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
 | `options.showTotal` | `boolean` | X | 합계 행 표시 (기본: true) |
 | `options.showMergedHeader` | `boolean` | X | 병합 헤더 표시 (기본: true) |
+| `options.showGrid` | `boolean` | X | 격자선 표시 (기본: true). false시 둥근 테두리로 대체 |
 | `cellAnimations` | `array` | X | 셀 하이라이트 (rowIndex, colIndex, duration, repeat) |
 | `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (rowIndex, colIndex, duration, repeat) |
 | `cellVariables` | `array` | X | 셀 값 커스터마이징 (rowIndex/colIndex 기반) |
@@ -2487,6 +2489,24 @@ data 형식과 최소 예시는 [2. basic-table (기본 테이블)](#2-basic-tab
 | `false` | `true` | X | O | 합계만 필요할 때 |
 | `true` | `false` | O | X | 헤더만 필요할 때 |
 | `false` | `false` | X | X | 최소 표시 |
+
+#### showGrid 옵션 (변량 테이블)
+
+`showGrid: false` 설정 시:
+- 격자선 대신 **둥근 테두리**로 데이터 영역만 감쌈
+- `showMergedHeader`, `showTotal`이 **자동으로 false** 적용
+- 헤더를 null로 설정하여 데이터만 표시하는 **변량 테이블** 용도
+
+```json
+{
+  "purpose": "table",
+  "tableType": "basic-table",
+  "data": "헤더: null, null, null, null, null\nA반: 1, 2, 3, 4, 5",
+  "options": {
+    "showGrid": false
+  }
+}
+```
 
 #### data 형식 상세
 
