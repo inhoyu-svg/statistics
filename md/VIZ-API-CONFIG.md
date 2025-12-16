@@ -1649,7 +1649,9 @@ x=N+1: X축 라벨 영역
       ],
       "style": {
         "edgeComplexity": 0.8,
-        "transparent": true
+        "transparent": true,
+        "fiberEnabled": true,
+        "edgeColorEnabled": true
       }
     }
   }
@@ -1708,6 +1710,18 @@ x좌표 = 계급 idx + 1 (x=0은 Y축 영역, x=8은 X축 라벨 영역)
 | `layerCount` | `number` | `1` | 다중 레이어 (1~3, 깊이감) |
 | `edgeColorEnabled` | `boolean` | `false` | 가장자리 색상 효과 |
 
+**종이 찢김 효과 사용 시 필수 설정**
+
+자연스러운 종이 찢김 효과를 위해 반드시 `style` 객체에 다음 옵션을 포함하세요:
+```json
+ "style": {
+   "fiberEnabled": true,
+   "edgeColorEnabled": true
+ }
+ ```
+- `fiberEnabled`: 찢어진 가장자리에 종이 섬유 표현
+- `edgeColorEnabled`: 찢어진 부분 테두리 색상 강조
+
 #### 차트 예시
 
 ```json
@@ -1738,7 +1752,9 @@ x좌표 = 계급 idx + 1 (x=0은 Y축 영역, x=8은 X축 라벨 영역)
       ],
       "style": {
         "edgeComplexity": 0.8,
-        "transparent": true
+        "transparent": true,
+        "fiberEnabled": true,
+        "edgeColorEnabled": true
       }
     }
   }
@@ -1761,7 +1777,9 @@ x좌표 = 계급 idx + 1 (x=0은 Y축 영역, x=8은 X축 라벨 영역)
       "cells": ["2-1:3-2"],
       "style": {
         "edgeComplexity": 0.7,
-        "transparent": true
+        "transparent": true,
+        "fiberEnabled": true,
+        "edgeColorEnabled": true
       }
     }
   }
@@ -1925,7 +1943,11 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
   "options": {
     "corruption": {
       "enabled": true,
-      "cells": "4-1:6-2, 5-3:6-4"
+      "cells": "4-1:6-2, 5-3:6-4",
+      "style": {
+        "fiberEnabled": true,
+        "edgeColorEnabled": true
+      }
     }
   }
 }
@@ -2000,7 +2022,11 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
     },
     "corruption": {
       "enabled": true,
-      "cells": "4-1:6-1, 4-2:6-2, 5-3:6-3, 5-4:6-4"
+      "cells": "4-1:6-1, 4-2:6-2, 5-3:6-3, 5-4:6-4",
+      "style": {
+        "fiberEnabled": true,
+        "edgeColorEnabled": true
+      }
     }
   }
 }

@@ -128,7 +128,7 @@ export function renderFibers(ctx, allEdges, options = {}) {
  * 가장자리 색상 테두리 렌더링 (오래된 종이 느낌)
  */
 function renderEdgeColor(ctx, allEdges, options = {}) {
-  const { color = 'rgba(160, 130, 80, 0.4)', width = 3 } = options;
+  const { color = 'rgba(136, 136, 136, 1)', width = 3 } = options;
 
   ctx.save();
   ctx.strokeStyle = color;
@@ -171,10 +171,10 @@ export function renderTearMask(ctx, region, style = {}, skipEdges = {}) {
     // 시각적 질감 옵션
     fiberEnabled = false,
     fiberCount = 20,
-    fiberColor = 'rgba(180, 150, 100, 0.5)',
+    fiberColor = 'rgba(136, 136, 136, 1)',
     layerCount = 1,
     edgeColorEnabled = false,
-    edgeColor = 'rgba(160, 130, 80, 0.4)'
+    edgeColor = 'rgba(136, 136, 136, 1)'
   } = style;
 
   ctx.save();
@@ -735,7 +735,7 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
   // 3단계: 종이 섬유 효과
   if (style.fiberEnabled) {
-    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
   }
@@ -867,7 +867,7 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
   // 2단계: 가장자리 색상 (외곽 면에만)
   if (style.edgeColorEnabled) {
-    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+    const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
     ctx.strokeStyle = edgeColor;
@@ -909,7 +909,7 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
   // 3단계: 종이 섬유 효과 (fiberEnabled)
   if (style.fiberEnabled) {
-    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
   }
@@ -1066,7 +1066,7 @@ export function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
 
   // 2단계: 가장자리 색상
   if (style.edgeColorEnabled) {
-    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+    const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
     ctx.strokeStyle = edgeColor;
@@ -1108,7 +1108,7 @@ export function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
 
   // 3단계: 종이 섬유 효과
   if (style.fiberEnabled) {
-    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
   }
