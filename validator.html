@@ -249,6 +249,39 @@
       white-space: pre;
     }
 
+    /* 수정 제안 박스 */
+    .suggestion-box {
+      margin-top: 16px;
+      background: #1a3020;
+      border: 1px solid #4a7c59;
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .suggestion-title {
+      color: #8DCF66;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .suggestion-problem,
+    .suggestion-fix,
+    .suggestion-example {
+      font-size: 12px;
+      color: #b0d0a0;
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    .suggestion-example code {
+      background: #2a4030;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Consolas', monospace;
+      color: #8DCF66;
+    }
+
     /* 필드 아이템 */
     .field-item {
       background: #252540;
@@ -364,6 +397,23 @@
       color: #f0ad4e;
       margin-top: 8px;
       font-size: 12px;
+    }
+
+    .field-suggestion {
+      color: #8DCF66;
+      margin-top: 8px;
+      font-size: 12px;
+      background: #1a3020;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border-left: 3px solid #4a7c59;
+    }
+
+    .field-suggestion code {
+      background: #2a4030;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Consolas', monospace;
     }
 
     .field-warning::before {
@@ -1296,7 +1346,8 @@
         if (looksLikeTable) {
           return {
             message: '테이블 데이터로 보입니다. "purpose": "table" 명시를 권장합니다.',
-            fields: ['purpose']
+            fields: ['purpose'],
+            suggestion: '"purpose": "table"'
           };
         }
         return null;
@@ -1309,7 +1360,8 @@
         if (config.classRange) {
           return {
             message: 'classRange는 복수 도수다각형 오버레이 용도로만 권장됩니다. 일반적인 경우 classCount + classWidth 조합을 사용하세요.',
-            fields: ['classRange']
+            fields: ['classRange'],
+            suggestion: 'classRange 제거 후 → "classCount": 5, "classWidth": 10'
           };
         }
         return null;
@@ -1321,7 +1373,8 @@
           if (config.options?.showHistogram !== false) {
             return {
               message: 'datasets 사용 시 히스토그램이 겹쳐 보입니다. "options.showHistogram": false 권장합니다.',
-              fields: ['datasets', 'options.showHistogram']
+              fields: ['datasets', 'options.showHistogram'],
+              suggestion: '"options": { "showHistogram": false }'
             };
           }
         }
@@ -1333,7 +1386,8 @@
         if (config.datasets && config.datasets.length > 0 && config.data) {
           return {
             message: 'datasets 사용 시 data 필드는 무시됩니다. data를 제거하세요.',
-            fields: ['data', 'datasets']
+            fields: ['data', 'datasets'],
+            suggestion: '"data" 줄을 삭제하세요'
           };
         }
         return null;
@@ -1348,7 +1402,8 @@
           if (purpose === 'table') {
             return {
               message: '테이블은 canvasWidth 또는 canvasHeight 둘 중 하나만 사용을 권장합니다. 동시 지정 시 비율이 왜곡될 수 있습니다.',
-              fields: ['canvasWidth', 'canvasHeight']
+              fields: ['canvasWidth', 'canvasHeight'],
+              suggestion: 'canvasHeight 제거 → "canvasWidth": 500 만 사용'
             };
           }
         }
@@ -1357,7 +1412,8 @@
         if (purpose === 'table' && config.canvasSize) {
           return {
             message: '테이블은 canvasWidth 또는 canvasHeight 사용을 권장합니다.',
-            fields: ['canvasSize']
+            fields: ['canvasSize'],
+            suggestion: 'canvasSize 제거 → "canvasWidth": 500 으로 변경'
           };
         }
 
@@ -1369,7 +1425,8 @@
         if (config.options?.callout?.preset) {
           return {
             message: 'callout.preset은 도수다각형 색상을 자동으로 따르므로 생략해도 됩니다.',
-            fields: ['options.callout']
+            fields: ['options.callout'],
+            suggestion: 'callout에서 "preset" 속성 제거'
           };
         }
         return null;
@@ -1380,7 +1437,8 @@
         if (config.options?.showDashedLines && config.options?.axis?.showYLabels !== false) {
           return {
             message: 'showDashedLines 사용 시 Y축 라벨과 중복될 수 있습니다. axis.showYLabels: false 권장합니다.',
-            fields: ['options.showDashedLines', 'options.axis']
+            fields: ['options.showDashedLines', 'options.axis'],
+            suggestion: '"axis": { "showYLabels": false }'
           };
         }
         return null;
@@ -1399,7 +1457,8 @@
         if (hasTimingWithoutBlink) {
           return {
             message: 'duration/repeat은 cellAnimationOptions.blinkEnabled: true일 때만 적용됩니다.',
-            fields: ['cellAnimations']
+            fields: ['cellAnimations'],
+            suggestion: '"cellAnimationOptions": { "blinkEnabled": true }'
           };
         }
         return null;
@@ -1417,7 +1476,8 @@
         if (hasAnimation && !hasCellAnimations) {
           return {
             message: 'animation이 활성화되어 있지만 cellAnimations가 없습니다. 셀 애니메이션을 사용하려면 cellAnimations를 추가하세요.',
-            fields: ['animation', 'cellAnimations']
+            fields: ['animation', 'cellAnimations'],
+            suggestion: '"cellAnimations": [{ "rowIndex": 0, "colIndex": 1 }]'
           };
         }
         return null;
@@ -1432,13 +1492,15 @@
         if (dataType === 'frequency' && !Number.isInteger(interval)) {
           return {
             message: '도수 모드에서 customYInterval은 정수(1, 2, 5, 10 등)를 권장합니다.',
-            fields: ['options.customYInterval']
+            fields: ['options.customYInterval'],
+            suggestion: '"customYInterval": 2  (정수 사용)'
           };
         }
         if (dataType === 'relativeFrequency' && interval >= 1) {
           return {
             message: '상대도수 모드에서 customYInterval은 소수(0.05, 0.1 등)를 권장합니다.',
-            fields: ['options.customYInterval']
+            fields: ['options.customYInterval'],
+            suggestion: '"customYInterval": 0.1  (소수 사용)'
           };
         }
         return null;
@@ -1468,7 +1530,8 @@
         if (!hasNotation) {
           return {
             message: '테이블 첫 번째 데이터 행에 "이상/미만" 표기를 권장합니다. 예: 60^{이상}~70^{미만}',
-            fields: ['data']
+            fields: ['data'],
+            suggestion: '60^{이상}~70^{미만}: 2, 0.2'
           };
         }
         return null;
@@ -1501,7 +1564,8 @@
           if (hasPlainText) {
             return {
               message: `${i}번째 데이터 행에 "이상/미만"이 일반 텍스트로 적혀있습니다. 첫 행에만 ^{이상}~^{미만}을 사용하고, 나머지는 숫자만 사용하세요.`,
-              fields: ['data']
+              fields: ['data'],
+              suggestion: '"70~80: 5, 0.5" (이상/미만 제거)'
             };
           }
         }
@@ -1527,14 +1591,16 @@
         if (isFrequencyTable && showMergedHeader === true) {
           return {
             message: '도수분포표에서는 showMergedHeader: false를 권장합니다.',
-            fields: ['options.showMergedHeader']
+            fields: ['options.showMergedHeader'],
+            suggestion: '"showMergedHeader": false'
           };
         }
 
         if (!isFrequencyTable && showMergedHeader === false) {
           return {
             message: '이원분류표에서는 showMergedHeader: true를 권장합니다.',
-            fields: ['options.showMergedHeader']
+            fields: ['options.showMergedHeader'],
+            suggestion: '"showMergedHeader": true'
           };
         }
 
@@ -1562,21 +1628,21 @@
     // 검증할 필드 정의
     const FIELD_DEFINITIONS = {
       // 최상위 필드
-      data: { required: true, label: 'data', desc: '변량 데이터 (필수)', type: 'array|string' },
-      datasets: { required: false, label: 'datasets', desc: '복수 데이터셋 배열 (복수 다각형)', type: 'array' },
-      purpose: { required: false, label: 'purpose', desc: '렌더링 목적', default: 'chart', type: 'string' },
-      tableType: { required: false, label: 'tableType', desc: '테이블 타입', default: 'basic-table', type: 'string' },
-      classCount: { required: false, label: 'classCount', desc: '계급 개수 (3~20)', default: 5, type: 'number' },
-      classWidth: { required: false, label: 'classWidth', desc: '계급 간격', type: 'number' },
-      classRange: { required: false, label: 'classRange', desc: '계급 범위 수동 지정', type: 'object' },
-      canvasSize: { required: false, label: 'canvasSize', desc: '캔버스 크기', type: 'number' },
-      canvasWidth: { required: false, label: 'canvasWidth', desc: '캔버스 너비', default: 700, type: 'number' },
-      canvasHeight: { required: false, label: 'canvasHeight', desc: '캔버스 높이', default: 450, type: 'number' },
-      cellVariables: { required: false, label: 'cellVariables', desc: '셀 변수 치환', type: 'array' },
-      cellAnimations: { required: false, label: 'cellAnimations', desc: '셀 애니메이션', type: 'array' },
-      cellAnimationOptions: { required: false, label: 'cellAnimationOptions', desc: '셀 애니메이션 전역 옵션', type: 'object' },
-      animation: { required: false, label: 'animation', desc: '애니메이션 활성화', default: true, type: 'boolean' },
-      options: { required: false, label: 'options', desc: '세부 옵션', type: 'object' }
+      data: { required: true, label: 'data', desc: '변량 데이터 (필수)', type: 'array|string', suggestion: '"data": [62, 87, 97, 73, 59]' },
+      datasets: { required: false, label: 'datasets', desc: '복수 데이터셋 배열 (복수 다각형)', type: 'array', suggestion: '"datasets": [{ "label": "A반", "data": [...] }]' },
+      purpose: { required: false, label: 'purpose', desc: '렌더링 목적', default: 'chart', type: 'string', suggestion: '"purpose": "chart" | "table" | "scatter"' },
+      tableType: { required: false, label: 'tableType', desc: '테이블 타입', default: 'basic-table', type: 'string', suggestion: '"tableType": "basic-table" | "stem-leaf" | "category-matrix"' },
+      classCount: { required: false, label: 'classCount', desc: '계급 개수 (3~20)', default: 5, type: 'number', suggestion: '"classCount": 5  (3~20 사이 정수)' },
+      classWidth: { required: false, label: 'classWidth', desc: '계급 간격', type: 'number', suggestion: '"classWidth": 10  (양의 정수)' },
+      classRange: { required: false, label: 'classRange', desc: '계급 범위 수동 지정', type: 'object', suggestion: '"classRange": { "firstStart": 12, "secondStart": 14, "lastEnd": 22 }' },
+      canvasSize: { required: false, label: 'canvasSize', desc: '캔버스 크기', type: 'number', suggestion: '"canvasSize": 600  (양의 정수)' },
+      canvasWidth: { required: false, label: 'canvasWidth', desc: '캔버스 너비', default: 700, type: 'number', suggestion: '"canvasWidth": 700  (양의 정수)' },
+      canvasHeight: { required: false, label: 'canvasHeight', desc: '캔버스 높이', default: 450, type: 'number', suggestion: '"canvasHeight": 450  (양의 정수)' },
+      cellVariables: { required: false, label: 'cellVariables', desc: '셀 변수 치환', type: 'array', suggestion: '"cellVariables": [{ "rowIndex": 0, "colIndex": 1, "value": "x" }]' },
+      cellAnimations: { required: false, label: 'cellAnimations', desc: '셀 애니메이션', type: 'array', suggestion: '"cellAnimations": [{ "rowIndex": 0, "colIndex": 1 }]' },
+      cellAnimationOptions: { required: false, label: 'cellAnimationOptions', desc: '셀 애니메이션 전역 옵션', type: 'object', suggestion: '"cellAnimationOptions": { "duration": 1500, "repeat": 3 }' },
+      animation: { required: false, label: 'animation', desc: '애니메이션 활성화', default: true, type: 'boolean', suggestion: '"animation": true | false' },
+      options: { required: false, label: 'options', desc: '세부 옵션', type: 'object', suggestion: '"options": { ... }' }
     };
 
     // options 하위 필드 정의 (차트)
@@ -1841,16 +1907,117 @@
         `;
       }
 
+      // 수정 제안 생성
+      const suggestion = getJsonSyntaxSuggestion(error, input, errorInfo);
+      let suggestionHtml = '';
+      if (suggestion) {
+        suggestionHtml = `
+          <div class="suggestion-box">
+            <div class="suggestion-title">💡 수정 제안</div>
+            <div class="suggestion-problem"><strong>문제:</strong> ${suggestion.problem}</div>
+            <div class="suggestion-fix"><strong>해결:</strong> ${suggestion.fix}</div>
+            ${suggestion.example ? `<div class="suggestion-example"><strong>예시:</strong> <code>${escapeHtml(suggestion.example)}</code></div>` : ''}
+          </div>
+        `;
+      }
+
       fieldResults.innerHTML = `
         <div class="json-error">
           <div class="json-error-title">JSON 문법 오류</div>
           <div class="json-error-message">${escapeHtml(error.message)}</div>
           ${errorContextHtml}
-        </div>
-        <div class="empty-state">
-          JSON 문법을 확인해주세요.
+          ${suggestionHtml}
         </div>
       `;
+    }
+
+    // JSON 문법 에러 수정 제안
+    function getJsonSyntaxSuggestion(error, input, errorInfo) {
+      const message = error.message.toLowerCase();
+      const lines = input.split('\n');
+      const errorLine = errorInfo.line !== null ? lines[errorInfo.line] || '' : '';
+      const prevLine = errorInfo.line > 0 ? lines[errorInfo.line - 1] || '' : '';
+
+      // 쉼표 관련 에러
+      if (message.includes('expected') && message.includes(',')) {
+        return {
+          problem: '쉼표(,) 누락',
+          fix: `줄 ${errorInfo.line}의 끝에 쉼표를 추가하세요`,
+          example: prevLine.trimEnd() + ','
+        };
+      }
+
+      // Unexpected token 에러
+      if (message.includes('unexpected token')) {
+        // 쉼표가 연속으로 있는 경우
+        if (errorLine.includes(',,') || (prevLine.endsWith(',') && errorLine.trim().startsWith(','))) {
+          return {
+            problem: '쉼표가 중복됨',
+            fix: '중복된 쉼표를 제거하세요',
+            example: null
+          };
+        }
+        // 마지막 항목 뒤 불필요한 쉼표
+        if (message.includes('}') || message.includes(']')) {
+          return {
+            problem: '마지막 항목 뒤에 불필요한 쉼표',
+            fix: '닫는 괄호 앞의 쉼표를 제거하세요',
+            example: prevLine.replace(/,\s*$/, '')
+          };
+        }
+      }
+
+      // 따옴표 관련 에러
+      if (message.includes('unexpected token') && /[a-zA-Z가-힣]/.test(errorLine.charAt(errorInfo.column || 0))) {
+        return {
+          problem: '키 이름에 따옴표 누락',
+          fix: '키 이름을 큰따옴표로 감싸세요',
+          example: '"keyName": value'
+        };
+      }
+
+      // 작은따옴표 사용
+      if (errorLine.includes("'")) {
+        return {
+          problem: '작은따옴표 사용 (JSON은 큰따옴표만 허용)',
+          fix: '작은따옴표(\'를 큰따옴표(")로 변경하세요',
+          example: errorLine.replace(/'/g, '"')
+        };
+      }
+
+      // 괄호 불일치
+      if (message.includes('unexpected end') || message.includes('unterminated')) {
+        const openBraces = (input.match(/{/g) || []).length;
+        const closeBraces = (input.match(/}/g) || []).length;
+        const openBrackets = (input.match(/\[/g) || []).length;
+        const closeBrackets = (input.match(/]/g) || []).length;
+
+        if (openBraces > closeBraces) {
+          return {
+            problem: '닫는 중괄호(}) 누락',
+            fix: `닫는 중괄호를 ${openBraces - closeBraces}개 추가하세요`,
+            example: '}'
+          };
+        }
+        if (openBrackets > closeBrackets) {
+          return {
+            problem: '닫는 대괄호(]) 누락',
+            fix: `닫는 대괄호를 ${openBrackets - closeBrackets}개 추가하세요`,
+            example: ']'
+          };
+        }
+      }
+
+      // 콜론 누락
+      if (message.includes('expected') && message.includes(':')) {
+        return {
+          problem: '콜론(:) 누락',
+          fix: '키와 값 사이에 콜론을 추가하세요',
+          example: '"key": "value"'
+        };
+      }
+
+      return null;
     }
 
     // JSON 에러 메시지에서 위치 파싱
@@ -1940,7 +2107,8 @@
           actualType: typeCheck.actualType,
           required: isRequired,
           hasWarning,
-          isNested: false
+          isNested: false,
+          suggestion: def.suggestion
         });
       }
 
@@ -1985,7 +2153,8 @@
             actualType: typeCheck.actualType,
             required: false,
             hasWarning,
-            isNested: true
+            isNested: true,
+            suggestion: def.suggestion
           });
         }
       }
@@ -2018,6 +2187,7 @@
           ${recommendations.map(r => `
             <div class="field-item warning">
               <div class="field-warning">${escapeHtml(r.message)}</div>
+              ${r.suggestion ? `<div class="field-suggestion">💡 <strong>수정:</strong> <code>${escapeHtml(r.suggestion)}</code></div>` : ''}
             </div>
           `).join('')}
         </div>
@@ -2036,6 +2206,11 @@
         // 타입 배지 생성
         const typeBadge = f.expectedType ? `<span class="type-badge ${f.typeError ? 'type-error' : ''}">${getTypeLabel(f.expectedType)}</span>` : '';
 
+        // 수정 제안 (에러 또는 타입에러 있을 때)
+        const suggestionHtml = (f.error || f.typeError) && f.suggestion
+          ? `<div class="field-suggestion">💡 <strong>수정:</strong> <code>${escapeHtml(f.suggestion)}</code></div>`
+          : '';
+
         return `
           <div class="field-item ${statusClass} ${nestedClass}">
             <div class="field-header">
@@ -2050,6 +2225,7 @@
             </div>
             ${f.error ? `<div class="field-error">${escapeHtml(f.error)}</div>` : ''}
             ${f.typeError ? `<div class="field-error">${escapeHtml(f.typeError)}</div>` : ''}
+            ${suggestionHtml}
             ${f.isRedundant ? `<div class="field-redundant">이 값은 기본값과 동일합니다. 생략해도 됩니다.</div>` : ''}
           </div>
         `;
