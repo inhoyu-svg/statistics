@@ -2501,7 +2501,7 @@ data 형식과 최소 예시는 [2. basic-table (기본 테이블)](#2-basic-tab
 {
   "purpose": "table",
   "tableType": "basic-table",
-  "data": "헤더: null, null, null, null, null\nA반: 1, 2, 3, 4, 5",
+  "data": "헤더: null, null, null, null, null\n200: 190, 185, 195, 195\n195: 198, 190, 200, 208\n190: 184, 185, 210, 205\n210: 198, 215, 205, 190\n190: 195, 180, 225, 235\n200: 200, 215, 210, 215",
   "options": {
     "showGrid": false
   }
