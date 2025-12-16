@@ -1855,7 +1855,24 @@
     // JSON 문법 에러 표시
     function showJsonSyntaxError(error) {
       const input = jsonInput.value;
-      const errorInfo = parseJsonErrorPosition(error.message, input);
+      let errorInfo = parseJsonErrorPosition(error.message, input);
+
+      // 쉼표 누락 에러인 경우, 이전 줄의 ] 또는 }를 가리키도록 조정
+      const message = error.message.toLowerCase();
+      if (message.includes("expected ','") || message.includes('expected ,')) {
+        const lines = input.split('\n');
+        if (errorInfo.line > 0) {
+          const prevLine = lines[errorInfo.line - 1];
+          const trimmedPrev = prevLine.trimEnd();
+          // 이전 줄이 ] 또는 }로 끝나면 그 위치로 조정
+          if (trimmedPrev.endsWith(']') || trimmedPrev.endsWith('}')) {
+            errorInfo = {
+              line: errorInfo.line - 1,
+              column: trimmedPrev.length - 1
+            };
+          }
+        }
+      }
 
       let errorContextHtml = '';
       if (errorInfo.line !== null) {
@@ -1940,9 +1957,18 @@
 
       // 쉼표 관련 에러
       if (message.includes('expected') && message.includes(',')) {
+        const targetLine = errorLine.trimEnd();
+        // 이미 에러 위치가 ] 또는 }로 조정된 경우
+        if (targetLine.endsWith(']') || targetLine.endsWith('}')) {
+          return {
+            problem: '쉼표(,) 누락',
+            fix: `] 또는 } 뒤에 쉼표를 추가하세요`,
+            example: targetLine + ','
+          };
+        }
         return {
           problem: '쉼표(,) 누락',
-          fix: `줄 ${errorInfo.line}의 끝에 쉼표를 추가하세요`,
+          fix: `이전 줄 끝에 쉼표를 추가하세요`,
           example: prevLine.trimEnd() + ','
         };
       }
