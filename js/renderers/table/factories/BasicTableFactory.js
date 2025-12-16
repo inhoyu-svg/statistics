@@ -76,6 +76,10 @@ class BasicTableFactory {
     // 그리드 표시 여부 (config에서 가져오거나 기본값 true)
     const showGrid = config?.showGrid ?? CONFIG.TABLE_SHOW_GRID;
 
+    // showGrid: false일 때 헤더 높이를 0으로 처리 (데이터만 표시)
+    const effectiveMergedHeaderHeight = showGrid ? mergedHeaderHeight : 0;
+    const effectiveColumnHeaderHeight = showGrid ? CONFIG.TABLE_HEADER_HEIGHT : 0;
+
     // 격자선 레이어 (이원분류표 전용)
     const gridLayer = this._createGridLayer({
       canvasWidth,
@@ -84,17 +88,18 @@ class BasicTableFactory {
       columnWidths,
       tableId,
       hasSummaryRow: showTotal,
-      mergedHeaderHeight,
+      mergedHeaderHeight: effectiveMergedHeaderHeight,
       showMergedHeader,
       rowHeights,
       showGrid,
       borderPadX,
-      borderPadY
+      borderPadY,
+      columnHeaderHeight: effectiveColumnHeaderHeight
     });
     rootLayer.addChild(gridLayer);
 
-    // 병합 헤더 레이어 (상대도수 또는 커스텀 텍스트) - 조건부 생성
-    if (showMergedHeader) {
+    // 병합 헤더 레이어 (상대도수 또는 커스텀 텍스트) - showGrid: true일 때만
+    if (showMergedHeader && showGrid) {
       const mergedHeaderLayer = this._createMergedHeaderLayer(
         columnWidths,
         padding,
@@ -106,18 +111,20 @@ class BasicTableFactory {
       rootLayer.addChild(mergedHeaderLayer);
     }
 
-    // 컬럼 헤더 레이어 (혈액형 | 남학생 | 여학생)
-    const columnHeaderLayer = this._createColumnHeaderLayer(
-      rowLabelColumn,
-      columnHeaders,
-      columnWidths,
-      padding,
-      tableId,
-      mergedHeaderHeight,
-      borderPadX,
-      borderPadY
-    );
-    rootLayer.addChild(columnHeaderLayer);
+    // 컬럼 헤더 레이어 - showGrid: true일 때만
+    if (showGrid) {
+      const columnHeaderLayer = this._createColumnHeaderLayer(
+        rowLabelColumn,
+        columnHeaders,
+        columnWidths,
+        padding,
+        tableId,
+        mergedHeaderHeight,
+        borderPadX,
+        borderPadY
+      );
+      rootLayer.addChild(columnHeaderLayer);
+    }
 
     // 데이터 행 레이어
     rows.forEach((row, rowIndex) => {
@@ -127,10 +134,11 @@ class BasicTableFactory {
         columnWidths,
         padding,
         tableId,
-        mergedHeaderHeight,
+        effectiveMergedHeaderHeight,
         rowHeights,
         borderPadX,
-        borderPadY
+        borderPadY,
+        effectiveColumnHeaderHeight
       );
       rootLayer.addChild(rowLayer);
     });
@@ -143,10 +151,11 @@ class BasicTableFactory {
         columnWidths,
         padding,
         tableId,
-        mergedHeaderHeight,
+        effectiveMergedHeaderHeight,
         rowHeights,
         borderPadX,
-        borderPadY
+        borderPadY,
+        effectiveColumnHeaderHeight
       );
       rootLayer.addChild(summaryLayer);
     }
@@ -273,14 +282,15 @@ class BasicTableFactory {
       rowHeights = [],
       showGrid = true,
       borderPadX = 0,
-      borderPadY = 0
+      borderPadY = 0,
+      columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT
     } = options;
 
     const totalWidth = canvasWidth - padding * 2;
     // 테두리 패딩 오프셋 (showGrid: false일 때 콘텐츠 위치 조정)
     const offsetX = borderPadX;
     const offsetY = borderPadY;
-    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
+    const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
     const totalRowHeight = rowHeights.length > 0
       ? rowHeights.reduce((sum, h) => sum + h, 0)
       : rowCount * CONFIG.TABLE_ROW_HEIGHT;
@@ -301,7 +311,7 @@ class BasicTableFactory {
         columnWidths,
         hasSummaryRow,
         mergedHeaderHeight,
-        columnHeaderHeight: CONFIG.TABLE_HEADER_HEIGHT,
+        columnHeaderHeight,
         mergedHeaderLineColor: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
         mergedHeaderLineWidth: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
         showMergedHeader,
@@ -437,7 +447,7 @@ class BasicTableFactory {
   /**
    * 데이터 행 레이어 생성
    */
-  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = [], borderPadX = 0, borderPadY = 0) {
+  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = [], borderPadX = 0, borderPadY = 0, columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT) {
     const rowGroup = new Layer({
       id: `basic-table-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
@@ -448,7 +458,7 @@ class BasicTableFactory {
     });
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 이후)
-    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
+    const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
     // rowHeights가 있으면 이전 행들의 높이 합산, 없으면 기존 방식
     const y = padding + borderPadY + totalHeaderHeight + (rowHeights.length > 0
       ? rowHeights.slice(0, rowIndex).reduce((sum, h) => sum + h, 0)
@@ -506,7 +516,7 @@ class BasicTableFactory {
   /**
    * 합계 행 레이어 생성
    */
-  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = [], borderPadX = 0, borderPadY = 0) {
+  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = [], borderPadX = 0, borderPadY = 0, columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT) {
     const summaryGroup = new Layer({
       id: `basic-table-${tableId}-table-summary`,
       name: '합계 행',
@@ -517,7 +527,7 @@ class BasicTableFactory {
     });
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 + 데이터 행들 이후)
-    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
+    const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
     // rowHeights가 있으면 데이터 행들의 높이 합산
     const dataRowsHeight = rowHeights.length > 0
       ? rowHeights.slice(0, dataRowCount).reduce((sum, h) => sum + h, 0)

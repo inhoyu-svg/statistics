@@ -278,13 +278,16 @@ class TableRenderer {
     // 분수가 포함된 경우 행 높이 조정
     const hasFraction = this._checkTableHasFraction(type, data);
     const rowHeight = hasFraction ? CONFIG.TABLE_ROW_HEIGHT_FRACTION : CONFIG.TABLE_ROW_HEIGHT;
-    const autoHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * rowHeight) + this.padding * 2;
+
+    // showGrid: false일 때 헤더 영역 제외
+    const showGrid = config?.showGrid ?? CONFIG.TABLE_SHOW_GRID;
+    const effectiveHeaderHeight = showGrid ? (mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT) : 0;
+    const autoHeight = effectiveHeaderHeight + (rowCount * rowHeight) + this.padding * 2;
 
     // 동적 너비 계산 (줄기-잎 제외)
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
 
     // showGrid: false일 때 테두리 패딩 추가
-    const showGrid = config?.showGrid ?? CONFIG.TABLE_SHOW_GRID;
     const borderPadX = !showGrid ? CONFIG.TABLE_BORDER_PADDING_X : 0;
     const borderPadY = !showGrid ? CONFIG.TABLE_BORDER_PADDING_Y : 0;
 
