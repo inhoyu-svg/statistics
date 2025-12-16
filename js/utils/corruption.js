@@ -128,7 +128,7 @@ export function renderFibers(ctx, allEdges, options = {}) {
  * 가장자리 색상 테두리 렌더링 (오래된 종이 느낌)
  */
 function renderEdgeColor(ctx, allEdges, options = {}) {
-  const { color = 'rgba(136, 136, 136, 1)', width = 3 } = options;
+  const { color = 'rgba(136, 136, 136, 1)', width = 1 } = options;
 
   ctx.save();
   ctx.strokeStyle = color;
@@ -697,7 +697,7 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
     ctx.save();
     ctx.strokeStyle = edgeColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -871,7 +871,7 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
     ctx.save();
     ctx.strokeStyle = edgeColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -1070,7 +1070,7 @@ export function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
 
     ctx.save();
     ctx.strokeStyle = edgeColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
