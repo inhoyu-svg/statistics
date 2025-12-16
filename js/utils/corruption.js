@@ -671,6 +671,16 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
   // 1단계: 마스킹 (각 셀을 찢김 경로로 마스킹)
   ctx.save();
+
+  // 차트 영역 클리핑 (축 라벨 영역만 보호, 그리드는 마스킹 허용)
+  const clipX = chartInfo.padding;
+  const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight - 15; // 상단 라벨 위 여유
+  const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+  const clipHeight = chartInfo.chartHeight + 15;
+  ctx.beginPath();
+  ctx.rect(clipX, clipY, clipWidth, clipHeight);
+  ctx.clip();
+
   ctx.globalCompositeOperation = 'destination-out';
   ctx.fillStyle = 'rgba(0, 0, 0, 1)';
 
@@ -693,9 +703,19 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
   // 2단계: 가장자리 색상 (외곽 면에만)
   if (style.edgeColorEnabled) {
-    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+    const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = chartInfo.padding;
+    const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight;
+    const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+    const clipHeight = chartInfo.chartHeight;
+    ctx.beginPath();
+    ctx.rect(clipX - 2, clipY - 2, clipWidth + 4, clipHeight + 4);
+    ctx.clip();
+
     ctx.strokeStyle = edgeColor;
     ctx.lineWidth = 1;
     ctx.lineCap = 'round';
@@ -735,9 +755,22 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
   // 3단계: 종이 섬유 효과
   if (style.fiberEnabled) {
+    ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = chartInfo.padding;
+    const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight;
+    const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+    const clipHeight = chartInfo.chartHeight;
+    ctx.beginPath();
+    ctx.rect(clipX - 2, clipY - 2, clipWidth + 4, clipHeight + 4);
+    ctx.clip();
+
     const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+
+    ctx.restore();
   }
 }
 
@@ -766,7 +799,35 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
   const cellSet = rangesToCellSet(ranges);
 
   const style = corruptionOptions.style || {};
-  const { startX, startY, cellHeight, columnWidths, rowHeights, cellWidth, inset = 3 } = tableInfo;
+  const { startX, startY, cellHeight, columnWidths, rowHeights, cellWidth, inset = 3, canvasWidth, canvasHeight } = tableInfo;
+
+  // 테이블 경계 계산
+  let tableWidth, tableHeight;
+  if (columnWidths && Array.isArray(columnWidths)) {
+    tableWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+  } else {
+    tableWidth = totalCols * cellWidth;
+  }
+  if (rowHeights && Array.isArray(rowHeights)) {
+    tableHeight = rowHeights.reduce((sum, h) => sum + h, 0);
+  } else {
+    tableHeight = totalRows * cellHeight;
+  }
+
+  // 경계 셀 확인
+  let minRow = Infinity, maxRow = -Infinity, minCol = Infinity, maxCol = -Infinity;
+  cellSet.forEach(key => {
+    const [row, col] = key.split('-').map(Number);
+    if (row < minRow) minRow = row;
+    if (row > maxRow) maxRow = row;
+    if (col < minCol) minCol = col;
+    if (col > maxCol) maxCol = col;
+  });
+
+  const touchesTop = minRow === 0;
+  const touchesBottom = maxRow === totalRows - 1;
+  const touchesLeft = minCol === 0;
+  const touchesRight = maxCol === totalCols - 1;
   const edgeComplexity = style.edgeComplexity || 0.7;
   const seed = style.seed || 42;
 
@@ -813,10 +874,24 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
     const adj = getAdjacency(row, col);
 
     // 외곽: inset 적용, 인접: 오버랩 (셀 경계를 넘어감)
-    const topY = adj.hasTop ? y - overlap : y + inset;
-    const bottomY = adj.hasBottom ? y + h + overlap : y + h - inset;
-    const leftX = adj.hasLeft ? x - overlap : x + inset;
-    const rightX = adj.hasRight ? x + w + overlap : x + w - inset;
+    let topY = adj.hasTop ? y - overlap : y + inset;
+    let bottomY = adj.hasBottom ? y + h + overlap : y + h - inset;
+    let leftX = adj.hasLeft ? x - overlap : x + inset;
+    let rightX = adj.hasRight ? x + w + overlap : x + w - inset;
+
+    // 테이블 경계에 닿으면 끝까지 확장 (클리핑으로 잘림)
+    if (touchesTop && row === minRow && !adj.hasTop) {
+      topY = startY - 20;
+    }
+    if (touchesBottom && row === maxRow && !adj.hasBottom) {
+      bottomY = startY + tableHeight + 20;
+    }
+    if (touchesLeft && col === minCol && !adj.hasLeft) {
+      leftX = startX - 20;
+    }
+    if (touchesRight && col === maxCol && !adj.hasRight) {
+      rightX = startX + tableWidth + 20;
+    }
 
     // 각 변의 경로 생성 (외곽은 찢김, 인접은 직선)
     const edges = {
@@ -845,6 +920,12 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
   // 1단계: 마스킹 (각 셀을 찢김 경로로 마스킹)
   ctx.save();
+
+  // 테이블 영역 클리핑 (영역 밖 마스킹 방지)
+  ctx.beginPath();
+  ctx.rect(startX - 2, startY - 2, tableWidth + 4, tableHeight + 4);
+  ctx.clip();
+
   ctx.globalCompositeOperation = 'destination-out';
   ctx.fillStyle = 'rgba(0, 0, 0, 1)';
 
@@ -870,6 +951,12 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
     const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
+
+    // 테이블 영역 클리핑 (영역 밖 렌더링 차단)
+    ctx.beginPath();
+    ctx.rect(startX - 2, startY - 2, tableWidth + 4, tableHeight + 4);
+    ctx.clip();
+
     ctx.strokeStyle = edgeColor;
     ctx.lineWidth = 1;
     ctx.lineCap = 'round';
@@ -909,9 +996,18 @@ export function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
   // 3단계: 종이 섬유 효과 (fiberEnabled)
   if (style.fiberEnabled) {
+    ctx.save();
+
+    // 테이블 영역 클리핑 (영역 밖 렌더링 차단)
+    ctx.beginPath();
+    ctx.rect(startX - 2, startY - 2, tableWidth + 4, tableHeight + 4);
+    ctx.clip();
+
     const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+
+    ctx.restore();
   }
 }
 
