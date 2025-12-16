@@ -770,8 +770,8 @@ class TableCellRenderer {
    */
   _renderMixedText(text, x, y, alignment, color, bold, fontSize, isHeader = false) {
     const segments = this._splitByCharType(text);
-    // 한글은 기존 테이블 폰트 크기(18px) 유지
-    const koreanFontSize = 18;
+    // 혼합 텍스트에서는 한글도 동일한 폰트 크기 사용 (baseline 정렬을 위해)
+    const koreanFontSize = fontSize;
 
     this.ctx.save();
     this.ctx.fillStyle = color;
