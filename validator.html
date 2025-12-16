@@ -1874,6 +1874,25 @@
         }
       }
 
+      // boolean/null 오타 에러인 경우, 오타가 있는 줄을 가리키도록 조정
+      if (message.includes('unexpected token')) {
+        // 정확한 오타만 매칭 (true, false, null의 일부가 아닌 것)
+        const booleanTypos = ['ture', 'treu', 'flase', 'fasle', 'fales', 'nill'];
+        const lines = input.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          for (const typo of booleanTypos) {
+            // 단어 경계 체크: 오타 앞뒤가 알파벳이 아니어야 함
+            const regex = new RegExp(`(?<![a-zA-Z])${typo}(?![a-zA-Z])`);
+            const match = lines[i].match(regex);
+            if (match) {
+              errorInfo = { line: i, column: match.index };
+              break;
+            }
+          }
+          if (errorInfo.line === i) break;
+        }
+      }
+
       let errorContextHtml = '';
       if (errorInfo.line !== null) {
         const lines = input.split('\n');
@@ -1955,8 +1974,8 @@
       const errorLine = errorInfo.line !== null ? lines[errorInfo.line] || '' : '';
       const prevLine = errorInfo.line > 0 ? lines[errorInfo.line - 1] || '' : '';
 
-      // 쉼표 관련 에러
-      if (message.includes('expected') && message.includes(',')) {
+      // 쉼표 관련 에러 (Expected ',' 형태만 매칭, Unexpected와 구분)
+      if ((message.includes("expected ','") || message.match(/expected\s*,/)) && !message.includes('unexpected')) {
         const targetLine = errorLine.trimEnd();
         // 이미 에러 위치가 ] 또는 }로 조정된 경우
         if (targetLine.endsWith(']') || targetLine.endsWith('}')) {
@@ -1975,18 +1994,22 @@
 
       // Unexpected token 에러
       if (message.includes('unexpected token')) {
-        // boolean/null 오타 감지 (ture, treu, flase, fasle, nul, nill 등)
+        // boolean/null 오타 감지 (정확한 매칭만)
         const booleanTypos = {
-          'ture': 'true', 'treu': 'true', 'tru': 'true', 'tur': 'true',
-          'flase': 'false', 'fasle': 'false', 'fales': 'false', 'fals': 'false',
-          'nul': 'null', 'nill': 'null', 'nll': 'null'
+          'ture': 'true', 'treu': 'true',
+          'flase': 'false', 'fasle': 'false', 'fales': 'false',
+          'nill': 'null'
         };
+        // errorLine 또는 전체 input에서 오타 검색
         for (const [typo, correct] of Object.entries(booleanTypos)) {
-          if (errorLine.includes(typo)) {
+          // 단어 경계 체크: 오타 앞뒤가 알파벳이 아니어야 함
+          const regex = new RegExp(`(?<![a-zA-Z])${typo}(?![a-zA-Z])`);
+          const typoLine = lines.find(line => regex.test(line));
+          if (typoLine) {
             return {
               problem: `'${typo}' 오타 (올바른 값: ${correct})`,
               fix: `'${typo}'를 '${correct}'로 수정하세요`,
-              example: errorLine.replace(typo, correct)
+              example: typoLine.replace(regex, correct)
             };
           }
         }
