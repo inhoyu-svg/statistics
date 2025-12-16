@@ -795,7 +795,9 @@ class TableCellRenderer {
     segments.forEach(seg => {
       const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
       this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
-      this.ctx.fillText(seg.text, currentX, y);
+      // 한글은 약간 아래로 (baseline 보정)
+      const yOffset = seg.type === 'korean' ? 1 : 0;
+      this.ctx.fillText(seg.text, currentX, y + yOffset);
       currentX += this.ctx.measureText(seg.text).width;
     });
 
