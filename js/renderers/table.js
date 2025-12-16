@@ -283,6 +283,11 @@ class TableRenderer {
     // 동적 너비 계산 (줄기-잎 제외)
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
 
+    // showGrid: false일 때 테두리 패딩 추가
+    const showGrid = config?.showGrid ?? CONFIG.TABLE_SHOW_GRID;
+    const borderPadX = !showGrid ? CONFIG.TABLE_BORDER_PADDING_X : 0;
+    const borderPadY = !showGrid ? CONFIG.TABLE_BORDER_PADDING_Y : 0;
+
     // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
     let ratio = 1;
     if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
@@ -291,9 +296,9 @@ class TableRenderer {
       ratio = config.canvasHeight / autoHeight;
     }
 
-    // 최종 canvas 크기 계산 (비율 적용)
-    const finalCanvasWidth = config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio);
-    const finalCanvasHeight = config?.canvasHeight || Math.round(autoHeight * ratio);
+    // 최종 canvas 크기 계산 (비율 적용 + 테두리 패딩)
+    const finalCanvasWidth = (config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio)) + borderPadX * 2;
+    const finalCanvasHeight = (config?.canvasHeight || Math.round(autoHeight * ratio)) + borderPadY * 2;
     this.canvas.width = finalCanvasWidth;
     this.canvas.height = finalCanvasHeight;
     this.scaleRatio = ratio; // renderFrame에서 사용
@@ -304,7 +309,9 @@ class TableRenderer {
     const layerConfig = {
       ...config,
       columnWidths: dynamicConfig.columnWidths,
-      canvasWidth: dynamicConfig.canvasWidth
+      canvasWidth: dynamicConfig.canvasWidth,
+      borderPadX,  // 테두리 패딩 (showGrid: false일 때)
+      borderPadY
     };
     TableFactoryRouter.createTableLayers(type, this.layerManager, data, layerConfig, this.tableId);
 

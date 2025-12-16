@@ -610,6 +610,7 @@ export async function renderChart(element, config) {
  * @param {boolean} [config.options.animation=true] - Enable animation
  * @param {boolean} [config.options.showTotal=true] - Show total row (basic-table only)
  * @param {boolean} [config.options.showMergedHeader=true] - Show merged header (basic-table only)
+ * @param {boolean} [config.options.showGrid=true] - Show grid lines (false: rounded border instead)
  * @returns {Promise<Object>} { tableRenderer, canvas, parsedData? } or { error }
  */
 export async function renderTable(element, config) {
@@ -660,7 +661,8 @@ export async function renderTable(element, config) {
     // 테이블 설정 구성
     const tableConfig = {
       canvasWidth: config.canvasWidth,
-      canvasHeight: config.canvasHeight
+      canvasHeight: config.canvasHeight,
+      showGrid: options.showGrid  // 그리드 표시 여부 (undefined면 기본값 true)
     };
     const animationConfig = config.animation !== undefined ? config.animation : options.animation;
     const animation = typeof animationConfig === 'object'
@@ -675,11 +677,17 @@ export async function renderTable(element, config) {
 
     // Apply basic-table specific options (평탄화된 구조)
     if (tableType === 'basic-table') {
-      if (options.showTotal !== undefined) {
-        parseResult.data.showTotal = options.showTotal;
-      }
-      if (options.showMergedHeader !== undefined) {
-        parseResult.data.showMergedHeader = options.showMergedHeader;
+      // showGrid: false일 때 자동으로 showMergedHeader, showTotal도 false
+      if (options.showGrid === false) {
+        parseResult.data.showMergedHeader = options.showMergedHeader ?? false;
+        parseResult.data.showTotal = options.showTotal ?? false;
+      } else {
+        if (options.showTotal !== undefined) {
+          parseResult.data.showTotal = options.showTotal;
+        }
+        if (options.showMergedHeader !== undefined) {
+          parseResult.data.showMergedHeader = options.showMergedHeader;
+        }
       }
     }
 

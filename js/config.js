@@ -127,6 +127,14 @@ const CONFIG = {
   TABLE_STEM_LEAF_PADDING: 20,            // 줄기-잎 데이터 셀 패딩 (세로선과의 간격)
   TABLE_GRID_DASH_PATTERN: [5, 3],        // 수직 점선 패턴 [선, 간격]
   TABLE_EMPTY_CANVAS_HEIGHT: 100,         // 빈 테이블 캔버스 높이
+
+  // 테이블 그리드/테두리 설정
+  TABLE_SHOW_GRID: true,                  // 그리드 표시 여부 (기본값)
+  TABLE_BORDER_RADIUS: 12,                // 테두리 둥글기 (showGrid: false일 때)
+  TABLE_BORDER_COLOR: '#555555',          // 테두리 색상
+  TABLE_BORDER_WIDTH: 2,                  // 테두리 두께
+  TABLE_BORDER_PADDING_X: 12,             // 테두리 안쪽 좌우 여백
+  TABLE_BORDER_PADDING_Y: 8,              // 테두리 안쪽 상하 여백
   TABLE_FONT_SUPERSCRIPT: "300 11px 'SCDream', sans-serif", // 상첨자 폰트 (Light)
 
   // 테이블 문자열 상수

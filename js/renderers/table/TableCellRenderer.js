@@ -298,10 +298,31 @@ class TableCellRenderer {
       mergedHeaderHeight, columnHeaderHeight,
       mergedHeaderLineColor, mergedHeaderLineWidth,
       showMergedHeader = true,
-      rowHeights = []
+      rowHeights = [],
+      showGrid = true
     } = layer.data;
 
     const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
+
+    // showGrid가 false면 둥근 테두리만 렌더링
+    if (!showGrid) {
+      // showGrid: false일 때는 병합 헤더 + 컬럼 헤더 영역 제외 (데이터만 감싸기)
+      const headerOffset = mergedHeaderHeight + columnHeaderHeight;
+      const adjustedY = y + headerOffset;
+      const adjustedHeight = height - headerOffset;
+
+      // 양옆/상하 패딩 적용 (테두리 바깥으로 확장)
+      const padX = CONFIG.TABLE_BORDER_PADDING_X;
+      const padY = CONFIG.TABLE_BORDER_PADDING_Y;
+
+      this._renderRoundedBorder(
+        x - padX,
+        adjustedY - padY,
+        width + padX * 2,
+        adjustedHeight + padY * 2
+      );
+      return;
+    }
 
     // 하단 선 (두께 2, 밝은 회색)
     this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
@@ -374,6 +395,25 @@ class TableCellRenderer {
       this.ctx.stroke();
     }
     this.ctx.setLineDash([]); // 실선으로 복원
+  }
+
+  /**
+   * 둥근 테두리 렌더링 (showGrid: false일 때)
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {number} width - 너비
+   * @param {number} height - 높이
+   */
+  _renderRoundedBorder(x, y, width, height) {
+    const radius = CONFIG.TABLE_BORDER_RADIUS;
+    const borderColor = CONFIG.TABLE_BORDER_COLOR;
+    const borderWidth = CONFIG.TABLE_BORDER_WIDTH;
+
+    this.ctx.strokeStyle = borderColor;
+    this.ctx.lineWidth = borderWidth;
+    this.ctx.beginPath();
+    this.ctx.roundRect(x, y, width, height, radius);
+    this.ctx.stroke();
   }
 
   /**
