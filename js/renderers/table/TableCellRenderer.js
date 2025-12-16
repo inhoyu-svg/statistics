@@ -315,11 +315,35 @@ class TableCellRenderer {
       const padX = CONFIG.TABLE_BORDER_PADDING_X;
       const padY = CONFIG.TABLE_BORDER_PADDING_Y;
 
+      // 테두리 크기
+      const borderWidth = width + padX * 2;
+      const borderHeight = adjustedHeight + padY * 2;
+
+      // finalCanvasWidth가 있으면 캔버스 기준으로 중앙 배치, 없으면 기존 방식
+      const { finalCanvasWidth = 0, finalCanvasHeight = 0 } = layer.data;
+      let borderX, borderY;
+
+      if (finalCanvasWidth > 0) {
+        // 캔버스 중앙에 테두리 배치 (셀 경계 기준 균등)
+        borderX = (finalCanvasWidth - borderWidth) / 2;
+      } else {
+        // 기존 방식: x 기준 상대 위치
+        borderX = x - padX;
+      }
+
+      if (finalCanvasHeight > 0) {
+        // 캔버스 기준 Y 위치 계산 (상하 균등)
+        borderY = (finalCanvasHeight - borderHeight) / 2;
+      } else {
+        // 기존 방식: adjustedY 기준 상대 위치
+        borderY = adjustedY - padY;
+      }
+
       this._renderRoundedBorder(
-        x - padX,
-        adjustedY - padY,
-        width + padX * 2,
-        adjustedHeight + padY * 2
+        borderX,
+        borderY,
+        borderWidth,
+        borderHeight
       );
       return;
     }

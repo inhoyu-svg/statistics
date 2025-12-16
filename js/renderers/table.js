@@ -313,6 +313,7 @@ class TableRenderer {
       ...config,
       columnWidths: dynamicConfig.columnWidths,
       canvasWidth: dynamicConfig.canvasWidth,
+      canvasHeight: autoHeight,  // 테두리 중앙 배치용 높이
       borderPadX,  // 테두리 패딩 (showGrid: false일 때)
       borderPadY
     };

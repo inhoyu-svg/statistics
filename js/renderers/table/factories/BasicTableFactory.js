@@ -45,10 +45,10 @@ class BasicTableFactory {
     const rowHeights = this._calculateRowHeights(rows, totals, showTotal);
     const totalRowHeight = rowHeights.reduce((sum, h) => sum + h, 0);
 
-    // Canvas 높이 계산 (병합 헤더 조건부 + 컬럼 헤더 + 데이터 행들)
+    // Canvas 높이 계산 (config에서 전달받거나 자동 계산)
     const mergedHeaderHeight = showMergedHeader ? BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-    const canvasHeight = totalHeaderHeight + totalRowHeight + padding * 2;
+    const canvasHeight = config?.canvasHeight || (totalHeaderHeight + totalRowHeight + padding * 2);
 
     // 열 너비 계산 (config에서 전달받거나 자동 계산)
     const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
@@ -81,6 +81,9 @@ class BasicTableFactory {
     const effectiveColumnHeaderHeight = showGrid ? CONFIG.TABLE_HEADER_HEIGHT : 0;
 
     // 격자선 레이어 (이원분류표 전용)
+    // showGrid: false일 때 최종 캔버스 너비 계산 (테두리 중앙 배치용)
+    const finalCanvasWidth = showGrid ? canvasWidth : canvasWidth + borderPadX * 2;
+    const finalCanvasHeight = showGrid ? canvasHeight : canvasHeight + borderPadY * 2;
     const gridLayer = this._createGridLayer({
       canvasWidth,
       padding,
@@ -94,7 +97,9 @@ class BasicTableFactory {
       showGrid,
       borderPadX,
       borderPadY,
-      columnHeaderHeight: effectiveColumnHeaderHeight
+      columnHeaderHeight: effectiveColumnHeaderHeight,
+      finalCanvasWidth,
+      finalCanvasHeight
     });
     rootLayer.addChild(gridLayer);
 
@@ -283,7 +288,9 @@ class BasicTableFactory {
       showGrid = true,
       borderPadX = 0,
       borderPadY = 0,
-      columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT
+      columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT,
+      finalCanvasWidth = 0,
+      finalCanvasHeight = 0
     } = options;
 
     const totalWidth = canvasWidth - padding * 2;
@@ -316,7 +323,9 @@ class BasicTableFactory {
         mergedHeaderLineWidth: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
         showMergedHeader,
         rowHeights,
-        showGrid
+        showGrid,
+        finalCanvasWidth,
+        finalCanvasHeight
       }
     });
   }
