@@ -2349,8 +2349,9 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | 설정 | 값 | 이유 |
 |:-----|:---|:-----|
 | `헤더` | 모두 `null` | 변량 테이블은 헤더가 없음 |
-| `showMergedHeader` | `false` | 병합 헤더 불필요 |
-| `showTotal` | `false` | 합계 행 불필요 |
+| `showGrid` | `false` | 격자선 대신 둥근 테두리 적용 |
+
+> `showGrid: false` 설정 시 `showMergedHeader`, `showTotal`이 **자동으로 false** 적용됨
 
 ### 예시
 
@@ -2360,8 +2361,7 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
   "tableType": "basic-table",
   "data": "헤더: null, null, null, null, null\n200: 190, 185, 195, 195\n195: 198, 190, 200, 208\n190: 184, 185, 210, 205\n210: 198, 215, 205, 190\n190: 195, 180, 225, 235\n200: 200, 215, 210, 215",
   "options": {
-    "showMergedHeader": false,
-    "showTotal": false
+    "showGrid": false
   }
 }
 ```
