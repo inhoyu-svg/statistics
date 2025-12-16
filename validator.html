@@ -1975,6 +1975,22 @@
 
       // Unexpected token 에러
       if (message.includes('unexpected token')) {
+        // boolean/null 오타 감지 (ture, treu, flase, fasle, nul, nill 등)
+        const booleanTypos = {
+          'ture': 'true', 'treu': 'true', 'tru': 'true', 'tur': 'true',
+          'flase': 'false', 'fasle': 'false', 'fales': 'false', 'fals': 'false',
+          'nul': 'null', 'nill': 'null', 'nll': 'null'
+        };
+        for (const [typo, correct] of Object.entries(booleanTypos)) {
+          if (errorLine.includes(typo)) {
+            return {
+              problem: `'${typo}' 오타 (올바른 값: ${correct})`,
+              fix: `'${typo}'를 '${correct}'로 수정하세요`,
+              example: errorLine.replace(typo, correct)
+            };
+          }
+        }
+
         // 쉼표가 연속으로 있는 경우
         if (errorLine.includes(',,') || (prevLine.endsWith(',') && errorLine.trim().startsWith(','))) {
           return {
