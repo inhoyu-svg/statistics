@@ -795,8 +795,8 @@ class TableCellRenderer {
     segments.forEach(seg => {
       const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
       this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
-      // 한글은 약간 아래로 (baseline 보정)
-      const yOffset = seg.type === 'korean' ? 1 : 0;
+      // baseline 보정: 대괄호 -2px, 한글 +1px
+      const yOffset = seg.type === 'bracket' ? -2 : (seg.type === 'korean' ? 1 : 0);
       this.ctx.fillText(seg.text, currentX, y + yOffset);
       currentX += this.ctx.measureText(seg.text).width;
     });
@@ -960,7 +960,7 @@ class TableCellRenderer {
   /**
    * 텍스트를 문자 유형별로 분리
    * @param {string} text - 분리할 텍스트
-   * @returns {Array} [{text, type: 'korean'|'lowercase'|'other'}, ...]
+   * @returns {Array} [{text, type: 'korean'|'lowercase'|'bracket'|'other'}, ...]
    */
   _splitByCharType(text) {
     const result = [];
@@ -970,6 +970,7 @@ class TableCellRenderer {
       let type;
       if (/[가-힣]/.test(char)) type = 'korean';
       else if (/[a-z]/.test(char)) type = 'lowercase';
+      else if (/[\[\]]/.test(char)) type = 'bracket'; // 대괄호는 별도 타입
       else type = 'other'; // 대문자, 숫자, 특수문자
 
       if (type === current.type) {
@@ -985,7 +986,7 @@ class TableCellRenderer {
 
   /**
    * 문자 유형에 따른 폰트 정보 반환
-   * @param {string} type - 문자 유형 ('korean', 'lowercase', 'other')
+   * @param {string} type - 문자 유형 ('korean', 'lowercase', 'bracket', 'other')
    * @param {number} fontSize - 폰트 크기
    * @param {boolean} bold - 볼드 여부
    * @param {boolean} isHeader - 헤더 여부 (헤더는 Medium 사용)
@@ -999,7 +1000,7 @@ class TableCellRenderer {
     } else if (type === 'lowercase') {
       return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
     } else {
-      // 대문자/숫자는 볼드 적용 안 함
+      // 대문자/숫자/대괄호는 볼드 적용 안 함
       return `${fontSize}px KaTeX_Main, Times New Roman, serif`;
     }
   }
