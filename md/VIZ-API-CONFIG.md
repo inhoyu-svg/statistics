@@ -284,7 +284,8 @@ config (최상위)
 │   │
 │   │  [basic-table 전용]
 │   ├── showTotal           합계 행 표시
-│   └── showMergedHeader    병합 헤더 표시
+│   ├── showMergedHeader    병합 헤더 표시
+│   └── showGrid            격자선 표시 (false시 둥근 테두리)
 │
 │  [테이블 전용]
 ├── cellAnimations          [{ rowIndex, colIndex, duration, repeat }, ...]
