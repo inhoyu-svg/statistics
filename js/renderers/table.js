@@ -494,18 +494,40 @@ class TableRenderer {
         break;
 
       case CONFIG.TABLE_TYPES.BASIC_TABLE:
-        // 이원분류표
-        headers = [data.rowLabelColumn || '', ...(data.columnHeaders || [])];
+        // 이원분류표 - colSpan 확장 필요
+        const expandedHeaders = [];
+        (data.columnHeaders || []).forEach(header => {
+          const headerObj = typeof header === 'string' ? { text: header, colSpan: 1 } : header;
+          const colSpan = headerObj.colSpan || 1;
+          // colSpan만큼 헤더 추가 (첫 번째는 텍스트, 나머지는 빈 문자열)
+          expandedHeaders.push(headerObj.text || '');
+          for (let i = 1; i < colSpan; i++) {
+            expandedHeaders.push('');
+          }
+        });
+        headers = [data.rowLabelColumn || '', ...expandedHeaders];
         rows = (data.rows || []).map(row => {
-          const values = row.values.map(v =>
-            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v)
-          );
+          const values = row.values.map(v => {
+            // 탈리 객체인 경우 너비 계산용 placeholder
+            if (v && typeof v === 'object' && v.type === 'tally') {
+              const count = v.count || 0;
+              const groups = Math.floor(count / 5);
+              const remainder = count % 5;
+              const groupWidth = 4 * CONFIG.TALLY_LINE_SPACING;
+              const groupSpacing = CONFIG.TALLY_GROUP_SPACING;
+              const remainderWidth = remainder > 0 ? (remainder - 1) * CONFIG.TALLY_LINE_SPACING : 0;
+              const numGaps = groups > 0 ? (remainder > 0 ? groups : Math.max(0, groups - 1)) : 0;
+              const tallyPixelWidth = groups * groupWidth + numGaps * groupSpacing + remainderWidth;
+              return 'X'.repeat(Math.ceil(tallyPixelWidth / 10));
+            }
+            return typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v ?? '');
+          });
           return [row.label, ...values];
         });
         // 합계 행
         if (data.showTotal !== false && data.totals) {
           const totals = data.totals.map(v =>
-            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v)
+            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v ?? '')
           );
           rows.push(['합계', ...totals]);
         }
