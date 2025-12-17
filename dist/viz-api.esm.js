@@ -127,6 +127,14 @@ const CONFIG = {
   TABLE_STEM_LEAF_PADDING: 20,            // 줄기-잎 데이터 셀 패딩 (세로선과의 간격)
   TABLE_GRID_DASH_PATTERN: [5, 3],        // 수직 점선 패턴 [선, 간격]
   TABLE_EMPTY_CANVAS_HEIGHT: 100,         // 빈 테이블 캔버스 높이
+
+  // 테이블 그리드/테두리 설정
+  TABLE_SHOW_GRID: true,                  // 그리드 표시 여부 (기본값)
+  TABLE_BORDER_RADIUS: 12,                // 테두리 둥글기 (showGrid: false일 때)
+  TABLE_BORDER_COLOR: '#93DA6A',          // 테두리 색상
+  TABLE_BORDER_WIDTH: 2,                  // 테두리 두께
+  TABLE_BORDER_PADDING_X: 16,             // 테두리 안쪽 좌우 여백
+  TABLE_BORDER_PADDING_Y: 20,              // 테두리 안쪽 상하 여백
   TABLE_FONT_SUPERSCRIPT: "300 11px 'SCDream', sans-serif", // 상첨자 폰트 (Light)
 
   // 테이블 문자열 상수
@@ -1702,9 +1710,11 @@ class FrequencyParser {
    * @param {string} input - 쉼표 또는 공백으로 구분된 숫자 문자열
    * @returns {{ success: boolean, data: number[]|null, error: string|null }}
    * @example
-   * parse("1, 2, 3") // { success: true, data: [1, 2, 3], error: null }
-   * parse("1 2 3")   // { success: true, data: [1, 2, 3], error: null }
-   * parse("")        // { success: false, data: null, error: "데이터가 비어있습니다" }
+   * parse("1, 2, 3")   // { success: true, data: [1, 2, 3], error: null }
+   * parse("1 2 3")     // { success: true, data: [1, 2, 3], error: null }
+   * parse("35*10")     // { success: true, data: [35, 35, ...(10개)], error: null }
+   * parse("40*2 50*3") // { success: true, data: [40, 40, 50, 50, 50], error: null }
+   * parse("")          // { success: false, data: null, error: "데이터가 비어있습니다" }
    */
   static parse(input) {
     if (!input || typeof input !== 'string') {
@@ -1724,11 +1734,29 @@ class FrequencyParser {
       };
     }
 
-    // 쉼표 또는 공백으로 분리하여 숫자로 변환
-    const numbers = trimmed
-      .split(/[,\s]+/)
-      .map(Number)
-      .filter(n => !isNaN(n) && isFinite(n));
+    // 쉼표 또는 공백으로 분리
+    const tokens = trimmed.split(/[,\s]+/);
+    const numbers = [];
+
+    for (const token of tokens) {
+      // 숫자*반복횟수 패턴 체크 (예: 35*10, -5*3, 3.14*2)
+      const repeatMatch = token.match(/^(-?\d+\.?\d*)\*(\d+)$/);
+      if (repeatMatch) {
+        const value = Number(repeatMatch[1]);
+        const count = parseInt(repeatMatch[2], 10);
+        if (!isNaN(value) && isFinite(value) && count > 0) {
+          for (let i = 0; i < count; i++) {
+            numbers.push(value);
+          }
+        }
+      } else {
+        // 일반 숫자
+        const num = Number(token);
+        if (!isNaN(num) && isFinite(num)) {
+          numbers.push(num);
+        }
+      }
+    }
 
     if (numbers.length === 0) {
       return {
@@ -2000,10 +2028,13 @@ class BasicTableParser {
         };
       }
 
-      const label = line.substring(0, colonIndex).trim();
+      const rawLabel = line.substring(0, colonIndex).trim();
       const valuesStr = line.substring(colonIndex + 1).trim();
 
-      if (!label) {
+      // null 문자열 → 실제 null (빈 셀)
+      const label = rawLabel === 'null' ? null : rawLabel;
+
+      if (rawLabel === '') {
         return {
           success: false,
           data: null,
@@ -2012,7 +2043,7 @@ class BasicTableParser {
       }
 
       // 첫 번째 데이터 줄: 헤더 (첫 값 = 행 라벨 컬럼명, 나머지 = 열 헤더)
-      if (i === startLineIndex && label.toLowerCase() === '헤더') {
+      if (i === startLineIndex && rawLabel.toLowerCase() === '헤더') {
         const allHeaders = valuesStr.split(',').map(v => {
           const trimmed = v.trim();
           // null 문자열 → 실제 null (빈 셀)
@@ -2027,7 +2058,24 @@ class BasicTableParser {
         }
         // 첫 번째 값은 행 라벨 컬럼명, 나머지는 열 헤더
         result.rowLabelColumn = allHeaders[0];
-        result.columnHeaders = allHeaders.slice(1);
+
+        // 열 헤더 파싱 (colSpan 지원: "도수*2" → { text: '도수', colSpan: 2 })
+        let totalDataColumns = 0;
+        result.columnHeaders = allHeaders.slice(1).map(header => {
+          if (header === null) {
+            totalDataColumns += 1;
+            return { text: null, colSpan: 1 };
+          }
+          const colSpanMatch = header.match(/^(.+)\*(\d+)$/);
+          if (colSpanMatch) {
+            const colSpan = parseInt(colSpanMatch[2], 10);
+            totalDataColumns += colSpan;
+            return { text: colSpanMatch[1], colSpan };
+          }
+          totalDataColumns += 1;
+          return { text: header, colSpan: 1 };
+        });
+        result.totalDataColumns = totalDataColumns;
       } else {
         // 데이터 행
         const values = valuesStr.split(',').map(v => {
@@ -2048,12 +2096,13 @@ class BasicTableParser {
           return isNaN(num) ? trimmedVal : num;
         });
 
-        // 열 헤더가 있으면 개수 확인
-        if (result.columnHeaders.length > 0 && values.length !== result.columnHeaders.length) {
+        // 열 헤더가 있으면 개수 확인 (totalDataColumns = colSpan 합계)
+        const expectedColumns = result.totalDataColumns || result.columnHeaders.length;
+        if (expectedColumns > 0 && values.length !== expectedColumns) {
           return {
             success: false,
             data: null,
-            error: `${i + 1}번째 줄: 값 개수(${values.length})가 열 개수(${result.columnHeaders.length})와 일치하지 않습니다.`
+            error: `${i + 1}번째 줄: 값 개수(${values.length})가 열 개수(${expectedColumns})와 일치하지 않습니다.`
           };
         }
 
@@ -2077,18 +2126,20 @@ class BasicTableParser {
     if (result.columnHeaders.length === 0) {
       const columnCount = result.rows[0].values.length;
       result.columnHeaders = Array.from({ length: columnCount }, (_, i) =>
-        `열${i + 1}`
+        ({ text: `열${i + 1}`, colSpan: 1 })
       );
+      result.totalDataColumns = columnCount;
     }
 
-    // 행 라벨 컬럼명이 없으면 기본값
-    if (!result.rowLabelColumn) {
+    // 행 라벨 컬럼명이 없으면 기본값 (null은 빈칸이므로 유지)
+    if (result.rowLabelColumn === undefined || result.rowLabelColumn === '') {
       result.rowLabelColumn = '구분';
     }
 
-    // 합계 계산 - 상대도수이므로 1로 고정 (실제 합계가 1에 가까운 경우)
+    // 합계 계산 - totalDataColumns 기준
     const totals = [];
-    for (let col = 0; col < result.columnHeaders.length; col++) {
+    const dataColumnCount = result.totalDataColumns || result.rows[0]?.values.length || 0;
+    for (let col = 0; col < dataColumnCount; col++) {
       let sum = 0;
       let allNumbers = true;
       for (const row of result.rows) {
@@ -8264,10 +8315,55 @@ class TableCellRenderer {
       mergedHeaderHeight, columnHeaderHeight,
       mergedHeaderLineColor, mergedHeaderLineWidth,
       showMergedHeader = true,
-      rowHeights = []
+      rowHeights = [],
+      showGrid = true
     } = layer.data;
 
     const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
+
+    // showGrid가 false면 둥근 테두리만 렌더링
+    if (!showGrid) {
+      // showGrid: false일 때는 병합 헤더 + 컬럼 헤더 영역 제외 (데이터만 감싸기)
+      const headerOffset = mergedHeaderHeight + columnHeaderHeight;
+      const adjustedY = y + headerOffset;
+      const adjustedHeight = height - headerOffset;
+
+      // 양옆/상하 패딩 적용 (테두리 바깥으로 확장)
+      const padX = CONFIG.TABLE_BORDER_PADDING_X;
+      const padY = CONFIG.TABLE_BORDER_PADDING_Y;
+
+      // 테두리 크기
+      const borderWidth = width + padX * 2;
+      const borderHeight = adjustedHeight + padY * 2;
+
+      // finalCanvasWidth가 있으면 캔버스 기준으로 중앙 배치, 없으면 기존 방식
+      const { finalCanvasWidth = 0, finalCanvasHeight = 0 } = layer.data;
+      let borderX, borderY;
+
+      if (finalCanvasWidth > 0) {
+        // 캔버스 중앙에 테두리 배치 (셀 경계 기준 균등)
+        borderX = (finalCanvasWidth - borderWidth) / 2;
+      } else {
+        // 기존 방식: x 기준 상대 위치
+        borderX = x - padX;
+      }
+
+      if (finalCanvasHeight > 0) {
+        // 캔버스 기준 Y 위치 계산 (상하 균등)
+        borderY = (finalCanvasHeight - borderHeight) / 2;
+      } else {
+        // 기존 방식: adjustedY 기준 상대 위치
+        borderY = adjustedY - padY;
+      }
+
+      this._renderRoundedBorder(
+        borderX,
+        borderY,
+        borderWidth,
+        borderHeight
+      );
+      return;
+    }
 
     // 하단 선 (두께 2, 밝은 회색)
     this.ctx.strokeStyle = CONFIG.TABLE_GRID_COLOR_LIGHT;
@@ -8340,6 +8436,25 @@ class TableCellRenderer {
       this.ctx.stroke();
     }
     this.ctx.setLineDash([]); // 실선으로 복원
+  }
+
+  /**
+   * 둥근 테두리 렌더링 (showGrid: false일 때)
+   * @param {number} x - X 좌표
+   * @param {number} y - Y 좌표
+   * @param {number} width - 너비
+   * @param {number} height - 높이
+   */
+  _renderRoundedBorder(x, y, width, height) {
+    const radius = CONFIG.TABLE_BORDER_RADIUS;
+    const borderColor = CONFIG.TABLE_BORDER_COLOR;
+    const borderWidth = CONFIG.TABLE_BORDER_WIDTH;
+
+    this.ctx.strokeStyle = borderColor;
+    this.ctx.lineWidth = borderWidth;
+    this.ctx.beginPath();
+    this.ctx.roundRect(x, y, width, height, radius);
+    this.ctx.stroke();
   }
 
   /**
@@ -8696,8 +8811,8 @@ class TableCellRenderer {
    */
   _renderMixedText(text, x, y, alignment, color, bold, fontSize, isHeader = false) {
     const segments = this._splitByCharType(text);
-    // 한글은 기존 테이블 폰트 크기(18px) 유지
-    const koreanFontSize = 18;
+    // 혼합 텍스트에서는 한글도 동일한 폰트 크기 사용 (baseline 정렬을 위해)
+    const koreanFontSize = fontSize;
 
     this.ctx.save();
     this.ctx.fillStyle = color;
@@ -8721,7 +8836,9 @@ class TableCellRenderer {
     segments.forEach(seg => {
       const segFontSize = seg.type === 'korean' ? koreanFontSize : fontSize;
       this.ctx.font = this._getFontForCharType(seg.type, segFontSize, bold, isHeader);
-      this.ctx.fillText(seg.text, currentX, y);
+      // baseline 보정: 대괄호 -2px, 한글 +1px
+      const yOffset = seg.type === 'bracket' ? -2 : (seg.type === 'korean' ? 1 : 0);
+      this.ctx.fillText(seg.text, currentX, y + yOffset);
       currentX += this.ctx.measureText(seg.text).width;
     });
 
@@ -8884,7 +9001,7 @@ class TableCellRenderer {
   /**
    * 텍스트를 문자 유형별로 분리
    * @param {string} text - 분리할 텍스트
-   * @returns {Array} [{text, type: 'korean'|'lowercase'|'other'}, ...]
+   * @returns {Array} [{text, type: 'korean'|'lowercase'|'bracket'|'other'}, ...]
    */
   _splitByCharType(text) {
     const result = [];
@@ -8894,6 +9011,7 @@ class TableCellRenderer {
       let type;
       if (/[가-힣]/.test(char)) type = 'korean';
       else if (/[a-z]/.test(char)) type = 'lowercase';
+      else if (/[\[\]]/.test(char)) type = 'bracket'; // 대괄호는 별도 타입
       else type = 'other'; // 대문자, 숫자, 특수문자
 
       if (type === current.type) {
@@ -8909,7 +9027,7 @@ class TableCellRenderer {
 
   /**
    * 문자 유형에 따른 폰트 정보 반환
-   * @param {string} type - 문자 유형 ('korean', 'lowercase', 'other')
+   * @param {string} type - 문자 유형 ('korean', 'lowercase', 'bracket', 'other')
    * @param {number} fontSize - 폰트 크기
    * @param {boolean} bold - 볼드 여부
    * @param {boolean} isHeader - 헤더 여부 (헤더는 Medium 사용)
@@ -8923,7 +9041,7 @@ class TableCellRenderer {
     } else if (type === 'lowercase') {
       return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
     } else {
-      // 대문자/숫자는 볼드 적용 안 함
+      // 대문자/숫자/대괄호는 볼드 적용 안 함
       return `${fontSize}px KaTeX_Main, Times New Roman, serif`;
     }
   }
@@ -9658,27 +9776,31 @@ class BasicTableFactory {
    * @param {string} tableId - 테이블 고유 ID
    */
   static createTableLayers(layerManager, data, config = null, tableId = 'table-1') {
-    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true, mergedHeaderText = null } = data;
+    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true, mergedHeaderText = null, totalDataColumns } = data;
 
     // 커스텀 병합 헤더 텍스트 (없으면 기본값 '상대도수')
     const headerText = mergedHeaderText || BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT;
 
-    // 열 개수: 행 라벨 열 + 데이터 열들
-    const columnCount = columnHeaders.length + 1;
+    // 열 개수: 행 라벨 열 + 데이터 열들 (colSpan 합계 사용)
+    const dataColCount = totalDataColumns || columnHeaders.reduce((sum, h) => sum + (h.colSpan || 1), 0);
+    const columnCount = dataColCount + 1;
     // 행 개수: 데이터 행 + 합계 행 (옵션)
     const rowCount = rows.length + (showTotal ? 1 : 0);
 
     const padding = CONFIG.TABLE_PADDING;
+    // 테두리 패딩 (showGrid: false일 때 캔버스 확장분)
+    const borderPadX = config?.borderPadX || 0;
+    const borderPadY = config?.borderPadY || 0;
     const canvasWidth = config?.canvasWidth || CONFIG.TABLE_CANVAS_WIDTH;
 
     // 각 행의 높이 계산 (분수 포함 여부에 따라)
     const rowHeights = this._calculateRowHeights(rows, totals, showTotal);
     const totalRowHeight = rowHeights.reduce((sum, h) => sum + h, 0);
 
-    // Canvas 높이 계산 (병합 헤더 조건부 + 컬럼 헤더 + 데이터 행들)
+    // Canvas 높이 계산 (config에서 전달받거나 자동 계산)
     const mergedHeaderHeight = showMergedHeader ? BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT : 0;
     const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
-    const canvasHeight = totalHeaderHeight + totalRowHeight + padding * 2;
+    const canvasHeight = config?.canvasHeight || (totalHeaderHeight + totalRowHeight + padding * 2);
 
     // 열 너비 계산 (config에서 전달받거나 자동 계산)
     const columnWidths = config?.columnWidths || this._calculateColumnWidths(canvasWidth, padding, columnCount);
@@ -9703,7 +9825,17 @@ class BasicTableFactory {
       }
     });
 
+    // 그리드 표시 여부 (config에서 가져오거나 기본값 true)
+    const showGrid = config?.showGrid ?? CONFIG.TABLE_SHOW_GRID;
+
+    // showGrid: false일 때 헤더 높이를 0으로 처리 (데이터만 표시)
+    const effectiveMergedHeaderHeight = showGrid ? mergedHeaderHeight : 0;
+    const effectiveColumnHeaderHeight = showGrid ? CONFIG.TABLE_HEADER_HEIGHT : 0;
+
     // 격자선 레이어 (이원분류표 전용)
+    // showGrid: false일 때 최종 캔버스 너비 계산 (테두리 중앙 배치용)
+    const finalCanvasWidth = showGrid ? canvasWidth : canvasWidth + borderPadX * 2;
+    const finalCanvasHeight = showGrid ? canvasHeight : canvasHeight + borderPadY * 2;
     const gridLayer = this._createGridLayer({
       canvasWidth,
       padding,
@@ -9711,33 +9843,45 @@ class BasicTableFactory {
       columnWidths,
       tableId,
       hasSummaryRow: showTotal,
-      mergedHeaderHeight,
+      mergedHeaderHeight: effectiveMergedHeaderHeight,
       showMergedHeader,
-      rowHeights
+      rowHeights,
+      showGrid,
+      borderPadX,
+      borderPadY,
+      columnHeaderHeight: effectiveColumnHeaderHeight,
+      finalCanvasWidth,
+      finalCanvasHeight
     });
     rootLayer.addChild(gridLayer);
 
-    // 병합 헤더 레이어 (상대도수 또는 커스텀 텍스트) - 조건부 생성
-    if (showMergedHeader) {
+    // 병합 헤더 레이어 (상대도수 또는 커스텀 텍스트) - showGrid: true일 때만
+    if (showMergedHeader && showGrid) {
       const mergedHeaderLayer = this._createMergedHeaderLayer(
         columnWidths,
         padding,
         tableId,
-        headerText
+        headerText,
+        borderPadX,
+        borderPadY
       );
       rootLayer.addChild(mergedHeaderLayer);
     }
 
-    // 컬럼 헤더 레이어 (혈액형 | 남학생 | 여학생)
-    const columnHeaderLayer = this._createColumnHeaderLayer(
-      rowLabelColumn,
-      columnHeaders,
-      columnWidths,
-      padding,
-      tableId,
-      mergedHeaderHeight
-    );
-    rootLayer.addChild(columnHeaderLayer);
+    // 컬럼 헤더 레이어 - showGrid: true일 때만
+    if (showGrid) {
+      const columnHeaderLayer = this._createColumnHeaderLayer(
+        rowLabelColumn,
+        columnHeaders,
+        columnWidths,
+        padding,
+        tableId,
+        mergedHeaderHeight,
+        borderPadX,
+        borderPadY
+      );
+      rootLayer.addChild(columnHeaderLayer);
+    }
 
     // 데이터 행 레이어
     rows.forEach((row, rowIndex) => {
@@ -9747,8 +9891,11 @@ class BasicTableFactory {
         columnWidths,
         padding,
         tableId,
-        mergedHeaderHeight,
-        rowHeights
+        effectiveMergedHeaderHeight,
+        rowHeights,
+        borderPadX,
+        borderPadY,
+        effectiveColumnHeaderHeight
       );
       rootLayer.addChild(rowLayer);
     });
@@ -9761,8 +9908,11 @@ class BasicTableFactory {
         columnWidths,
         padding,
         tableId,
-        mergedHeaderHeight,
-        rowHeights
+        effectiveMergedHeaderHeight,
+        rowHeights,
+        borderPadX,
+        borderPadY,
+        effectiveColumnHeaderHeight
       );
       rootLayer.addChild(summaryLayer);
     }
@@ -9886,11 +10036,20 @@ class BasicTableFactory {
       hasSummaryRow,
       mergedHeaderHeight,
       showMergedHeader = true,
-      rowHeights = []
+      rowHeights = [],
+      showGrid = true,
+      borderPadX = 0,
+      borderPadY = 0,
+      columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT,
+      finalCanvasWidth = 0,
+      finalCanvasHeight = 0
     } = options;
 
     const totalWidth = canvasWidth - padding * 2;
-    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
+    // 테두리 패딩 오프셋 (showGrid: false일 때 콘텐츠 위치 조정)
+    const offsetX = borderPadX;
+    const offsetY = borderPadY;
+    const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
     const totalRowHeight = rowHeights.length > 0
       ? rowHeights.reduce((sum, h) => sum + h, 0)
       : rowCount * CONFIG.TABLE_ROW_HEIGHT;
@@ -9903,19 +10062,22 @@ class BasicTableFactory {
       visible: true,
       order: 0,
       data: {
-        x: padding,
-        y: padding,
+        x: padding + offsetX,
+        y: padding + offsetY,
         width: totalWidth,
         height: totalHeight,
         rowCount,
         columnWidths,
         hasSummaryRow,
         mergedHeaderHeight,
-        columnHeaderHeight: CONFIG.TABLE_HEADER_HEIGHT,
+        columnHeaderHeight,
         mergedHeaderLineColor: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
         mergedHeaderLineWidth: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
         showMergedHeader,
-        rowHeights
+        rowHeights,
+        showGrid,
+        finalCanvasWidth,
+        finalCanvasHeight
       }
     });
   }
@@ -9926,8 +10088,10 @@ class BasicTableFactory {
    * @param {number} padding - 패딩
    * @param {string} tableId - 테이블 ID
    * @param {string} headerText - 병합 헤더 텍스트
+   * @param {number} borderPadX - 테두리 X 패딩
+   * @param {number} borderPadY - 테두리 Y 패딩
    */
-  static _createMergedHeaderLayer(columnWidths, padding, tableId, headerText = BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT) {
+  static _createMergedHeaderLayer(columnWidths, padding, tableId, headerText = BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT, borderPadX = 0, borderPadY = 0) {
     const mergedHeaderGroup = new Layer({
       id: `basic-table-${tableId}-table-merged-header`,
       name: '병합 헤더',
@@ -9937,7 +10101,7 @@ class BasicTableFactory {
       data: {}
     });
 
-    const y = padding;
+    const y = padding + borderPadY;
 
     // 첫 번째 열은 빈 칸
     const emptyCell = new Layer({
@@ -9951,7 +10115,7 @@ class BasicTableFactory {
         rowIndex: -2,
         colIndex: 0,
         cellText: '',
-        x: padding,
+        x: padding + borderPadX,
         y,
         width: columnWidths[0],
         height: BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
@@ -9975,7 +10139,7 @@ class BasicTableFactory {
         rowIndex: -2,
         colIndex: 1,
         cellText: headerText,
-        x: padding + columnWidths[0],
+        x: padding + borderPadX + columnWidths[0],
         y,
         width: mergedWidth,
         height: BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT,
@@ -9993,8 +10157,9 @@ class BasicTableFactory {
 
   /**
    * 컬럼 헤더 레이어 생성 (혈액형 | 남학생 | 여학생)
+   * columnHeaders는 객체 배열: [{ text: '도수', colSpan: 2 }, ...]
    */
-  static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT) {
+  static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, borderPadX = 0, borderPadY = 0) {
     const headerGroup = new Layer({
       id: `basic-table-${tableId}-table-header`,
       name: '컬럼 헤더',
@@ -10004,38 +10169,76 @@ class BasicTableFactory {
       data: {}
     });
 
-    let x = padding;
-    const y = padding + mergedHeaderHeight;
+    let x = padding + borderPadX;
+    const y = padding + borderPadY + mergedHeaderHeight;
 
     // 첫 번째 열은 행 라벨 컬럼명 (예: 혈액형)
-    const allHeaders = [rowLabelColumn, ...columnHeaders];
+    const rowLabelCell = new Layer({
+      id: `basic-table-${tableId}-table-header-col0`,
+      name: rowLabelColumn,
+      type: 'cell',
+      visible: true,
+      order: 0,
+      data: {
+        rowType: 'header',
+        rowIndex: -1,
+        colIndex: 0,
+        colLabel: rowLabelColumn,
+        cellText: rowLabelColumn,
+        x,
+        y,
+        width: columnWidths[0],
+        height: CONFIG.TABLE_HEADER_HEIGHT,
+        alignment: 'center',
+        highlighted: false,
+        highlightProgress: 0,
+        headerTextColor: '#8DCF66'
+      }
+    });
+    headerGroup.addChild(rowLabelCell);
+    x += columnWidths[0];
 
-    allHeaders.forEach((header, i) => {
+    // 데이터 헤더 (colSpan 지원)
+    let dataColIndex = 1; // columnWidths 인덱스 (0은 행 라벨)
+    columnHeaders.forEach((headerObj, i) => {
+      // 호환성: 문자열이면 객체로 변환
+      const header = typeof headerObj === 'string' ? { text: headerObj, colSpan: 1 } : headerObj;
+      const colSpan = header.colSpan || 1;
+
+      // colSpan에 해당하는 너비 합산
+      let cellWidth = 0;
+      for (let j = 0; j < colSpan; j++) {
+        cellWidth += columnWidths[dataColIndex + j] || 0;
+      }
+
       const cellLayer = new Layer({
-        id: `basic-table-${tableId}-table-header-col${i}`,
-        name: header,
+        id: `basic-table-${tableId}-table-header-col${dataColIndex}`,
+        name: header.text,
         type: 'cell',
         visible: true,
-        order: i,
+        order: dataColIndex,
         data: {
           rowType: 'header',
           rowIndex: -1,
-          colIndex: i,
-          colLabel: header,
-          cellText: header,
+          colIndex: dataColIndex,
+          colLabel: header.text,
+          cellText: header.text,
           x,
           y,
-          width: columnWidths[i],
+          width: cellWidth,
           height: CONFIG.TABLE_HEADER_HEIGHT,
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0,
-          headerTextColor: '#8DCF66'
+          headerTextColor: '#8DCF66',
+          colSpan: colSpan,
+          isMergedCell: colSpan > 1
         }
       });
 
       headerGroup.addChild(cellLayer);
-      x += columnWidths[i];
+      x += cellWidth;
+      dataColIndex += colSpan;
     });
 
     return headerGroup;
@@ -10044,7 +10247,7 @@ class BasicTableFactory {
   /**
    * 데이터 행 레이어 생성
    */
-  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = []) {
+  static _createDataRowLayer(row, rowIndex, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = [], borderPadX = 0, borderPadY = 0, columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT) {
     const rowGroup = new Layer({
       id: `basic-table-${tableId}-table-row-${rowIndex}`,
       name: `데이터 행 ${rowIndex}`,
@@ -10055,13 +10258,13 @@ class BasicTableFactory {
     });
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 이후)
-    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
+    const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
     // rowHeights가 있으면 이전 행들의 높이 합산, 없으면 기존 방식
-    const y = padding + totalHeaderHeight + (rowHeights.length > 0
+    const y = padding + borderPadY + totalHeaderHeight + (rowHeights.length > 0
       ? rowHeights.slice(0, rowIndex).reduce((sum, h) => sum + h, 0)
       : rowIndex * CONFIG.TABLE_ROW_HEIGHT);
     const currentRowHeight = rowHeights[rowIndex] || CONFIG.TABLE_ROW_HEIGHT;
-    let x = padding;
+    let x = padding + borderPadX;
 
     // 첫 번째 열은 행 라벨 (혈액형 값: A, B, AB, O)
     const cells = [row.label, ...row.values];
@@ -10069,18 +10272,21 @@ class BasicTableFactory {
     cells.forEach((cellText, colIndex) => {
       const isLabelColumn = colIndex === 0;
 
+      // 탈리마크 객체인 경우 그대로 전달
+      const isTallyObject = cellText && typeof cellText === 'object' && cellText.type === 'tally';
+
       // 값 포맷팅 (소수점인 경우, null은 그대로 유지)
       let displayText = cellText;
       if (typeof cellText === 'number' && !isLabelColumn) {
         displayText = cellText.toFixed(2).replace(/\.?0+$/, '');
       }
 
-      // null은 그대로 유지 (빈칸 처리용)
-      const cellTextValue = displayText === null ? null : String(displayText);
+      // null은 그대로 유지, 탈리 객체도 그대로 유지
+      const cellTextValue = isTallyObject ? cellText : (displayText === null ? null : String(displayText));
 
       const cellLayer = new Layer({
         id: `basic-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
-        name: cellTextValue ?? '',
+        name: isTallyObject ? `탈리(${cellText.count})` : (cellTextValue ?? ''),
         type: 'cell',
         visible: true,
         order: colIndex,
@@ -10113,7 +10319,7 @@ class BasicTableFactory {
   /**
    * 합계 행 레이어 생성
    */
-  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = []) {
+  static _createSummaryRowLayer(totals, dataRowCount, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, rowHeights = [], borderPadX = 0, borderPadY = 0, columnHeaderHeight = CONFIG.TABLE_HEADER_HEIGHT) {
     const summaryGroup = new Layer({
       id: `basic-table-${tableId}-table-summary`,
       name: '합계 행',
@@ -10124,14 +10330,14 @@ class BasicTableFactory {
     });
 
     // Y 좌표 계산 (병합 헤더 + 컬럼 헤더 + 데이터 행들 이후)
-    const totalHeaderHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT;
+    const totalHeaderHeight = mergedHeaderHeight + columnHeaderHeight;
     // rowHeights가 있으면 데이터 행들의 높이 합산
     const dataRowsHeight = rowHeights.length > 0
       ? rowHeights.slice(0, dataRowCount).reduce((sum, h) => sum + h, 0)
       : dataRowCount * CONFIG.TABLE_ROW_HEIGHT;
-    const y = padding + totalHeaderHeight + dataRowsHeight;
+    const y = padding + borderPadY + totalHeaderHeight + dataRowsHeight;
     const summaryRowHeight = rowHeights[dataRowCount] || CONFIG.TABLE_ROW_HEIGHT;
-    let x = padding;
+    let x = padding + borderPadX;
 
     // 첫 번째 열은 "합계"
     const cells = ['합계', ...totals];
@@ -11758,10 +11964,18 @@ class TableRenderer {
     // 분수가 포함된 경우 행 높이 조정
     const hasFraction = this._checkTableHasFraction(type, data);
     const rowHeight = hasFraction ? CONFIG.TABLE_ROW_HEIGHT_FRACTION : CONFIG.TABLE_ROW_HEIGHT;
-    const autoHeight = mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT + (rowCount * rowHeight) + this.padding * 2;
+
+    // showGrid: false일 때 헤더 영역 제외
+    const showGrid = config?.showGrid ?? CONFIG.TABLE_SHOW_GRID;
+    const effectiveHeaderHeight = showGrid ? (mergedHeaderHeight + CONFIG.TABLE_HEADER_HEIGHT) : 0;
+    const autoHeight = effectiveHeaderHeight + (rowCount * rowHeight) + this.padding * 2;
 
     // 동적 너비 계산 (줄기-잎 제외)
     const dynamicConfig = this._calculateCustomTableDynamicWidth(type, data, config);
+
+    // showGrid: false일 때 테두리 패딩 추가
+    const borderPadX = !showGrid ? CONFIG.TABLE_BORDER_PADDING_X : 0;
+    const borderPadY = !showGrid ? CONFIG.TABLE_BORDER_PADDING_Y : 0;
 
     // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
     let ratio = 1;
@@ -11771,9 +11985,9 @@ class TableRenderer {
       ratio = config.canvasHeight / autoHeight;
     }
 
-    // 최종 canvas 크기 계산 (비율 적용)
-    const finalCanvasWidth = config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio);
-    const finalCanvasHeight = config?.canvasHeight || Math.round(autoHeight * ratio);
+    // 최종 canvas 크기 계산 (비율 적용 + 테두리 패딩)
+    const finalCanvasWidth = (config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio)) + borderPadX * 2;
+    const finalCanvasHeight = (config?.canvasHeight || Math.round(autoHeight * ratio)) + borderPadY * 2;
     this.canvas.width = finalCanvasWidth;
     this.canvas.height = finalCanvasHeight;
     this.scaleRatio = ratio; // renderFrame에서 사용
@@ -11784,7 +11998,10 @@ class TableRenderer {
     const layerConfig = {
       ...config,
       columnWidths: dynamicConfig.columnWidths,
-      canvasWidth: dynamicConfig.canvasWidth
+      canvasWidth: dynamicConfig.canvasWidth,
+      canvasHeight: autoHeight,  // 테두리 중앙 배치용 높이
+      borderPadX,  // 테두리 패딩 (showGrid: false일 때)
+      borderPadY
     };
     TableFactoryRouter.createTableLayers(type, this.layerManager, data, layerConfig, this.tableId);
 
@@ -11963,18 +12180,40 @@ class TableRenderer {
         break;
 
       case CONFIG.TABLE_TYPES.BASIC_TABLE:
-        // 이원분류표
-        headers = [data.rowLabelColumn || '', ...(data.columnHeaders || [])];
+        // 이원분류표 - colSpan 확장 필요
+        const expandedHeaders = [];
+        (data.columnHeaders || []).forEach(header => {
+          const headerObj = typeof header === 'string' ? { text: header, colSpan: 1 } : header;
+          const colSpan = headerObj.colSpan || 1;
+          // colSpan만큼 헤더 추가 (첫 번째는 텍스트, 나머지는 빈 문자열)
+          expandedHeaders.push(headerObj.text || '');
+          for (let i = 1; i < colSpan; i++) {
+            expandedHeaders.push('');
+          }
+        });
+        headers = [data.rowLabelColumn || '', ...expandedHeaders];
         rows = (data.rows || []).map(row => {
-          const values = row.values.map(v =>
-            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v)
-          );
+          const values = row.values.map(v => {
+            // 탈리 객체인 경우 너비 계산용 placeholder
+            if (v && typeof v === 'object' && v.type === 'tally') {
+              const count = v.count || 0;
+              const groups = Math.floor(count / 5);
+              const remainder = count % 5;
+              const groupWidth = 4 * CONFIG.TALLY_LINE_SPACING;
+              const groupSpacing = CONFIG.TALLY_GROUP_SPACING;
+              const remainderWidth = remainder > 0 ? (remainder - 1) * CONFIG.TALLY_LINE_SPACING : 0;
+              const numGaps = groups > 0 ? (remainder > 0 ? groups : Math.max(0, groups - 1)) : 0;
+              const tallyPixelWidth = groups * groupWidth + numGaps * groupSpacing + remainderWidth;
+              return 'X'.repeat(Math.ceil(tallyPixelWidth / 10));
+            }
+            return typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v ?? '');
+          });
           return [row.label, ...values];
         });
         // 합계 행
         if (data.showTotal !== false && data.totals) {
           const totals = data.totals.map(v =>
-            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v)
+            typeof v === 'number' ? (v === 1 ? '1' : v.toFixed(2).replace(/\.?0+$/, '')) : String(v ?? '')
           );
           rows.push(['합계', ...totals]);
         }
@@ -13937,6 +14176,16 @@ function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
   // 1단계: 마스킹 (각 셀을 찢김 경로로 마스킹)
   ctx.save();
+
+  // 차트 영역 클리핑 (축 라벨 영역만 보호, 그리드는 마스킹 허용)
+  const clipX = chartInfo.padding;
+  const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight - 15; // 상단 라벨 위 여유
+  const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+  const clipHeight = chartInfo.chartHeight + 15;
+  ctx.beginPath();
+  ctx.rect(clipX, clipY, clipWidth, clipHeight);
+  ctx.clip();
+
   ctx.globalCompositeOperation = 'destination-out';
   ctx.fillStyle = 'rgba(0, 0, 0, 1)';
 
@@ -13959,11 +14208,21 @@ function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
   // 2단계: 가장자리 색상 (외곽 면에만)
   if (style.edgeColorEnabled) {
-    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+    const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = chartInfo.padding;
+    const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight;
+    const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+    const clipHeight = chartInfo.chartHeight;
+    ctx.beginPath();
+    ctx.rect(clipX - 2, clipY - 2, clipWidth + 4, clipHeight + 4);
+    ctx.clip();
+
     ctx.strokeStyle = edgeColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -14001,9 +14260,22 @@ function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
   // 3단계: 종이 섬유 효과
   if (style.fiberEnabled) {
-    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = chartInfo.padding;
+    const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight;
+    const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+    const clipHeight = chartInfo.chartHeight;
+    ctx.beginPath();
+    ctx.rect(clipX - 2, clipY - 2, clipWidth + 4, clipHeight + 4);
+    ctx.clip();
+
+    const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+
+    ctx.restore();
   }
 }
 
@@ -14032,7 +14304,35 @@ function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
   const cellSet = rangesToCellSet(ranges);
 
   const style = corruptionOptions.style || {};
-  const { startX, startY, cellHeight, columnWidths, rowHeights, cellWidth, inset = 3 } = tableInfo;
+  const { startX, startY, cellHeight, columnWidths, rowHeights, cellWidth, inset = 3, canvasWidth, canvasHeight } = tableInfo;
+
+  // 테이블 경계 계산
+  let tableWidth, tableHeight;
+  if (columnWidths && Array.isArray(columnWidths)) {
+    tableWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+  } else {
+    tableWidth = totalCols * cellWidth;
+  }
+  if (rowHeights && Array.isArray(rowHeights)) {
+    tableHeight = rowHeights.reduce((sum, h) => sum + h, 0);
+  } else {
+    tableHeight = totalRows * cellHeight;
+  }
+
+  // 경계 셀 확인
+  let minRow = Infinity, maxRow = -Infinity, minCol = Infinity, maxCol = -Infinity;
+  cellSet.forEach(key => {
+    const [row, col] = key.split('-').map(Number);
+    if (row < minRow) minRow = row;
+    if (row > maxRow) maxRow = row;
+    if (col < minCol) minCol = col;
+    if (col > maxCol) maxCol = col;
+  });
+
+  const touchesTop = minRow === 0;
+  const touchesBottom = maxRow === totalRows - 1;
+  const touchesLeft = minCol === 0;
+  const touchesRight = maxCol === totalCols - 1;
   const edgeComplexity = style.edgeComplexity || 0.7;
   const seed = style.seed || 42;
 
@@ -14079,10 +14379,24 @@ function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
     const adj = getAdjacency(row, col);
 
     // 외곽: inset 적용, 인접: 오버랩 (셀 경계를 넘어감)
-    const topY = adj.hasTop ? y - overlap : y + inset;
-    const bottomY = adj.hasBottom ? y + h + overlap : y + h - inset;
-    const leftX = adj.hasLeft ? x - overlap : x + inset;
-    const rightX = adj.hasRight ? x + w + overlap : x + w - inset;
+    let topY = adj.hasTop ? y - overlap : y + inset;
+    let bottomY = adj.hasBottom ? y + h + overlap : y + h - inset;
+    let leftX = adj.hasLeft ? x - overlap : x + inset;
+    let rightX = adj.hasRight ? x + w + overlap : x + w - inset;
+
+    // 테이블 경계에 닿으면 끝까지 확장 (클리핑으로 잘림)
+    if (touchesTop && row === minRow && !adj.hasTop) {
+      topY = startY - 20;
+    }
+    if (touchesBottom && row === maxRow && !adj.hasBottom) {
+      bottomY = startY + tableHeight + 20;
+    }
+    if (touchesLeft && col === minCol && !adj.hasLeft) {
+      leftX = startX - 20;
+    }
+    if (touchesRight && col === maxCol && !adj.hasRight) {
+      rightX = startX + tableWidth + 20;
+    }
 
     // 각 변의 경로 생성 (외곽은 찢김, 인접은 직선)
     const edges = {
@@ -14111,6 +14425,12 @@ function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
   // 1단계: 마스킹 (각 셀을 찢김 경로로 마스킹)
   ctx.save();
+
+  // 테이블 영역 클리핑 (영역 밖 마스킹 방지)
+  ctx.beginPath();
+  ctx.rect(startX - 2, startY - 2, tableWidth + 4, tableHeight + 4);
+  ctx.clip();
+
   ctx.globalCompositeOperation = 'destination-out';
   ctx.fillStyle = 'rgba(0, 0, 0, 1)';
 
@@ -14133,11 +14453,17 @@ function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
   // 2단계: 가장자리 색상 (외곽 면에만)
   if (style.edgeColorEnabled) {
-    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+    const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
+
+    // 테이블 영역 클리핑 (영역 밖 렌더링 차단)
+    ctx.beginPath();
+    ctx.rect(startX - 2, startY - 2, tableWidth + 4, tableHeight + 4);
+    ctx.clip();
+
     ctx.strokeStyle = edgeColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -14175,9 +14501,18 @@ function applyTableCorruption(ctx, corruptionOptions, tableInfo) {
 
   // 3단계: 종이 섬유 효과 (fiberEnabled)
   if (style.fiberEnabled) {
-    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    ctx.save();
+
+    // 테이블 영역 클리핑 (영역 밖 렌더링 차단)
+    ctx.beginPath();
+    ctx.rect(startX - 2, startY - 2, tableWidth + 4, tableHeight + 4);
+    ctx.clip();
+
+    const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+
+    ctx.restore();
   }
 }
 
@@ -14332,11 +14667,21 @@ function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
 
   // 2단계: 가장자리 색상
   if (style.edgeColorEnabled) {
-    const edgeColor = style.edgeColor || 'rgba(160, 130, 80, 0.4)';
+    const edgeColor = style.edgeColor || 'rgba(136, 136, 136, 1)';
 
     ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = scatterInfo.padding;
+    const clipY = scatterInfo.canvasHeight - scatterInfo.padding - scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    const clipWidth = scatterInfo.xTotalCells * scatterInfo.xCellWidth;
+    const clipHeight = scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    ctx.beginPath();
+    ctx.rect(clipX, clipY, clipWidth, clipHeight);
+    ctx.clip();
+
     ctx.strokeStyle = edgeColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -14374,9 +14719,22 @@ function applyScatterCorruption(ctx, corruptionOptions, scatterInfo) {
 
   // 3단계: 종이 섬유 효과
   if (style.fiberEnabled) {
-    const fiberColor = style.fiberColor || 'rgba(180, 150, 100, 0.5)';
+    ctx.save();
+
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    const clipX = scatterInfo.padding;
+    const clipY = scatterInfo.canvasHeight - scatterInfo.padding - scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    const clipWidth = scatterInfo.xTotalCells * scatterInfo.xCellWidth;
+    const clipHeight = scatterInfo.yTotalCells * scatterInfo.yCellHeight;
+    ctx.beginPath();
+    ctx.rect(clipX, clipY, clipWidth, clipHeight);
+    ctx.clip();
+
+    const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
     const fiberCount = style.fiberCount || 20;
     renderFibers(ctx, allEdgePoints, { fiberCount, color: fiberColor });
+
+    ctx.restore();
   }
 }
 
@@ -15344,6 +15702,7 @@ async function renderChart(element, config) {
  * @param {boolean} [config.options.animation=true] - Enable animation
  * @param {boolean} [config.options.showTotal=true] - Show total row (basic-table only)
  * @param {boolean} [config.options.showMergedHeader=true] - Show merged header (basic-table only)
+ * @param {boolean} [config.options.showGrid=true] - Show grid lines (false: rounded border instead)
  * @returns {Promise<Object>} { tableRenderer, canvas, parsedData? } or { error }
  */
 async function renderTable(element, config) {
@@ -15394,7 +15753,8 @@ async function renderTable(element, config) {
     // 테이블 설정 구성
     const tableConfig = {
       canvasWidth: config.canvasWidth,
-      canvasHeight: config.canvasHeight
+      canvasHeight: config.canvasHeight,
+      showGrid: options.showGrid  // 그리드 표시 여부 (undefined면 기본값 true)
     };
     const animationConfig = config.animation !== undefined ? config.animation : options.animation;
     const animation = typeof animationConfig === 'object'
@@ -15409,11 +15769,17 @@ async function renderTable(element, config) {
 
     // Apply basic-table specific options (평탄화된 구조)
     if (tableType === 'basic-table') {
-      if (options.showTotal !== undefined) {
-        parseResult.data.showTotal = options.showTotal;
-      }
-      if (options.showMergedHeader !== undefined) {
-        parseResult.data.showMergedHeader = options.showMergedHeader;
+      // showGrid: false일 때 자동으로 showMergedHeader, showTotal도 false
+      if (options.showGrid === false) {
+        parseResult.data.showMergedHeader = options.showMergedHeader ?? false;
+        parseResult.data.showTotal = options.showTotal ?? false;
+      } else {
+        if (options.showTotal !== undefined) {
+          parseResult.data.showTotal = options.showTotal;
+        }
+        if (options.showMergedHeader !== undefined) {
+          parseResult.data.showMergedHeader = options.showMergedHeader;
+        }
       }
     }
 
