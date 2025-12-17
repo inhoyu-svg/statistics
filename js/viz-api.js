@@ -599,6 +599,35 @@ export async function renderChart(element, config) {
 }
 
 /**
+ * 테이블 데이터 변경 감지 (null → 실제값)
+ * @param {Object} prevData - 이전 파싱 데이터
+ * @param {Object} currData - 현재 파싱 데이터
+ * @returns {Array} 변경된 셀 목록 [{rowIndex, colIndex, newValue}, ...]
+ */
+function diffTableData(prevData, currData) {
+  const changes = [];
+  if (!prevData?.rows || !currData?.rows) return changes;
+
+  currData.rows.forEach((currRow, rowIdx) => {
+    const prevRow = prevData.rows[rowIdx];
+    if (!prevRow) return;
+
+    currRow.values.forEach((currValue, colIdx) => {
+      const prevValue = prevRow.values[colIdx];
+      // null → 실제값 변경 감지
+      if (prevValue === null && currValue !== null) {
+        changes.push({
+          rowIndex: rowIdx + 1,  // 헤더 제외 (1-based)
+          colIndex: colIdx + 1,  // 라벨 컬럼 제외 (1-based)
+          newValue: currValue
+        });
+      }
+    });
+  });
+  return changes;
+}
+
+/**
  * Table Rendering API
  * @param {HTMLElement} element - Container element to append canvas
  * @param {Object} config - Configuration object
@@ -644,19 +673,56 @@ export async function renderTable(element, config) {
       ? config.data.join(', ')
       : config.data;
 
-    // 4. Create canvas element
-    const canvasId = `viz-table-${++tableInstanceCounter}`;
-    const canvas = document.createElement('canvas');
-    canvas.id = canvasId;
-    canvas.width = config.canvasWidth || CONFIG.TABLE_DEFAULT_WIDTH || 600;
-    canvas.height = config.canvasHeight || CONFIG.TABLE_DEFAULT_HEIGHT || 400;
-    canvas.setAttribute('role', 'img');
-    canvas.setAttribute('aria-label', 'Data table');
+    // 4. data-viz-canvas 속성으로 타겟 캔버스 확인
+    const canvasContainerId = element.getAttribute('data-viz-canvas');
+    let targetContainer = element;
+    let isAdditionalRender = false;
 
-    element.appendChild(canvas);
+    if (canvasContainerId) {
+      const existingContainer = document.getElementById(canvasContainerId);
+      if (existingContainer) {
+        targetContainer = existingContainer;
+        isAdditionalRender = true;
+        console.log(`[viz-api] table data-viz-canvas 발견: ${element.id} → ${canvasContainerId}`);
+      } else {
+        console.warn(`[viz-api] table data-viz-canvas 대상을 찾을 수 없음: ${canvasContainerId}`);
+      }
+    }
 
-    // 5. Create TableRenderer
-    const tableRenderer = new TableRenderer(canvasId);
+    // 5. 캔버스 생성 또는 재사용
+    let canvas, canvasId, tableRenderer;
+
+    if (isAdditionalRender) {
+      // 기존 캔버스 및 TableRenderer 인스턴스 재사용
+      canvas = targetContainer.querySelector('canvas');
+      if (!canvas) {
+        return { error: `No canvas found in target container: ${canvasContainerId}` };
+      }
+      canvasId = canvas.id;
+
+      // 기존 TableRenderer 인스턴스 재사용
+      if (canvas.__tableRenderer) {
+        tableRenderer = canvas.__tableRenderer;
+        console.log(`[viz-api] 기존 TableRenderer 재사용: ${canvasId}`);
+      } else {
+        tableRenderer = new TableRenderer(canvasId);
+        canvas.__tableRenderer = tableRenderer;
+        console.warn(`[viz-api] TableRenderer 인스턴스가 없어 새로 생성: ${canvasId}`);
+      }
+    } else {
+      // 새 캔버스 생성
+      canvasId = `viz-table-${++tableInstanceCounter}`;
+      canvas = document.createElement('canvas');
+      canvas.id = canvasId;
+      canvas.width = config.canvasWidth || CONFIG.TABLE_DEFAULT_WIDTH || 600;
+      canvas.height = config.canvasHeight || CONFIG.TABLE_DEFAULT_HEIGHT || 400;
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', 'Data table');
+      element.appendChild(canvas);
+
+      tableRenderer = new TableRenderer(canvasId);
+      canvas.__tableRenderer = tableRenderer;
+    }
 
     // 테이블 설정 구성
     const tableConfig = {
@@ -712,20 +778,35 @@ export async function renderTable(element, config) {
       adaptedData
     };
 
-    tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
+    // 추가 렌더링인 경우: 데이터 비교 및 fadeIn 애니메이션
+    if (isAdditionalRender && canvas.__previousTableData) {
+      const prevData = canvas.__previousTableData;
+      const changes = diffTableData(prevData, finalParseResult.data);
 
-    // Apply cell animations if specified
-    applyCellAnimationsFromConfig(tableRenderer, config);
+      if (changes.length > 0) {
+        console.log(`[viz-api] 테이블 변경 감지: ${changes.length}개 셀 fadeIn`);
+        tableRenderer.updateCellsWithAnimation(changes);
+      }
+    } else {
+      // 새 렌더링: 테이블 전체 그리기
+      tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
 
-    // Apply corruption effect (if enabled)
-    if (options.corruption?.enabled) {
-      const scale = tableRenderer.scaleRatio || 1;
-      // 테이블 렌더러에서 실제 계산된 columnWidths와 rowHeights 가져오기
-      const actualTableInfo = getActualTableInfo(tableRenderer, tableType, finalParseResult.data, canvas, scale);
-      if (actualTableInfo) {
-        applyTableCorruption(tableRenderer.ctx, options.corruption, actualTableInfo);
+      // Apply cell animations if specified
+      applyCellAnimationsFromConfig(tableRenderer, config);
+
+      // Apply corruption effect (if enabled)
+      if (options.corruption?.enabled) {
+        const scale = tableRenderer.scaleRatio || 1;
+        // 테이블 렌더러에서 실제 계산된 columnWidths와 rowHeights 가져오기
+        const actualTableInfo = getActualTableInfo(tableRenderer, tableType, finalParseResult.data, canvas, scale);
+        if (actualTableInfo) {
+          applyTableCorruption(tableRenderer.ctx, options.corruption, actualTableInfo);
+        }
       }
     }
+
+    // 현재 데이터 저장 (다음 비교용)
+    canvas.__previousTableData = JSON.parse(JSON.stringify(finalParseResult.data));
 
     return {
       tableRenderer,

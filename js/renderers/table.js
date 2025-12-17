@@ -1725,6 +1725,110 @@ class TableRenderer {
   clearAllVariables() {
     this.editModal.clearAllVariables();
   }
+
+  // ========================================
+  // 셀 값 업데이트 및 fadeIn 애니메이션
+  // ========================================
+
+  /**
+   * 특정 셀의 값 업데이트 (레이어 데이터 변경)
+   * @param {number} rowIndex - 행 인덱스 (1-based, 헤더 제외)
+   * @param {number} colIndex - 열 인덱스 (1-based, 라벨 컬럼 제외)
+   * @param {any} newValue - 새 값
+   * @returns {Object|null} 업데이트된 셀 레이어 또는 null
+   */
+  updateCellValue(rowIndex, colIndex, newValue) {
+    // BasicTableFactory 레이어 ID 형식: basic-table-${tableId}-table-row-${rowIndex}-col${colIndex}
+    const layerId = `basic-table-${this.tableId}-table-row-${rowIndex - 1}-col${colIndex}`;
+
+    const cellLayer = this.layerManager.findLayer(layerId);
+    if (!cellLayer) {
+      console.warn(`[TableRenderer] 셀 레이어를 찾을 수 없음: ${layerId}`);
+      return null;
+    }
+
+    // 레이어 데이터 업데이트
+    cellLayer.data.cellText = String(newValue);
+    cellLayer.name = String(newValue);
+    cellLayer.data.fadeInProgress = 0; // fadeIn 시작 상태
+
+    return cellLayer;
+  }
+
+  /**
+   * 여러 셀 값 업데이트 및 fadeIn 애니메이션 추가
+   * @param {Array} changes - 변경 목록 [{rowIndex, colIndex, newValue}, ...]
+   */
+  updateCellsWithAnimation(changes) {
+    const fadeInDuration = 300;
+
+    changes.forEach((change, idx) => {
+      const cellLayer = this.updateCellValue(
+        change.rowIndex,
+        change.colIndex,
+        change.newValue
+      );
+
+      if (cellLayer) {
+        // fadeIn 애니메이션 상태 설정
+        cellLayer.data.fadeInStartTime = Date.now() + (idx * 50); // 순차 시작
+        cellLayer.data.fadeInDuration = fadeInDuration;
+      }
+    });
+
+    // fadeIn 애니메이션 프레임 시작
+    this._startFadeInAnimation();
+  }
+
+  /**
+   * fadeIn 애니메이션 프레임 루프 시작
+   * @private
+   */
+  _startFadeInAnimation() {
+    const animate = () => {
+      const now = Date.now();
+      let hasActiveAnimation = false;
+
+      // 모든 레이어에서 fadeIn 애니메이션 처리 (재귀 순회)
+      const processLayer = (layer) => {
+        if (layer.data && layer.data.fadeInStartTime !== undefined) {
+          const elapsed = now - layer.data.fadeInStartTime;
+          const duration = layer.data.fadeInDuration || 300;
+
+          if (elapsed < 0) {
+            // 아직 시작 안 함
+            layer.data.fadeInProgress = 0;
+            hasActiveAnimation = true;
+          } else if (elapsed < duration) {
+            // 진행 중
+            layer.data.fadeInProgress = elapsed / duration;
+            hasActiveAnimation = true;
+          } else {
+            // 완료
+            layer.data.fadeInProgress = 1;
+            delete layer.data.fadeInStartTime;
+            delete layer.data.fadeInDuration;
+          }
+        }
+        // 자식 레이어 순회
+        if (layer.children) {
+          layer.children.forEach(child => processLayer(child));
+        }
+      };
+
+      processLayer(this.layerManager.root);
+
+      // 렌더링
+      this.renderFrame();
+
+      // 애니메이션 계속
+      if (hasActiveAnimation) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }
 }
 
 export default TableRenderer;

@@ -111,7 +111,8 @@ class TableCellRenderer {
       tallyCount,
       animating,
       animationProgress,
-      animationColor
+      animationColor,
+      fadeInProgress  // fadeIn 애니메이션 진행도 (0~1)
     } = layer.data;
 
     // 애니메이션 배경 렌더링 (펄스 효과)
@@ -129,15 +130,24 @@ class TableCellRenderer {
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
+    // fadeIn 애니메이션 적용 (0 = 투명, 1 = 완전 표시)
+    const needsFadeIn = fadeInProgress !== undefined && fadeInProgress < 1;
+    if (needsFadeIn) {
+      this.ctx.save();
+      this.ctx.globalAlpha = fadeInProgress;
+    }
+
     // 탈리마크 셀인 경우 Canvas로 직접 그리기
     if (colLabel === CONFIG.DEFAULT_LABELS.table.tally && tallyCount !== undefined) {
       this._renderTallyCanvas(tallyCount, x, y, width, height, CONFIG.getColor('--color-text'));
+      if (needsFadeIn) this.ctx.restore();
       return;
     }
 
     // cellText가 탈리 객체인 경우 (파서에서 "/" 패턴으로 생성된 탈리마크)
     if (cellText && typeof cellText === 'object' && cellText.type === 'tally') {
       this._renderTallyCanvas(cellText.count, x, y, width, height, CONFIG.getColor('--color-text'));
+      if (needsFadeIn) this.ctx.restore();
       return;
     }
 
@@ -148,6 +158,11 @@ class TableCellRenderer {
     } else {
       // 숫자/알파벳이면 KaTeX 폰트, 아니면 기본 폰트
       this._renderCellText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'));
+    }
+
+    // fadeIn 복원
+    if (needsFadeIn) {
+      this.ctx.restore();
     }
   }
 
