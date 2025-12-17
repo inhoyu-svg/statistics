@@ -83,10 +83,13 @@ class BasicTableParser {
         };
       }
 
-      const label = line.substring(0, colonIndex).trim();
+      const rawLabel = line.substring(0, colonIndex).trim();
       const valuesStr = line.substring(colonIndex + 1).trim();
 
-      if (!label) {
+      // null 문자열 → 실제 null (빈 셀)
+      const label = rawLabel === 'null' ? null : rawLabel;
+
+      if (rawLabel === '') {
         return {
           success: false,
           data: null,
@@ -95,7 +98,7 @@ class BasicTableParser {
       }
 
       // 첫 번째 데이터 줄: 헤더 (첫 값 = 행 라벨 컬럼명, 나머지 = 열 헤더)
-      if (i === startLineIndex && label.toLowerCase() === '헤더') {
+      if (i === startLineIndex && rawLabel.toLowerCase() === '헤더') {
         const allHeaders = valuesStr.split(',').map(v => {
           const trimmed = v.trim();
           // null 문자열 → 실제 null (빈 셀)
