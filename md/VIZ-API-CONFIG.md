@@ -185,7 +185,6 @@ JSON 생성 시 반드시 알아야 할 핵심 규칙입니다.
 | **callout** | `options.callout` | 말풍선 설정 (`{ enabled, template, preset }`) |
 | **showDashedLines** | `options.showDashedLines` | 수직 파선 표시 (다각형 점 → X축) |
 | **congruentTriangles** | `options.congruentTriangles` | 합동 삼각형 설정 (`{ enabled, boundary }`) |
-| **triangleLabels** | `options.triangleLabels` | 합동삼각형 라벨 (`["S₁", "S₂"]`) |
 | **customBarLabels** | `options.customBarLabels` | 막대 내부 커스텀 라벨 배열 |
 | **customYInterval** | `options.customYInterval` | Y축 간격 커스텀 |
 | **polygon** | `options.polygon` | 다각형 옵션 (`{ hidden }`) |
@@ -243,7 +242,6 @@ config (최상위)
 │   ├── grid                { showHorizontal, showVertical } 격자선 설정
 │   ├── axis                { showYLabels, showXLabels, yLabelFormat } 축 라벨 설정
 │   ├── congruentTriangles  { enabled, boundary } 합동 삼각형 설정
-│   ├── triangleLabels      ["S₁", "S₂"] 합동삼각형 라벨 배열
 │   ├── customYInterval     Y축 간격 커스텀
 │   ├── customBarLabels     ["A", null, "B"] 막대 내부 라벨 배열
 │   ├── polygon             { hidden } 다각형 숨김 옵션
