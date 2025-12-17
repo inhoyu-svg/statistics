@@ -1307,6 +1307,7 @@
       </div>
       <div class="button-group">
         <button id="validateBtn">검증하기</button>
+        <button id="convertQuotesBtn" style="background: #3a3a5a; color: #aaa; border: 1px solid #555;">&quot; ↔ "</button>
       </div>
 
       <!-- 미리보기 (JSON 입력 아래) -->
@@ -1714,6 +1715,7 @@
     const jsonInput = document.getElementById('jsonInput');
     const editorBackdrop = document.getElementById('editorBackdrop');
     const validateBtn = document.getElementById('validateBtn');
+    const convertQuotesBtn = document.getElementById('convertQuotesBtn');
     const fieldResults = document.getElementById('fieldResults');
     const previewSection = document.getElementById('previewSection');
     const previewContainer = document.getElementById('previewContainer');
@@ -2369,6 +2371,19 @@
 
     // 이벤트 리스너
     validateBtn.addEventListener('click', validateJson);
+
+    // &quot; ↔ " 변환 버튼
+    convertQuotesBtn.addEventListener('click', () => {
+      const text = jsonInput.value;
+      if (text.includes('&quot;')) {
+        // &quot; -> "
+        jsonInput.value = text.replace(/&quot;/g, '"');
+      } else {
+        // " -> &quot; (문자열 내부의 따옴표만, JSON 구조 따옴표는 제외하기 어려우므로 전체 변환)
+        jsonInput.value = text.replace(/"/g, '&quot;');
+      }
+      updateBackdrop([]);
+    });
 
     // Enter 키로 검증 (Ctrl+Enter)
     jsonInput.addEventListener('keydown', (e) => {
