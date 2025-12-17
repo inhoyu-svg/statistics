@@ -113,7 +113,24 @@ class BasicTableParser {
         }
         // 첫 번째 값은 행 라벨 컬럼명, 나머지는 열 헤더
         result.rowLabelColumn = allHeaders[0];
-        result.columnHeaders = allHeaders.slice(1);
+
+        // 열 헤더 파싱 (colSpan 지원: "도수*2" → { text: '도수', colSpan: 2 })
+        let totalDataColumns = 0;
+        result.columnHeaders = allHeaders.slice(1).map(header => {
+          if (header === null) {
+            totalDataColumns += 1;
+            return { text: null, colSpan: 1 };
+          }
+          const colSpanMatch = header.match(/^(.+)\*(\d+)$/);
+          if (colSpanMatch) {
+            const colSpan = parseInt(colSpanMatch[2], 10);
+            totalDataColumns += colSpan;
+            return { text: colSpanMatch[1], colSpan };
+          }
+          totalDataColumns += 1;
+          return { text: header, colSpan: 1 };
+        });
+        result.totalDataColumns = totalDataColumns;
       } else {
         // 데이터 행
         const values = valuesStr.split(',').map(v => {
@@ -134,12 +151,13 @@ class BasicTableParser {
           return isNaN(num) ? trimmedVal : num;
         });
 
-        // 열 헤더가 있으면 개수 확인
-        if (result.columnHeaders.length > 0 && values.length !== result.columnHeaders.length) {
+        // 열 헤더가 있으면 개수 확인 (totalDataColumns = colSpan 합계)
+        const expectedColumns = result.totalDataColumns || result.columnHeaders.length;
+        if (expectedColumns > 0 && values.length !== expectedColumns) {
           return {
             success: false,
             data: null,
-            error: `${i + 1}번째 줄: 값 개수(${values.length})가 열 개수(${result.columnHeaders.length})와 일치하지 않습니다.`
+            error: `${i + 1}번째 줄: 값 개수(${values.length})가 열 개수(${expectedColumns})와 일치하지 않습니다.`
           };
         }
 
@@ -163,8 +181,9 @@ class BasicTableParser {
     if (result.columnHeaders.length === 0) {
       const columnCount = result.rows[0].values.length;
       result.columnHeaders = Array.from({ length: columnCount }, (_, i) =>
-        `열${i + 1}`
+        ({ text: `열${i + 1}`, colSpan: 1 })
       );
+      result.totalDataColumns = columnCount;
     }
 
     // 행 라벨 컬럼명이 없으면 기본값 (null은 빈칸이므로 유지)
@@ -172,9 +191,10 @@ class BasicTableParser {
       result.rowLabelColumn = '구분';
     }
 
-    // 합계 계산 - 상대도수이므로 1로 고정 (실제 합계가 1에 가까운 경우)
+    // 합계 계산 - totalDataColumns 기준
     const totals = [];
-    for (let col = 0; col < result.columnHeaders.length; col++) {
+    const dataColumnCount = result.totalDataColumns || result.rows[0]?.values.length || 0;
+    for (let col = 0; col < dataColumnCount; col++) {
       let sum = 0;
       let allNumbers = true;
       for (const row of result.rows) {

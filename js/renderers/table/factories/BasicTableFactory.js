@@ -25,13 +25,14 @@ class BasicTableFactory {
    * @param {string} tableId - 테이블 고유 ID
    */
   static createTableLayers(layerManager, data, config = null, tableId = 'table-1') {
-    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true, mergedHeaderText = null } = data;
+    const { rowLabelColumn, columnHeaders, rows, totals, showTotal = true, showMergedHeader = true, mergedHeaderText = null, totalDataColumns } = data;
 
     // 커스텀 병합 헤더 텍스트 (없으면 기본값 '상대도수')
     const headerText = mergedHeaderText || BASIC_TABLE_CONFIG.MERGED_HEADER_TEXT;
 
-    // 열 개수: 행 라벨 열 + 데이터 열들
-    const columnCount = columnHeaders.length + 1;
+    // 열 개수: 행 라벨 열 + 데이터 열들 (colSpan 합계 사용)
+    const dataColCount = totalDataColumns || columnHeaders.reduce((sum, h) => sum + (h.colSpan || 1), 0);
+    const columnCount = dataColCount + 1;
     // 행 개수: 데이터 행 + 합계 행 (옵션)
     const rowCount = rows.length + (showTotal ? 1 : 0);
 
@@ -405,6 +406,7 @@ class BasicTableFactory {
 
   /**
    * 컬럼 헤더 레이어 생성 (혈액형 | 남학생 | 여학생)
+   * columnHeaders는 객체 배열: [{ text: '도수', colSpan: 2 }, ...]
    */
   static _createColumnHeaderLayer(rowLabelColumn, columnHeaders, columnWidths, padding, tableId, mergedHeaderHeight = BASIC_TABLE_CONFIG.MERGED_HEADER_HEIGHT, borderPadX = 0, borderPadY = 0) {
     const headerGroup = new Layer({
@@ -420,34 +422,72 @@ class BasicTableFactory {
     const y = padding + borderPadY + mergedHeaderHeight;
 
     // 첫 번째 열은 행 라벨 컬럼명 (예: 혈액형)
-    const allHeaders = [rowLabelColumn, ...columnHeaders];
+    const rowLabelCell = new Layer({
+      id: `basic-table-${tableId}-table-header-col0`,
+      name: rowLabelColumn,
+      type: 'cell',
+      visible: true,
+      order: 0,
+      data: {
+        rowType: 'header',
+        rowIndex: -1,
+        colIndex: 0,
+        colLabel: rowLabelColumn,
+        cellText: rowLabelColumn,
+        x,
+        y,
+        width: columnWidths[0],
+        height: CONFIG.TABLE_HEADER_HEIGHT,
+        alignment: 'center',
+        highlighted: false,
+        highlightProgress: 0,
+        headerTextColor: '#8DCF66'
+      }
+    });
+    headerGroup.addChild(rowLabelCell);
+    x += columnWidths[0];
 
-    allHeaders.forEach((header, i) => {
+    // 데이터 헤더 (colSpan 지원)
+    let dataColIndex = 1; // columnWidths 인덱스 (0은 행 라벨)
+    columnHeaders.forEach((headerObj, i) => {
+      // 호환성: 문자열이면 객체로 변환
+      const header = typeof headerObj === 'string' ? { text: headerObj, colSpan: 1 } : headerObj;
+      const colSpan = header.colSpan || 1;
+
+      // colSpan에 해당하는 너비 합산
+      let cellWidth = 0;
+      for (let j = 0; j < colSpan; j++) {
+        cellWidth += columnWidths[dataColIndex + j] || 0;
+      }
+
       const cellLayer = new Layer({
-        id: `basic-table-${tableId}-table-header-col${i}`,
-        name: header,
+        id: `basic-table-${tableId}-table-header-col${dataColIndex}`,
+        name: header.text,
         type: 'cell',
         visible: true,
-        order: i,
+        order: dataColIndex,
         data: {
           rowType: 'header',
           rowIndex: -1,
-          colIndex: i,
-          colLabel: header,
-          cellText: header,
+          colIndex: dataColIndex,
+          colLabel: header.text,
+          cellText: header.text,
           x,
           y,
-          width: columnWidths[i],
+          width: cellWidth,
           height: CONFIG.TABLE_HEADER_HEIGHT,
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0,
-          headerTextColor: '#8DCF66'
+          headerTextColor: '#8DCF66',
+          colSpan: colSpan,
+          isMergedCell: colSpan > 1
         }
       });
 
       headerGroup.addChild(cellLayer);
-      x += columnWidths[i];
+      x += cellWidth;
+      dataColIndex += colSpan;
     });
 
     return headerGroup;
@@ -481,18 +521,21 @@ class BasicTableFactory {
     cells.forEach((cellText, colIndex) => {
       const isLabelColumn = colIndex === 0;
 
+      // 탈리마크 객체인 경우 그대로 전달
+      const isTallyObject = cellText && typeof cellText === 'object' && cellText.type === 'tally';
+
       // 값 포맷팅 (소수점인 경우, null은 그대로 유지)
       let displayText = cellText;
       if (typeof cellText === 'number' && !isLabelColumn) {
         displayText = cellText.toFixed(2).replace(/\.?0+$/, '');
       }
 
-      // null은 그대로 유지 (빈칸 처리용)
-      const cellTextValue = displayText === null ? null : String(displayText);
+      // null은 그대로 유지, 탈리 객체도 그대로 유지
+      const cellTextValue = isTallyObject ? cellText : (displayText === null ? null : String(displayText));
 
       const cellLayer = new Layer({
         id: `basic-table-${tableId}-table-row-${rowIndex}-col${colIndex}`,
-        name: cellTextValue ?? '',
+        name: isTallyObject ? `탈리(${cellText.count})` : (cellTextValue ?? ''),
         type: 'cell',
         visible: true,
         order: colIndex,
