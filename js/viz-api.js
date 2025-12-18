@@ -787,6 +787,9 @@ export async function renderTable(element, config) {
         console.log(`[viz-api] 테이블 변경 감지: ${changes.length}개 셀 fadeIn`);
         tableRenderer.updateCellsWithAnimation(changes);
       }
+
+      // Apply cell animations if specified (추가 렌더링에서도 적용)
+      applyCellAnimationsFromConfig(tableRenderer, config);
     } else {
       // 새 렌더링: 테이블 전체 그리기
       tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);

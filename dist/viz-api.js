@@ -8134,7 +8134,8 @@
         tallyCount,
         animating,
         animationProgress,
-        animationColor
+        animationColor,
+        fadeInProgress  // fadeIn 애니메이션 진행도 (0~1)
       } = layer.data;
 
       // 애니메이션 배경 렌더링 (펄스 효과)
@@ -8152,15 +8153,24 @@
       const cellX = this._getCellXPosition(x, width, alignment);
       const cellY = y + height / 2;
 
+      // fadeIn 애니메이션 적용 (0 = 투명, 1 = 완전 표시)
+      const needsFadeIn = fadeInProgress !== undefined && fadeInProgress < 1;
+      if (needsFadeIn) {
+        this.ctx.save();
+        this.ctx.globalAlpha = fadeInProgress;
+      }
+
       // 탈리마크 셀인 경우 Canvas로 직접 그리기
       if (colLabel === CONFIG.DEFAULT_LABELS.table.tally && tallyCount !== undefined) {
         this._renderTallyCanvas(tallyCount, x, y, width, height, CONFIG.getColor('--color-text'));
+        if (needsFadeIn) this.ctx.restore();
         return;
       }
 
       // cellText가 탈리 객체인 경우 (파서에서 "/" 패턴으로 생성된 탈리마크)
       if (cellText && typeof cellText === 'object' && cellText.type === 'tally') {
         this._renderTallyCanvas(cellText.count, x, y, width, height, CONFIG.getColor('--color-text'));
+        if (needsFadeIn) this.ctx.restore();
         return;
       }
 
@@ -8171,6 +8181,11 @@
       } else {
         // 숫자/알파벳이면 KaTeX 폰트, 아니면 기본 폰트
         this._renderCellText(cellText, cellX, cellY, alignment, CONFIG.getColor('--color-text'));
+      }
+
+      // fadeIn 복원
+      if (needsFadeIn) {
+        this.ctx.restore();
       }
     }
 
@@ -13414,6 +13429,110 @@
     clearAllVariables() {
       this.editModal.clearAllVariables();
     }
+
+    // ========================================
+    // 셀 값 업데이트 및 fadeIn 애니메이션
+    // ========================================
+
+    /**
+     * 특정 셀의 값 업데이트 (레이어 데이터 변경)
+     * @param {number} rowIndex - 행 인덱스 (1-based, 헤더 제외)
+     * @param {number} colIndex - 열 인덱스 (1-based, 라벨 컬럼 제외)
+     * @param {any} newValue - 새 값
+     * @returns {Object|null} 업데이트된 셀 레이어 또는 null
+     */
+    updateCellValue(rowIndex, colIndex, newValue) {
+      // BasicTableFactory 레이어 ID 형식: basic-table-${tableId}-table-row-${rowIndex}-col${colIndex}
+      const layerId = `basic-table-${this.tableId}-table-row-${rowIndex - 1}-col${colIndex}`;
+
+      const cellLayer = this.layerManager.findLayer(layerId);
+      if (!cellLayer) {
+        console.warn(`[TableRenderer] 셀 레이어를 찾을 수 없음: ${layerId}`);
+        return null;
+      }
+
+      // 레이어 데이터 업데이트
+      cellLayer.data.cellText = String(newValue);
+      cellLayer.name = String(newValue);
+      cellLayer.data.fadeInProgress = 0; // fadeIn 시작 상태
+
+      return cellLayer;
+    }
+
+    /**
+     * 여러 셀 값 업데이트 및 fadeIn 애니메이션 추가
+     * @param {Array} changes - 변경 목록 [{rowIndex, colIndex, newValue}, ...]
+     */
+    updateCellsWithAnimation(changes) {
+      const fadeInDuration = 300;
+
+      changes.forEach((change, idx) => {
+        const cellLayer = this.updateCellValue(
+          change.rowIndex,
+          change.colIndex,
+          change.newValue
+        );
+
+        if (cellLayer) {
+          // fadeIn 애니메이션 상태 설정
+          cellLayer.data.fadeInStartTime = Date.now() + (idx * 50); // 순차 시작
+          cellLayer.data.fadeInDuration = fadeInDuration;
+        }
+      });
+
+      // fadeIn 애니메이션 프레임 시작
+      this._startFadeInAnimation();
+    }
+
+    /**
+     * fadeIn 애니메이션 프레임 루프 시작
+     * @private
+     */
+    _startFadeInAnimation() {
+      const animate = () => {
+        const now = Date.now();
+        let hasActiveAnimation = false;
+
+        // 모든 레이어에서 fadeIn 애니메이션 처리 (재귀 순회)
+        const processLayer = (layer) => {
+          if (layer.data && layer.data.fadeInStartTime !== undefined) {
+            const elapsed = now - layer.data.fadeInStartTime;
+            const duration = layer.data.fadeInDuration || 300;
+
+            if (elapsed < 0) {
+              // 아직 시작 안 함
+              layer.data.fadeInProgress = 0;
+              hasActiveAnimation = true;
+            } else if (elapsed < duration) {
+              // 진행 중
+              layer.data.fadeInProgress = elapsed / duration;
+              hasActiveAnimation = true;
+            } else {
+              // 완료
+              layer.data.fadeInProgress = 1;
+              delete layer.data.fadeInStartTime;
+              delete layer.data.fadeInDuration;
+            }
+          }
+          // 자식 레이어 순회
+          if (layer.children) {
+            layer.children.forEach(child => processLayer(child));
+          }
+        };
+
+        processLayer(this.layerManager.root);
+
+        // 렌더링
+        this.renderFrame();
+
+        // 애니메이션 계속
+        if (hasActiveAnimation) {
+          requestAnimationFrame(animate);
+        }
+      };
+
+      requestAnimationFrame(animate);
+    }
   }
 
   /**
@@ -15697,6 +15816,35 @@
   }
 
   /**
+   * 테이블 데이터 변경 감지 (null → 실제값)
+   * @param {Object} prevData - 이전 파싱 데이터
+   * @param {Object} currData - 현재 파싱 데이터
+   * @returns {Array} 변경된 셀 목록 [{rowIndex, colIndex, newValue}, ...]
+   */
+  function diffTableData(prevData, currData) {
+    const changes = [];
+    if (!prevData?.rows || !currData?.rows) return changes;
+
+    currData.rows.forEach((currRow, rowIdx) => {
+      const prevRow = prevData.rows[rowIdx];
+      if (!prevRow) return;
+
+      currRow.values.forEach((currValue, colIdx) => {
+        const prevValue = prevRow.values[colIdx];
+        // null → 실제값 변경 감지
+        if (prevValue === null && currValue !== null) {
+          changes.push({
+            rowIndex: rowIdx + 1,  // 헤더 제외 (1-based)
+            colIndex: colIdx + 1,  // 라벨 컬럼 제외 (1-based)
+            newValue: currValue
+          });
+        }
+      });
+    });
+    return changes;
+  }
+
+  /**
    * Table Rendering API
    * @param {HTMLElement} element - Container element to append canvas
    * @param {Object} config - Configuration object
@@ -15742,19 +15890,56 @@
         ? config.data.join(', ')
         : config.data;
 
-      // 4. Create canvas element
-      const canvasId = `viz-table-${++tableInstanceCounter}`;
-      const canvas = document.createElement('canvas');
-      canvas.id = canvasId;
-      canvas.width = config.canvasWidth || CONFIG.TABLE_DEFAULT_WIDTH || 600;
-      canvas.height = config.canvasHeight || CONFIG.TABLE_DEFAULT_HEIGHT || 400;
-      canvas.setAttribute('role', 'img');
-      canvas.setAttribute('aria-label', 'Data table');
+      // 4. data-viz-canvas 속성으로 타겟 캔버스 확인
+      const canvasContainerId = element.getAttribute('data-viz-canvas');
+      let targetContainer = element;
+      let isAdditionalRender = false;
 
-      element.appendChild(canvas);
+      if (canvasContainerId) {
+        const existingContainer = document.getElementById(canvasContainerId);
+        if (existingContainer) {
+          targetContainer = existingContainer;
+          isAdditionalRender = true;
+          console.log(`[viz-api] table data-viz-canvas 발견: ${element.id} → ${canvasContainerId}`);
+        } else {
+          console.warn(`[viz-api] table data-viz-canvas 대상을 찾을 수 없음: ${canvasContainerId}`);
+        }
+      }
 
-      // 5. Create TableRenderer
-      const tableRenderer = new TableRenderer(canvasId);
+      // 5. 캔버스 생성 또는 재사용
+      let canvas, canvasId, tableRenderer;
+
+      if (isAdditionalRender) {
+        // 기존 캔버스 및 TableRenderer 인스턴스 재사용
+        canvas = targetContainer.querySelector('canvas');
+        if (!canvas) {
+          return { error: `No canvas found in target container: ${canvasContainerId}` };
+        }
+        canvasId = canvas.id;
+
+        // 기존 TableRenderer 인스턴스 재사용
+        if (canvas.__tableRenderer) {
+          tableRenderer = canvas.__tableRenderer;
+          console.log(`[viz-api] 기존 TableRenderer 재사용: ${canvasId}`);
+        } else {
+          tableRenderer = new TableRenderer(canvasId);
+          canvas.__tableRenderer = tableRenderer;
+          console.warn(`[viz-api] TableRenderer 인스턴스가 없어 새로 생성: ${canvasId}`);
+        }
+      } else {
+        // 새 캔버스 생성
+        canvasId = `viz-table-${++tableInstanceCounter}`;
+        canvas = document.createElement('canvas');
+        canvas.id = canvasId;
+        canvas.width = config.canvasWidth || CONFIG.TABLE_DEFAULT_WIDTH || 600;
+        canvas.height = config.canvasHeight || CONFIG.TABLE_DEFAULT_HEIGHT || 400;
+        canvas.setAttribute('role', 'img');
+        canvas.setAttribute('aria-label', 'Data table');
+        element.appendChild(canvas);
+
+        tableRenderer = new TableRenderer(canvasId);
+        canvas.__tableRenderer = tableRenderer;
+      }
 
       // 테이블 설정 구성
       const tableConfig = {
@@ -15810,20 +15995,38 @@
         adaptedData
       };
 
-      tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
+      // 추가 렌더링인 경우: 데이터 비교 및 fadeIn 애니메이션
+      if (isAdditionalRender && canvas.__previousTableData) {
+        const prevData = canvas.__previousTableData;
+        const changes = diffTableData(prevData, finalParseResult.data);
 
-      // Apply cell animations if specified
-      applyCellAnimationsFromConfig(tableRenderer, config);
+        if (changes.length > 0) {
+          console.log(`[viz-api] 테이블 변경 감지: ${changes.length}개 셀 fadeIn`);
+          tableRenderer.updateCellsWithAnimation(changes);
+        }
 
-      // Apply corruption effect (if enabled)
-      if (options.corruption?.enabled) {
-        const scale = tableRenderer.scaleRatio || 1;
-        // 테이블 렌더러에서 실제 계산된 columnWidths와 rowHeights 가져오기
-        const actualTableInfo = getActualTableInfo(tableRenderer, tableType, finalParseResult.data, canvas, scale);
-        if (actualTableInfo) {
-          applyTableCorruption(tableRenderer.ctx, options.corruption, actualTableInfo);
+        // Apply cell animations if specified (추가 렌더링에서도 적용)
+        applyCellAnimationsFromConfig(tableRenderer, config);
+      } else {
+        // 새 렌더링: 테이블 전체 그리기
+        tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
+
+        // Apply cell animations if specified
+        applyCellAnimationsFromConfig(tableRenderer, config);
+
+        // Apply corruption effect (if enabled)
+        if (options.corruption?.enabled) {
+          const scale = tableRenderer.scaleRatio || 1;
+          // 테이블 렌더러에서 실제 계산된 columnWidths와 rowHeights 가져오기
+          const actualTableInfo = getActualTableInfo(tableRenderer, tableType, finalParseResult.data, canvas, scale);
+          if (actualTableInfo) {
+            applyTableCorruption(tableRenderer.ctx, options.corruption, actualTableInfo);
+          }
         }
       }
+
+      // 현재 데이터 저장 (다음 비교용)
+      canvas.__previousTableData = JSON.parse(JSON.stringify(finalParseResult.data));
 
       return {
         tableRenderer,
