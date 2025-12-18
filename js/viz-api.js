@@ -353,7 +353,7 @@ export async function renderChart(element, config) {
     }
 
     // 검증 통과 시 파싱된 데이터 사용
-    const { tableType, rawData } = validation.data;
+    const { rawData } = validation.data;
 
     // 3. Calculate statistics
     const stats = DataProcessor.calculateBasicStats(rawData);
