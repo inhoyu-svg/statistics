@@ -76,6 +76,10 @@ class ScatterRenderer {
     const yMin = Math.floor(yDataMin / yInterval) * yInterval;
     const yMax = Math.ceil(yDataMax / yInterval) * yInterval;
 
+    // 압축 구간 필요 여부 (xMin/yMin이 0이 아닐 때만)
+    const hasXCompression = xMin > 0;
+    const hasYCompression = yMin > 0;
+
     return {
       xMin,
       xMax,
@@ -86,7 +90,9 @@ class ScatterRenderer {
       yDataMin,
       yDataMax,
       xInterval,
-      yInterval
+      yInterval,
+      hasXCompression,
+      hasYCompression
     };
   }
 
@@ -117,7 +123,7 @@ class ScatterRenderer {
 
   /**
    * 좌표계 생성
-   * 왼쪽/아래: 압축 구간 1칸, 오른쪽/위: 여유 공간 1칸
+   * 왼쪽/아래: 압축 구간 1칸 (xMin/yMin > 0일 때만), 오른쪽/위: 여유 공간 1칸
    */
   static _createCoordinateSystem(canvas, padding, range) {
     const chartW = canvas.width - padding * 2;
@@ -127,28 +133,30 @@ class ScatterRenderer {
     const xDataCells = Math.round((range.xMax - range.xMin) / range.xInterval);
     const yDataCells = Math.round((range.yMax - range.yMin) / range.yInterval);
 
-    // 전체 구간 수 = 압축(1) + 데이터 구간 + 여유(1)
-    const xTotalCells = 1 + xDataCells + 1;
-    const yTotalCells = 1 + yDataCells + 1;
+    // 압축 구간: xMin/yMin이 0보다 클 때만 추가
+    const xCompressionCells = range.hasXCompression ? 1 : 0;
+    const yCompressionCells = range.hasYCompression ? 1 : 0;
+
+    // 전체 구간 수 = 압축(0또는1) + 데이터 구간 + 여유(1)
+    const xTotalCells = xCompressionCells + xDataCells + 1;
+    const yTotalCells = yCompressionCells + yDataCells + 1;
 
     const xCellWidth = chartW / xTotalCells;
     const yCellHeight = chartH / yTotalCells;
 
     // X축 좌표 변환: 값 → 캔버스 x좌표
-    // 압축 구간(1칸) 이후부터 데이터 시작
     const toX = (value) => {
       const dataOffset = (value - range.xMin) / range.xInterval;
-      return padding + (1 + dataOffset) * xCellWidth;
+      return padding + (xCompressionCells + dataOffset) * xCellWidth;
     };
 
     // Y축 좌표 변환: 값 → 캔버스 y좌표 (위아래 반전)
-    // 위쪽 여유 공간(1칸) 이후부터 데이터 시작
     const toY = (value) => {
       const dataOffset = (value - range.yMin) / range.yInterval;
-      return canvas.height - padding - (1 + dataOffset) * yCellHeight;
+      return canvas.height - padding - (yCompressionCells + dataOffset) * yCellHeight;
     };
 
-    return { toX, toY, chartW, chartH, xCellWidth, yCellHeight, xTotalCells, yTotalCells };
+    return { toX, toY, chartW, chartH, xCellWidth, yCellHeight, xTotalCells, yTotalCells, xCompressionCells, yCompressionCells };
   }
 
   /**
@@ -206,11 +214,15 @@ class ScatterRenderer {
     ctx.lineTo(canvas.width - padding, canvas.height - padding);
     ctx.stroke();
 
-    // X축 압축 기호 (≈) - 축 위에 위치
-    this._drawEllipsisSymbol(ctx, padding + xCellWidth / 2, canvas.height - padding, true);
+    // X축 압축 기호 (≈) - 압축 구간이 있을 때만 표시
+    if (coords.xCompressionCells > 0) {
+      this._drawEllipsisSymbol(ctx, padding + xCellWidth / 2, canvas.height - padding, true);
+    }
 
-    // Y축 압축 기호 (≈) - 축 위에 위치
-    this._drawEllipsisSymbol(ctx, padding, canvas.height - padding - yCellHeight / 2, false);
+    // Y축 압축 기호 (≈) - 압축 구간이 있을 때만 표시
+    if (coords.yCompressionCells > 0) {
+      this._drawEllipsisSymbol(ctx, padding, canvas.height - padding - yCellHeight / 2, false);
+    }
   }
 
   /**
@@ -245,10 +257,19 @@ class ScatterRenderer {
     // 숫자 라벨 크기 키움
     const fontSize = CONFIG.getScaledFontSize(25);
 
+    // 원점 (0) 라벨 - 항상 코너에 표시
+    const originLabelX = padding - CONFIG.getScaledValue(12);
+    const originLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
+    KatexUtils.render(ctx, '0', originLabelX, originLabelY, {
+      fontSize, color, align: 'right', baseline: 'top'
+    });
+
     // X축 라벨 - xMin부터 xMax + interval까지 (여유 칸 라벨 포함)
     const xLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
     const xLabelMax = range.xMax + range.xInterval; // 여유 칸까지
     for (let value = range.xMin; value <= xLabelMax + 0.001; value += range.xInterval) {
+      // 0은 원점에서 표시하므로 건너뛰기
+      if (Math.abs(value) < 0.0001) continue;
       const x = toX(value);
       // 정수면 정수로, 소수면 소수로 표시
       const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
@@ -261,6 +282,8 @@ class ScatterRenderer {
     const yLabelX = padding - CONFIG.getScaledValue(12);
     const yLabelMax = range.yMax + range.yInterval; // 여유 칸까지
     for (let value = range.yMin; value <= yLabelMax + 0.001; value += range.yInterval) {
+      // 0은 원점에서 표시하므로 건너뛰기
+      if (Math.abs(value) < 0.0001) continue;
       const y = toY(value);
       // 정수면 정수로, 소수면 소수로 표시
       const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
