@@ -166,6 +166,27 @@ class ScatterRenderer {
     const { toX, toY, xCellWidth, yCellHeight, xTotalCells, yTotalCells } = coords;
     ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
 
+    // 보조 격자선 (각 칸의 중간) - 가장 낮은 레이어
+    ctx.strokeStyle = '#555555';
+
+    // 가로 보조 격자선
+    for (let i = 0; i < yTotalCells; i++) {
+      const y = canvas.height - padding - (i + 0.5) * yCellHeight;
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(canvas.width - padding, y);
+      ctx.stroke();
+    }
+
+    // 세로 보조 격자선
+    for (let i = 0; i < xTotalCells; i++) {
+      const x = padding + (i + 0.5) * xCellWidth;
+      ctx.beginPath();
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, canvas.height - padding);
+      ctx.stroke();
+    }
+
     // 가로 격자선 (Y축) - 모든 칸에 그리기
     ctx.strokeStyle = CONFIG.getColor('--color-grid-horizontal');
     for (let i = 1; i < yTotalCells; i++) {
@@ -214,14 +235,14 @@ class ScatterRenderer {
     ctx.lineTo(canvas.width - padding, canvas.height - padding);
     ctx.stroke();
 
-    // X축 압축 기호 (≈) - 압축 구간이 있을 때만 표시
+    // X축 압축 기호 (≈) - 압축 구간이 있을 때만 표시 (1/4 위치로 보조 격자선과 겹침 방지)
     if (coords.xCompressionCells > 0) {
-      this._drawEllipsisSymbol(ctx, padding + xCellWidth / 2, canvas.height - padding, true);
+      this._drawEllipsisSymbol(ctx, padding + xCellWidth / 4, canvas.height - padding, true);
     }
 
-    // Y축 압축 기호 (≈) - 압축 구간이 있을 때만 표시
+    // Y축 압축 기호 (≈) - 압축 구간이 있을 때만 표시 (1/4 위치로 보조 격자선과 겹침 방지)
     if (coords.yCompressionCells > 0) {
-      this._drawEllipsisSymbol(ctx, padding, canvas.height - padding - yCellHeight / 2, false);
+      this._drawEllipsisSymbol(ctx, padding, canvas.height - padding - yCellHeight / 4, false);
     }
   }
 
