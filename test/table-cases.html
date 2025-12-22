@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>테이블 시각화 케이스</title>
+  <style>
+    /* SCDream 폰트 로드 */
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream3.otf') format('opentype');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream5.otf') format('opentype');
+      font-weight: 500;
+    }
+
+    :root {
+      --bg-dark: #1a1a2e;
+      --card-bg: #252540;
+      --primary: #8DCF66;
+      --secondary: #FFD93D;
+      --text: #eee;
+      --text-muted: #888;
+      --btn-config: #4a4a6a;
+      --btn-layers: #8DCF66;
+      --btn-timeline: #6a4a8a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 30px;
+      background: var(--bg-dark);
+      color: var(--text);
+      font-family: 'SCDream', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* 헤더 */
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .page-header h1 {
+      margin: 0;
+      font-size: 32px;
+      color: var(--secondary);
+      font-weight: 500;
+    }
+    .page-header .subtitle {
+      margin: 10px 0 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* 섹션 */
+    .section {
+      margin-bottom: 40px;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 18px;
+      color: var(--text);
+    }
+    .section-title .icon {
+      color: var(--primary);
+    }
+
+    /* 케이스 그리드 */
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 24px;
+    }
+
+    /* 케이스 카드 */
+    .case-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .case-header h3 {
+      margin: 0 0 5px;
+      font-size: 15px;
+      color: var(--secondary);
+      font-weight: 500;
+    }
+    .case-header .case-desc {
+      margin: 0 0 15px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* 캔버스 컨테이너 */
+    .case-canvas {
+      background: var(--bg-dark);
+      border-radius: 8px;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 250px;
+      overflow: auto;
+    }
+    .case-canvas canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* 컨트롤 버튼 */
+    .case-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    .case-controls button {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .case-controls button:hover {
+      opacity: 0.9;
+    }
+    .case-controls button:active {
+      transform: scale(0.98);
+    }
+    .btn-config {
+      background: var(--btn-config);
+      color: #fff;
+    }
+    .btn-layers {
+      background: var(--btn-layers);
+      color: var(--bg-dark);
+    }
+    .btn-timeline {
+      background: var(--btn-timeline);
+      color: #fff;
+    }
+
+    /* 상태 표시 */
+    .status {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .status.success { color: var(--primary); }
+    .status.error { color: #ff6b6b; }
+
+    /* 모달 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+    }
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    .modal-content {
+      position: relative;
+      background: var(--card-bg);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #3a3a5a;
+    }
+    .modal-header h4 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--secondary);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: var(--text);
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Config 모달 - JSON */
+    .json-view {
+      background: var(--bg-dark);
+      border-radius: 8px;
+      padding: 15px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #a8d8a8;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* Layers 패널 */
+    .layer-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-dark);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .layer-item:last-child {
+      margin-bottom: 0;
+    }
+    .layer-toggle {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .layer-info {
+      flex: 1;
+    }
+    .layer-name {
+      font-size: 13px;
+      color: var(--text);
+    }
+    .layer-type {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Timeline 패널 */
+    .timeline-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .timeline-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .timeline-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: var(--btn-config);
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .timeline-btn:hover {
+      opacity: 0.9;
+    }
+    .timeline-btn.play { background: var(--primary); color: var(--bg-dark); }
+    .timeline-slider {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .timeline-slider label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .timeline-slider input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-dark);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .timeline-slider input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- 헤더 -->
+  <header class="page-header">
+    <h1>테이블 시각화 케이스</h1>
+    <p class="subtitle">기본 테이블, 줄기-잎 그림, 카테고리 행렬, Corruption 효과 등 다양한 테이블 케이스</p>
+  </header>
+
+  <!-- 기본 테이블 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 기본 테이블 (basic-table)</h2>
+    <div class="case-grid">
+
+      <!-- T1: 기본 테이블 -->
+      <div class="case-card" id="case-t1">
+        <div class="case-header">
+          <h3>T1 - 기본 테이블</h3>
+          <p class="case-desc">가장 단순한 basic-table 형태</p>
+        </div>
+        <div class="case-canvas" id="canvas-t1"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t1">{ } Config</button>
+          <button class="btn-layers" data-case="t1">◇ Layers</button>
+          <button class="btn-timeline" data-case="t1">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t1"></div>
+      </div>
+
+      <!-- T2: 도수분포표 -->
+      <div class="case-card" id="case-t2">
+        <div class="case-header">
+          <h3>T2 - 도수분포표</h3>
+          <p class="case-desc">showTotal: true로 합계 행 표시</p>
+        </div>
+        <div class="case-canvas" id="canvas-t2"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t2">{ } Config</button>
+          <button class="btn-layers" data-case="t2">◇ Layers</button>
+          <button class="btn-timeline" data-case="t2">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t2"></div>
+      </div>
+
+      <!-- T3: 이원분류표 -->
+      <div class="case-card" id="case-t3">
+        <div class="case-header">
+          <h3>T3 - 이원분류표</h3>
+          <p class="case-desc">병합 헤더가 있는 이원분류표</p>
+        </div>
+        <div class="case-canvas" id="canvas-t3"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t3">{ } Config</button>
+          <button class="btn-layers" data-case="t3">◇ Layers</button>
+          <button class="btn-timeline" data-case="t3">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t3"></div>
+      </div>
+
+      <!-- T4: 변량 테이블 -->
+      <div class="case-card" id="case-t4">
+        <div class="case-header">
+          <h3>T4 - 변량 테이블</h3>
+          <p class="case-desc">showGrid: false로 격자선 없이 데이터만 표시</p>
+        </div>
+        <div class="case-canvas" id="canvas-t4"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t4">{ } Config</button>
+          <button class="btn-layers" data-case="t4">◇ Layers</button>
+          <button class="btn-timeline" data-case="t4">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t4"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 줄기-잎 그림 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 줄기-잎 그림 (stem-leaf)</h2>
+    <div class="case-grid">
+
+      <!-- T5: 줄기-잎 단일 -->
+      <div class="case-card" id="case-t5">
+        <div class="case-header">
+          <h3>T5 - 줄기-잎 그림 (단일)</h3>
+          <p class="case-desc">단일 데이터셋의 줄기-잎 그림</p>
+        </div>
+        <div class="case-canvas" id="canvas-t5"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t5">{ } Config</button>
+          <button class="btn-layers" data-case="t5">◇ Layers</button>
+          <button class="btn-timeline" data-case="t5">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t5"></div>
+      </div>
+
+      <!-- T6: 줄기-잎 비교 -->
+      <div class="case-card" id="case-t6">
+        <div class="case-header">
+          <h3>T6 - 줄기-잎 그림 (비교)</h3>
+          <p class="case-desc">두 그룹 비교 줄기-잎 그림</p>
+        </div>
+        <div class="case-canvas" id="canvas-t6"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t6">{ } Config</button>
+          <button class="btn-layers" data-case="t6">◇ Layers</button>
+          <button class="btn-timeline" data-case="t6">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t6"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 카테고리 행렬 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 카테고리 행렬 (category-matrix)</h2>
+    <div class="case-grid">
+
+      <!-- T7: 카테고리 행렬 -->
+      <div class="case-card" id="case-t7">
+        <div class="case-header">
+          <h3>T7 - 카테고리 행렬</h3>
+          <p class="case-desc">헤더가 왼쪽으로 이동한 교차표 형태</p>
+        </div>
+        <div class="case-canvas" id="canvas-t7"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t7">{ } Config</button>
+          <button class="btn-layers" data-case="t7">◇ Layers</button>
+          <button class="btn-timeline" data-case="t7">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t7"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Corruption 효과 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> Corruption 효과 (찢김)</h2>
+    <div class="case-grid">
+
+      <!-- T8: 찢어진 테이블 -->
+      <div class="case-card" id="case-t8">
+        <div class="case-header">
+          <h3>T8 - 찢어진 테이블</h3>
+          <p class="case-desc">Corruption 효과가 적용된 테이블</p>
+        </div>
+        <div class="case-canvas" id="canvas-t8"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t8">{ } Config</button>
+          <button class="btn-layers" data-case="t8">◇ Layers</button>
+          <button class="btn-timeline" data-case="t8">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t8"></div>
+      </div>
+
+      <!-- T9: 찢어진 줄기-잎 -->
+      <div class="case-card" id="case-t9">
+        <div class="case-header">
+          <h3>T9 - 찢어진 줄기-잎</h3>
+          <p class="case-desc">Corruption 효과 + 줄기-잎 그림</p>
+        </div>
+        <div class="case-canvas" id="canvas-t9"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t9">{ } Config</button>
+          <button class="btn-layers" data-case="t9">◇ Layers</button>
+          <button class="btn-timeline" data-case="t9">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t9"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 모달 -->
+  <div class="modal" id="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="modal-title">제목</h4>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- 동적 컨텐츠 -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as VizAPI from '../js/viz-api.js';
+
+    // 케이스별 설정
+    const cases = {
+      t1: {
+        title: 'T1 - 기본 테이블',
+        desc: '가장 단순한 basic-table 형태',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 항목, 값1, 값2\nA: 10, 20\nB: 30, 40\nC: 50, 60',
+          animation: false
+        }
+      },
+      t2: {
+        title: 'T2 - 도수분포표',
+        desc: 'showTotal: true로 합계 행 표시',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60이상~70미만: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          animation: false,
+          options: {
+            showTotal: true
+          }
+        }
+      },
+      t3: {
+        title: 'T3 - 이원분류표',
+        desc: '병합 헤더가 있는 이원분류표',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.40, 0.38\nB: 0.22, 0.25\nAB: 0.12, 0.15\nO: 0.26, 0.22',
+          animation: false,
+          options: {
+            showTotal: true,
+            showMergedHeader: true
+          }
+        }
+      },
+      t4: {
+        title: 'T4 - 변량 테이블',
+        desc: 'showGrid: false로 격자선 없이 데이터만 표시',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: null, null, null, null, null\n200: 190, 185, 195, 195\n195: 198, 190, 200, 208\n190: 184, 185, 210, 205\n210: 198, 215, 205, 190',
+          animation: false,
+          options: {
+            showGrid: false,
+            showTotal: false,
+            showMergedHeader: false
+          }
+        }
+      },
+      t5: {
+        title: 'T5 - 줄기-잎 그림 (단일)',
+        desc: '단일 데이터셋의 줄기-잎 그림',
+        config: {
+          purpose: 'table',
+          tableType: 'stem-leaf',
+          data: '162 178 175 174 189 186 183 183 181 197 194 191 190 209 205',
+          animation: false
+        }
+      },
+      t6: {
+        title: 'T6 - 줄기-잎 그림 (비교)',
+        desc: '두 그룹 비교 줄기-잎 그림',
+        config: {
+          purpose: 'table',
+          tableType: 'stem-leaf',
+          data: '남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207',
+          animation: false
+        }
+      },
+      t7: {
+        title: 'T7 - 카테고리 행렬',
+        desc: '헤더가 왼쪽으로 이동한 교차표 형태',
+        config: {
+          purpose: 'table',
+          tableType: 'category-matrix',
+          data: '헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90',
+          animation: false
+        }
+      },
+      t8: {
+        title: 'T8 - 찢어진 테이블',
+        desc: 'Corruption 효과가 적용된 테이블',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60이상~70미만: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          animation: false,
+          options: {
+            showTotal: true,
+            corruption: {
+              enabled: true,
+              cells: '2-1:4-2',
+              style: {
+                edgeComplexity: 0.8,
+                edgeColorEnabled: true,
+                edgeColor: 'rgba(136, 136, 136, 1)',
+                fiberEnabled: true,
+                fiberCount: 15
+              }
+            }
+          }
+        }
+      },
+      t9: {
+        title: 'T9 - 찢어진 줄기-잎',
+        desc: 'Corruption 효과 + 줄기-잎 그림',
+        config: {
+          purpose: 'table',
+          tableType: 'stem-leaf',
+          data: '162 178 175 174 189 186 183 183 181 197 194 191 190 209 205',
+          animation: false,
+          options: {
+            corruption: {
+              enabled: true,
+              cells: '1-2:3-5',
+              style: {
+                edgeComplexity: 0.7,
+                edgeColorEnabled: true,
+                fiberEnabled: true,
+                fiberCount: 20
+              }
+            }
+          }
+        }
+      }
+    };
+
+    // 렌더러 저장소
+    const renderers = {};
+
+    // 초기화
+    async function init() {
+      for (const [caseId, caseData] of Object.entries(cases)) {
+        const container = document.getElementById(`canvas-${caseId}`);
+        const statusEl = document.getElementById(`status-${caseId}`);
+
+        try {
+          console.log(`[${caseId}] Rendering with config:`, caseData.config);
+
+          const result = await VizAPI.renderTable(container, caseData.config);
+
+          console.log(`[${caseId}] Result:`, result);
+          renderers[caseId] = result;
+          statusEl.textContent = '렌더링 완료';
+          statusEl.className = 'status success';
+        } catch (err) {
+          console.error(`[${caseId}] Error:`, err);
+          statusEl.textContent = `오류: ${err.message}`;
+          statusEl.className = 'status error';
+        }
+      }
+
+      // 버튼 이벤트 바인딩
+      bindControlButtons();
+    }
+
+    // 버튼 이벤트 바인딩
+    function bindControlButtons() {
+      // Config 버튼
+      document.querySelectorAll('.btn-config').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const caseId = btn.dataset.case;
+          const caseData = cases[caseId];
+          showConfigModal(caseId, caseData);
+        });
+      });
+
+      // Layers 버튼
+      document.querySelectorAll('.btn-layers').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const caseId = btn.dataset.case;
+          const renderer = renderers[caseId];
+          showLayersModal(caseId, renderer);
+        });
+      });
+
+      // Timeline 버튼
+      document.querySelectorAll('.btn-timeline').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const caseId = btn.dataset.case;
+          const renderer = renderers[caseId];
+          showTimelineModal(caseId, renderer);
+        });
+      });
+
+      // 모달 닫기
+      document.querySelector('.modal-overlay').addEventListener('click', closeModal);
+      document.querySelector('.modal-close').addEventListener('click', closeModal);
+    }
+
+    // Config 모달
+    function showConfigModal(caseId, caseData) {
+      const modal = document.getElementById('modal');
+      const title = document.getElementById('modal-title');
+      const body = document.getElementById('modal-body');
+
+      title.textContent = `${caseData.title} - Config`;
+      body.innerHTML = `<pre class="json-view">${JSON.stringify(caseData.config, null, 2)}</pre>`;
+
+      modal.classList.add('active');
+    }
+
+    // Layers 모달
+    function showLayersModal(caseId, renderer) {
+      const modal = document.getElementById('modal');
+      const title = document.getElementById('modal-title');
+      const body = document.getElementById('modal-body');
+
+      title.textContent = `${cases[caseId].title} - Layers`;
+
+      const tableRenderer = renderer?.tableRenderer;
+      if (!tableRenderer?.layerManager) {
+        body.innerHTML = '<p style="color: var(--text-muted);">레이어 정보 없음</p>';
+        modal.classList.add('active');
+        return;
+      }
+
+      const layers = tableRenderer.layerManager.getAllLayers();
+      let html = '<ul class="layer-list">';
+      layers.forEach((layer, idx) => {
+        html += `
+          <li class="layer-item">
+            <input type="checkbox" class="layer-toggle" data-case="${caseId}" data-layer="${idx}" ${layer.visible ? 'checked' : ''}>
+            <div class="layer-info">
+              <div class="layer-name">${layer.id || `Layer ${idx}`}</div>
+              <div class="layer-type">${layer.type || 'unknown'}</div>
+            </div>
+          </li>
+        `;
+      });
+      html += '</ul>';
+      body.innerHTML = html;
+
+      // 레이어 토글 이벤트
+      body.querySelectorAll('.layer-toggle').forEach(toggle => {
+        toggle.addEventListener('change', (e) => {
+          const layerIdx = parseInt(e.target.dataset.layer);
+          const layer = layers[layerIdx];
+          if (layer) {
+            layer.visible = e.target.checked;
+            tableRenderer.renderFrame();
+          }
+        });
+      });
+
+      modal.classList.add('active');
+    }
+
+    // Timeline 모달
+    function showTimelineModal(caseId, renderer) {
+      const modal = document.getElementById('modal');
+      const title = document.getElementById('modal-title');
+      const body = document.getElementById('modal-body');
+
+      title.textContent = `${cases[caseId].title} - Timeline`;
+
+      const tableRenderer = renderer?.tableRenderer;
+      if (!tableRenderer?.timeline) {
+        body.innerHTML = '<p style="color: var(--text-muted);">타임라인 정보 없음 (animation: false)</p>';
+        modal.classList.add('active');
+        return;
+      }
+
+      body.innerHTML = `
+        <div class="timeline-controls">
+          <div class="timeline-buttons">
+            <button class="timeline-btn play" data-action="play">▶ Play</button>
+            <button class="timeline-btn" data-action="pause">⏸ Pause</button>
+            <button class="timeline-btn" data-action="stop">⏹ Stop</button>
+          </div>
+          <div class="timeline-slider">
+            <label>Progress</label>
+            <input type="range" min="0" max="100" value="0" data-action="seek">
+          </div>
+        </div>
+      `;
+
+      // 버튼 이벤트
+      body.querySelectorAll('.timeline-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          if (action === 'play') tableRenderer.timeline.play();
+          else if (action === 'pause') tableRenderer.timeline.pause();
+          else if (action === 'stop') tableRenderer.timeline.stop();
+        });
+      });
+
+      // 슬라이더 이벤트
+      const slider = body.querySelector('input[data-action="seek"]');
+      slider.addEventListener('input', (e) => {
+        const progress = parseInt(e.target.value) / 100;
+        tableRenderer.timeline.seekToProgress(progress);
+      });
+
+      modal.classList.add('active');
+    }
+
+    // 모달 닫기
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+
+    // 초기화 실행
+    init();
+  </script>
+</body>
+</html>
