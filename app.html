@@ -307,13 +307,23 @@
         <button class="dataset-remove-btn" type="button" title="삭제">✕</button>
       </summary>
       <div class="dataset-content">
-        <!-- 테이블 타입 선택 -->
-        <div class="input-group table-type-group">
+        <!-- 시각화 타입 선택 -->
+        <div class="input-group viz-type-group">
+          <label>시각화 타입:</label>
+          <select class="dataset-viz-type">
+            <option value="chart">차트 (히스토그램 + 다각형)</option>
+            <option value="scatter">산점도</option>
+            <option value="table">테이블</option>
+          </select>
+        </div>
+
+        <!-- 테이블 타입 선택 (테이블 선택 시에만 표시) -->
+        <div class="input-group table-type-group table-only-options" style="display: none;">
           <label>테이블 타입:</label>
           <select class="dataset-table-type">
-            <option value="frequency">도수분포표 + 차트</option>
-            <option value="stem-leaf">줄기-잎 그림</option>
             <option value="basic-table">기본 테이블</option>
+            <option value="category-matrix">카테고리 행렬</option>
+            <option value="stem-leaf">줄기-잎 그림</option>
           </select>
         </div>
 
@@ -329,8 +339,8 @@
             rows="3">62 87 97 73 59 85 80 79 65 75</textarea>
         </div>
 
-        <!-- 도수분포표 전용 옵션 -->
-        <div class="row frequency-only-options">
+        <!-- 차트 전용 옵션 -->
+        <div class="row chart-only-options">
           <div class="input-group">
             <label>계급 개수:</label>
             <input
@@ -351,8 +361,8 @@
           </div>
         </div>
 
-        <!-- 차트 요소 표시 옵션 (도수분포표 전용) -->
-        <div class="table-options frequency-only-options">
+        <!-- 차트 요소 표시 옵션 (차트 전용) -->
+        <div class="table-options chart-only-options">
           <label>
             <input type="checkbox" class="dataset-show-histogram" checked>
             <span>히스토그램 표시</span>
@@ -370,7 +380,7 @@
           </div>
         </div>
 
-        <div class="table-options frequency-only-options">
+        <div class="table-options chart-only-options">
           <label>
             <input type="checkbox" class="dataset-show-polygon" checked>
             <span>도수 다각형 표시</span>
@@ -396,16 +406,16 @@
           </div>
         </div>
 
-        <!-- 표 옵션 (도수분포표 전용) -->
-        <div class="table-options frequency-only-options">
+        <!-- 표 옵션 (차트 전용) -->
+        <div class="table-options chart-only-options">
           <label>
             <input type="checkbox" class="dataset-show-superscript" checked>
             <span>첫 계급에 상첨자 표시 (이상/미만)</span>
           </label>
         </div>
 
-        <!-- 말풍선 옵션 (도수분포표 전용) -->
-        <div class="table-options frequency-only-options">
+        <!-- 말풍선 옵션 (차트 전용) -->
+        <div class="table-options chart-only-options">
           <label>
             <input type="checkbox" class="dataset-show-callout">
             <span>말풍선 표시</span>
@@ -416,24 +426,24 @@
           </div>
         </div>
 
-        <!-- 막대 라벨 옵션 (도수분포표 전용) -->
-        <div class="table-options frequency-only-options">
+        <!-- 막대 라벨 옵션 (차트 전용) -->
+        <div class="table-options chart-only-options">
           <label>
             <input type="checkbox" class="dataset-show-bar-labels">
             <span>막대 위 값 표시</span>
           </label>
         </div>
 
-        <!-- 파선 옵션 (도수분포표 전용) -->
-        <div class="table-options frequency-only-options">
+        <!-- 파선 옵션 (차트 전용) -->
+        <div class="table-options chart-only-options">
           <label>
             <input type="checkbox" class="dataset-show-dashed-lines">
             <span>수직 파선 표시</span>
           </label>
         </div>
 
-        <!-- 합동 삼각형 옵션 (도수분포표 전용) -->
-        <div class="table-options frequency-only-options">
+        <!-- 합동 삼각형 옵션 (차트 전용) -->
+        <div class="table-options chart-only-options">
           <label>
             <input type="checkbox" class="dataset-show-triangles">
             <span>합동 삼각형 표시</span>
@@ -444,8 +454,8 @@
           </div>
         </div>
 
-        <!-- Y축 모드 및 간격 설정 (도수분포표 전용) -->
-        <div class="table-options frequency-only-options y-axis-settings">
+        <!-- Y축 모드 및 간격 설정 (차트 전용) -->
+        <div class="table-options chart-only-options y-axis-settings">
           <span class="settings-label">Y축 설정:</span>
           <div class="y-axis-mode-group" id="chartDataTypeRadios">
             <!-- 동적 생성: 라디오 버튼 + 간격 입력 필드 -->

@@ -70,6 +70,12 @@ class DatasetController {
       this.removeDatasetSection(datasetId);
     });
 
+    // 시각화 타입 변경 이벤트 리스너
+    const vizTypeSelect = section.querySelector('.dataset-viz-type');
+    vizTypeSelect?.addEventListener('change', (e) => {
+      this.onVizTypeChange(details, e.target.value);
+    });
+
     // 테이블 타입 변경 이벤트 리스너
     const tableTypeSelect = section.querySelector('.dataset-table-type');
     tableTypeSelect?.addEventListener('change', (e) => {
@@ -82,6 +88,46 @@ class DatasetController {
 
     // DatasetStore에 데이터셋 추가
     DatasetStore.addDataset({ id: datasetId });
+  }
+
+  /**
+   * 시각화 타입 변경 시 UI 업데이트
+   * @param {HTMLElement} section - 데이터셋 섹션 요소
+   * @param {string} vizType - 선택된 시각화 타입 (chart, scatter, table)
+   */
+  onVizTypeChange(section, vizType) {
+    // 차트 전용 옵션 표시/숨김
+    const chartOnlyOptions = section.querySelectorAll('.chart-only-options');
+    const tableOnlyOptions = section.querySelectorAll('.table-only-options');
+
+    const isChart = vizType === 'chart';
+    const isTable = vizType === 'table';
+
+    // 차트 옵션 토글
+    chartOnlyOptions.forEach(option => {
+      option.style.display = isChart ? '' : 'none';
+    });
+
+    // 테이블 타입 선택 토글
+    tableOnlyOptions.forEach(option => {
+      option.style.display = isTable ? '' : 'none';
+    });
+
+    // 힌트 텍스트 업데이트
+    const hintElement = section.querySelector('.dataset-type-hint');
+    if (hintElement) {
+      if (vizType === 'chart') {
+        hintElement.innerHTML = '💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56';
+      } else if (vizType === 'scatter') {
+        hintElement.innerHTML = '💡 x,y 쌍을 입력하세요. 예: (1,2) (3,4) (5,6) 또는 1,2 3,4 5,6';
+      } else if (isTable) {
+        // 테이블 선택 시 테이블 타입에 따른 힌트
+        const tableTypeSelect = section.querySelector('.dataset-table-type');
+        const tableType = tableTypeSelect?.value || 'basic-table';
+        this.onTableTypeChange(section, tableType);
+        return;
+      }
+    }
   }
 
   /**
@@ -109,18 +155,6 @@ class DatasetController {
         dataInput.value = typeInfo.defaultData;
       }
     }
-
-    // 도수분포표 전용 옵션 표시/숨김
-    const frequencyOnlyOptions = section.querySelectorAll('.frequency-only-options');
-    const isFrequency = tableType === CONFIG.TABLE_TYPES.FREQUENCY;
-
-    frequencyOnlyOptions.forEach(option => {
-      if (isFrequency) {
-        option.classList.remove('hidden');
-      } else {
-        option.classList.add('hidden');
-      }
-    });
   }
 
   /**
@@ -187,9 +221,15 @@ class DatasetController {
     if (!section) return null;
 
     try {
-      // 테이블 타입
+      // 시각화 타입 (chart, scatter, table)
+      const vizTypeSelect = section.querySelector('.dataset-viz-type');
+      const vizType = vizTypeSelect?.value || 'chart';
+
+      // 테이블 타입 (테이블일 때만 사용)
       const tableTypeSelect = section.querySelector('.dataset-table-type');
-      const tableType = tableTypeSelect?.value || CONFIG.TABLE_TYPES.FREQUENCY;
+      const tableType = vizType === 'table'
+        ? (tableTypeSelect?.value || 'basic-table')
+        : (vizType === 'chart' ? CONFIG.TABLE_TYPES.FREQUENCY : null);
 
       // 데이터 입력
       const dataInput = section.querySelector('.dataset-data-input');
@@ -229,6 +269,7 @@ class DatasetController {
 
       return {
         datasetId,
+        vizType,
         tableType,
         rawData,
         classCount,
