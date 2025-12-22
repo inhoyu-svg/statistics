@@ -59,7 +59,7 @@ Claude: [바로 코드 수정 시작] ← 프로토콜 위반!
 - **순수 JavaScript (ES6 Modules)** - 프레임워크 없음
 - **HTML5 Canvas** - 차트 렌더링
 - **CSS3** - 스타일링 및 애니메이션
-- **Git & Vercel** - 버전 관리 및 자동 배포
+- **Git & GitHub Pages** - 버전 관리 및 자동 배포
 
 ### 폴더 구조
 ```
@@ -68,18 +68,18 @@ statistics/
 ├── styles.css              # 전역 스타일
 ├── js/
 │   ├── app.js              # 앱 초기화 및 이벤트 바인딩 (334줄)
-│   ├── config.js           # 전역 설정 상수 (579줄)
-│   ├── viz-api.js          # 시각화 API 인터페이스 (986줄)
+│   ├── config.js           # 전역 설정 상수 (629줄)
+│   ├── viz-api.js          # 시각화 API 인터페이스 (1561줄)
 │   ├── controllers/        # UI 컨트롤러
 │   │   ├── index.js                   # 컨트롤러 export (10줄)
 │   │   ├── AnimationController.js     # 애니메이션 UI 제어 (130줄)
 │   │   ├── ChartSettingsController.js # 차트 설정 제어 (308줄)
 │   │   ├── DatasetController.js       # 데이터셋 관리 (275줄)
-│   │   ├── GenerationController.js    # 도수분포표 생성 (918줄)
+│   │   ├── GenerationController.js    # 도수분포표 생성 (904줄)
 │   │   ├── LayerPanelController.js    # 레이어 패널 제어 (721줄)
 │   │   └── TableConfigController.js   # 테이블 설정 제어 (338줄)
 │   ├── core/               # 데이터 처리 및 상태 관리
-│   │   ├── processor.js    # 통계 계산 및 계급 생성 (321줄)
+│   │   ├── processor.js    # 통계 계산 및 계급 생성 (331줄)
 │   │   ├── chartStore.js   # 차트 상태 저장소 (98줄)
 │   │   ├── dataStore.js    # 데이터 상태 저장소 (130줄)
 │   │   ├── datasetStore.js # 데이터셋 저장소 (203줄)
@@ -87,9 +87,9 @@ statistics/
 │   │   ├── parsers/        # 데이터 파서
 │   │   │   ├── index.js               # 파서 export (84줄)
 │   │   │   ├── ParserAdapter.js       # 파서 출력 통일 어댑터 (327줄)
-│   │   │   ├── FrequencyParser.js     # 도수분포표 파서 (82줄)
-│   │   │   ├── BasicTableParser.js    # 기본 테이블 파서 (206줄)
-│   │   │   ├── CategoryMatrixParser.js # 카테고리 매트릭스 파서 (151줄)
+│   │   │   ├── FrequencyParser.js     # 도수분포표 파서 (102줄)
+│   │   │   ├── BasicTableParser.js    # 기본 테이블 파서 (233줄)
+│   │   │   ├── CategoryMatrixParser.js # 카테고리 매트릭스 파서 (148줄)
 │   │   │   └── StemLeafParser.js      # 줄기와 잎 파서 (273줄)
 │   │   └── serializer/     # 데이터 직렬화
 │   │       ├── index.js               # 직렬화 export (6줄)
@@ -97,25 +97,26 @@ statistics/
 │   │       └── DataImporter.js        # 데이터 가져오기 (139줄)
 │   ├── renderers/          # UI 렌더링 모듈
 │   │   ├── ui.js           # 통계 카드 렌더링 (77줄)
-│   │   ├── chart.js        # 메인 차트 컨트롤러 (791줄)
-│   │   ├── table.js        # 테이블 렌더링 컨트롤러 (1660줄)
+│   │   ├── chart.js        # 메인 차트 컨트롤러 (801줄)
+│   │   ├── scatter.js      # 산점도 렌더러 (411줄)
+│   │   ├── table.js        # 테이블 렌더링 컨트롤러 (1834줄)
 │   │   ├── chart/          # 차트 렌더링 서브모듈
 │   │   │   ├── CoordinateSystem.js    # 좌표 변환 (92줄)
-│   │   │   ├── LayerFactory.js        # 레이어 생성 (541줄)
-│   │   │   ├── HistogramRenderer.js   # 막대 차트 (205줄)
-│   │   │   ├── PolygonRenderer.js     # 다각형 (133줄)
-│   │   │   ├── AxisRenderer.js        # 축, 그리드 (270줄)
+│   │   │   ├── LayerFactory.js        # 레이어 생성 (548줄)
+│   │   │   ├── HistogramRenderer.js   # 막대 차트 (245줄)
+│   │   │   ├── PolygonRenderer.js     # 다각형 (141줄)
+│   │   │   ├── AxisRenderer.js        # 축, 그리드 (296줄)
 │   │   │   ├── CalloutRenderer.js     # 말풍선 (233줄)
-│   │   │   ├── DashedLineRenderer.js  # 점선 렌더러 (104줄)
+│   │   │   ├── DashedLineRenderer.js  # 점선 렌더러 (148줄)
 │   │   │   └── TriangleRenderer.js    # 삼각형 렌더러 (321줄)
 │   │   └── table/          # 테이블 렌더링 서브모듈
-│   │       ├── TableCellRenderer.js   # 셀 렌더링 (1115줄)
+│   │       ├── TableCellRenderer.js   # 셀 렌더링 (1219줄)
 │   │       ├── TableEditModal.js      # 편집 모달 (400줄)
 │   │       ├── TableLayerFactory.js   # 테이블 레이어 생성 (486줄)
 │   │       └── factories/             # 테이블 팩토리
 │   │           ├── index.js               # 팩토리 라우터 (112줄)
 │   │           ├── BaseTableFactory.js    # 기본 팩토리 (323줄)
-│   │           ├── BasicTableFactory.js   # 기본 테이블 팩토리 (471줄)
+│   │           ├── BasicTableFactory.js   # 기본 테이블 팩토리 (633줄)
 │   │           ├── CategoryMatrixFactory.js # 카테고리 매트릭스 (218줄)
 │   │           └── StemLeafFactory.js     # 줄기와 잎 팩토리 (671줄)
 │   ├── animation/          # 애니메이션 시스템
@@ -143,16 +144,15 @@ statistics/
 │   │       ├── timeline.utils.js       # 타임라인 유틸리티 (28줄)
 │   │       └── index.js    # 타임라인 export (22줄)
 │   └── utils/              # 유틸리티 함수
-│       ├── utils.js        # 공통 유틸리티 (159줄)
-│       ├── katex.js        # KaTeX 렌더링 유틸 (426줄)
-│       ├── validator.js    # 입력 검증 - ConfigValidator 클래스 (425줄)
-│       ├── message.js      # 메시지 관리 (37줄)
-│       └── corruption.js   # 찢김 효과 유틸 (950줄)
+│       ├── utils.js        # 공통 유틸리티 (169줄)
+│       ├── katex.js        # KaTeX 렌더링 유틸 (471줄)
+│       ├── validator.js    # 입력 검증 - ConfigValidator 클래스 (489줄)
+│       ├── message.js      # 메시지 관리 (43줄)
+│       └── corruption.js   # 찢김 효과 유틸 (1251줄)
 ├── md/                     # 문서 파일들
 │   ├── CLAUDE.md           # Claude Code 가이드
 │   ├── SCHEMA.md           # 데이터 구조 스키마 문서
 │   ├── VIZ-API-CONFIG.md   # viz-api 설정 가이드
-│   ├── REFACTORING-PLAN.md # 리팩토링 계획
 │   ├── README.md           # 프로젝트 소개
 │   └── USAGE.md            # 사용법 가이드
 └── schema/                 # JSON Schema
@@ -250,20 +250,21 @@ layer.visible = false; // fade-out 애니메이션 자동 실행
 
 ## 리팩토링 가이드
 
-### 현재 상태 (2025-12-09)
+### 현재 상태 (2025-12-22)
 **⚠️ 리팩토링 필요 파일:**
-- **table.js**: 1660줄 ❌ (600줄 초과)
-- **TableCellRenderer.js**: 1115줄 ❌ (600줄 초과)
-- **viz-api.js**: 986줄 ❌ (600줄 초과)
-- **corruption.js**: 950줄 ❌ (600줄 초과)
-- **GenerationController.js**: 918줄 ❌ (600줄 초과)
-- **chart.js**: 791줄 ❌ (600줄 초과)
+- **table.js**: 1834줄 ❌ (600줄 초과)
+- **viz-api.js**: 1561줄 ❌ (600줄 초과)
+- **corruption.js**: 1251줄 ❌ (600줄 초과)
+- **TableCellRenderer.js**: 1219줄 ❌ (600줄 초과)
+- **GenerationController.js**: 904줄 ❌ (600줄 초과)
+- **chart.js**: 801줄 ❌ (600줄 초과)
 - **LayerPanelController.js**: 721줄 ❌ (600줄 초과)
 - **StemLeafFactory.js**: 671줄 ❌ (600줄 초과)
+- **BasicTableFactory.js**: 633줄 ❌ (600줄 초과)
 
 **✅ 정상 파일:**
-- **chart/ 서브모듈들**: 92~541줄
-- **table/factories/**: 112~471줄
+- **chart/ 서브모듈들**: 92~548줄
+- **table/factories/**: 112~323줄 (BasicTableFactory 제외)
 - **controllers/**: 대부분 338줄 이하
 
 ### 리팩토링이 필요한 신호
@@ -297,18 +298,17 @@ layer.visible = false; // fade-out 애니메이션 자동 실행
 
 ### 향후 개선 방향 (필요)
 **우선순위 높음:**
-- table.js 분할 필요 (1660줄 → 렌더링/레이어/유틸 분리)
-- TableCellRenderer.js 분할 필요 (1115줄 → 렌더링/측정/파싱 분리)
-- viz-api.js 분할 필요 (986줄 → 차트API/테이블API 분리)
-- corruption.js 분할 검토 (950줄 → 차트/테이블 분리)
+- table.js 분할 필요 (1834줄 → 렌더링/레이어/유틸 분리)
+- viz-api.js 분할 필요 (1561줄 → 차트API/테이블API 분리)
+- corruption.js 분할 검토 (1251줄 → 차트/테이블 분리)
+- TableCellRenderer.js 분할 필요 (1219줄 → 렌더링/측정/파싱 분리)
 
 **중간 우선순위:**
-- GenerationController.js 분할 필요 (918줄 → 기능별 분리)
-- chart.js 추가 분할 검토 (791줄)
-- StemLeafFactory.js 정리 (671줄)
-
-**낮은 우선순위:**
+- GenerationController.js 분할 필요 (904줄 → 기능별 분리)
+- chart.js 추가 분할 검토 (801줄)
 - LayerPanelController.js 정리 (721줄)
+- StemLeafFactory.js 정리 (671줄)
+- BasicTableFactory.js 정리 (633줄)
 
 ---
 
@@ -395,7 +395,7 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 3. **원자적 커밋**: 하나의 기능/수정 = 하나의 커밋
 4. **ES6 모듈**: import/export 사용
 5. **XSS 방지**: textContent 사용, innerHTML 지양
-6. **Git 푸시**: 수정 후 자동으로 git push하여 Vercel 배포
+6. **Git 푸시**: 수정 후 자동으로 git push하여 GitHub Pages 배포
 
 ---
 
@@ -412,8 +412,13 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 ---
 
 ## 마지막 업데이트
-- **날짜**: 2025-12-09
+- **날짜**: 2025-12-22
 - **주요 작업**:
+  - ✅ **폴더 구조 업데이트** (2025-12-22)
+    - 모든 파일 줄 수 현행화
+    - scatter.js 신규 파일 추가 (411줄)
+    - REFACTORING-PLAN.md 삭제 반영
+    - 리팩토링 필요 파일 목록 업데이트 (9개)
   - ✅ **문서 업데이트** (2025-12-09)
     - USAGE.md: corruption, cellVariables, cellAnimations, viz-api 연동 섹션 추가
     - README.md: viz-api 연동, 문서 링크, 기술 스택 섹션 추가
@@ -579,11 +584,3 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
 
 ### 기타
 - JSON 설정 내보내기/불러오기 (`exportJson()` / `importJson()`)
-
-### ✅ 이미 구현된 기능 (2025-12-04)
-- `options.customYInterval` - Y축 간격 커스터마이징
-- `options.grid.showHorizontal/showVertical` - 격자선 토글
-- `options.axis.showYLabels/showXLabels` - 축 라벨 표시 토글
-- `options.axis.yLabelFormat` - Y축 백분율 형식
-- `options.showDashedLines` - 파선 표시 토글
-- `playAnimation()` - 애니메이션 재생

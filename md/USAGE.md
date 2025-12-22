@@ -145,7 +145,7 @@ A반: 1, 2, 3, 4, 5
 
 ### STEP 1: 웹사이트 접속
 
-1. 브라우저에서 [https://math-statistics-library.vercel.app](https://math-statistics-library.vercel.app) 접속
+1. 브라우저에서 [https://inhoyu-svg.github.io/statistics/](https://inhoyu-svg.github.io/statistics/) 접속
 2. 페이지가 로드되면 중앙에 입력 폼이 보입니다
 
 ### STEP 2: 데이터 입력

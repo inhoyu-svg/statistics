@@ -144,6 +144,47 @@
     "options": {
       "description": "세부 옵션 (차트/테이블 공통)",
       "$ref": "#/definitions/options"
+    },
+    "datasets": {
+      "description": "다중 데이터셋 (오버레이 차트용). 각 데이터셋은 개별 callout, polygonColorPreset 지정 가능",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["data"],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "description": "데이터 배열 또는 문자열",
+            "oneOf": [
+              { "type": "array", "items": { "type": "number" } },
+              { "type": "string" }
+            ]
+          },
+          "callout": {
+            "$ref": "#/definitions/callout"
+          },
+          "polygonColorPreset": {
+            "type": "string",
+            "enum": ["default", "primary", "secondary", "tertiary"]
+          }
+        }
+      },
+      "examples": [
+        [
+          { "data": [1, 2, 3], "polygonColorPreset": "primary" },
+          { "data": [2, 3, 4], "polygonColorPreset": "secondary" }
+        ]
+      ]
+    },
+    "unifiedMaxY": {
+      "description": "다중 데이터셋에서 공통 Y축 최댓값 (자동 계산되지만 수동 지정 가능)",
+      "type": "number",
+      "minimum": 0
+    },
+    "unifiedClassCount": {
+      "description": "다중 데이터셋에서 공통 계급 개수",
+      "type": "integer",
+      "minimum": 1
     }
   },
   "allOf": [
@@ -446,6 +487,14 @@
           "description": "산점도 점 색상 (scatter 전용)",
           "default": "#93DA6A",
           "examples": ["#93DA6A", "#FF6B6B", "#4ECDC4"]
+        },
+        "showGrid": {
+          "type": "boolean",
+          "description": "테이블 격자선 표시 여부. false면 둥근 테두리 스타일 적용 (basic-table 전용)",
+          "default": true
+        },
+        "polygon": {
+          "$ref": "#/definitions/polygon"
         }
       }
     },
@@ -590,6 +639,19 @@
         "#FF5733",
         { "fill": "#FF5733", "stroke": "#CC4422", "alpha": 0.8 }
       ]
+    },
+    "polygon": {
+      "type": "object",
+      "description": "도수다각형 세부 설정",
+      "additionalProperties": false,
+      "properties": {
+        "hidden": {
+          "type": "array",
+          "description": "숨길 다각형 점/선 인덱스 배열 (0-based)",
+          "items": { "type": "integer", "minimum": 0 },
+          "examples": [[0, 1], [2, 5]]
+        }
+      }
     },
     "corruption": {
       "type": "object",

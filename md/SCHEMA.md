@@ -23,6 +23,12 @@
 | `stem-leaf` (단일) | 숫자 문자열 | `"162 178 175 189"` |
 | `stem-leaf` (비교) | `"라벨: 숫자들"` 형식 | `"남학생: 162 178\n여학생: 160 165"` |
 
+### 산점도 (purpose: "scatter")
+
+| data 형식 | 예시 |
+|:----------|:-----|
+| 2D 배열 `[[x, y], ...]` | `[[50, 55], [60, 60], [70, 65]]` |
+
 ### 특수 문법
 
 **반복 표기** (차트 data만 해당):
@@ -177,6 +183,45 @@ interface CategoryMatrixData {
 }
 ```
 
+### 2.5 산점도 (scatter)
+
+```typescript
+interface ScatterRange {
+  xMin: number;           // X축 최솟값 (깔끔한 간격으로 조정됨)
+  xMax: number;           // X축 최댓값
+  yMin: number;           // Y축 최솟값
+  yMax: number;           // Y축 최댓값
+  xDataMin: number;       // 실제 데이터 X 최솟값
+  xDataMax: number;       // 실제 데이터 X 최댓값
+  yDataMin: number;       // 실제 데이터 Y 최솟값
+  yDataMax: number;       // 실제 데이터 Y 최댓값
+  xInterval: number;      // X축 간격
+  yInterval: number;      // Y축 간격
+  hasXCompression: boolean;  // X축 압축 구간 필요 여부
+  hasYCompression: boolean;  // Y축 압축 구간 필요 여부
+}
+
+interface ScatterResult {
+  success: boolean;
+  coords: CoordinateSystem;  // 좌표 변환 함수들
+  range: ScatterRange;
+  padding: number;
+  canvasHeight: number;
+}
+
+// 예시: [[50, 55], [60, 60], [70, 65], [80, 70]]
+{
+  success: true,
+  range: {
+    xMin: 50, xMax: 80,
+    yMin: 55, yMax: 70,
+    xInterval: 10, yInterval: 5,
+    hasXCompression: true,
+    hasYCompression: true
+  }
+}
+```
+
 ---
 
 ## 3. 데이터 흐름
@@ -212,14 +257,14 @@ interface CategoryMatrixData {
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      렌더링 단계                            │
-│  ┌─────────────────┐  ┌─────────────────┐                   │
-│  │  ChartRenderer  │  │  TableRenderer  │                   │
-│  │  (Canvas)       │  │  (Canvas)       │                   │
-│  └─────────────────┘  └─────────────────┘                   │
-│         │                     │                             │
-│         ▼                     ▼                             │
-│   Layer 계층 생성      Factory별 렌더링                     │
-│   애니메이션 설정      셀 커스터마이징                       │
+│  ┌───────────────┐ ┌───────────────┐ ┌───────────────┐      │
+│  │ ChartRenderer │ │ TableRenderer │ │ScatterRenderer│      │
+│  │   (Canvas)    │ │   (Canvas)    │ │   (Canvas)    │      │
+│  └───────────────┘ └───────────────┘ └───────────────┘      │
+│         │                 │                 │               │
+│         ▼                 ▼                 ▼               │
+│   Layer 계층 생성   Factory별 렌더링   점/축 렌더링          │
+│   애니메이션 설정   셀 커스터마이징    압축 구간 처리        │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -265,5 +310,37 @@ interface RenderResult {
   chartRenderer?: any;
   tableRenderer?: any;
   parsedData?: any;
+}
+
+// 셀 변수 치환 (테이블용)
+interface CellVariable {
+  rowIndex: number;          // 행 인덱스 (0-based)
+  colIndex: number;          // 열 인덱스 (0-based)
+  value: string;             // 대체할 값 (예: "x", "?", "_")
+}
+
+// Corruption (찢김 효과)
+interface CorruptionConfig {
+  enabled: boolean;          // 활성화 여부
+  row?: number;              // 찢김 시작 행 (테이블)
+  col?: number;              // 찢김 시작 열 (테이블)
+  direction?: 'horizontal' | 'vertical';  // 찢김 방향
+  barIndex?: number;         // 찢김 시작 막대 인덱스 (차트)
+}
+
+// 다중 데이터셋 (오버레이 차트)
+interface Dataset {
+  data: number[] | string;   // 데이터 배열 또는 문자열
+  callout?: CalloutConfig;   // 말풍선 설정
+  polygonColorPreset?: 'default' | 'primary' | 'secondary' | 'tertiary';
+}
+
+// 다중 데이터셋 렌더링 결과
+interface MultiplePolygonResult {
+  chartRenderer: any;
+  canvas: HTMLCanvasElement;
+  allClasses: ClassData[][];  // 각 데이터셋별 계급 배열
+  unifiedMaxY: number;        // 통합 Y축 최댓값
+  unifiedClassCount: number;  // 통합 계급 개수
 }
 ```

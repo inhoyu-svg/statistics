@@ -4,7 +4,7 @@
 
 ## 🚀 바로 사용하기
 
-**웹사이트**: [https://math-statistics-library.vercel.app](https://math-statistics-library.vercel.app)
+**웹사이트**: [https://inhoyu-svg.github.io/statistics/](https://inhoyu-svg.github.io/statistics/)
 
 설치 없이 브라우저에서 바로 사용할 수 있습니다!
 
@@ -26,6 +26,12 @@ VizAPI.renderTable(element, {
   tableType: 'basic-table',
   data: '헤더: 혈액형, 남, 여\nA: 0.4, 0.4'
 });
+
+// 산점도 생성
+VizAPI.renderScatter(element, {
+  purpose: 'scatter',
+  data: [[1, 2], [3, 5], [4, 4], [6, 8]]
+});
 ```
 
 📚 **상세 설정**: [VIZ-API-CONFIG.md](./md/VIZ-API-CONFIG.md)
@@ -41,6 +47,7 @@ VizAPI.renderTable(element, {
 ### 📊 차트 시각화
 - **히스토그램**: 데이터의 분포를 막대 그래프로 표시
 - **상대도수 다각형**: 데이터의 경향성을 선 그래프로 표시
+- **산점도**: X-Y 좌표 데이터를 점으로 시각화 (압축 구간 자동 처리)
 - **다각형 색상 선택**: 4가지 색상 프리셋 제공
 - **막대 위 값 표시**: 히스토그램 막대 위에 값(상대도수 또는 도수) 표시
 - **말풍선 표시**: 특정 막대에 커스텀 텍스트 말풍선 표시
@@ -215,4 +222,4 @@ A: 히스토그램은 각 구간의 데이터 개수(도수)를 막대로 표시
 - **순수 JavaScript (ES6 Modules)** - 프레임워크 없음
 - **HTML5 Canvas** - 차트/테이블 렌더링
 - **CSS3** - 스타일링 및 애니메이션
-- **Vercel** - 자동 배포
+- **GitHub Pages** - 자동 배포
