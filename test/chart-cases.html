@@ -852,11 +852,28 @@
     function showTimeline(caseId) {
       currentCaseId = caseId;
 
-      // 현재 진행도 업데이트
       const renderer = renderers[caseId];
-      if (renderer?.chartRenderer?.timeline) {
+      const timelineModal = document.getElementById('timeline-modal');
+      const controlsEl = timelineModal.querySelector('.timeline-controls');
+      const noAnimEl = timelineModal.querySelector('.no-animation-msg');
+
+      // 애니메이션이 비활성화된 경우 메시지 표시
+      if (!renderer?.chartRenderer?.timeline) {
+        if (!noAnimEl) {
+          const msg = document.createElement('p');
+          msg.className = 'no-animation-msg';
+          msg.style.cssText = 'text-align: center; color: var(--text-muted); padding: 20px;';
+          msg.textContent = '이 케이스는 애니메이션이 비활성화되어 있습니다. (animation: false)';
+          timelineModal.querySelector('.modal-body').appendChild(msg);
+        }
+        if (controlsEl) controlsEl.style.display = 'none';
+        if (noAnimEl) noAnimEl.style.display = 'block';
+      } else {
+        // 현재 진행도 업데이트
         const progress = renderer.chartRenderer.timeline.getProgress() * 100;
         document.getElementById('timeline-progress').value = progress;
+        if (controlsEl) controlsEl.style.display = 'flex';
+        if (noAnimEl) noAnimEl.style.display = 'none';
       }
 
       openModal('timeline-modal');
