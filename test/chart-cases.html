@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>차트 시각화 케이스</title>
+  <style>
+    /* SCDream 폰트 로드 */
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream3.otf') format('opentype');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'SCDream';
+      src: url('../frame-test/frame-test/public/assets/fonts/SCDream/SCDream5.otf') format('opentype');
+      font-weight: 500;
+    }
+
+    :root {
+      --bg-dark: #1a1a2e;
+      --card-bg: #252540;
+      --primary: #8DCF66;
+      --secondary: #FFD93D;
+      --text: #eee;
+      --text-muted: #888;
+      --btn-config: #4a4a6a;
+      --btn-layers: #8DCF66;
+      --btn-timeline: #6a4a8a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 30px;
+      background: var(--bg-dark);
+      color: var(--text);
+      font-family: 'SCDream', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* 헤더 */
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .page-header h1 {
+      margin: 0;
+      font-size: 32px;
+      color: var(--secondary);
+      font-weight: 500;
+    }
+    .page-header .subtitle {
+      margin: 10px 0 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* 섹션 */
+    .section {
+      margin-bottom: 40px;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 18px;
+      color: var(--text);
+    }
+    .section-title .icon {
+      color: var(--primary);
+    }
+
+    /* 케이스 그리드 */
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 24px;
+    }
+
+    /* 케이스 카드 */
+    .case-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .case-header h3 {
+      margin: 0 0 5px;
+      font-size: 15px;
+      color: var(--secondary);
+      font-weight: 500;
+    }
+    .case-header .case-desc {
+      margin: 0 0 15px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* 캔버스 컨테이너 */
+    .case-canvas {
+      background: var(--bg-dark);
+      border-radius: 8px;
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 350px;
+      overflow: auto;
+    }
+    .case-canvas canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* 컨트롤 버튼 */
+    .case-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    .case-controls button {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .case-controls button:hover {
+      opacity: 0.9;
+    }
+    .case-controls button:active {
+      transform: scale(0.98);
+    }
+    .btn-config {
+      background: var(--btn-config);
+      color: #fff;
+    }
+    .btn-layers {
+      background: var(--btn-layers);
+      color: var(--bg-dark);
+    }
+    .btn-timeline {
+      background: var(--btn-timeline);
+      color: #fff;
+    }
+
+    /* 상태 표시 */
+    .status {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .status.success { color: var(--primary); }
+    .status.error { color: #ff6b6b; }
+
+    /* 모달 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+    }
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+    }
+    .modal-content {
+      position: relative;
+      background: var(--card-bg);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #3a3a5a;
+    }
+    .modal-header h4 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--secondary);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: var(--text);
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Config 모달 - JSON */
+    .json-view {
+      background: var(--bg-dark);
+      border-radius: 8px;
+      padding: 15px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #a8d8a8;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* Layers 패널 */
+    .layer-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-dark);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .layer-item:last-child {
+      margin-bottom: 0;
+    }
+    .layer-toggle {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .layer-info {
+      flex: 1;
+    }
+    .layer-name {
+      font-size: 13px;
+      color: var(--text);
+    }
+    .layer-type {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Timeline 패널 */
+    .timeline-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .timeline-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .timeline-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: var(--btn-config);
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .timeline-btn:hover {
+      opacity: 0.9;
+    }
+    .timeline-btn.play { background: var(--primary); color: var(--bg-dark); }
+    .timeline-slider {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .timeline-slider label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .timeline-slider input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-dark);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .timeline-slider input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- 헤더 -->
+  <header class="page-header">
+    <h1>차트 시각화 케이스</h1>
+    <p class="subtitle">히스토그램, 도수 다각형, Corruption 효과 등 다양한 차트 케이스</p>
+  </header>
+
+  <!-- 기본 차트 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 기본 차트</h2>
+    <div class="case-grid">
+
+      <!-- C1: 히스토그램만 -->
+      <div class="case-card" id="case-c1">
+        <div class="case-header">
+          <h3>C1 - 히스토그램만</h3>
+          <p class="case-desc">다각형 없이 막대만 표시 (showPolygon: false)</p>
+        </div>
+        <div class="case-canvas" id="canvas-c1"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c1">{ } Config</button>
+          <button class="btn-layers" data-case="c1">◇ Layers</button>
+          <button class="btn-timeline" data-case="c1">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c1"></div>
+      </div>
+
+      <!-- C2: 도수 다각형만 -->
+      <div class="case-card" id="case-c2">
+        <div class="case-header">
+          <h3>C2 - 도수 다각형만</h3>
+          <p class="case-desc">히스토그램 없이 선만 표시 (showHistogram: false)</p>
+        </div>
+        <div class="case-canvas" id="canvas-c2"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c2">{ } Config</button>
+          <button class="btn-layers" data-case="c2">◇ Layers</button>
+          <button class="btn-timeline" data-case="c2">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c2"></div>
+      </div>
+
+      <!-- C3: 도수다각형 + 히스토그램 -->
+      <div class="case-card" id="case-c3">
+        <div class="case-header">
+          <h3>C3 - 도수다각형 + 히스토그램</h3>
+          <p class="case-desc">기본 조합 (기본값 사용)</p>
+        </div>
+        <div class="case-canvas" id="canvas-c3"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c3">{ } Config</button>
+          <button class="btn-layers" data-case="c3">◇ Layers</button>
+          <button class="btn-timeline" data-case="c3">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c3"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Corruption 효과 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> Corruption 효과 (찢김)</h2>
+    <div class="case-grid">
+
+      <!-- C4: 찢어진 히스토그램 -->
+      <div class="case-card" id="case-c4">
+        <div class="case-header">
+          <h3>C4 - 찢어진 히스토그램</h3>
+          <p class="case-desc">Corruption 효과 + 히스토그램만</p>
+        </div>
+        <div class="case-canvas" id="canvas-c4"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c4">{ } Config</button>
+          <button class="btn-layers" data-case="c4">◇ Layers</button>
+          <button class="btn-timeline" data-case="c4">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c4"></div>
+      </div>
+
+      <!-- C5: 찢어진 도수 다각형 -->
+      <div class="case-card" id="case-c5">
+        <div class="case-header">
+          <h3>C5 - 찢어진 도수 다각형</h3>
+          <p class="case-desc">Corruption 효과 + 다각형만</p>
+        </div>
+        <div class="case-canvas" id="canvas-c5"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c5">{ } Config</button>
+          <button class="btn-layers" data-case="c5">◇ Layers</button>
+          <button class="btn-timeline" data-case="c5">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c5"></div>
+      </div>
+
+      <!-- C6: 찢어진 도수다각형 + 히스토그램 -->
+      <div class="case-card" id="case-c6">
+        <div class="case-header">
+          <h3>C6 - 찢어진 도수다각형 + 히스토그램</h3>
+          <p class="case-desc">Corruption 효과 + 기본 조합</p>
+        </div>
+        <div class="case-canvas" id="canvas-c6"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c6">{ } Config</button>
+          <button class="btn-layers" data-case="c6">◇ Layers</button>
+          <button class="btn-timeline" data-case="c6">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c6"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 복수 도수 다각형 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 복수 도수 다각형</h2>
+    <div class="case-grid">
+
+      <!-- C7: 복수의 도수 다각형 -->
+      <div class="case-card" id="case-c7">
+        <div class="case-header">
+          <h3>C7 - 복수의 도수 다각형</h3>
+          <p class="case-desc">datasets 배열로 여러 다각형 오버레이</p>
+        </div>
+        <div class="case-canvas" id="canvas-c7"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c7">{ } Config</button>
+          <button class="btn-layers" data-case="c7">◇ Layers</button>
+          <button class="btn-timeline" data-case="c7">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c7"></div>
+      </div>
+
+      <!-- C8: 찢어진 복수의 도수다각형 -->
+      <div class="case-card" id="case-c8">
+        <div class="case-header">
+          <h3>C8 - 찢어진 복수의 도수다각형</h3>
+          <p class="case-desc">Corruption 효과 + 복수 다각형</p>
+        </div>
+        <div class="case-canvas" id="canvas-c8"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c8">{ } Config</button>
+          <button class="btn-layers" data-case="c8">◇ Layers</button>
+          <button class="btn-timeline" data-case="c8">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c8"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Config 모달 -->
+  <div id="config-modal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('config-modal')"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4>Config</h4>
+        <button class="modal-close" onclick="closeModal('config-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="config-json" class="json-view"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layers 모달 -->
+  <div id="layers-modal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('layers-modal')"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4>Layers</h4>
+        <button class="modal-close" onclick="closeModal('layers-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul id="layers-list" class="layer-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline 모달 -->
+  <div id="timeline-modal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('timeline-modal')"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4>Timeline</h4>
+        <button class="modal-close" onclick="closeModal('timeline-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="timeline-controls">
+          <div class="timeline-buttons">
+            <button class="timeline-btn play" id="timeline-play">▶ Play</button>
+            <button class="timeline-btn" id="timeline-pause">⏸ Pause</button>
+            <button class="timeline-btn" id="timeline-stop">⏹ Stop</button>
+          </div>
+          <div class="timeline-slider">
+            <label>Progress</label>
+            <input type="range" id="timeline-progress" min="0" max="100" value="0">
+          </div>
+          <div class="timeline-slider">
+            <label>Speed: <span id="speed-value">1.0</span>x</label>
+            <input type="range" id="timeline-speed" min="0.5" max="3" step="0.5" value="1">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as VizAPI from '../js/viz-api.js';
+// 경로: test/chart-cases.html → js/viz-api.js (상위 폴더의 js/)
+
+    // 샘플 데이터
+    const sampleData = '62, 87, 97, 73, 59, 85, 74, 68, 92, 81, 76, 89, 65, 78, 83, 71, 94, 67, 88, 72';
+    const sampleData2 = '55, 72, 88, 63, 91, 77, 82, 69, 95, 61, 84, 73, 79, 86, 68, 90, 75, 81, 67, 93';
+
+    // 케이스별 설정
+    const cases = {
+      c1: {
+        title: 'C1 - 히스토그램만',
+        desc: '다각형 없이 막대만 표시',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: true },
+          options: {
+            showPolygon: false,
+            showHistogram: true
+          }
+        }
+      },
+      c2: {
+        title: 'C2 - 도수 다각형만',
+        desc: '히스토그램 없이 선만 표시',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: true },
+          options: {
+            showPolygon: true,
+            showHistogram: false
+          }
+        }
+      },
+      c3: {
+        title: 'C3 - 도수다각형 + 히스토그램',
+        desc: '기본 조합',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: true },
+          options: {
+            showPolygon: true,
+            showHistogram: true
+          }
+        }
+      },
+      c4: {
+        title: 'C4 - 찢어진 히스토그램',
+        desc: 'Corruption 효과 + 히스토그램만',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: false },
+          options: {
+            showPolygon: false,
+            showHistogram: true,
+            corruption: {
+              enabled: true,
+              barIndex: 2
+            }
+          }
+        }
+      },
+      c5: {
+        title: 'C5 - 찢어진 도수 다각형',
+        desc: 'Corruption 효과 + 다각형만',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: false },
+          options: {
+            showPolygon: true,
+            showHistogram: false,
+            corruption: {
+              enabled: true,
+              barIndex: 2
+            }
+          }
+        }
+      },
+      c6: {
+        title: 'C6 - 찢어진 도수다각형 + 히스토그램',
+        desc: 'Corruption 효과 + 기본 조합',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: false },
+          options: {
+            showPolygon: true,
+            showHistogram: true,
+            corruption: {
+              enabled: true,
+              barIndex: 2
+            }
+          }
+        }
+      },
+      c7: {
+        title: 'C7 - 복수의 도수 다각형',
+        desc: 'datasets 배열로 여러 다각형 오버레이',
+        config: {
+          classCount: 5,
+          animation: { enabled: false },
+          datasets: [
+            { data: sampleData, polygonColorPreset: 'primary' },
+            { data: sampleData2, polygonColorPreset: 'secondary' }
+          ],
+          options: {
+            showHistogram: false
+          }
+        }
+      },
+      c8: {
+        title: 'C8 - 찢어진 복수의 도수다각형',
+        desc: 'Corruption 효과 + 복수 다각형',
+        config: {
+          classCount: 5,
+          animation: { enabled: false },
+          datasets: [
+            { data: sampleData, polygonColorPreset: 'primary' },
+            { data: sampleData2, polygonColorPreset: 'secondary' }
+          ],
+          options: {
+            showHistogram: false,
+            corruption: {
+              enabled: true,
+              barIndex: 2
+            }
+          }
+        }
+      }
+    };
+
+    // 렌더러 저장소
+    const renderers = {};
+    let currentCaseId = null;
+
+    // 초기화
+    async function init() {
+      for (const [caseId, caseData] of Object.entries(cases)) {
+        const container = document.getElementById(`canvas-${caseId}`);
+        const statusEl = document.getElementById(`status-${caseId}`);
+
+        try {
+          let result;
+          if (caseData.config.datasets) {
+            // 복수 다각형
+            result = await VizAPI.render(container, {
+              purpose: 'chart',
+              ...caseData.config
+            });
+          } else {
+            result = await VizAPI.renderChart(container, caseData.config);
+          }
+
+          renderers[caseId] = result;
+          statusEl.textContent = '렌더링 완료';
+          statusEl.className = 'status success';
+        } catch (err) {
+          console.error(`[${caseId}] Error:`, err);
+          statusEl.textContent = `오류: ${err.message}`;
+          statusEl.className = 'status error';
+        }
+      }
+
+      // 버튼 이벤트 바인딩
+      bindControlButtons();
+    }
+
+    // 버튼 이벤트 바인딩
+    function bindControlButtons() {
+      // Config 버튼
+      document.querySelectorAll('.btn-config').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const caseId = btn.dataset.case;
+          showConfig(caseId);
+        });
+      });
+
+      // Layers 버튼
+      document.querySelectorAll('.btn-layers').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const caseId = btn.dataset.case;
+          showLayers(caseId);
+        });
+      });
+
+      // Timeline 버튼
+      document.querySelectorAll('.btn-timeline').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const caseId = btn.dataset.case;
+          showTimeline(caseId);
+        });
+      });
+
+      // Timeline 컨트롤 이벤트
+      document.getElementById('timeline-play').addEventListener('click', () => {
+        if (currentCaseId && renderers[currentCaseId]?.chartRenderer) {
+          renderers[currentCaseId].chartRenderer.playAnimation();
+        }
+      });
+
+      document.getElementById('timeline-pause').addEventListener('click', () => {
+        if (currentCaseId && renderers[currentCaseId]?.chartRenderer) {
+          renderers[currentCaseId].chartRenderer.pauseAnimation();
+        }
+      });
+
+      document.getElementById('timeline-stop').addEventListener('click', () => {
+        if (currentCaseId && renderers[currentCaseId]?.chartRenderer) {
+          renderers[currentCaseId].chartRenderer.stopAnimation();
+        }
+      });
+
+      document.getElementById('timeline-progress').addEventListener('input', (e) => {
+        if (currentCaseId && renderers[currentCaseId]?.chartRenderer?.timeline) {
+          const progress = parseInt(e.target.value) / 100;
+          renderers[currentCaseId].chartRenderer.timeline.seekToProgress(progress);
+        }
+      });
+
+      document.getElementById('timeline-speed').addEventListener('input', (e) => {
+        const speed = parseFloat(e.target.value);
+        document.getElementById('speed-value').textContent = speed.toFixed(1);
+        if (currentCaseId && renderers[currentCaseId]?.chartRenderer) {
+          renderers[currentCaseId].chartRenderer.setAnimationSpeed(speed);
+        }
+      });
+    }
+
+    // Config 모달 표시
+    function showConfig(caseId) {
+      const caseData = cases[caseId];
+      const jsonEl = document.getElementById('config-json');
+      jsonEl.textContent = JSON.stringify(caseData.config, null, 2);
+      openModal('config-modal');
+    }
+
+    // Layers 모달 표시
+    function showLayers(caseId) {
+      currentCaseId = caseId;
+      const renderer = renderers[caseId];
+      const listEl = document.getElementById('layers-list');
+      listEl.innerHTML = '';
+
+      if (!renderer?.chartRenderer?.layerManager) {
+        listEl.innerHTML = '<li class="layer-item"><span class="layer-name">레이어 정보 없음</span></li>';
+        openModal('layers-modal');
+        return;
+      }
+
+      const layers = renderer.chartRenderer.layerManager.getAllLayers();
+
+      layers.forEach(({ layer, depth }) => {
+        const li = document.createElement('li');
+        li.className = 'layer-item';
+        li.style.paddingLeft = `${12 + depth * 20}px`;
+
+        li.innerHTML = `
+          <input type="checkbox" class="layer-toggle"
+                 data-layer-id="${layer.id}"
+                 ${layer.visible ? 'checked' : ''}>
+          <div class="layer-info">
+            <div class="layer-name">${layer.id}</div>
+            <div class="layer-type">${layer.type || 'unknown'}</div>
+          </div>
+        `;
+
+        listEl.appendChild(li);
+      });
+
+      // 체크박스 이벤트
+      listEl.querySelectorAll('.layer-toggle').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+          const layerId = e.target.dataset.layerId;
+          const visible = e.target.checked;
+          renderer.chartRenderer.layerManager.setLayerVisibility(layerId, visible);
+          renderer.chartRenderer.renderFrame();
+        });
+      });
+
+      openModal('layers-modal');
+    }
+
+    // Timeline 모달 표시
+    function showTimeline(caseId) {
+      currentCaseId = caseId;
+
+      // 현재 진행도 업데이트
+      const renderer = renderers[caseId];
+      if (renderer?.chartRenderer?.timeline) {
+        const progress = renderer.chartRenderer.timeline.getProgress() * 100;
+        document.getElementById('timeline-progress').value = progress;
+      }
+
+      openModal('timeline-modal');
+    }
+
+    // 모달 열기
+    window.openModal = function(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    };
+
+    // 모달 닫기
+    window.closeModal = function(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    };
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+          modal.classList.remove('active');
+        });
+      }
+    });
+
+    // 초기화 실행
+    init();
+  </script>
+</body>
+</html>
