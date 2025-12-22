@@ -1898,6 +1898,7 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `data` | `array` | **O** | - | 2D 배열 `[[x1, y1], [x2, y2], ...]` |
 | `canvasWidth` | `number` | X | `650` | 캔버스 너비 (px) |
 | `canvasHeight` | `number` | X | `700` | 캔버스 높이 (px) |
+| `animation` | `boolean` | X | `true` | 애니메이션 활성화 (점 순차 등장) |
 | `options.axisLabels` | `object` | X | `null` | 축 제목 설정 |
 | `options.pointSize` | `number` | X | `6` | 점 반지름 (px) |
 | `options.pointColor` | `string` | X | `"#93DA6A"` | 점 색상 |
@@ -1905,6 +1906,8 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `options.corruption.enabled` | `boolean` | X | `false` | 찢김 효과 활성화 |
 | `options.corruption.cells` | `string\|array` | X | `[]` | 마스킹할 셀 범위 |
 | `options.corruption.style` | `object` | X | - | 스타일 옵션 (edgeComplexity, seed 등) |
+
+**주의**: `corruption.enabled: true`인 경우 애니메이션이 자동 비활성화됩니다.
 
 ## 산점도 필드별 동작
 
@@ -1944,6 +1947,29 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 **위치**:
 - X축 제목: 숫자 라벨 아래, 오른쪽 끝 정렬
 - Y축 제목: 차트 상단에 표시
+
+### animation
+
+점이 x좌표 순서대로 왼쪽에서 오른쪽으로 순차적으로 등장하는 애니메이션입니다.
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[10, 20], [15, 35], [20, 40]],
+  "animation": true
+}
+```
+
+**동작**:
+- `true` (기본값): 점이 scale 효과로 순차 등장 (탁탁 찍히는 느낌)
+- `false`: 모든 점이 즉시 표시
+- `corruption.enabled: true`인 경우 자동으로 `false` 처리
+
+**애니메이션 특성**:
+- 점 등장 순서: x좌표 오름차순 (왼쪽 → 오른쪽)
+- 각 점 등장 시간: 150ms
+- 점 간 딜레이: 60ms
+- 이징: easeOutBack (약간 튕기는 효과)
 
 ### options.pointSize / options.pointColor
 
@@ -2029,6 +2055,7 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
   "data": [[62, 78], [75, 85], [80, 90], [85, 88], [90, 95], [95, 92]],
   "canvasWidth": 700,
   "canvasHeight": 600,
+  "animation": true,
   "options": {
     "axisLabels": {
       "xAxis": "1학기 점수",
