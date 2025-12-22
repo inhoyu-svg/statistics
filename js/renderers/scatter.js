@@ -353,11 +353,6 @@ class ScatterRenderer {
       ctx.beginPath();
       ctx.arc(cx, cy, pointSize, 0, Math.PI * 2);
       ctx.fill();
-
-      // 테두리 (어둡게)
-      ctx.strokeStyle = this._darkenColor(pointColor, 0.3);
-      ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
-      ctx.stroke();
     });
   }
 

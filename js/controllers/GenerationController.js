@@ -15,6 +15,7 @@ import DataStore from '../core/dataStore.js';
 import ChartStore from '../core/chartStore.js';
 import DatasetStore from '../core/datasetStore.js';
 import * as KatexUtils from '../utils/katex.js';
+import { applyChartCorruption } from '../utils/corruption.js';
 
 /**
  * @class GenerationController
@@ -236,6 +237,115 @@ class GenerationController {
   }
 
   /**
+   * 산점도 처리
+   * @param {Object} inputValues - 데이터셋 입력값
+   * @param {boolean} reset - 리셋 모드 여부
+   * @param {number} processedCount - 현재까지 처리된 데이터셋 수
+   * @returns {Object}
+   */
+  processScatter(inputValues, reset, processedCount) {
+    const { rawData, datasetId } = inputValues;
+
+    try {
+      // 산점도 데이터 파싱
+      let scatterData;
+      try {
+        // JSON 배열 형식: [[x,y], [x,y], ...]
+        scatterData = JSON.parse(rawData);
+      } catch (e) {
+        // (x,y) 또는 x,y 형식 파싱 시도
+        const points = rawData.match(/\(?\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)?/g);
+        if (points) {
+          scatterData = points.map(p => {
+            const match = p.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+            return [parseFloat(match[1]), parseFloat(match[2])];
+          });
+        } else {
+          throw new Error('산점도 데이터 형식이 올바르지 않습니다. 예: [[10,20], [15,35]] 또는 (10,20) (15,35)');
+        }
+      }
+
+      if (!Array.isArray(scatterData) || scatterData.length < 2) {
+        MessageManager.warning(`데이터셋 ${datasetId}: 최소 2개 이상의 데이터 포인트가 필요합니다.`);
+        return { success: false, error: '데이터 부족' };
+      }
+
+      // 산점도 설정 추출
+      const settings = inputValues.settings || {};
+      const pointSize = settings.scatterPointSize || 6;
+      const colorPreset = settings.scatterColorPreset || 'default';
+      const xLabel = settings.scatterXLabel || '';
+      const yLabel = settings.scatterYLabel || '';
+
+      // 색상 프리셋 → 실제 색상 변환
+      const colorMap = {
+        'default': '#8DCF66',
+        'primary': '#61C1F9',
+        'secondary': '#D96BCB',
+        'tertiary': '#F3A257'
+      };
+      const pointColor = colorMap[colorPreset] || colorMap['default'];
+
+      // Corruption 설정
+      const corruptionEnabled = settings.corruptionEnabled || false;
+      const corruptionCells = settings.corruptionCells || '';
+      const corruptionEdgeColor = settings.corruptionEdgeColor ?? true;
+      const corruptionFiber = settings.corruptionFiber ?? false;
+
+      // viz-api를 통해 산점도 렌더링
+      const config = {
+        purpose: 'scatter',
+        data: scatterData,
+        animation: false,
+        options: {
+          pointSize,
+          pointColor,
+          axisLabels: (xLabel || yLabel) ? {
+            xAxis: xLabel,
+            yAxis: yLabel
+          } : undefined,
+          corruption: corruptionEnabled && corruptionCells ? {
+            enabled: true,
+            cells: corruptionCells,
+            style: {
+              edgeColorEnabled: corruptionEdgeColor,
+              fiberEnabled: corruptionFiber
+            }
+          } : undefined
+        }
+      };
+
+      // 차트 컨테이너에서 산점도 wrapper 찾기/생성
+      const chartCanvas = this.app.chartRenderer.canvas;
+      const chartContainer = chartCanvas.closest('.chart-container');
+
+      // 기존 산점도 캔버스 제거
+      const existingScatter = chartContainer?.querySelector('.scatter-canvas-wrapper')
+      if (existingScatter) {
+        existingScatter.remove();
+      }
+
+      // 산점도용 wrapper 생성
+      const scatterWrapper = document.createElement('div');
+      scatterWrapper.className = 'scatter-canvas-wrapper';
+      chartCanvas.parentElement.insertBefore(scatterWrapper, chartCanvas);
+
+      // viz-api 호출
+      import('../viz-api.js').then(VizAPI => {
+        VizAPI.render(scatterWrapper, config);
+      });
+
+      MessageManager.success('산점도가 생성되었습니다.');
+      return { success: true };
+
+    } catch (error) {
+      console.error(`산점도 처리 오류 (데이터셋 ${datasetId}):`, error);
+      MessageManager.warning(`데이터셋 ${datasetId}: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * 커스텀 테이블 타입 처리
    * @param {Object} inputValues - 데이터셋 입력값
    * @param {boolean} reset - 리셋 모드 여부
@@ -306,17 +416,62 @@ class GenerationController {
         this.app.chartRenderer.timeline.timeline = [];
         this.app.chartRenderer.timeline.currentTime = 0;
         this.app.chartRenderer.timeline.duration = 0;
+
+        // 산점도 wrapper 제거 및 차트 캔버스 복원
+        const chartCanvas = this.app.chartRenderer.canvas;
+        const chartContainer = chartCanvas.closest('.chart-container');
+        const existingScatter = chartContainer?.querySelector('.scatter-canvas-wrapper');
+        if (existingScatter) {
+          existingScatter.remove();
+        }
+        chartCanvas.style.display = '';
+        const chartTitle = chartContainer?.querySelector('h2');
+        if (chartTitle) {
+          chartTitle.style.display = '';
+        }
       }
 
       let processedCount = 0;
       const processedDatasets = [];
 
+      // 현재 시각화 타입 확인 (첫 번째 데이터셋 기준)
+      const currentVizType = allDatasetInputs[0]?.vizType || 'chart';
+
+      // 시각화 타입에 따라 다른 타입의 결과물 정리
+      const chartCanvas = this.app.chartRenderer.canvas;
+      const chartContainer = chartCanvas.closest('.chart-container');
+
+      if (currentVizType === 'scatter') {
+        // 산점도 모드: 차트 캔버스 숨기기
+        chartCanvas.style.display = 'none';
+        const chartTitle = chartContainer?.querySelector('h2');
+        if (chartTitle) chartTitle.style.display = 'none';
+      } else {
+        // 차트/테이블 모드: 산점도 wrapper 제거, 차트 캔버스 복원
+        const existingScatter = chartContainer?.querySelector('.scatter-canvas-wrapper');
+        if (existingScatter) existingScatter.remove();
+        chartCanvas.style.display = '';
+        const chartTitle = chartContainer?.querySelector('h2');
+        if (chartTitle) chartTitle.style.display = '';
+      }
+
       for (let i = 0; i < allDatasetInputs.length; i++) {
         const inputValues = allDatasetInputs[i];
+        const vizType = inputValues.vizType || 'chart';
         const tableType = inputValues.tableType || CONFIG.TABLE_TYPES.FREQUENCY;
 
         try {
-          if (tableType !== CONFIG.TABLE_TYPES.FREQUENCY) {
+          // 산점도 처리
+          if (vizType === 'scatter') {
+            const scatterResult = this.processScatter(inputValues, reset, processedCount);
+            if (scatterResult.success) {
+              processedCount++;
+            }
+            continue;
+          }
+
+          // 테이블 처리 (차트가 아닌 테이블 타입)
+          if (vizType === 'table' || tableType !== CONFIG.TABLE_TYPES.FREQUENCY) {
             const customResult = this.processCustomTableType(inputValues, reset, processedCount);
             if (customResult.success) {
               processedCount++;
@@ -456,6 +611,21 @@ class GenerationController {
           CONFIG.CONGRUENT_TRIANGLE_INDEX = triangleIndex;
           CONFIG.SHOW_CALLOUT = dataset.settings.showCallout;
 
+          // 막대 내부 커스텀 라벨
+          const customBarLabels = dataset.settings.customBarLabels;
+          if (Array.isArray(customBarLabels) && customBarLabels.length > 0) {
+            CONFIG.SHOW_BAR_CUSTOM_LABELS = true;
+            CONFIG.BAR_CUSTOM_LABELS = {};
+            customBarLabels.forEach((label, idx) => {
+              if (label !== null && label !== undefined) {
+                CONFIG.BAR_CUSTOM_LABELS[idx] = label;
+              }
+            });
+          } else {
+            CONFIG.SHOW_BAR_CUSTOM_LABELS = false;
+            CONFIG.BAR_CUSTOM_LABELS = {};
+          }
+
           const clearCanvas = (i === 0);
           const customYInterval = this.app.chartSettingsController.getCustomYInterval();
 
@@ -471,6 +641,12 @@ class GenerationController {
             unifiedClassCount,
             customYInterval
           );
+        }
+
+        // Corruption 효과 적용 (마지막 데이터셋 설정 기준)
+        const lastDataset = processedDatasets[processedDatasets.length - 1];
+        if (lastDataset.settings.corruptionEnabled && lastDataset.settings.corruptionCells) {
+          this.applyChartCorruption(lastDataset.settings, lastDataset.classes.length);
         }
 
         DataStore.setData(firstDataset.data, firstDataset.stats, firstDataset.classes);
@@ -554,6 +730,38 @@ class GenerationController {
         allCanvases[i].style.display = isActive ? 'block' : 'none';
       }
     });
+  }
+
+  /**
+   * 차트에 Corruption 효과 적용
+   * @param {Object} settings - 데이터셋 설정
+   * @param {number} barCount - 막대 개수
+   */
+  applyChartCorruption(settings, barCount) {
+    const chartRenderer = this.app.chartRenderer;
+    const coords = chartRenderer.currentCoords;
+    if (!coords) return;
+
+    const corruptionOptions = {
+      enabled: true,
+      cells: settings.corruptionCells,
+      style: {
+        edgeColorEnabled: settings.corruptionEdgeColor ?? true,
+        fiberEnabled: settings.corruptionFiber ?? false
+      }
+    };
+
+    const chartInfo = {
+      padding: chartRenderer.padding,
+      barWidth: coords.xScale,
+      gap: coords.gap,
+      chartHeight: coords.yEnd - coords.yStart,
+      gridDivisions: coords.gridDivisions,
+      canvasHeight: chartRenderer.canvas.height,
+      barCount: barCount
+    };
+
+    applyChartCorruption(chartRenderer.ctx, corruptionOptions, chartInfo);
   }
 
   /**

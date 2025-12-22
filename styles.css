@@ -783,6 +783,96 @@ button:active {
   background: linear-gradient(180deg, #AEFF7E 0%, #68994C 100%);
 }
 
+/* 산점도 색상 프리셋 가로 배치 */
+.scatter-color-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.scatter-color-row > label:first-child {
+  margin-right: var(--spacing-sm);
+}
+
+.scatter-color-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Corruption 옵션 스타일 */
+.corruption-options {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.corruption-settings {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+}
+
+.corruption-settings .input-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.corruption-settings .input-group input[type="text"] {
+  width: 100%;
+  margin-top: var(--spacing-xs);
+}
+
+.corruption-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-light);
+  margin-top: 4px;
+}
+
+.corruption-style-options {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.corruption-style-options .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+/* 막대 내부 라벨 스타일 */
+.custom-bar-labels-settings {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+}
+
+.custom-bar-labels-settings input[type="text"] {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-dark);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.custom-bar-labels-settings input[type="text"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.bar-labels-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-light);
+  margin-top: 6px;
+}
+
 .advanced-settings {
   margin-top: var(--spacing-lg);
   border: 1px solid var(--color-border);
@@ -2482,10 +2572,13 @@ canvas {
 }
 
 /* ========== 테이블 타입 선택 ========== */
+/* 시각화 타입 및 테이블 타입 공통 스타일 */
+.viz-type-group,
 .table-type-group {
   margin-bottom: var(--spacing-md);
 }
 
+.viz-type-group label,
 .table-type-group label {
   display: block;
   margin-bottom: var(--spacing-xs);
@@ -2493,6 +2586,7 @@ canvas {
   color: var(--color-text);
 }
 
+.dataset-viz-type,
 .dataset-table-type {
   width: 100%;
   padding: 10px 12px;
@@ -2505,16 +2599,19 @@ canvas {
   transition: var(--transition-fast);
 }
 
+.dataset-viz-type:hover,
 .dataset-table-type:hover {
   border-color: var(--color-primary);
 }
 
+.dataset-viz-type:focus,
 .dataset-table-type:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
+.dataset-viz-type option,
 .dataset-table-type option {
   background: var(--color-card-bg);
   color: var(--color-text);

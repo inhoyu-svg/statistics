@@ -65,6 +65,31 @@ const CONFIG = {
     CROSS_TABLE: 'cross-table'           // → BASIC_TABLE 별칭
   },
 
+  // 시각화 타입별 정보 (chart, scatter, table)
+  VIZ_TYPE_INFO: {
+    'chart': {
+      name: '차트',
+      description: '히스토그램 + 도수 다각형',
+      placeholder: '예: 62, 87, 97, 73, 59, 85, 80, 79, 65, 75',
+      hint: '데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요.',
+      defaultData: '62 87 97 73 59 85 80 79 65 75'
+    },
+    'scatter': {
+      name: '산점도',
+      description: 'x,y 좌표 쌍으로 점 표시',
+      placeholder: '예: [[10,20], [15,35], [20,40], [25,55], [30,60]]',
+      hint: 'x,y 쌍을 입력하세요. 예: [[10,20], [15,35]] 또는 (10,20) (15,35)',
+      defaultData: '[[62,78], [75,85], [80,90], [85,88], [90,95], [95,92]]'
+    },
+    'table': {
+      name: '테이블',
+      description: '테이블 타입 선택 필요',
+      placeholder: '',
+      hint: '테이블 타입을 선택하세요.',
+      defaultData: ''
+    }
+  },
+
   // 테이블 타입별 정보
   TABLE_TYPE_INFO: {
     'basic-table': {

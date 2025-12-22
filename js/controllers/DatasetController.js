@@ -63,6 +63,12 @@ class DatasetController {
       radio.name = `histogramColor-${datasetId}`;
     });
 
+    // 산점도 색상 프리셋 라디오 버튼에 name 속성 설정
+    const scatterColorRadios = section.querySelectorAll('.dataset-scatter-color');
+    scatterColorRadios.forEach(radio => {
+      radio.name = `scatterColor-${datasetId}`;
+    });
+
     // 삭제 버튼 이벤트 리스너
     const removeBtn = section.querySelector('.dataset-remove-btn');
     removeBtn?.addEventListener('click', (e) => {
@@ -82,6 +88,24 @@ class DatasetController {
       this.onTableTypeChange(details, e.target.value);
     });
 
+    // Corruption 체크박스 토글 이벤트 리스너
+    const corruptionCheckbox = section.querySelector('.dataset-corruption-enabled');
+    const corruptionSettings = section.querySelector('.corruption-settings');
+    corruptionCheckbox?.addEventListener('change', (e) => {
+      if (corruptionSettings) {
+        corruptionSettings.style.display = e.target.checked ? '' : 'none';
+      }
+    });
+
+    // 막대 내부 라벨 체크박스 토글 이벤트 리스너
+    const customBarLabelsCheckbox = section.querySelector('.dataset-custom-bar-labels-enabled');
+    const customBarLabelsSettings = section.querySelector('.custom-bar-labels-settings');
+    customBarLabelsCheckbox?.addEventListener('change', (e) => {
+      if (customBarLabelsSettings) {
+        customBarLabelsSettings.style.display = e.target.checked ? '' : 'none';
+      }
+    });
+
     // 아코디언 컨테이너에 추가
     const accordion = document.getElementById('datasetsAccordion');
     accordion?.appendChild(section);
@@ -96,12 +120,14 @@ class DatasetController {
    * @param {string} vizType - 선택된 시각화 타입 (chart, scatter, table)
    */
   onVizTypeChange(section, vizType) {
-    // 차트 전용 옵션 표시/숨김
+    // 각 타입별 전용 옵션 표시/숨김
     const chartOnlyOptions = section.querySelectorAll('.chart-only-options');
     const tableOnlyOptions = section.querySelectorAll('.table-only-options');
+    const scatterOnlyOptions = section.querySelectorAll('.scatter-only-options');
 
     const isChart = vizType === 'chart';
     const isTable = vizType === 'table';
+    const isScatter = vizType === 'scatter';
 
     // 차트 옵션 토글
     chartOnlyOptions.forEach(option => {
@@ -113,19 +139,36 @@ class DatasetController {
       option.style.display = isTable ? '' : 'none';
     });
 
+    // 산점도 옵션 토글
+    scatterOnlyOptions.forEach(option => {
+      option.style.display = isScatter ? '' : 'none';
+    });
+
+    // 테이블 선택 시 테이블 타입에 따른 힌트/데이터로 위임
+    if (isTable) {
+      const tableTypeSelect = section.querySelector('.dataset-table-type');
+      const tableType = tableTypeSelect?.value || 'basic-table';
+      this.onTableTypeChange(section, tableType);
+      return;
+    }
+
+    // 시각화 타입 정보 가져오기
+    const vizTypeInfo = CONFIG.VIZ_TYPE_INFO[vizType];
+    if (!vizTypeInfo) return;
+
     // 힌트 텍스트 업데이트
     const hintElement = section.querySelector('.dataset-type-hint');
     if (hintElement) {
-      if (vizType === 'chart') {
-        hintElement.innerHTML = '💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56';
-      } else if (vizType === 'scatter') {
-        hintElement.innerHTML = '💡 x,y 쌍을 입력하세요. 예: (1,2) (3,4) (5,6) 또는 1,2 3,4 5,6';
-      } else if (isTable) {
-        // 테이블 선택 시 테이블 타입에 따른 힌트
-        const tableTypeSelect = section.querySelector('.dataset-table-type');
-        const tableType = tableTypeSelect?.value || 'basic-table';
-        this.onTableTypeChange(section, tableType);
-        return;
+      hintElement.innerHTML = `💡 ${vizTypeInfo.hint}`;
+    }
+
+    // 데이터 입력 필드 placeholder 및 기본 데이터 업데이트
+    const dataInput = section.querySelector('.dataset-data-input');
+    if (dataInput) {
+      dataInput.placeholder = vizTypeInfo.placeholder;
+      // 타입 변경 시 해당 타입의 기본 데이터로 교체
+      if (vizTypeInfo.defaultData) {
+        dataInput.value = vizTypeInfo.defaultData;
       }
     }
   }
@@ -267,6 +310,27 @@ class DatasetController {
       const calloutTemplateInput = section.querySelector('.dataset-callout-template');
       const calloutTemplate = calloutTemplateInput?.value || '';
 
+      // 산점도 전용 설정
+      const scatterPointSize = parseInt(section.querySelector('.dataset-scatter-point-size')?.value) || 6;
+      const scatterColorRadio = section.querySelector('.dataset-scatter-color:checked');
+      const scatterColorPreset = scatterColorRadio?.value || 'default';
+      const scatterXLabel = section.querySelector('.dataset-scatter-x-label')?.value.trim() || '';
+      const scatterYLabel = section.querySelector('.dataset-scatter-y-label')?.value.trim() || '';
+
+      // Corruption (찢김 효과) 설정
+      const corruptionEnabled = section.querySelector('.dataset-corruption-enabled')?.checked ?? false;
+      const corruptionCells = section.querySelector('.dataset-corruption-cells')?.value.trim() || '';
+      const corruptionEdgeColor = section.querySelector('.dataset-corruption-edge-color')?.checked ?? true;
+      const corruptionFiber = section.querySelector('.dataset-corruption-fiber')?.checked ?? false;
+
+      // 막대 내부 라벨 설정
+      const customBarLabelsEnabled = section.querySelector('.dataset-custom-bar-labels-enabled')?.checked ?? false;
+      const customBarLabelsRaw = section.querySelector('.dataset-custom-bar-labels')?.value.trim() || '';
+      // 쉼표로 분리하고 빈 문자열은 null로 변환
+      const customBarLabels = customBarLabelsEnabled && customBarLabelsRaw
+        ? customBarLabelsRaw.split(',').map(s => s.trim() || null)
+        : null;
+
       return {
         datasetId,
         vizType,
@@ -285,7 +349,19 @@ class DatasetController {
           showCallout,
           calloutTemplate,
           colorPreset,
-          histogramColorPreset
+          histogramColorPreset,
+          // 산점도 설정
+          scatterPointSize,
+          scatterColorPreset,
+          scatterXLabel,
+          scatterYLabel,
+          // Corruption 설정
+          corruptionEnabled,
+          corruptionCells,
+          corruptionEdgeColor,
+          corruptionFiber,
+          // 막대 내부 라벨
+          customBarLabels
         }
       };
     } catch (error) {

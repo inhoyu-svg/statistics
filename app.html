@@ -327,6 +327,50 @@
           </select>
         </div>
 
+        <!-- 산점도 전용 옵션 -->
+        <div class="scatter-only-options" style="display: none;">
+          <!-- 점 크기 -->
+          <div class="input-group">
+            <label>점 크기:</label>
+            <input type="number" class="dataset-scatter-point-size" value="6" min="2" max="20" step="1">
+          </div>
+
+          <!-- 점 색상 프리셋 -->
+          <div class="table-options scatter-color-row">
+            <label>점 색상:</label>
+            <div class="scatter-color-presets">
+              <label class="color-preset-btn" data-preset="default">
+                <input type="radio" class="dataset-scatter-color" value="default" checked>
+                <span class="preset-color preset-default"></span>
+              </label>
+              <label class="color-preset-btn" data-preset="primary">
+                <input type="radio" class="dataset-scatter-color" value="primary">
+                <span class="preset-color preset-primary"></span>
+              </label>
+              <label class="color-preset-btn" data-preset="secondary">
+                <input type="radio" class="dataset-scatter-color" value="secondary">
+                <span class="preset-color preset-secondary"></span>
+              </label>
+              <label class="color-preset-btn" data-preset="tertiary">
+                <input type="radio" class="dataset-scatter-color" value="tertiary">
+                <span class="preset-color preset-tertiary"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 축 라벨 -->
+          <div class="row">
+            <div class="input-group">
+              <label>X축 라벨:</label>
+              <input type="text" class="dataset-scatter-x-label" placeholder="예: (점)">
+            </div>
+            <div class="input-group">
+              <label>Y축 라벨:</label>
+              <input type="text" class="dataset-scatter-y-label" placeholder="예: (명)">
+            </div>
+          </div>
+        </div>
+
         <div class="info dataset-type-hint" role="note">
           💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56
         </div>
@@ -434,6 +478,18 @@
           </label>
         </div>
 
+        <!-- 막대 내부 라벨 옵션 (차트 전용) -->
+        <div class="table-options chart-only-options">
+          <label>
+            <input type="checkbox" class="dataset-custom-bar-labels-enabled">
+            <span>막대 내부 라벨</span>
+          </label>
+          <div class="custom-bar-labels-settings" style="display: none;">
+            <input type="text" class="dataset-custom-bar-labels" placeholder="예: A, , B, , C (빈칸=생략)">
+            <span class="bar-labels-hint">쉼표로 구분, 빈칸은 생략</span>
+          </div>
+        </div>
+
         <!-- 파선 옵션 (차트 전용) -->
         <div class="table-options chart-only-options">
           <label>
@@ -459,6 +515,31 @@
           <span class="settings-label">Y축 설정:</span>
           <div class="y-axis-mode-group" id="chartDataTypeRadios">
             <!-- 동적 생성: 라디오 버튼 + 간격 입력 필드 -->
+          </div>
+        </div>
+
+        <!-- Corruption (찢김 효과) 옵션 (모든 타입 공통) -->
+        <div class="table-options corruption-options">
+          <label>
+            <input type="checkbox" class="dataset-corruption-enabled">
+            <span>찢김 효과 (Corruption)</span>
+          </label>
+          <div class="corruption-settings" style="display: none;">
+            <div class="input-group">
+              <label>찢김 셀:</label>
+              <input type="text" class="dataset-corruption-cells" placeholder="예: 0-0, 1-0:2-3">
+              <span class="corruption-hint">차트/산점도: x-y, 테이블: row-col</span>
+            </div>
+            <div class="corruption-style-options">
+              <label class="checkbox-label">
+                <input type="checkbox" class="dataset-corruption-edge-color" checked>
+                가장자리 테두리
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" class="dataset-corruption-fiber">
+                종이 섬유 효과
+              </label>
+            </div>
           </div>
         </div>
       </div>
