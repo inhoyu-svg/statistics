@@ -3,13 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="도수분포표와 히스토그램을 자동으로 생성하는 통계 분석 도구">
-  <title>도수분포 히스토그램 + 상대도수 다각형</title>
+  <meta name="description" content="도수분포표와 히스토그램을 자동으로 생성하는 통계 시각화 도구">
+  <title>통계 시각화 앱 - Math Statistics Library</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 </head>
 <body>
+  <!-- 상단 네비게이션 -->
+  <nav class="top-nav">
+    <a href="index.html" class="nav-home" title="홈으로">← Hub</a>
+    <span class="nav-title">통계 시각화 앱</span>
+    <span class="nav-version">v2.5.1</span>
+  </nav>
+
   <main class="container">
     <h1>📊 도수분포표 & 히스토그램</h1>
 
@@ -305,9 +312,8 @@
           <label>테이블 타입:</label>
           <select class="dataset-table-type">
             <option value="frequency">도수분포표</option>
-            <option value="category-matrix">카테고리 행렬</option>
-            <option value="cross-table">이원 분류표</option>
             <option value="stem-leaf">줄기-잎 그림</option>
+            <option value="basic-table">이원분류표</option>
           </select>
         </div>
 

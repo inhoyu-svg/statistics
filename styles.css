@@ -92,7 +92,50 @@ body {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   min-height: 100vh;
   padding: var(--spacing-lg);
+  padding-top: 60px;
   color: var(--color-text);
+}
+
+/* ========== Top Navigation ========== */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  background: #1a1a1e;
+  border-bottom: 1px solid #3a3a42;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 1000;
+  gap: 16px;
+}
+
+.nav-home {
+  color: #888;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.nav-home:hover {
+  color: #eee;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-title {
+  color: #eee;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-version {
+  color: #666;
+  font-size: 12px;
+  margin-left: auto;
 }
 
 .container {
