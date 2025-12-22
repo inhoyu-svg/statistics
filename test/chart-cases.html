@@ -32,11 +32,49 @@
 
     body {
       margin: 0;
-      padding: 30px;
+      padding: 74px 30px 30px;
       background: var(--bg-dark);
       color: var(--text);
       font-family: 'SCDream', -apple-system, BlinkMacSystemFont, sans-serif;
       line-height: 1.6;
+    }
+
+    /* 상단 네비게이션 */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 44px;
+      background: #1a1a1e;
+      border-bottom: 1px solid #3a3a42;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+      gap: 16px;
+    }
+    .nav-home {
+      color: #888;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav-home:hover {
+      color: #eee;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .nav-title {
+      color: #eee;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .nav-version {
+      color: #666;
+      font-size: 11px;
+      margin-left: auto;
     }
 
     /* 헤더 */
@@ -340,6 +378,13 @@
   </style>
 </head>
 <body>
+  <!-- 상단 네비게이션 -->
+  <nav class="top-nav">
+    <a href="../index.html" class="nav-home" title="홈으로">← Hub</a>
+    <span class="nav-title">차트 시각화 케이스</span>
+    <span class="nav-version">v2.5.1</span>
+  </nav>
+
   <!-- 헤더 -->
   <header class="page-header">
     <h1>차트 시각화 케이스</h1>
