@@ -25,8 +25,8 @@ class LayerFactory {
     // clearAll() 제거: 기존 레이어 유지하면서 새 레이어 추가
     // layerManager.clearAll();
 
-    // 레이어 ID 중복 방지를 위한 타임스탬프
-    const timestamp = Date.now();
+    // 레이어 ID 고유 접미사 (중복 방지용, 4자리 랜덤)
+    const uid = Math.random().toString(36).substring(2, 6);
 
     // 데이터 타입 정보 가져오기
     const dataTypeInfo = CONFIG.CHART_DATA_TYPES.find(t => t.id === dataType);
@@ -34,7 +34,7 @@ class LayerFactory {
 
     // 히스토그램 그룹
     const histogramGroup = new Layer({
-      id: `histogram-${timestamp}`,
+      id: `histogram-group-${uid}`,
       name: '히스토그램',
       type: 'group',
       visible: true
@@ -42,7 +42,7 @@ class LayerFactory {
 
     // 다각형 그룹 (동적 이름)
     const polygonGroup = new Layer({
-      id: `polygon-${timestamp}`,
+      id: `polygon-group-${uid}`,
       name: polygonName,
       type: 'group',
       visible: true
@@ -59,7 +59,7 @@ class LayerFactory {
       const className = Utils.getClassName(classes[index]);
 
       const barLayer = new Layer({
-        id: `bar-${timestamp}-${index}`,
+        id: `histogram-bar-${index}-${uid}`,
         name: className,
         type: 'bar',
         visible: true,
@@ -75,7 +75,7 @@ class LayerFactory {
 
     // 점 그룹
     const pointsGroup = new Layer({
-      id: `points-${timestamp}`,
+      id: `points-group-${uid}`,
       name: '점',
       type: 'group',
       visible: true
@@ -83,7 +83,7 @@ class LayerFactory {
 
     // 선 그룹
     const linesGroup = new Layer({
-      id: `lines-${timestamp}`,
+      id: `lines-group-${uid}`,
       name: '선',
       type: 'group',
       visible: true
@@ -91,7 +91,7 @@ class LayerFactory {
 
     // 파선 그룹 (독립 레이어)
     const dashedLinesGroup = new Layer({
-      id: `dashed-lines-${timestamp}`,
+      id: `dashed-lines-group-${uid}`,
       name: '수직 파선',
       type: 'group',
       visible: CONFIG.SHOW_DASHED_LINES
@@ -108,7 +108,7 @@ class LayerFactory {
       const isHidden = hiddenPolygonIndices.includes(index);
 
       const pointLayer = new Layer({
-        id: `point-${timestamp}-${index}`,
+        id: `polygon-point-${index}-${uid}`,
         name: `점(${className})`,
         type: 'point',
         visible: !isHidden,
@@ -136,7 +136,7 @@ class LayerFactory {
         const isLineHidden = hiddenPolygonIndices.includes(prevIndex) || hiddenPolygonIndices.includes(index);
 
         const lineLayer = new Layer({
-          id: `line-${timestamp}-${prevIndex}-${index}`,
+          id: `polygon-line-${prevIndex}-${index}-${uid}`,
           name: `선(${fromClassName}→${toClassName})`,
           type: 'line',
           visible: !isLineHidden,
@@ -157,20 +157,36 @@ class LayerFactory {
 
     // 파선 레이어 생성 (점에서 Y축까지 수직 파선)
     // SHOW_DASHED_LINES가 true일 때만 생성
+    // 동일한 Y값에 대한 중복 렌더링 방지
     if (CONFIG.SHOW_DASHED_LINES) {
+      const renderedYValues = new Set();
+
       values.forEach((value, index) => {
         if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
         if (value === 0) return; // 값이 0인 파선은 생성하지 않음
 
-        const className = Utils.getClassName(classes[index]);
+        // 이미 같은 Y값에 대해 레이어를 생성했으면 스킵 (중복 방지)
+        const yKey = value.toFixed(6);
+        if (renderedYValues.has(yKey)) return;
+        renderedYValues.add(yKey);
+
+        // 동일 Y값 중 가장 오른쪽 인덱스 찾기 (파선이 가장 오른쪽 막대에서 시작)
+        let rightmostIndex = index;
+        for (let i = index + 1; i < values.length; i++) {
+          if (values[i] === value && !CoordinateSystem.shouldSkipEllipsis(i, ellipsisInfo)) {
+            rightmostIndex = i;
+          }
+        }
+
+        const className = Utils.getClassName(classes[rightmostIndex]);
 
         const dashedLineLayer = new Layer({
-          id: `dashed-line-${timestamp}-${index}`,
+          id: `dashed-line-${rightmostIndex}-${uid}`,
           name: `파선(${className})`,
           type: 'dashed-line',
           visible: true,
           data: {
-            index,
+            index: rightmostIndex,
             relativeFreq: value,
             coords,
             dataType,
@@ -201,7 +217,7 @@ class LayerFactory {
     // 막대 라벨 그룹 (SHOW_BAR_LABELS가 true일 때만 생성)
     if (CONFIG.SHOW_BAR_LABELS) {
       const labelsGroup = new Layer({
-        id: `bar-labels-${timestamp}`,
+        id: `bar-labels-group-${uid}`,
         name: '막대 라벨',
         type: 'group',
         visible: true
@@ -215,7 +231,7 @@ class LayerFactory {
         const className = Utils.getClassName(classes[index]);
 
         const labelLayer = new Layer({
-          id: `bar-label-${timestamp}-${index}`,
+          id: `bar-label-${index}-${uid}`,
           name: `라벨(${className})`,
           type: 'bar-label',
           visible: true,
@@ -236,7 +252,7 @@ class LayerFactory {
     // 막대 커스텀 라벨 그룹 (SHOW_BAR_CUSTOM_LABELS가 true이고 라벨이 있을 때만)
     if (CONFIG.SHOW_BAR_CUSTOM_LABELS && Object.keys(CONFIG.BAR_CUSTOM_LABELS).length > 0) {
       const customLabelsGroup = new Layer({
-        id: `bar-custom-labels-${timestamp}`,
+        id: `bar-custom-labels-group-${uid}`,
         name: '막대 커스텀 라벨',
         type: 'group',
         visible: true
@@ -258,7 +274,7 @@ class LayerFactory {
         const className = Utils.getClassName(classes[index]);
 
         const customLabelLayer = new Layer({
-          id: `bar-custom-label-${timestamp}-${index}`,
+          id: `bar-custom-label-${index}-${uid}`,
           name: `커스텀라벨(${className}): ${customLabel}`,
           type: 'bar-custom-label',
           visible: true,
@@ -273,12 +289,12 @@ class LayerFactory {
 
     // 합동 삼각형 레이어 생성 (SHOW_CONGRUENT_TRIANGLES가 true일 때만)
     if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
-      this._createCongruentTriangleLayers(layerManager, values, coords, timestamp);
+      this._createCongruentTriangleLayers(layerManager, values, coords, uid);
     }
 
     // 말풍선 레이어 생성 (템플릿이 제공된 경우)
     if (calloutTemplate) {
-      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, timestamp, layerManager);
+      const calloutLayer = this._createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, calloutTemplate, layerManager, uid);
       if (calloutLayer) {
         layerManager.addLayer(calloutLayer);
       }
@@ -293,11 +309,11 @@ class LayerFactory {
    * @param {Object} ellipsisInfo - 중략 정보
    * @param {string} dataType - 데이터 타입
    * @param {string} template - 말풍선 템플릿
-   * @param {number} timestamp - 타임스탬프 (레이어 ID 중복 방지)
    * @param {LayerManager} layerManager - 레이어 매니저 (기존 말풍선 개수 확인용)
+   * @param {string} uid - 고유 접미사
    * @returns {Layer|null} 말풍선 레이어
    */
-  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, timestamp, layerManager) {
+  static _createCalloutLayer(classes, values, coords, ellipsisInfo, dataType, template, layerManager, uid) {
     // 최상단 포인트 찾기 (y값이 가장 큰 = 상대도수/도수가 가장 큰)
     let maxValue = -Infinity;
     let maxIndex = -1;
@@ -334,7 +350,7 @@ class LayerFactory {
     const pointY = toY(maxValue);
 
     const calloutLayer = new Layer({
-      id: `callout-${timestamp}`,
+      id: `callout-${calloutCount}-${uid}`,
       name: '말풍선',
       type: 'callout',
       visible: true,
@@ -360,9 +376,9 @@ class LayerFactory {
    * @param {LayerManager} layerManager - 레이어 매니저
    * @param {Array} values - 값 배열
    * @param {Object} coords - 좌표 시스템
-   * @param {number} timestamp - 타임스탬프
+   * @param {string} uid - 고유 접미사
    */
-  static _createCongruentTriangleLayers(layerManager, values, coords, timestamp) {
+  static _createCongruentTriangleLayers(layerManager, values, coords, uid) {
     const i = CONFIG.CONGRUENT_TRIANGLE_INDEX;
 
     // 유효 범위 체크
@@ -406,7 +422,7 @@ class LayerFactory {
 
     // 삼각형 그룹
     const trianglesGroup = new Layer({
-      id: `triangles-${timestamp}`,
+      id: `triangles-group-${uid}`,
       name: '합동 삼각형',
       type: 'group',
       visible: true
@@ -414,7 +430,7 @@ class LayerFactory {
 
     // 삼각형 A (막대 i 우측)
     const triangleA = new Layer({
-      id: `triangle-a-${timestamp}`,
+      id: `triangle-a-${uid}`,
       name: '삼각형 A',
       type: 'triangle',
       visible: true,
@@ -432,7 +448,7 @@ class LayerFactory {
 
     // 삼각형 B (막대 i+1 좌측)
     const triangleB = new Layer({
-      id: `triangle-b-${timestamp}`,
+      id: `triangle-b-${uid}`,
       name: '삼각형 B',
       type: 'triangle',
       visible: true,
@@ -478,7 +494,7 @@ class LayerFactory {
 
     // S₁ 라벨 (파란 삼각형)
     const labelS1 = new Layer({
-      id: `triangle-label-s1-${timestamp}`,
+      id: `triangle-label-s1-${uid}`,
       name: '라벨 S₁',
       type: 'triangle-label',
       visible: true,
@@ -493,7 +509,7 @@ class LayerFactory {
 
     // S₂ 라벨 (빨간 삼각형)
     const labelS2 = new Layer({
-      id: `triangle-label-s2-${timestamp}`,
+      id: `triangle-label-s2-${uid}`,
       name: '라벨 S₂',
       type: 'triangle-label',
       visible: true,
@@ -508,7 +524,7 @@ class LayerFactory {
 
     // S₁ 점선 (라벨 → 직각 모서리)
     const lineS1 = new Layer({
-      id: `triangle-label-line-s1-${timestamp}`,
+      id: `triangle-label-line-s1-${uid}`,
       name: '점선 S₁',
       type: 'triangle-label-line',
       visible: true,
@@ -523,7 +539,7 @@ class LayerFactory {
 
     // S₂ 점선 (라벨 → 직각 모서리)
     const lineS2 = new Layer({
-      id: `triangle-label-line-s2-${timestamp}`,
+      id: `triangle-label-line-s2-${uid}`,
       name: '점선 S₂',
       type: 'triangle-label-line',
       visible: true,

@@ -75,19 +75,32 @@ class DashedLineRenderer {
    */
   drawStatic(values, coords, dataType = 'relativeFrequency') {
     const histogramPreset = CONFIG.HISTOGRAM_COLOR_PRESET || 'default';
+    const { toX, toY, xScale } = coords;
+    const leftEdgeX = toX(0);
+
+    // 동일한 Y값에 대한 중복 렌더링 방지
+    const renderedYValues = new Set();
 
     values.forEach((value, index) => {
       // 도수 0인 계급은 스킵
       if (value === 0) return;
 
-      const { toX, toY, xScale } = coords;
+      // 이미 같은 Y값에 대해 렌더링했으면 스킵 (중복 방지)
+      const yKey = value.toFixed(6); // 부동소수점 비교를 위해 문자열로 변환
+      if (renderedYValues.has(yKey)) return;
+      renderedYValues.add(yKey);
 
-      // 점의 위치 (우측 시작점)
-      const pointX = toX(index) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
+      // 점의 위치 (우측 시작점) - 가장 오른쪽 막대에서 시작
+      // 동일 Y값 중 가장 오른쪽 인덱스 찾기
+      let rightmostIndex = index;
+      for (let i = index + 1; i < values.length; i++) {
+        if (values[i] === value) {
+          rightmostIndex = i;
+        }
+      }
+
+      const pointX = toX(rightmostIndex) + xScale * CONFIG.CHART_BAR_CENTER_OFFSET;
       const pointY = toY(value);
-
-      // Y축 위치 (좌측 끝점)
-      const leftEdgeX = toX(0);
 
       // 히스토그램 프리셋에서 색상 가져오기
       const preset = CONFIG.HISTOGRAM_COLOR_PRESETS[histogramPreset]

@@ -356,7 +356,7 @@
       <div class="case-card" id="case-t2">
         <div class="case-header">
           <h3>T2 - 도수분포표</h3>
-          <p class="case-desc">showTotal: true로 합계 행 표시</p>
+          <p class="case-desc">showTotal: true, showMergedHeader: false</p>
         </div>
         <div class="case-canvas" id="canvas-t2"></div>
         <div class="case-controls">
@@ -458,6 +458,36 @@
         <div class="status" id="status-t7"></div>
       </div>
 
+      <!-- T7a: 카테고리 행렬 (단일 행) -->
+      <div class="case-card" id="case-t7a">
+        <div class="case-header">
+          <h3>T7a - 카테고리 행렬 (단일 행)</h3>
+          <p class="case-desc">한 행만 있는 간단한 카테고리 행렬</p>
+        </div>
+        <div class="case-canvas" id="canvas-t7a"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t7a">{ } Config</button>
+          <button class="btn-layers" data-case="t7a">◇ Layers</button>
+          <button class="btn-timeline" data-case="t7a">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t7a"></div>
+      </div>
+
+      <!-- T7b: 카테고리 행렬 (다중 행) -->
+      <div class="case-card" id="case-t7b">
+        <div class="case-header">
+          <h3>T7b - 카테고리 행렬 (다중 행)</h3>
+          <p class="case-desc">여러 행이 있는 복잡한 카테고리 행렬</p>
+        </div>
+        <div class="case-canvas" id="canvas-t7b"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t7b">{ } Config</button>
+          <button class="btn-layers" data-case="t7b">◇ Layers</button>
+          <button class="btn-timeline" data-case="t7b">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t7b"></div>
+      </div>
+
     </div>
   </section>
 
@@ -496,6 +526,164 @@
         <div class="status" id="status-t9"></div>
       </div>
 
+      <!-- T10: 찢어진 이원분류표 -->
+      <div class="case-card" id="case-t10">
+        <div class="case-header">
+          <h3>T10 - 찢어진 이원분류표</h3>
+          <p class="case-desc">Corruption 효과 + 이원분류표</p>
+        </div>
+        <div class="case-canvas" id="canvas-t10"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t10">{ } Config</button>
+          <button class="btn-layers" data-case="t10">◇ Layers</button>
+          <button class="btn-timeline" data-case="t10">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t10"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 셀 애니메이션 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 셀 애니메이션 (cellAnimations)</h2>
+    <div class="case-grid">
+
+      <!-- T11: 단일 셀 애니메이션 -->
+      <div class="case-card" id="case-t11">
+        <div class="case-header">
+          <h3>T11 - 단일 셀 애니메이션</h3>
+          <p class="case-desc">특정 셀 하나에 깜빡임 효과</p>
+        </div>
+        <div class="case-canvas" id="canvas-t11"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t11">{ } Config</button>
+          <button class="btn-layers" data-case="t11">◇ Layers</button>
+          <button class="btn-timeline" data-case="t11">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t11"></div>
+      </div>
+
+      <!-- T12: 행 범위 애니메이션 -->
+      <div class="case-card" id="case-t12">
+        <div class="case-header">
+          <h3>T12 - 행 범위 애니메이션</h3>
+          <p class="case-desc">특정 행 전체에 애니메이션</p>
+        </div>
+        <div class="case-canvas" id="canvas-t12"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t12">{ } Config</button>
+          <button class="btn-layers" data-case="t12">◇ Layers</button>
+          <button class="btn-timeline" data-case="t12">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t12"></div>
+      </div>
+
+      <!-- T13: 열 범위 애니메이션 -->
+      <div class="case-card" id="case-t13">
+        <div class="case-header">
+          <h3>T13 - 열 범위 애니메이션</h3>
+          <p class="case-desc">특정 열 전체에 애니메이션</p>
+        </div>
+        <div class="case-canvas" id="canvas-t13"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t13">{ } Config</button>
+          <button class="btn-layers" data-case="t13">◇ Layers</button>
+          <button class="btn-timeline" data-case="t13">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t13"></div>
+      </div>
+
+      <!-- T14: 영역 범위 애니메이션 -->
+      <div class="case-card" id="case-t14">
+        <div class="case-header">
+          <h3>T14 - 영역 범위 애니메이션</h3>
+          <p class="case-desc">여러 셀 영역에 애니메이션 (rowStart/End, colStart/End)</p>
+        </div>
+        <div class="case-canvas" id="canvas-t14"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t14">{ } Config</button>
+          <button class="btn-layers" data-case="t14">◇ Layers</button>
+          <button class="btn-timeline" data-case="t14">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t14"></div>
+      </div>
+
+      <!-- T15: 2개 그룹 애니메이션 -->
+      <div class="case-card" id="case-t15">
+        <div class="case-header">
+          <h3>T15 - 2개 그룹 애니메이션</h3>
+          <p class="case-desc">서로 다른 두 영역이 동시에 애니메이션</p>
+        </div>
+        <div class="case-canvas" id="canvas-t15"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t15">{ } Config</button>
+          <button class="btn-layers" data-case="t15">◇ Layers</button>
+          <button class="btn-timeline" data-case="t15">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t15"></div>
+      </div>
+
+      <!-- T16: 3개 그룹 애니메이션 -->
+      <div class="case-card" id="case-t16">
+        <div class="case-header">
+          <h3>T16 - 3개 그룹 애니메이션</h3>
+          <p class="case-desc">세 개의 서로 다른 영역이 동시에 애니메이션</p>
+        </div>
+        <div class="case-canvas" id="canvas-t16"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t16">{ } Config</button>
+          <button class="btn-layers" data-case="t16">◇ Layers</button>
+          <button class="btn-timeline" data-case="t16">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t16"></div>
+      </div>
+
+      <!-- T17: 이원분류표 셀 애니메이션 -->
+      <div class="case-card" id="case-t17">
+        <div class="case-header">
+          <h3>T17 - 이원분류표 셀 애니메이션</h3>
+          <p class="case-desc">이원분류표에서 특정 셀 하이라이트</p>
+        </div>
+        <div class="case-canvas" id="canvas-t17"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t17">{ } Config</button>
+          <button class="btn-layers" data-case="t17">◇ Layers</button>
+          <button class="btn-timeline" data-case="t17">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t17"></div>
+      </div>
+
+      <!-- T18: 카테고리 행렬 셀 애니메이션 -->
+      <div class="case-card" id="case-t18">
+        <div class="case-header">
+          <h3>T18 - 카테고리 행렬 셀 애니메이션</h3>
+          <p class="case-desc">카테고리 행렬에서 특정 영역 하이라이트</p>
+        </div>
+        <div class="case-canvas" id="canvas-t18"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t18">{ } Config</button>
+          <button class="btn-layers" data-case="t18">◇ Layers</button>
+          <button class="btn-timeline" data-case="t18">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t18"></div>
+      </div>
+
+      <!-- T19: 줄기-잎 그림 셀 애니메이션 -->
+      <div class="case-card" id="case-t19">
+        <div class="case-header">
+          <h3>T19 - 줄기-잎 그림 셀 애니메이션</h3>
+          <p class="case-desc">줄기-잎 그림에서 특정 잎 하이라이트</p>
+        </div>
+        <div class="case-canvas" id="canvas-t19"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t19">{ } Config</button>
+          <button class="btn-layers" data-case="t19">◇ Layers</button>
+          <button class="btn-timeline" data-case="t19">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t19"></div>
+      </div>
+
     </div>
   </section>
 
@@ -520,24 +708,28 @@
     const cases = {
       t1: {
         title: 'T1 - 기본 테이블',
-        desc: '가장 단순한 basic-table 형태',
+        desc: '가장 단순한 basic-table 형태 (병합 헤더 없음)',
         config: {
           purpose: 'table',
           tableType: 'basic-table',
-          data: '헤더: 항목, 값1, 값2\nA: 10, 20\nB: 30, 40\nC: 50, 60',
-          animation: false
+          data: '헤더: 과목, 1학기, 2학기\n국어: 85, 90\n수학: 78, 82\n영어: 92, 88',
+          animation: false,
+          options: {
+            showMergedHeader: false
+          }
         }
       },
       t2: {
         title: 'T2 - 도수분포표',
-        desc: 'showTotal: true로 합계 행 표시',
+        desc: 'showTotal: true, showMergedHeader: false',
         config: {
           purpose: 'table',
           tableType: 'basic-table',
-          data: '헤더: 계급(점), 도수(명), 상대도수\n60이상~70미만: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
           animation: false,
           options: {
-            showTotal: true
+            showTotal: true,
+            showMergedHeader: false
           }
         }
       },
@@ -600,16 +792,37 @@
           animation: false
         }
       },
+      t7a: {
+        title: 'T7a - 카테고리 행렬 (단일 행)',
+        desc: '한 행만 있는 간단한 카테고리 행렬',
+        config: {
+          purpose: 'table',
+          tableType: 'category-matrix',
+          data: '헤더: 1반, 2반, 3반, 4반\n학생 수 (명): 32, 35, 30, 33',
+          animation: false
+        }
+      },
+      t7b: {
+        title: 'T7b - 카테고리 행렬 (다중 행)',
+        desc: '여러 행이 있는 복잡한 카테고리 행렬',
+        config: {
+          purpose: 'table',
+          tableType: 'category-matrix',
+          data: '헤더: 월, 화, 수, 목, 금\n1교시: 국어, 수학, 영어, 과학, 사회\n2교시: 수학, 영어, 국어, 체육, 음악\n3교시: 영어, 국어, 수학, 미술, 기술',
+          animation: false
+        }
+      },
       t8: {
         title: 'T8 - 찢어진 테이블',
         desc: 'Corruption 효과가 적용된 테이블',
         config: {
           purpose: 'table',
           tableType: 'basic-table',
-          data: '헤더: 계급(점), 도수(명), 상대도수\n60이상~70미만: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
           animation: false,
           options: {
             showTotal: true,
+            showMergedHeader: false,
             corruption: {
               enabled: true,
               cells: '2-1:4-2',
@@ -635,7 +848,7 @@
           options: {
             corruption: {
               enabled: true,
-              cells: '1-2:3-5',
+              cells: '2-0:4-1',
               style: {
                 edgeComplexity: 0.7,
                 edgeColorEnabled: true,
@@ -644,6 +857,178 @@
               }
             }
           }
+        }
+      },
+      t10: {
+        title: 'T10 - 찢어진 이원분류표',
+        desc: 'Corruption 효과 + 이원분류표',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.40, 0.38\nB: 0.22, 0.25\nAB: 0.12, 0.15\nO: 0.26, 0.22',
+          animation: false,
+          options: {
+            showTotal: true,
+            showMergedHeader: true,
+            corruption: {
+              enabled: true,
+              cells: '2-1:4-2',
+              style: {
+                edgeComplexity: 0.75,
+                edgeColorEnabled: true,
+                edgeColor: 'rgba(120, 120, 120, 1)',
+                fiberEnabled: true,
+                fiberCount: 18
+              }
+            }
+          }
+        }
+      },
+      t11: {
+        title: 'T11 - 단일 셀 애니메이션',
+        desc: '특정 셀 하나에 깜빡임 효과',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          animation: false,
+          cellAnimations: [
+            { rowIndex: 3, colIndex: 1, duration: 1000, repeat: 5 }
+          ],
+          options: {
+            showTotal: true,
+            showMergedHeader: false
+          }
+        }
+      },
+      t12: {
+        title: 'T12 - 행 범위 애니메이션',
+        desc: '특정 행 전체에 애니메이션',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 과목, 1학기, 2학기\n국어: 85, 90\n수학: 78, 82\n영어: 92, 88',
+          animation: false,
+          cellAnimations: [
+            { rowIndex: 2, colStart: 0, colEnd: 2, duration: 1200, repeat: 4 }
+          ],
+          options: {
+            showMergedHeader: false
+          }
+        }
+      },
+      t13: {
+        title: 'T13 - 열 범위 애니메이션',
+        desc: '특정 열 전체에 애니메이션',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 혈액형, 남학생, 여학생\nA: 0.40, 0.38\nB: 0.22, 0.25\nAB: 0.12, 0.15\nO: 0.26, 0.22',
+          animation: false,
+          cellAnimations: [
+            { colIndex: 2, rowStart: 1, rowEnd: 4, duration: 1500, repeat: 3 }
+          ],
+          options: {
+            showMergedHeader: false
+          }
+        }
+      },
+      t14: {
+        title: 'T14 - 영역 범위 애니메이션',
+        desc: '여러 셀 영역에 애니메이션 (rowStart/End, colStart/End)',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          animation: false,
+          cellAnimations: [
+            { rowStart: 2, rowEnd: 4, colStart: 1, colEnd: 2, duration: 1000, repeat: 5 }
+          ],
+          options: {
+            showTotal: true,
+            showMergedHeader: false
+          }
+        }
+      },
+      t15: {
+        title: 'T15 - 2개 그룹 애니메이션',
+        desc: '서로 다른 두 영역이 동시에 애니메이션',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          animation: false,
+          cellAnimations: [
+            { rowIndex: 1, colIndex: 1, duration: 1000, repeat: 5 },
+            { rowIndex: 3, colIndex: 2, duration: 1000, repeat: 5 }
+          ],
+          options: {
+            showTotal: true,
+            showMergedHeader: false
+          }
+        }
+      },
+      t16: {
+        title: 'T16 - 3개 그룹 애니메이션',
+        desc: '세 개의 서로 다른 영역이 동시에 애니메이션',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 계급(점), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.10\n70~80: 5, 0.25\n80~90: 8, 0.40\n90~100: 5, 0.25',
+          animation: false,
+          cellAnimations: [
+            { rowIndex: 1, colIndex: 1, duration: 1000, repeat: 5 },
+            { rowIndex: 2, colIndex: 2, duration: 1000, repeat: 5 },
+            { rowIndex: 4, colStart: 1, colEnd: 2, duration: 1000, repeat: 5 }
+          ],
+          options: {
+            showTotal: true,
+            showMergedHeader: false
+          }
+        }
+      },
+      t17: {
+        title: 'T17 - 이원분류표 셀 애니메이션',
+        desc: '이원분류표에서 특정 셀 하이라이트',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.40, 0.38\nB: 0.22, 0.25\nAB: 0.12, 0.15\nO: 0.26, 0.22',
+          animation: false,
+          cellAnimations: [
+            { rowIndex: 1, colIndex: 1, duration: 1000, repeat: 5 },
+            { rowIndex: 3, colIndex: 2, duration: 1000, repeat: 5 }
+          ],
+          options: {
+            showTotal: true,
+            showMergedHeader: true
+          }
+        }
+      },
+      t18: {
+        title: 'T18 - 카테고리 행렬 셀 애니메이션',
+        desc: '카테고리 행렬에서 특정 영역 하이라이트',
+        config: {
+          purpose: 'table',
+          tableType: 'category-matrix',
+          data: '헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, 300, 350, 400\nO형인 학생 수 (명): 50, 60, 70, 80, 90',
+          animation: false,
+          cellAnimations: [
+            { rowIndex: 1, colStart: 1, colEnd: 3, duration: 1200, repeat: 4 }
+          ]
+        }
+      },
+      t19: {
+        title: 'T19 - 줄기-잎 그림 셀 애니메이션',
+        desc: '줄기-잎 그림에서 특정 잎 하이라이트',
+        config: {
+          purpose: 'table',
+          tableType: 'stem-leaf',
+          data: '162 178 175 174 189 186 183 183 181 197 194 191 190 209 205',
+          animation: false,
+          cellAnimations: [
+            { rowIndex: 2, colIndex: 1, duration: 1000, repeat: 5 }
+          ]
         }
       }
     };
@@ -738,15 +1123,17 @@
         return;
       }
 
-      const layers = tableRenderer.layerManager.getAllLayers();
+      const layerItems = tableRenderer.layerManager.getAllLayers();
       let html = '<ul class="layer-list">';
-      layers.forEach((layer, idx) => {
+      layerItems.forEach((item, idx) => {
+        const layer = item.layer;
+        const indent = item.depth * 16; // 깊이에 따른 들여쓰기
         html += `
-          <li class="layer-item">
-            <input type="checkbox" class="layer-toggle" data-case="${caseId}" data-layer="${idx}" ${layer.visible ? 'checked' : ''}>
+          <li class="layer-item" style="padding-left: ${indent}px;">
+            <input type="checkbox" class="layer-toggle" data-case="${caseId}" data-layer-id="${layer.id}" ${layer.visible ? 'checked' : ''}>
             <div class="layer-info">
-              <div class="layer-name">${layer.id || `Layer ${idx}`}</div>
-              <div class="layer-type">${layer.type || 'unknown'}</div>
+              <div class="layer-name">${layer.name || layer.id}</div>
+              <div class="layer-type">${layer.type}</div>
             </div>
           </li>
         `;
@@ -757,12 +1144,9 @@
       // 레이어 토글 이벤트
       body.querySelectorAll('.layer-toggle').forEach(toggle => {
         toggle.addEventListener('change', (e) => {
-          const layerIdx = parseInt(e.target.dataset.layer);
-          const layer = layers[layerIdx];
-          if (layer) {
-            layer.visible = e.target.checked;
-            tableRenderer.renderFrame();
-          }
+          const layerId = e.target.dataset.layerId;
+          tableRenderer.layerManager.setLayerVisibility(layerId, e.target.checked);
+          tableRenderer.renderFrame();
         });
       });
 
@@ -778,12 +1162,41 @@
       title.textContent = `${cases[caseId].title} - Timeline`;
 
       const tableRenderer = renderer?.tableRenderer;
-      if (!tableRenderer?.timeline) {
-        body.innerHTML = '<p style="color: var(--text-muted);">타임라인 정보 없음 (animation: false)</p>';
+      const hasCellAnimations = tableRenderer?.savedAnimations?.length > 0;
+      const hasTimeline = tableRenderer?.timeline;
+
+      // 셀 애니메이션도 타임라인도 없는 경우
+      if (!hasCellAnimations && !hasTimeline) {
+        body.innerHTML = '<p style="color: var(--text-muted);">타임라인 정보 없음 (animation: false, cellAnimations: 없음)</p>';
         modal.classList.add('active');
         return;
       }
 
+      // 셀 애니메이션이 있는 경우 (cellAnimations)
+      if (hasCellAnimations) {
+        body.innerHTML = `
+          <div class="timeline-controls">
+            <p style="color: var(--text-muted); margin-bottom: 12px;">셀 애니메이션 (${tableRenderer.savedAnimations.length}개 그룹)</p>
+            <div class="timeline-buttons">
+              <button class="timeline-btn play" data-action="play">▶ Play</button>
+              <button class="timeline-btn" data-action="stop">⏹ Stop</button>
+            </div>
+          </div>
+        `;
+
+        body.querySelectorAll('.timeline-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const action = btn.dataset.action;
+            if (action === 'play') tableRenderer.playAllAnimations();
+            else if (action === 'stop') tableRenderer.stopCellAnimation();
+          });
+        });
+
+        modal.classList.add('active');
+        return;
+      }
+
+      // 기존 타임라인이 있는 경우 (animation: true)
       body.innerHTML = `
         <div class="timeline-controls">
           <div class="timeline-buttons">

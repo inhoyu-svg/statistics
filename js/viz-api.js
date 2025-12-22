@@ -583,7 +583,23 @@ export async function renderChart(element, config) {
       applyChartCorruption(chartRenderer.ctx, options.corruption, chartInfo);
     }
 
-    // 11. Play animation
+    // 11. CONFIG 스냅샷 저장 (다중 차트 환경에서 독립적 설정 유지)
+    chartRenderer.configSnapshot = {
+      AXIS_SHOW_Y_LABELS: CONFIG.AXIS_SHOW_Y_LABELS,
+      AXIS_SHOW_X_LABELS: CONFIG.AXIS_SHOW_X_LABELS,
+      AXIS_Y_LABEL_FORMAT: CONFIG.AXIS_Y_LABEL_FORMAT,
+      SHOW_HISTOGRAM: CONFIG.SHOW_HISTOGRAM,
+      SHOW_POLYGON: CONFIG.SHOW_POLYGON,
+      SHOW_CONGRUENT_TRIANGLES: CONFIG.SHOW_CONGRUENT_TRIANGLES,
+      SHOW_DASHED_LINES: CONFIG.SHOW_DASHED_LINES,
+      SHOW_BAR_CUSTOM_LABELS: CONFIG.SHOW_BAR_CUSTOM_LABELS,
+      BAR_CUSTOM_LABELS: { ...CONFIG.BAR_CUSTOM_LABELS },
+      CONGRUENT_TRIANGLE_INDEX: CONFIG.CONGRUENT_TRIANGLE_INDEX,
+      GRID_SHOW_HORIZONTAL: CONFIG.GRID_SHOW_HORIZONTAL,
+      GRID_SHOW_VERTICAL: CONFIG.GRID_SHOW_VERTICAL
+    };
+
+    // 12. Play animation
     if (animation) {
       // 추가 렌더링: 새 애니메이션 시작 시점으로 seek (기존 레이어는 완료 상태 유지)
       // 첫 렌더링: 처음부터 재생
@@ -591,7 +607,7 @@ export async function renderChart(element, config) {
       chartRenderer.playAnimation();
     }
 
-    // 11. Return result
+    // 13. Return result
     return {
       chartRenderer,
       canvas,
@@ -1405,6 +1421,20 @@ async function renderMultiplePolygons(element, config) {
         renderStaticCallout(chartRenderer, analyzed.classes, values, coords, analyzed.dataset.callout.template, calloutPreset, dataType, calloutIndex);
         calloutIndex++;
       }
+    }
+
+    // 8. Corruption 효과 적용 (모든 다각형 그린 후)
+    if (options.corruption?.enabled) {
+      const chartInfo = {
+        padding: chartRenderer.padding,
+        barWidth: coords.xScale,
+        gap: 0,
+        chartHeight: coords.chartH,
+        gridDivisions: coords.gridDivisions,
+        canvasHeight: canvas.height,
+        barCount: unifiedClassCount
+      };
+      applyChartCorruption(chartRenderer.ctx, options.corruption, chartInfo);
     }
 
     return {

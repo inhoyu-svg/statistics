@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="도수분포표와 히스토그램을 자동으로 생성하는 통계 분석 도구">
+  <title>도수분포 히스토그램 + 상대도수 다각형</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+</head>
+<body>
+  <main class="container">
+    <h1>📊 도수분포표 & 히스토그램</h1>
+
+    <!-- Error/Success Message -->
+    <div id="messageBox" class="message-box" role="alert" aria-live="polite"></div>
+
+    <div class="layout-grid">
+      <!-- Left Column: Input Section -->
+      <aside class="left-column">
+        <!-- 데이터셋 아코디언 컨테이너 -->
+        <div id="datasetsAccordion" class="datasets-accordion">
+          <!-- 데이터셋 섹션들이 동적으로 생성됩니다 -->
+        </div>
+
+        <!-- 버튼 그룹 -->
+        <div class="button-group">
+          <button id="generateBtn" type="button" aria-label="도수분포표 생성">
+            도수분포표 생성
+          </button>
+          <button id="addBtn" type="button" aria-label="도수분포표 추가" class="secondary-btn">
+            + 도수분포표 추가
+          </button>
+        </div>
+
+        <!-- 고급 설정 -->
+        <details class="advanced-settings">
+          <summary>⚙️ 고급 설정</summary>
+          <div class="advanced-content">
+            <!-- 격자선 설정 -->
+            <div class="setting-group">
+              <h4>격자선 표시</h4>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showHorizontalGrid" checked>
+                가로 격자선 (Y축)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showVerticalGrid" checked>
+                세로 격자선 (X축)
+              </label>
+            </div>
+
+            <!-- 축 값 라벨 표시 -->
+            <div class="setting-group">
+              <h4>축 값 라벨 표시</h4>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showYAxisLabels" checked>
+                Y축 값 라벨 (왼쪽)
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="showXAxisLabels" checked>
+                X축 값 라벨
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="yAxisPercent">
+                Y축 백분율(%) 표시
+              </label>
+            </div>
+
+            <!-- 축 라벨 -->
+            <div class="setting-group">
+              <h4>축 라벨</h4>
+              <div class="input-group">
+                <label for="xAxisLabel">X축 라벨:</label>
+                <input type="text" id="xAxisLabel" placeholder="계급">
+              </div>
+              <div class="input-group">
+                <label for="yAxisLabel">Y축 라벨:</label>
+                <input type="text" id="yAxisLabel" placeholder="상대도수">
+              </div>
+            </div>
+
+            <!-- 표 컬럼 설정 -->
+            <div class="setting-group">
+              <h4>표 컬럼 설정 (드래그하여 순서 변경)</h4>
+              <div id="tableConfigPanel"></div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Statistics Summary (왼쪽 하단) -->
+        <div class="stats-summary" id="statsSummary" role="region" aria-label="통계 요약"></div>
+
+        <!-- JSON 내보내기/불러오기 버튼 -->
+        <div class="json-buttons" style="display: none;">
+          <button id="exportJsonBtn" class="export-btn" type="button" aria-label="차트 데이터 JSON 내보내기">
+            💾 JSON 내보내기
+          </button>
+          <button id="importJsonBtn" class="export-btn" type="button" aria-label="JSON 데이터 불러오기">
+            📂 JSON 불러오기
+          </button>
+          <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+        </div>
+      </aside>
+
+      <!-- Right Column: Results Section -->
+      <div class="right-column">
+        <!-- 애니메이션 컨트롤 -->
+        <div class="animation-controls">
+          <h2 class="section-title">🎬 애니메이션 컨트롤</h2>
+
+          <div class="control-group" id="animationButtons">
+            <button id="playBtn" class="control-btn">▶ 재생</button>
+            <button id="pauseBtn" class="control-btn">⏸ 일시정지</button>
+            <button id="stopBtn" class="control-btn">⏹ 정지</button>
+          </div>
+
+          <div class="control-group" id="speedControl">
+            <label class="speed-label">
+              속도: <span id="speedValue">1.0x</span>
+            </label>
+            <input type="range" id="speedSlider" min="0.5" max="3.0" step="0.5" value="1.0">
+          </div>
+
+          <!-- 애니메이션 진행도 -->
+          <div class="control-group progress-group">
+            <div class="progress-info">
+              <span class="progress-label">진행도</span>
+              <span class="progress-text" id="progressText">0%</span>
+            </div>
+            <div class="progress-slider-container">
+              <input
+                type="range"
+                id="progressSlider"
+                class="progress-slider"
+                min="0"
+                max="100"
+                value="0"
+                aria-label="애니메이션 진행도 조절">
+            </div>
+          </div>
+
+          <!-- 테이블 셀 애니메이션 -->
+          <div class="animation-test-group">
+            <h3 class="test-title">🎬 셀 애니메이션</h3>
+            <div class="animation-input-row">
+              <label>행: <input type="number" id="animRowIndex" value="" placeholder="-" min="0" max="20" class="anim-input"></label>
+              <label>열: <input type="number" id="animColIndex" value="" placeholder="-" min="0" max="10" class="anim-input"></label>
+            </div>
+            <div class="animation-input-row">
+              <label class="blink-checkbox"><input type="checkbox" id="animBlinkEnabled" checked> 블링크</label>
+              <label id="animRepeatLabel">반복: <input type="number" id="animRepeat" value="3" min="1" max="10" class="anim-input"></label>
+              <label>시간(ms): <input type="number" id="animDuration" value="1500" step="100" min="500" max="5000" class="anim-input"></label>
+            </div>
+            <div class="test-button-row">
+              <button id="addAnimationBtn" class="test-btn anim-btn">+ 추가</button>
+              <button id="playAllAnimBtn" class="test-btn anim-btn play-btn">▶ 재생</button>
+              <button id="clearAnimBtn" class="test-btn anim-btn stop-btn">초기화</button>
+            </div>
+            <div id="savedAnimList" class="saved-anim-list"></div>
+          </div>
+        </div>
+
+        <!-- 표 + 차트 영역 -->
+        <section class="result-section" id="resultSection" aria-label="분석 결과">
+          <div class="table-section">
+            <div class="table-header">
+              <h2 class="section-title">📋 도수분포표</h2>
+              <div id="datasetTabs" class="dataset-tabs">
+                <!-- 데이터셋 탭 버튼 동적 생성 -->
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <canvas id="frequencyTable" role="img" aria-label="도수분포표"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <h2 class="section-title">📈 히스토그램 & 상대도수 다각형</h2>
+            <div class="canvas-wrapper">
+              <canvas id="chart" role="img" aria-label="도수분포 히스토그램과 상대도수 다각형"></canvas>
+            </div>
+
+            <!-- 계급 범위 커스터마이징 섹션 -->
+            <div class="class-range-editor" id="classRangeEditor" style="display: none;">
+              <h3 class="editor-title">📝 계급 범위 커스터마이징</h3>
+              <div class="editor-info">
+                💡 첫 칸, 두 번째 칸, 마지막 칸의 범위를 설정할 수 있습니다. 중간 칸들은 두 번째 칸의 간격을 따라갑니다.
+              </div>
+              <div class="range-inputs">
+                <div class="range-input-group">
+                  <label>첫 계급:</label>
+                  <div class="range-display">
+                    <input type="number" id="firstStart" class="range-input" min="0" step="0.1" placeholder="0">
+                    <span class="range-separator">~</span>
+                    <span class="range-auto">(자동)</span>
+                  </div>
+                </div>
+                <div class="range-input-group">
+                  <label>두 번째:</label>
+                  <div class="range-display">
+                    <input type="number" id="secondStart" class="range-input" min="0" step="0.1" placeholder="2">
+                    <span class="range-separator">~</span>
+                    <span class="range-auto">(자동)</span>
+                    <span class="interval-display" id="intervalDisplay">(간격: 2)</span>
+                  </div>
+                </div>
+                <div class="range-input-group">
+                  <label>마지막 끝:</label>
+                  <div class="range-display">
+                    <span class="range-auto">(자동)</span>
+                    <span class="range-separator">~</span>
+                    <input type="number" id="lastEnd" class="range-input" min="0" step="0.1" placeholder="20">
+                  </div>
+                </div>
+              </div>
+              <button type="button" id="applyClassRangeBtn" class="btn btn-primary">적용</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 레이어 관리 패널 (오른쪽) -->
+        <aside class="layer-panel" id="layerPanel">
+          <div class="layer-panel-header">
+            <h2 class="section-title">🎨 레이어 관리</h2>
+            <button id="showAllLayersJsonBtn" class="all-json-btn" title="전체 레이어 JSON 미리보기">📄</button>
+          </div>
+
+          <!-- 레이어 소스 선택 드롭다운 -->
+          <div class="layer-source-selector">
+            <select id="layerSourceSelect" class="layer-source-select">
+              <option value="chart">📈 차트</option>
+              <option value="table">📋 테이블</option>
+            </select>
+          </div>
+
+          <div class="layer-list" id="layerList">
+            <!-- 레이어 목록이 여기에 동적으로 생성됩니다 -->
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- JSON 미리보기 모달 -->
+    <div id="jsonPreviewModal" class="modal" style="display: none;">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">📄 레이어 JSON 미리보기</h3>
+          <button class="modal-close-btn" id="modalCloseBtn" aria-label="닫기">✕</button>
+        </div>
+        <div class="modal-body">
+          <pre id="jsonPreviewContent" class="json-preview"></pre>
+        </div>
+        <div class="modal-footer">
+          <button id="copyJsonBtn" class="modal-btn primary">📋 복사</button>
+          <button id="closeModalBtn" class="modal-btn secondary">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 변수 편집 모달 -->
+    <div id="variableEditModal" class="modal" style="display: none;">
+      <div class="modal-overlay"></div>
+      <div class="modal-content variable-edit-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">도수분포표 편집</h3>
+          <button class="modal-close-btn" id="variableModalCloseBtn" aria-label="닫기">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-hint">셀을 클릭하여 변수로 변경할 수 있습니다. 빈칸은 <code>_</code> 입력. 빈 값으로 저장하면 원래 값으로 복원됩니다.</p>
+          <div class="modal-option">
+            <label>
+              <input type="checkbox" id="showSummaryRowCheckbox" checked>
+              합계 행 표시
+            </label>
+          </div>
+          <div class="modal-option" id="mergedHeaderOption" style="display: none;">
+            <label>
+              <input type="checkbox" id="showMergedHeaderCheckbox" checked>
+              상대도수 헤더 표시
+            </label>
+          </div>
+          <div id="variableEditTableContainer"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="variableCancelBtn" class="modal-btn secondary">취소</button>
+          <button id="variableSaveBtn" class="modal-btn primary">저장</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 데이터셋 섹션 템플릿 -->
+  <template id="datasetSectionTemplate">
+    <details class="dataset-section" open>
+      <summary class="dataset-header">
+        <span class="dataset-title"><span class="dataset-color-indicator" data-color="default"></span>📊 데이터셋 1</span>
+        <button class="dataset-remove-btn" type="button" title="삭제">✕</button>
+      </summary>
+      <div class="dataset-content">
+        <!-- 테이블 타입 선택 -->
+        <div class="input-group table-type-group">
+          <label>테이블 타입:</label>
+          <select class="dataset-table-type">
+            <option value="frequency">도수분포표</option>
+            <option value="category-matrix">카테고리 행렬</option>
+            <option value="cross-table">이원 분류표</option>
+            <option value="stem-leaf">줄기-잎 그림</option>
+          </select>
+        </div>
+
+        <div class="info dataset-type-hint" role="note">
+          💡 데이터를 쉼표(,) 또는 공백으로 구분하여 입력하세요. 예: 23, 45, 67, 34, 56
+        </div>
+
+        <div class="input-group">
+          <label class="dataset-data-label">데이터 입력:</label>
+          <textarea
+            class="dataset-data-input"
+            placeholder="예: 23, 45, 67, 34, 56, 78, 45, 89, 12, 34"
+            rows="3">62 87 97 73 59 85 80 79 65 75</textarea>
+        </div>
+
+        <!-- 도수분포표 전용 옵션 -->
+        <div class="row frequency-only-options">
+          <div class="input-group">
+            <label>계급 개수:</label>
+            <input
+              type="number"
+              class="dataset-class-count"
+              value="5"
+              min="3"
+              max="20">
+          </div>
+          <div class="input-group">
+            <label>계급 간격 (선택):</label>
+            <input
+              type="number"
+              class="dataset-class-width"
+              placeholder="자동 계산"
+              step="0.1"
+              min="0.1">
+          </div>
+        </div>
+
+        <!-- 차트 요소 표시 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
+          <label>
+            <input type="checkbox" class="dataset-show-histogram" checked>
+            <span>히스토그램 표시</span>
+          </label>
+          <div class="histogram-color-presets">
+            <span class="preset-label">색상:</span>
+            <label class="color-preset-btn" data-preset="default">
+              <input type="radio" class="dataset-histogram-color" value="default" checked>
+              <span class="preset-color preset-hist-default"></span>
+            </label>
+            <label class="color-preset-btn" data-preset="green">
+              <input type="radio" class="dataset-histogram-color" value="green">
+              <span class="preset-color preset-hist-green"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="table-options frequency-only-options">
+          <label>
+            <input type="checkbox" class="dataset-show-polygon" checked>
+            <span>도수 다각형 표시</span>
+          </label>
+          <div class="polygon-color-presets">
+            <span class="preset-label">색상:</span>
+            <label class="color-preset-btn" data-preset="default">
+              <input type="radio" class="dataset-polygon-color" value="default" checked>
+              <span class="preset-color preset-default"></span>
+            </label>
+            <label class="color-preset-btn" data-preset="primary">
+              <input type="radio" class="dataset-polygon-color" value="primary">
+              <span class="preset-color preset-primary"></span>
+            </label>
+            <label class="color-preset-btn" data-preset="secondary">
+              <input type="radio" class="dataset-polygon-color" value="secondary">
+              <span class="preset-color preset-secondary"></span>
+            </label>
+            <label class="color-preset-btn" data-preset="tertiary">
+              <input type="radio" class="dataset-polygon-color" value="tertiary">
+              <span class="preset-color preset-tertiary"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 표 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
+          <label>
+            <input type="checkbox" class="dataset-show-superscript" checked>
+            <span>첫 계급에 상첨자 표시 (이상/미만)</span>
+          </label>
+        </div>
+
+        <!-- 말풍선 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
+          <label>
+            <input type="checkbox" class="dataset-show-callout">
+            <span>말풍선 표시</span>
+          </label>
+          <div class="input-group" style="margin-top: 8px;">
+            <label>말풍선 텍스트:</label>
+            <input type="text" class="dataset-callout-template" placeholder="{datasetName}\n{frequency}명">
+          </div>
+        </div>
+
+        <!-- 막대 라벨 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
+          <label>
+            <input type="checkbox" class="dataset-show-bar-labels">
+            <span>막대 위 값 표시</span>
+          </label>
+        </div>
+
+        <!-- 파선 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
+          <label>
+            <input type="checkbox" class="dataset-show-dashed-lines">
+            <span>수직 파선 표시</span>
+          </label>
+        </div>
+
+        <!-- 합동 삼각형 옵션 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options">
+          <label>
+            <input type="checkbox" class="dataset-show-triangles">
+            <span>합동 삼각형 표시</span>
+          </label>
+          <div class="triangle-index-wrapper">
+            <span class="index-label">경계값:</span>
+            <input type="number" class="dataset-triangle-boundary" step="any" placeholder="예: 60">
+          </div>
+        </div>
+
+        <!-- Y축 모드 및 간격 설정 (도수분포표 전용) -->
+        <div class="table-options frequency-only-options y-axis-settings">
+          <span class="settings-label">Y축 설정:</span>
+          <div class="y-axis-mode-group" id="chartDataTypeRadios">
+            <!-- 동적 생성: 라디오 버튼 + 간격 입력 필드 -->
+          </div>
+        </div>
+      </div>
+    </details>
+  </template>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

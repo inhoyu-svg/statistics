@@ -476,6 +476,44 @@
     </div>
   </section>
 
+  <!-- 추가 기능 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 추가 기능</h2>
+    <div class="case-grid">
+
+      <!-- C9: 커스텀 막대 라벨 -->
+      <div class="case-card" id="case-c9">
+        <div class="case-header">
+          <h3>C9 - 커스텀 막대 라벨</h3>
+          <p class="case-desc">히스토그램 막대 안에 커스텀 텍스트 표시</p>
+        </div>
+        <div class="case-canvas" id="canvas-c9"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c9">{ } Config</button>
+          <button class="btn-layers" data-case="c9">◇ Layers</button>
+          <button class="btn-timeline" data-case="c9">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c9"></div>
+      </div>
+
+      <!-- C10: 합동 삼각형 -->
+      <div class="case-card" id="case-c10">
+        <div class="case-header">
+          <h3>C10 - 합동 삼각형</h3>
+          <p class="case-desc">경계값 기준 삼각형 시각화</p>
+        </div>
+        <div class="case-canvas" id="canvas-c10"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="c10">{ } Config</button>
+          <button class="btn-layers" data-case="c10">◇ Layers</button>
+          <button class="btn-timeline" data-case="c10">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-c10"></div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Config 모달 -->
   <div id="config-modal" class="modal">
     <div class="modal-overlay" onclick="closeModal('config-modal')"></div>
@@ -688,6 +726,45 @@
                 fiberEnabled: true,
                 fiberCount: 20
               }
+            }
+          }
+        }
+      },
+      c9: {
+        title: 'C9 - 커스텀 막대 라벨',
+        desc: '히스토그램 막대 안에 커스텀 텍스트 표시',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: true },
+          options: {
+            showPolygon: false,
+            showHistogram: true,
+            customBarLabels: [null, 'A', 'B', null, null, null],
+            showDashedLines: true,
+            axis: {
+              showYLabels: false
+            },
+            grid: {
+              showHorizontal: false,
+              showVertical: false
+            }
+          }
+        }
+      },
+      c10: {
+        title: 'C10 - 합동 삼각형',
+        desc: '경계값 기준 삼각형 시각화',
+        config: {
+          data: sampleData,
+          classCount: 5,
+          animation: { enabled: true },
+          options: {
+            showPolygon: true,
+            showHistogram: true,
+            congruentTriangles: {
+              enabled: true,
+              boundary: 64
             }
           }
         }

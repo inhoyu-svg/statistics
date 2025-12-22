@@ -62,6 +62,9 @@ class ChartRenderer {
     this.currentTableConfig = null;
     this.currentEffectiveClassCount = null;
 
+    // 차트별 CONFIG 스냅샷 (다중 차트 환경에서 독립적 설정 유지)
+    this.configSnapshot = null;
+
     // 테이블 렌더러 참조
     this.tableRenderer = null;
 
@@ -194,15 +197,16 @@ class ChartRenderer {
         );
       }
       // CONFIG 설정에 따라 조건부 렌더링
+      // 렌더링 순서: 히스토그램 → 합동 삼각형 → 도수다각형 (삼각형이 막대 앞, 다각형 뒤)
       if (CONFIG.SHOW_HISTOGRAM) {
         this.histogramRenderer.draw(values, freq, coords, ellipsisInfo, dataType);
       }
-      if (CONFIG.SHOW_POLYGON) {
-        this.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenPolygonIndices);
-      }
-      // 합동 삼각형 렌더링 (정적 모드)
+      // 합동 삼각형 렌더링 (정적 모드) - 히스토그램 뒤, 다각형 앞
       if (CONFIG.SHOW_CONGRUENT_TRIANGLES && CONFIG.SHOW_POLYGON) {
         this.triangleRenderer.drawStatic(values, coords);
+      }
+      if (CONFIG.SHOW_POLYGON) {
+        this.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenPolygonIndices);
       }
       // 파선 렌더링 (정적 모드)
       if (CONFIG.SHOW_DASHED_LINES && CONFIG.SHOW_POLYGON) {
@@ -341,17 +345,17 @@ class ChartRenderer {
     // 기존 타임라인의 끝에서 시작
     let currentTime = this.timeline.duration;
 
-    // 가장 최근에 추가된 레이어 찾기 (ID에 timestamp가 붙어있음)
+    // 가장 최근에 추가된 레이어 그룹 찾기 (그룹 ID는 '-group-' 패턴 포함)
     const allLayers = this.layerManager.getAllLayers().map(item => item.layer);
     const reversedLayers = [...allLayers].reverse();
 
-    const histogramGroup = reversedLayers.find(l => l.id.startsWith('histogram'));
-    const polygonGroup = reversedLayers.find(l => l.id.startsWith('polygon'));
-    const labelsGroup = reversedLayers.find(l => l.id.startsWith('bar-labels'));
-    const customLabelsGroup = reversedLayers.find(l => l.id.startsWith('bar-custom-labels'));
-    const dashedLinesGroup = reversedLayers.find(l => l.id.startsWith('dashed-lines'));
+    const histogramGroup = reversedLayers.find(l => l.id.startsWith('histogram-group'));
+    const polygonGroup = reversedLayers.find(l => l.id.startsWith('polygon-group'));
+    const labelsGroup = reversedLayers.find(l => l.id.startsWith('bar-labels-group'));
+    const customLabelsGroup = reversedLayers.find(l => l.id.startsWith('bar-custom-labels-group'));
+    const dashedLinesGroup = reversedLayers.find(l => l.id.startsWith('dashed-lines-group'));
 
-    const pointsGroup = polygonGroup?.children.find(c => c.id.startsWith('points'));
+    const pointsGroup = polygonGroup?.children.find(c => c.id.startsWith('points-group'));
 
     // 히스토그램도 다각형도 없으면 리턴
     if (!histogramGroup && !polygonGroup) return;
@@ -476,7 +480,7 @@ class ChartRenderer {
     }
 
     // 연결선 그룹 애니메이션 (모든 계급 완료 후)
-    const linesGroup = polygonGroup?.children.find(c => c.id.startsWith('lines'));
+    const linesGroup = polygonGroup?.children.find(c => c.id.startsWith('lines-group'));
     if (linesGroup && linesGroup.children) {
       currentTime += CONFIG.ANIMATION_LINE_START_DELAY;
 
@@ -491,7 +495,7 @@ class ChartRenderer {
       });
 
       // 말풍선 애니메이션 (모든 선이 완료된 후)
-      const calloutLayer = reversedLayers.find(l => l.id.startsWith('callout'));
+      const calloutLayer = reversedLayers.find(l => l.id.startsWith('callout-'));
       if (calloutLayer) {
         const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
         this.timeline.addAnimation(calloutLayer.id, {
@@ -504,7 +508,7 @@ class ChartRenderer {
       }
 
       // 합동 삼각형 애니메이션 (선 애니메이션 완료 후)
-      const trianglesGroup = reversedLayers.find(l => l.id.startsWith('triangles'));
+      const trianglesGroup = reversedLayers.find(l => l.id.startsWith('triangles-group'));
       if (trianglesGroup && trianglesGroup.children) {
         const lineEndTime = currentTime + (linesGroup.children.length * lineDelay) + lineDuration;
 
@@ -624,6 +628,22 @@ class ChartRenderer {
   renderFrame() {
     // 저장된 데이터가 없으면 리턴
     if (!this.currentClasses || !this.currentCoords) return;
+
+    // CONFIG 스냅샷 복원 (다중 차트 환경에서 독립적 설정 유지)
+    if (this.configSnapshot) {
+      CONFIG.AXIS_SHOW_Y_LABELS = this.configSnapshot.AXIS_SHOW_Y_LABELS;
+      CONFIG.AXIS_SHOW_X_LABELS = this.configSnapshot.AXIS_SHOW_X_LABELS;
+      CONFIG.AXIS_Y_LABEL_FORMAT = this.configSnapshot.AXIS_Y_LABEL_FORMAT;
+      CONFIG.SHOW_HISTOGRAM = this.configSnapshot.SHOW_HISTOGRAM;
+      CONFIG.SHOW_POLYGON = this.configSnapshot.SHOW_POLYGON;
+      CONFIG.SHOW_CONGRUENT_TRIANGLES = this.configSnapshot.SHOW_CONGRUENT_TRIANGLES;
+      CONFIG.SHOW_DASHED_LINES = this.configSnapshot.SHOW_DASHED_LINES;
+      CONFIG.SHOW_BAR_CUSTOM_LABELS = this.configSnapshot.SHOW_BAR_CUSTOM_LABELS;
+      CONFIG.BAR_CUSTOM_LABELS = this.configSnapshot.BAR_CUSTOM_LABELS;
+      CONFIG.CONGRUENT_TRIANGLE_INDEX = this.configSnapshot.CONGRUENT_TRIANGLE_INDEX;
+      CONFIG.GRID_SHOW_HORIZONTAL = this.configSnapshot.GRID_SHOW_HORIZONTAL;
+      CONFIG.GRID_SHOW_VERTICAL = this.configSnapshot.GRID_SHOW_VERTICAL;
+    }
 
     this.clear();
 

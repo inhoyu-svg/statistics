@@ -853,15 +853,34 @@ class TableRenderer {
     // 테이블 구조 파악: 헤더, 데이터 행들, 합계
     const rowStructure = this._getTableRowStructure(tableLayer, prefix);
 
-    // 1. colIndex + rowStart/rowEnd: 특정 열의 행 범위
-    if (colIndex !== null && rowStart !== null && rowEnd !== null) {
+    // 1. rowStart/rowEnd + colStart/colEnd: 영역 범위 (사각형)
+    if (rowStart !== null && rowEnd !== null && colStart !== null && colEnd !== null) {
+      for (let r = rowStart; r <= rowEnd; r++) {
+        if (r >= 0 && r < rowStructure.length) {
+          const rowInfo = rowStructure[r];
+          if (rowInfo) {
+            const rowLayer = this.layerManager.findLayer(rowInfo.layerId);
+            if (rowLayer) {
+              const maxCol = rowLayer.children.length - 1;
+              for (let c = colStart; c <= colEnd; c++) {
+                if (c >= 0 && c <= maxCol) {
+                  targets.push({ row: r, col: c });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    // 2. colIndex + rowStart/rowEnd: 특정 열의 행 범위
+    else if (colIndex !== null && rowStart !== null && rowEnd !== null) {
       for (let r = rowStart; r <= rowEnd; r++) {
         if (r >= 0 && r < rowStructure.length) {
           targets.push({ row: r, col: colIndex });
         }
       }
     }
-    // 2. rowIndex + colStart/colEnd: 특정 행의 열 범위
+    // 3. rowIndex + colStart/colEnd: 특정 행의 열 범위
     else if (rowIndex !== null && colStart !== null && colEnd !== null) {
       const rowInfo = rowStructure[rowIndex];
       if (rowInfo) {
@@ -876,7 +895,7 @@ class TableRenderer {
         }
       }
     }
-    // 3. 행만 지정: 해당 행의 모든 셀
+    // 4. 행만 지정: 해당 행의 모든 셀
     else if (rowIndex !== null && colIndex === null) {
       const rowInfo = rowStructure[rowIndex];
       if (rowInfo) {
@@ -888,13 +907,13 @@ class TableRenderer {
         }
       }
     }
-    // 4. 열만 지정: 해당 열의 모든 행
+    // 5. 열만 지정: 해당 열의 모든 행
     else if (rowIndex === null && colIndex !== null) {
       rowStructure.forEach((rowInfo, idx) => {
         targets.push({ row: idx, col: colIndex });
       });
     }
-    // 5. 둘 다 지정: 특정 셀
+    // 6. 둘 다 지정: 특정 셀
     else if (rowIndex !== null && colIndex !== null) {
       targets.push({ row: rowIndex, col: colIndex });
     }
