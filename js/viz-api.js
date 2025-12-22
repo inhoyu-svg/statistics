@@ -563,6 +563,14 @@ export async function renderChart(element, config) {
     // 10. Apply corruption effect (if enabled)
     if (options.corruption?.enabled) {
       const coords = chartRenderer.currentCoords;
+      // 실제 보이는 막대 개수 계산 (압축 구간 고려)
+      let visibleBarCount;
+      if (ellipsisInfo && ellipsisInfo.show) {
+        // 압축 시: 1(압축 구간) + (전체 - 첫 데이터 인덱스)
+        visibleBarCount = 1 + (classes.length - ellipsisInfo.firstDataIndex);
+      } else {
+        visibleBarCount = classes.length;
+      }
       const chartInfo = {
         padding: chartRenderer.padding,
         barWidth: coords.xScale,
@@ -570,7 +578,7 @@ export async function renderChart(element, config) {
         chartHeight: coords.chartH,
         gridDivisions: coords.gridDivisions,
         canvasHeight: canvas.height,
-        barCount: classes.length
+        barCount: visibleBarCount
       };
       applyChartCorruption(chartRenderer.ctx, options.corruption, chartInfo);
     }

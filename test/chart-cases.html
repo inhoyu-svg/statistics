@@ -394,7 +394,7 @@
       <div class="case-card" id="case-c4">
         <div class="case-header">
           <h3>C4 - 찢어진 히스토그램</h3>
-          <p class="case-desc">Corruption 효과 + 히스토그램만</p>
+          <p class="case-desc">Corruption 효과 + 히스토그램만 (edgeColor)</p>
         </div>
         <div class="case-canvas" id="canvas-c4"></div>
         <div class="case-controls">
@@ -409,7 +409,7 @@
       <div class="case-card" id="case-c5">
         <div class="case-header">
           <h3>C5 - 찢어진 도수 다각형</h3>
-          <p class="case-desc">Corruption 효과 + 다각형만</p>
+          <p class="case-desc">Corruption 효과 + 다각형만 (fiber)</p>
         </div>
         <div class="case-canvas" id="canvas-c5"></div>
         <div class="case-controls">
@@ -424,7 +424,7 @@
       <div class="case-card" id="case-c6">
         <div class="case-header">
           <h3>C6 - 찢어진 도수다각형 + 히스토그램</h3>
-          <p class="case-desc">Corruption 효과 + 기본 조합</p>
+          <p class="case-desc">Corruption 효과 + 기본 조합 (edge + fiber)</p>
         </div>
         <div class="case-canvas" id="canvas-c6"></div>
         <div class="case-controls">
@@ -462,7 +462,7 @@
       <div class="case-card" id="case-c8">
         <div class="case-header">
           <h3>C8 - 찢어진 복수의 도수다각형</h3>
-          <p class="case-desc">Corruption 효과 + 복수 다각형</p>
+          <p class="case-desc">Corruption 효과 + 복수 다각형 (edge + fiber)</p>
         </div>
         <div class="case-canvas" id="canvas-c8"></div>
         <div class="case-controls">
@@ -583,51 +583,70 @@
       },
       c4: {
         title: 'C4 - 찢어진 히스토그램',
-        desc: 'Corruption 효과 + 히스토그램만',
+        desc: 'Corruption 효과 + 히스토그램만 (edgeColor)',
         config: {
           data: sampleData,
           classCount: 5,
-          animation: { enabled: false },
+          animation: false,
           options: {
             showPolygon: false,
             showHistogram: true,
             corruption: {
               enabled: true,
-              barIndex: 2
+              cells: '0-9:3-7',
+              style: {
+                edgeComplexity: 0.8,
+                edgeColorEnabled: true,
+                edgeColor: 'rgba(136, 136, 136, 1)'
+              }
             }
           }
         }
       },
       c5: {
         title: 'C5 - 찢어진 도수 다각형',
-        desc: 'Corruption 효과 + 다각형만',
+        desc: 'Corruption 효과 + 다각형만 (fiber)',
         config: {
           data: sampleData,
           classCount: 5,
-          animation: { enabled: false },
+          animation: false,
           options: {
             showPolygon: true,
             showHistogram: false,
             corruption: {
               enabled: true,
-              barIndex: 2
+              cells: '2-9:3-4',
+              style: {
+                edgeComplexity: 0.7,
+                fiberEnabled: true,
+                fiberCount: 25,
+                fiberColor: 'rgba(136, 136, 136, 0.8)'
+              }
             }
           }
         }
       },
       c6: {
         title: 'C6 - 찢어진 도수다각형 + 히스토그램',
-        desc: 'Corruption 효과 + 기본 조합',
+        desc: 'Corruption 효과 + 기본 조합 (edge + fiber)',
         config: {
           data: sampleData,
           classCount: 5,
-          animation: { enabled: false },
+          animation: false,
           options: {
             showPolygon: true,
             showHistogram: true,
             corruption: {
               enabled: true,
-              barIndex: 2
+              cells: '5-9:7-4',
+              style: {
+                edgeComplexity: 0.8,
+                edgeColorEnabled: true,
+                edgeColor: 'rgba(136, 136, 136, 1)',
+                fiberEnabled: true,
+                fiberCount: 20,
+                fiberColor: 'rgba(136, 136, 136, 0.7)'
+              }
             }
           }
         }
@@ -649,7 +668,7 @@
       },
       c8: {
         title: 'C8 - 찢어진 복수의 도수다각형',
-        desc: 'Corruption 효과 + 복수 다각형',
+        desc: 'Corruption 효과 + 복수 다각형 (edge + fiber)',
         config: {
           classCount: 5,
           animation: { enabled: false },
@@ -661,7 +680,14 @@
             showHistogram: false,
             corruption: {
               enabled: true,
-              barIndex: 2
+              cells: '2-0:2-4',
+              style: {
+                edgeComplexity: 0.8,
+                edgeColorEnabled: true,
+                edgeColor: 'rgba(136, 136, 136, 1)',
+                fiberEnabled: true,
+                fiberCount: 20
+              }
             }
           }
         }
@@ -680,6 +706,8 @@
 
         try {
           let result;
+          console.log(`[${caseId}] Rendering with config:`, caseData.config);
+
           if (caseData.config.datasets) {
             // 복수 다각형
             result = await VizAPI.render(container, {
@@ -690,6 +718,7 @@
             result = await VizAPI.renderChart(container, caseData.config);
           }
 
+          console.log(`[${caseId}] Result:`, result);
           renderers[caseId] = result;
           statusEl.textContent = '렌더링 완료';
           statusEl.className = 'status success';

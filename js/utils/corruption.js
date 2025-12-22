@@ -586,25 +586,32 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
   const cellSet = chartRangesToCellSet(ranges);
 
   // 축에 닿는 셀 확인 (maskAxisLabels용)
+  // 차트 영역 내 셀(visibleMaxX)과 전체 셀(maxX)을 구분
+  const lastBarIndex = chartInfo.barCount ? chartInfo.barCount - 1 : Infinity;
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  let visibleMaxX = -Infinity;  // 클리핑 영역 내 가장 오른쪽 x
   cellSet.forEach(key => {
     const [x, y] = key.split('-').map(Number);
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
     if (y > maxY) maxY = y;
+    // 차트 영역 내 셀만 visibleMaxX에 포함
+    if (x <= lastBarIndex && x > visibleMaxX) visibleMaxX = x;
   });
   const touchesYAxis = minX === 0;
   const touchesXAxis = minY === 0;
   const touchesTop = maxY >= (chartInfo.gridDivisions - 1);  // 차트 상단에 닿는지
-  const touchesRight = chartInfo.barCount && maxX >= (chartInfo.barCount - 1);  // 차트 오른쪽 끝에 닿는지
+  // 차트 오른쪽 끝: 마지막 막대(barCount - 1)에 닿으면 우측 끝까지 확장
+  const touchesRight = chartInfo.barCount && maxX >= chartInfo.barCount - 1;
 
   // 인접 여부 확인 헬퍼 (차트는 Y=0이 하단)
+  // 차트 영역 밖(x > lastBarIndex)의 셀은 클리핑되므로 인접하지 않은 것으로 취급
   const getAdjacency = (x, y) => ({
     hasTop: cellSet.has(`${x}-${y + 1}`),     // Y가 클수록 위
     hasBottom: cellSet.has(`${x}-${y - 1}`),  // Y가 작을수록 아래
     hasLeft: cellSet.has(`${x - 1}-${y}`),
-    hasRight: cellSet.has(`${x + 1}-${y}`)
+    hasRight: cellSet.has(`${x + 1}-${y}`) && (x + 1) <= lastBarIndex  // 차트 밖 셀은 무시
   });
 
   // 각 셀의 4변 경로를 미리 생성 (외곽은 찢김, 인접은 직선+오버랩)
@@ -639,9 +646,10 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
       topY = cell.y - 15;
     }
 
-    // 차트 오른쪽 끝 찢김: maskAxisLabels와 관계없이 항상 차트 오른쪽 테두리까지 확장
-    if (touchesRight && x === maxX && !adj.hasRight) {
-      rightX = cell.x + cell.width + 15;
+    // 차트 오른쪽 끝 찢김: 클리핑 영역 끝까지 확장 (클리핑이 잘라줌)
+    if (touchesRight && x === visibleMaxX && !adj.hasRight) {
+      const chartRightEdge = chartInfo.padding + (chartInfo.barWidth + chartInfo.gap) * (chartInfo.barCount + 1);
+      rightX = chartRightEdge;
     }
 
     // 각 변의 경로 생성 (외곽은 찢김, 인접은 직선)
@@ -675,7 +683,7 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
   // 차트 영역 클리핑 (축 라벨 영역만 보호, 그리드는 마스킹 허용)
   const clipX = chartInfo.padding;
   const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight - 15; // 상단 라벨 위 여유
-  const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+  const clipWidth = (chartInfo.barWidth + chartInfo.gap) * (chartInfo.barCount + 1);
   const clipHeight = chartInfo.chartHeight + 15;
   ctx.beginPath();
   ctx.rect(clipX, clipY, clipWidth, clipHeight);
@@ -707,13 +715,13 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
 
     ctx.save();
 
-    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단 - 산점도처럼 정확한 영역만)
     const clipX = chartInfo.padding;
     const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight;
-    const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+    const clipWidth = chartInfo.barWidth * chartInfo.barCount;
     const clipHeight = chartInfo.chartHeight;
     ctx.beginPath();
-    ctx.rect(clipX - 2, clipY - 2, clipWidth + 4, clipHeight + 4);
+    ctx.rect(clipX, clipY, clipWidth, clipHeight);
     ctx.clip();
 
     ctx.strokeStyle = edgeColor;
@@ -757,13 +765,13 @@ export function applyChartCorruption(ctx, corruptionOptions, chartInfo) {
   if (style.fiberEnabled) {
     ctx.save();
 
-    // 차트 영역 클리핑 (영역 밖 렌더링 차단)
+    // 차트 영역 클리핑 (영역 밖 렌더링 차단 - 산점도처럼 정확한 영역만)
     const clipX = chartInfo.padding;
     const clipY = chartInfo.canvasHeight - chartInfo.padding - chartInfo.chartHeight;
-    const clipWidth = (chartInfo.barCount + 1) * chartInfo.barWidth;
+    const clipWidth = chartInfo.barWidth * chartInfo.barCount;
     const clipHeight = chartInfo.chartHeight;
     ctx.beginPath();
-    ctx.rect(clipX - 2, clipY - 2, clipWidth + 4, clipHeight + 4);
+    ctx.rect(clipX, clipY, clipWidth, clipHeight);
     ctx.clip();
 
     const fiberColor = style.fiberColor || 'rgba(136, 136, 136, 1)';
