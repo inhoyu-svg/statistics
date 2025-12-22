@@ -72,11 +72,23 @@
       color: var(--primary);
     }
 
-    /* 케이스 그리드 */
+    /* 케이스 그리드 - 3열 고정 */
     .case-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .case-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 800px) {
+      .case-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* 케이스 카드 */

@@ -72,11 +72,23 @@
       color: var(--primary);
     }
 
-    /* 케이스 그리드 */
+    /* 케이스 그리드 - 3열 고정 */
     .case-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .case-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 800px) {
+      .case-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* 케이스 카드 */
@@ -369,6 +381,21 @@
         <div class="status" id="status-t2"></div>
       </div>
 
+      <!-- T2a: 탈리마크 도수분포표 -->
+      <div class="case-card" id="case-t2a">
+        <div class="case-header">
+          <h3>T2a - 탈리마크 도수분포표</h3>
+          <p class="case-desc">탈리마크(///)와 도수가 함께 표시된 표</p>
+        </div>
+        <div class="case-canvas" id="canvas-t2a"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t2a">{ } Config</button>
+          <button class="btn-layers" data-case="t2a">◇ Layers</button>
+          <button class="btn-timeline" data-case="t2a">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t2a"></div>
+      </div>
+
       <!-- T3: 이원분류표 -->
       <div class="case-card" id="case-t3">
         <div class="case-header">
@@ -397,6 +424,21 @@
           <button class="btn-timeline" data-case="t4">▶ Timeline</button>
         </div>
         <div class="status" id="status-t4"></div>
+      </div>
+
+      <!-- T4a: 변량 테이블 (문자 변수) -->
+      <div class="case-card" id="case-t4a">
+        <div class="case-header">
+          <h3>T4a - 변량 테이블 (문자 변수)</h3>
+          <p class="case-desc">a, b 등 문자 변수가 포함된 변량 테이블</p>
+        </div>
+        <div class="case-canvas" id="canvas-t4a"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="t4a">{ } Config</button>
+          <button class="btn-layers" data-case="t4a">◇ Layers</button>
+          <button class="btn-timeline" data-case="t4a">▶ Timeline</button>
+        </div>
+        <div class="status" id="status-t4a"></div>
       </div>
 
     </div>
@@ -735,6 +777,24 @@
           }
         }
       },
+      t2a: {
+        title: 'T2a - 탈리마크 도수분포표',
+        desc: '탈리마크(///)와 도수가 함께 표시된 표',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: 기록(m), 학생 수(명)*2\n20^{이상} ~ 25^{미만}: ///, 3\n25 ~ 30: //////, 6\n30 ~ 35: ////////, 8\n35 ~ 40: ////////, 8\n40 ~ 45: /////, 5',
+          animation: false,
+          cellVariables: [
+            { rowIndex: 6, colIndex: 1, value: null },
+            { rowIndex: 6, colIndex: 2, value: '30' }
+          ],
+          options: {
+            showMergedHeader: false,
+            showTotal: true
+          }
+        }
+      },
       t3: {
         title: 'T3 - 이원분류표',
         desc: '병합 헤더가 있는 이원분류표',
@@ -761,6 +821,19 @@
             showGrid: false,
             showTotal: false,
             showMergedHeader: false
+          }
+        }
+      },
+      t4a: {
+        title: 'T4a - 변량 테이블 (문자 변수)',
+        desc: 'a, b 등 문자 변수가 포함된 변량 테이블',
+        config: {
+          purpose: 'table',
+          tableType: 'basic-table',
+          data: '헤더: null, null, null, null, null, null\n자료 A: 14, a, 12, 16, b\n자료 B: 14, b-1, 18, 13, 11',
+          animation: false,
+          options: {
+            showGrid: false
           }
         }
       },

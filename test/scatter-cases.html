@@ -70,11 +70,23 @@
       color: var(--primary);
     }
 
-    /* 케이스 그리드 */
+    /* 케이스 그리드 - 3열 고정 */
     .case-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .case-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 800px) {
+      .case-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* 케이스 카드 */
@@ -350,6 +362,19 @@
         <div class="status" id="status-s8"></div>
       </div>
 
+      <!-- S9: 찢어진 산점도 (다중 영역) -->
+      <div class="case-card" id="case-s9">
+        <div class="case-header">
+          <h3>S9 - 찢어진 산점도 (다중 영역)</h3>
+          <p class="case-desc">여러 영역에 corruption 적용</p>
+        </div>
+        <div class="case-canvas" id="canvas-s9"></div>
+        <div class="case-controls">
+          <button class="btn-config" data-case="s9">{ } Config</button>
+        </div>
+        <div class="status" id="status-s9"></div>
+      </div>
+
     </div>
   </section>
 
@@ -572,6 +597,27 @@
                 fiberEnabled: true,
                 fiberCount: 25,
                 fiberColor: 'rgba(136, 136, 136, 0.8)'
+              }
+            }
+          }
+        }
+      },
+      s9: {
+        title: 'S9 - 찢어진 산점도 (다중 영역)',
+        desc: '여러 영역에 corruption 적용',
+        config: {
+          purpose: 'scatter',
+          data: [[5, 5], [15, 15], [20, 20], [30, 30], [5, 15], [10, 30], [15, 25], [20, 5], [20, 35], [25, 10], [25, 15], [25, 25], [30, 25], [30, 35], [30, 45], [35, 35], [50, 50]],
+          canvasWidth: 600,
+          canvasHeight: 600,
+          options: {
+            axisLabels: { xAxis: '듣기 점수(점)', yAxis: '말하기 점수(점)' },
+            pointSize: 7,
+            corruption: {
+              enabled: true,
+              cells: ['4-1:6-2', '5-3:6-3'],
+              style: {
+                edgeColorEnabled: true
               }
             }
           }
