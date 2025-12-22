@@ -858,7 +858,8 @@ export async function renderTable(element, config) {
  * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
  * @param {number} [config.options.pointSize=6] - Point radius
  * @param {string} [config.options.pointColor='#93DA6A'] - Point color
- * @returns {Promise<Object>} { canvas, coords, range } or { error }
+ * @param {boolean} [config.options.animation=true] - Enable animation
+ * @returns {Promise<Object>} { canvas, coords, range, scatterRenderer, layerManager, timeline } or { error }
  */
 export async function renderScatter(element, config) {
   try {
@@ -886,15 +887,30 @@ export async function renderScatter(element, config) {
     const canvas = document.createElement('canvas');
     element.appendChild(canvas);
 
-    // 4. Render scatter plot
-    const result = ScatterRenderer.render(canvas, config);
+    // 4. Create ScatterRenderer instance
+    const scatterRenderer = new ScatterRenderer(canvas);
+
+    // 5. Check animation option
+    const options = config.options || {};
+    const animationConfig = config.animation !== undefined ? config.animation : options.animation;
+    const animation = typeof animationConfig === 'object'
+      ? animationConfig.enabled !== false
+      : animationConfig !== false;
+
+    // 애니메이션 비활성화: 명시적 비활성화 또는 corruption 효과 적용 시
+    const hasCorruption = options.corruption?.enabled;
+    if (!animation || hasCorruption) {
+      scatterRenderer.disableAnimation();
+    }
+
+    // 6. Render scatter plot
+    const result = scatterRenderer.render(config);
 
     if (result.error) {
       return { error: result.error };
     }
 
-    // 5. Apply corruption effect
-    const options = config.options || {};
+    // 7. Apply corruption effect
     if (options.corruption?.enabled) {
       const ctx = canvas.getContext('2d');
       const scatterInfo = {
@@ -908,10 +924,16 @@ export async function renderScatter(element, config) {
       applyScatterCorruption(ctx, options.corruption, scatterInfo);
     }
 
+    // 8. Animation is already set up in render() when animationMode is true
+    // Initial state is already at the end (all points visible)
+
     return {
       canvas,
       coords: result.coords,
-      range: result.range
+      range: result.range,
+      scatterRenderer,
+      layerManager: scatterRenderer.layerManager,
+      timeline: scatterRenderer.timeline
     };
 
   } catch (error) {

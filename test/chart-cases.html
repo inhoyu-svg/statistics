@@ -414,7 +414,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="c4">{ } Config</button>
           <button class="btn-layers" data-case="c4">◇ Layers</button>
-          <button class="btn-timeline" data-case="c4">▶ Timeline</button>
         </div>
         <div class="status" id="status-c4"></div>
       </div>
@@ -429,7 +428,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="c5">{ } Config</button>
           <button class="btn-layers" data-case="c5">◇ Layers</button>
-          <button class="btn-timeline" data-case="c5">▶ Timeline</button>
         </div>
         <div class="status" id="status-c5"></div>
       </div>
@@ -444,7 +442,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="c6">{ } Config</button>
           <button class="btn-layers" data-case="c6">◇ Layers</button>
-          <button class="btn-timeline" data-case="c6">▶ Timeline</button>
         </div>
         <div class="status" id="status-c6"></div>
       </div>
@@ -467,7 +464,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="c7">{ } Config</button>
           <button class="btn-layers" data-case="c7">◇ Layers</button>
-          <button class="btn-timeline" data-case="c7">▶ Timeline</button>
         </div>
         <div class="status" id="status-c7"></div>
       </div>
@@ -482,7 +478,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="c8">{ } Config</button>
           <button class="btn-layers" data-case="c8">◇ Layers</button>
-          <button class="btn-timeline" data-case="c8">▶ Timeline</button>
         </div>
         <div class="status" id="status-c8"></div>
       </div>
@@ -842,11 +837,11 @@
         });
       });
 
-      // Timeline 버튼
+      // Timeline 버튼 - 바로 재생
       document.querySelectorAll('.btn-timeline').forEach(btn => {
         btn.addEventListener('click', () => {
           const caseId = btn.dataset.case;
-          showTimeline(caseId);
+          playTimeline(caseId);
         });
       });
 
@@ -883,6 +878,41 @@
           renderers[currentCaseId].chartRenderer.setAnimationSpeed(speed);
         }
       });
+    }
+
+    // Timeline 애니메이션 바로 재생
+    function playTimeline(caseId) {
+      const renderer = renderers[caseId];
+      if (!renderer?.chartRenderer) {
+        console.error(`No chartRenderer found for ${caseId}`);
+        return;
+      }
+
+      const statusEl = document.getElementById(`status-${caseId}`);
+
+      // 애니메이션 비활성화된 케이스 체크
+      if (!renderer.chartRenderer.timeline || renderer.chartRenderer.animationMode === false) {
+        statusEl.textContent = '애니메이션 비활성화됨';
+        statusEl.className = 'status error';
+        return;
+      }
+
+      statusEl.textContent = '애니메이션 재생 중...';
+      statusEl.className = 'status';
+
+      // 애니메이션 재생 (처음부터)
+      renderer.chartRenderer.replayAnimation();
+
+      // 완료 콜백
+      const checkComplete = () => {
+        if (renderer.chartRenderer.timeline.currentTime >= renderer.chartRenderer.timeline.duration) {
+          statusEl.textContent = '렌더링 완료';
+          statusEl.className = 'status success';
+        } else {
+          requestAnimationFrame(checkComplete);
+        }
+      };
+      setTimeout(checkComplete, 100);
     }
 
     // Config 모달 표시

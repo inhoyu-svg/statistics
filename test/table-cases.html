@@ -361,7 +361,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t1">{ } Config</button>
           <button class="btn-layers" data-case="t1">◇ Layers</button>
-          <button class="btn-timeline" data-case="t1">▶ Timeline</button>
         </div>
         <div class="status" id="status-t1"></div>
       </div>
@@ -376,7 +375,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t2">{ } Config</button>
           <button class="btn-layers" data-case="t2">◇ Layers</button>
-          <button class="btn-timeline" data-case="t2">▶ Timeline</button>
         </div>
         <div class="status" id="status-t2"></div>
       </div>
@@ -391,7 +389,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t2a">{ } Config</button>
           <button class="btn-layers" data-case="t2a">◇ Layers</button>
-          <button class="btn-timeline" data-case="t2a">▶ Timeline</button>
         </div>
         <div class="status" id="status-t2a"></div>
       </div>
@@ -406,7 +403,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t3">{ } Config</button>
           <button class="btn-layers" data-case="t3">◇ Layers</button>
-          <button class="btn-timeline" data-case="t3">▶ Timeline</button>
         </div>
         <div class="status" id="status-t3"></div>
       </div>
@@ -421,7 +417,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t4">{ } Config</button>
           <button class="btn-layers" data-case="t4">◇ Layers</button>
-          <button class="btn-timeline" data-case="t4">▶ Timeline</button>
         </div>
         <div class="status" id="status-t4"></div>
       </div>
@@ -436,7 +431,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t4a">{ } Config</button>
           <button class="btn-layers" data-case="t4a">◇ Layers</button>
-          <button class="btn-timeline" data-case="t4a">▶ Timeline</button>
         </div>
         <div class="status" id="status-t4a"></div>
       </div>
@@ -459,7 +453,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t5">{ } Config</button>
           <button class="btn-layers" data-case="t5">◇ Layers</button>
-          <button class="btn-timeline" data-case="t5">▶ Timeline</button>
         </div>
         <div class="status" id="status-t5"></div>
       </div>
@@ -474,7 +467,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t6">{ } Config</button>
           <button class="btn-layers" data-case="t6">◇ Layers</button>
-          <button class="btn-timeline" data-case="t6">▶ Timeline</button>
         </div>
         <div class="status" id="status-t6"></div>
       </div>
@@ -497,7 +489,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t7">{ } Config</button>
           <button class="btn-layers" data-case="t7">◇ Layers</button>
-          <button class="btn-timeline" data-case="t7">▶ Timeline</button>
         </div>
         <div class="status" id="status-t7"></div>
       </div>
@@ -512,7 +503,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t7a">{ } Config</button>
           <button class="btn-layers" data-case="t7a">◇ Layers</button>
-          <button class="btn-timeline" data-case="t7a">▶ Timeline</button>
         </div>
         <div class="status" id="status-t7a"></div>
       </div>
@@ -527,7 +517,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t7b">{ } Config</button>
           <button class="btn-layers" data-case="t7b">◇ Layers</button>
-          <button class="btn-timeline" data-case="t7b">▶ Timeline</button>
         </div>
         <div class="status" id="status-t7b"></div>
       </div>
@@ -550,7 +539,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t8">{ } Config</button>
           <button class="btn-layers" data-case="t8">◇ Layers</button>
-          <button class="btn-timeline" data-case="t8">▶ Timeline</button>
         </div>
         <div class="status" id="status-t8"></div>
       </div>
@@ -565,7 +553,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t9">{ } Config</button>
           <button class="btn-layers" data-case="t9">◇ Layers</button>
-          <button class="btn-timeline" data-case="t9">▶ Timeline</button>
         </div>
         <div class="status" id="status-t9"></div>
       </div>
@@ -580,7 +567,6 @@
         <div class="case-controls">
           <button class="btn-config" data-case="t10">{ } Config</button>
           <button class="btn-layers" data-case="t10">◇ Layers</button>
-          <button class="btn-timeline" data-case="t10">▶ Timeline</button>
         </div>
         <div class="status" id="status-t10"></div>
       </div>
@@ -1157,18 +1143,50 @@
         });
       });
 
-      // Timeline 버튼
+      // Timeline 버튼 - 바로 재생
       document.querySelectorAll('.btn-timeline').forEach(btn => {
         btn.addEventListener('click', () => {
           const caseId = btn.dataset.case;
-          const renderer = renderers[caseId];
-          showTimelineModal(caseId, renderer);
+          playTimeline(caseId);
         });
       });
 
       // 모달 닫기
       document.querySelector('.modal-overlay').addEventListener('click', closeModal);
       document.querySelector('.modal-close').addEventListener('click', closeModal);
+    }
+
+    // Timeline 애니메이션 바로 재생
+    function playTimeline(caseId) {
+      const renderer = renderers[caseId];
+      const statusEl = document.getElementById(`status-${caseId}`);
+
+      if (!renderer?.tableRenderer) {
+        console.error(`No tableRenderer found for ${caseId}`);
+        return;
+      }
+
+      const tableRenderer = renderer.tableRenderer;
+      const hasCellAnimations = tableRenderer?.savedAnimations?.length > 0;
+
+      // 셀 애니메이션이 있는 경우
+      if (hasCellAnimations) {
+        statusEl.textContent = '셀 애니메이션 재생 중...';
+        statusEl.className = 'status';
+
+        tableRenderer.playAllAnimations();
+
+        // 애니메이션 완료 후 상태 업데이트
+        setTimeout(() => {
+          statusEl.textContent = '렌더링 완료';
+          statusEl.className = 'status success';
+        }, tableRenderer.savedAnimations[0]?.duration * tableRenderer.savedAnimations[0]?.repeat || 5000);
+        return;
+      }
+
+      // 셀 애니메이션 없으면 비활성화 메시지
+      statusEl.textContent = '애니메이션 없음';
+      statusEl.className = 'status error';
     }
 
     // Config 모달

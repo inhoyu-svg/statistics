@@ -145,6 +145,11 @@
       background: var(--btn-config);
       color: #fff;
     }
+    .btn-timeline {
+      background: var(--primary);
+      color: #1a1a2e;
+      font-weight: 500;
+    }
 
     /* 상태 표시 */
     .status {
@@ -258,6 +263,7 @@
         </div>
         <div class="case-canvas" id="canvas-s1"></div>
         <div class="case-controls">
+          <button class="btn-timeline" data-case="s1">▶ Timeline</button>
           <button class="btn-config" data-case="s1">{ } Config</button>
         </div>
         <div class="status" id="status-s1"></div>
@@ -271,6 +277,7 @@
         </div>
         <div class="case-canvas" id="canvas-s2"></div>
         <div class="case-controls">
+          <button class="btn-timeline" data-case="s2">▶ Timeline</button>
           <button class="btn-config" data-case="s2">{ } Config</button>
         </div>
         <div class="status" id="status-s2"></div>
@@ -284,6 +291,7 @@
         </div>
         <div class="case-canvas" id="canvas-s3"></div>
         <div class="case-controls">
+          <button class="btn-timeline" data-case="s3">▶ Timeline</button>
           <button class="btn-config" data-case="s3">{ } Config</button>
         </div>
         <div class="status" id="status-s3"></div>
@@ -297,6 +305,7 @@
         </div>
         <div class="case-canvas" id="canvas-s4"></div>
         <div class="case-controls">
+          <button class="btn-timeline" data-case="s4">▶ Timeline</button>
           <button class="btn-config" data-case="s4">{ } Config</button>
         </div>
         <div class="status" id="status-s4"></div>
@@ -310,6 +319,7 @@
         </div>
         <div class="case-canvas" id="canvas-s5"></div>
         <div class="case-controls">
+          <button class="btn-timeline" data-case="s5">▶ Timeline</button>
           <button class="btn-config" data-case="s5">{ } Config</button>
         </div>
         <div class="status" id="status-s5"></div>
@@ -323,6 +333,7 @@
         </div>
         <div class="case-canvas" id="canvas-s6"></div>
         <div class="case-controls">
+          <button class="btn-timeline" data-case="s6">▶ Timeline</button>
           <button class="btn-config" data-case="s6">{ } Config</button>
         </div>
         <div class="status" id="status-s6"></div>
@@ -658,12 +669,48 @@
 
     // 컨트롤 버튼 이벤트 바인딩
     function bindControlButtons() {
+      // Config 버튼
       document.querySelectorAll('.btn-config').forEach(btn => {
         btn.addEventListener('click', () => {
           const caseId = btn.dataset.case;
           showConfig(caseId);
         });
       });
+
+      // Timeline 버튼
+      document.querySelectorAll('.btn-timeline').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const caseId = btn.dataset.case;
+          playTimeline(caseId);
+        });
+      });
+    }
+
+    // Timeline 애니메이션 재생
+    function playTimeline(caseId) {
+      const renderer = renderers[caseId];
+      if (!renderer || !renderer.scatterRenderer) {
+        console.error(`No scatterRenderer found for ${caseId}`);
+        return;
+      }
+
+      const statusEl = document.getElementById(`status-${caseId}`);
+      statusEl.textContent = '애니메이션 재생 중...';
+      statusEl.classList.remove('error', 'success');
+
+      // 애니메이션 재생
+      renderer.scatterRenderer.replayAnimation();
+
+      // 완료 콜백
+      const checkComplete = () => {
+        if (renderer.timeline.currentTime >= renderer.timeline.duration) {
+          statusEl.textContent = `렌더링 완료 (${cases[caseId].config.data.length}개 포인트)`;
+          statusEl.classList.add('success');
+        } else {
+          requestAnimationFrame(checkComplete);
+        }
+      };
+      setTimeout(checkComplete, 100);
     }
 
     // Config 모달 표시

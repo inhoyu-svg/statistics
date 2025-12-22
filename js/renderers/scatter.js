@@ -1,22 +1,47 @@
 /**
  * 산점도 렌더러
  * X-Y 좌표 데이터를 점으로 시각화
+ * @version 2.0.0 - 인스턴스 기반 + 애니메이션 지원
  */
 
 import CONFIG from '../config.js';
 import * as KatexUtils from '../utils/katex.js';
+import { Layer, LayerManager, LayerTimeline, LayerAnimationEffects } from '../animation/index.js';
 
 class ScatterRenderer {
   /**
-   * 산점도 렌더링
    * @param {HTMLCanvasElement} canvas - Canvas 요소
+   */
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.layerManager = new LayerManager();
+    this.timeline = new LayerTimeline();
+    this.animationMode = true;
+    this.animationSpeed = 1.0;
+    this.timeline.onUpdate = () => this.renderFrame();
+
+    // 렌더링 관련 상태
+    this.config = null;
+    this.coords = null;
+    this.range = null;
+    this.padding = null;
+    this.data = null;
+    this.options = null;
+  }
+
+  /**
+   * 산점도 렌더링
    * @param {Object} config - 설정 객체
    * @returns {Object} 렌더링 결과
    */
-  static render(canvas, config) {
-    const ctx = canvas.getContext('2d');
-    const data = config.data; // [[x1, y1], [x2, y2], ...]
-    const options = config.options || {};
+  render(config) {
+    this.config = config;
+    this.data = config.data;
+    this.options = config.options || {};
+
+    const ctx = this.ctx;
+    const canvas = this.canvas;
 
     // 캔버스 크기 설정
     const width = config.canvasWidth || CONFIG.SCATTER_DEFAULT_WIDTH;
@@ -31,30 +56,254 @@ class ScatterRenderer {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // 데이터 검증
-    if (!data || !Array.isArray(data) || data.length < 2) {
+    if (!this.data || !Array.isArray(this.data) || this.data.length < 2) {
       this._drawNoDataMessage(ctx, canvas);
       return { error: '최소 2개의 데이터 포인트가 필요합니다.' };
     }
 
     // 데이터 범위 추출
-    const range = this._extractRange(data);
+    this.range = this._extractRange(this.data);
 
     // 좌표계 생성
-    const padding = CONFIG.getScaledValue(CONFIG.SCATTER_PADDING);
-    const coords = this._createCoordinateSystem(canvas, padding, range);
+    this.padding = CONFIG.getScaledValue(CONFIG.SCATTER_PADDING);
+    this.coords = this._createCoordinateSystem(canvas, this.padding, this.range);
 
-    // 렌더링
-    this._drawGrid(ctx, canvas, padding, coords, range);
-    this._drawAxes(ctx, canvas, padding, coords, range, options.axisLabels);
-    this._drawPoints(ctx, data, coords, options);
+    // 애니메이션 모드: 레이어 생성
+    if (this.animationMode && config.animation !== false) {
+      this._createLayers();
+      this._setupAnimations();
+      // 초기 상태: 애니메이션 끝 상태로 렌더링
+      this.timeline.currentTime = this.timeline.duration;
+      this.renderFrame();
+    } else {
+      // 정적 렌더링
+      this._drawGrid(ctx, canvas, this.padding, this.coords, this.range);
+      this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
+      this._drawPoints(ctx, this.data, this.coords, this.options);
+    }
 
-    return { success: true, coords, range, padding, canvasHeight: canvas.height };
+    return {
+      success: true,
+      coords: this.coords,
+      range: this.range,
+      padding: this.padding,
+      canvasHeight: canvas.height
+    };
   }
+
+  /**
+   * 레이어 생성 (점들을 Layer로 변환)
+   */
+  _createLayers() {
+    const { toX, toY } = this.coords;
+    const pointSize = CONFIG.getScaledValue(this.options.pointSize || CONFIG.SCATTER_POINT_RADIUS);
+    const pointColor = this.options.pointColor || CONFIG.SCATTER_POINT_COLOR;
+
+    // 루트 그룹
+    const rootLayer = new Layer({
+      id: 'scatter-root',
+      name: '산점도',
+      type: 'group',
+      visible: true,
+      order: 0
+    });
+    this.layerManager.addLayer(rootLayer);
+
+    // 점 그룹
+    const pointsGroup = new Layer({
+      id: 'points-group',
+      name: '데이터 점',
+      type: 'group',
+      visible: true,
+      order: 1,
+      p_id: 'scatter-root'
+    });
+    this.layerManager.addLayer(pointsGroup);
+
+    // 개별 점 레이어
+    this.data.forEach((point, index) => {
+      const [x, y] = point;
+      const cx = toX(x);
+      const cy = toY(y);
+
+      const pointLayer = new Layer({
+        id: `point-${index}`,
+        name: `점 (${x}, ${y})`,
+        type: 'point',
+        visible: true,
+        order: index,
+        p_id: 'points-group',
+        data: {
+          x,
+          y,
+          cx,
+          cy,
+          radius: pointSize,
+          color: pointColor
+        }
+      });
+      this.layerManager.addLayer(pointLayer);
+    });
+  }
+
+  /**
+   * 순차 Scale 애니메이션 설정 (x좌표 순서대로 왼쪽→오른쪽)
+   */
+  _setupAnimations() {
+    const pointLayers = this.layerManager.getLayersByType('point');
+
+    // x좌표(원본 데이터 기준) 오름차순 정렬
+    const sortedLayers = [...pointLayers].sort((a, b) => a.data.x - b.data.x);
+
+    let currentTime = 0;
+
+    sortedLayers.forEach((layer) => {
+      this.timeline.addAnimation(layer.id, {
+        startTime: currentTime,
+        duration: 150,  // 각 점 150ms (빠르게 탁탁)
+        effect: 'scale',
+        effectOptions: {
+          from: 0,
+          to: 1,
+          centerX: layer.data.cx,
+          centerY: layer.data.cy
+        },
+        easing: 'easeOutBack'
+      });
+      currentTime += 60;  // 점 간 딜레이 60ms
+    });
+    // rebuildTimeline은 addAnimation 내부에서 자동 호출됨
+  }
+
+  /**
+   * 프레임 렌더링 (애니메이션용)
+   */
+  renderFrame() {
+    const ctx = this.ctx;
+    const canvas = this.canvas;
+
+    // 캔버스 크기 설정 복원 (다른 렌더러가 변경했을 수 있음)
+    CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
+
+    // 캔버스 클리어
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. 정적 요소 (격자, 축) - 항상 표시
+    this._drawGrid(ctx, canvas, this.padding, this.coords, this.range);
+    this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
+
+    // 2. 활성 애니메이션 가져오기
+    const activeAnimations = this.timeline.getActiveAnimations();
+    const progressMap = new Map();
+    activeAnimations.forEach(anim => {
+      progressMap.set(anim.layerId, anim.progress);
+    });
+
+    // 3. 점들 (애니메이션 적용)
+    const pointLayers = this.layerManager.getLayersByType('point');
+    pointLayers.forEach(layer => {
+      if (!layer.visible) return;
+
+      const animation = this.timeline.animations.get(layer.id);
+      if (!animation) {
+        // 애니메이션 없으면 정적 렌더링
+        this._renderPoint(layer.data);
+        return;
+      }
+
+      // 애니메이션 완료 상태면 progress = 1
+      const animEndTime = animation.startTime + animation.duration;
+      let progress = 0;
+
+      if (this.timeline.currentTime >= animEndTime) {
+        progress = 1;
+      } else if (this.timeline.currentTime > animation.startTime) {
+        const elapsed = this.timeline.currentTime - animation.startTime;
+        progress = Math.min(elapsed / animation.duration, 1);
+      }
+
+      if (progress <= 0) return;
+
+      // scale 효과: 중심에서 커지며 등장
+      LayerAnimationEffects.apply(ctx, progress, 'scale', {
+        from: 0,
+        to: 1,
+        centerX: layer.data.cx,
+        centerY: layer.data.cy
+      }, () => {
+        this._renderPoint(layer.data);
+      });
+    });
+  }
+
+  /**
+   * 단일 점 렌더링
+   */
+  _renderPoint(pointData) {
+    const { cx, cy, radius, color } = pointData;
+    const ctx = this.ctx;
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /**
+   * 애니메이션 비활성화
+   */
+  disableAnimation() {
+    this.animationMode = false;
+  }
+
+  /**
+   * 애니메이션 재생
+   */
+  playAnimation() {
+    this.timeline.play();
+  }
+
+  /**
+   * 애니메이션 일시정지
+   */
+  pauseAnimation() {
+    this.timeline.pause();
+  }
+
+  /**
+   * 애니메이션 정지
+   */
+  stopAnimation() {
+    this.timeline.stop();
+    this.timeline.currentTime = 0;
+    this.renderFrame();
+  }
+
+  /**
+   * 애니메이션 다시 재생
+   */
+  replayAnimation() {
+    this.timeline.stop();
+    this.timeline.currentTime = 0;
+    this.timeline.play();
+  }
+
+  /**
+   * 애니메이션 속도 설정
+   */
+  setAnimationSpeed(speed) {
+    this.animationSpeed = speed;
+    // LayerTimeline doesn't have setSpeed method, speed is handled in _animate
+  }
+
+  // ============================================
+  // 헬퍼 메서드들
+  // ============================================
 
   /**
    * 데이터에서 범위 추출
    */
-  static _extractRange(data) {
+  _extractRange(data) {
     const xValues = data.map(p => p[0]);
     const yValues = data.map(p => p[1]);
 
@@ -63,52 +312,36 @@ class ScatterRenderer {
     const yDataMin = Math.min(...yValues);
     const yDataMax = Math.max(...yValues);
 
-    // 데이터 범위 기반 깔끔한 간격 계산
     const xRange = xDataMax - xDataMin;
     const yRange = yDataMax - yDataMin;
 
     const xInterval = this._calculateNiceInterval(xRange);
     const yInterval = this._calculateNiceInterval(yRange);
 
-    // 축 시작/끝을 간격의 배수로 맞춤
     const xMin = Math.floor(xDataMin / xInterval) * xInterval;
     const xMax = Math.ceil(xDataMax / xInterval) * xInterval;
     const yMin = Math.floor(yDataMin / yInterval) * yInterval;
     const yMax = Math.ceil(yDataMax / yInterval) * yInterval;
 
-    // 압축 구간 필요 여부 (xMin/yMin이 0이 아닐 때만)
     const hasXCompression = xMin > 0;
     const hasYCompression = yMin > 0;
 
     return {
-      xMin,
-      xMax,
-      yMin,
-      yMax,
-      xDataMin,
-      xDataMax,
-      yDataMin,
-      yDataMax,
-      xInterval,
-      yInterval,
-      hasXCompression,
-      hasYCompression
+      xMin, xMax, yMin, yMax,
+      xDataMin, xDataMax, yDataMin, yDataMax,
+      xInterval, yInterval,
+      hasXCompression, hasYCompression
     };
   }
 
   /**
-   * 깔끔한 축 간격 계산 (1, 2, 5, 10, 20, 50, 100 등)
+   * 깔끔한 축 간격 계산
    */
-  static _calculateNiceInterval(range) {
+  _calculateNiceInterval(range) {
     if (range <= 0) return 1;
 
-    // 대략 4~6개의 눈금을 목표로 함
     const roughInterval = range / 5;
-
-    // 10의 거듭제곱 찾기
     const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
-
-    // 깔끔한 간격 후보: 1, 2, 5, 10 배수
     const candidates = [1, 2, 5, 10];
 
     for (const c of candidates) {
@@ -123,53 +356,51 @@ class ScatterRenderer {
 
   /**
    * 좌표계 생성
-   * 왼쪽/아래: 압축 구간 1칸 (xMin/yMin > 0일 때만), 오른쪽/위: 여유 공간 1칸
    */
-  static _createCoordinateSystem(canvas, padding, range) {
+  _createCoordinateSystem(canvas, padding, range) {
     const chartW = canvas.width - padding * 2;
     const chartH = canvas.height - padding * 2;
 
-    // 데이터 구간 수 계산
     const xDataCells = Math.round((range.xMax - range.xMin) / range.xInterval);
     const yDataCells = Math.round((range.yMax - range.yMin) / range.yInterval);
 
-    // 압축 구간: xMin/yMin이 0보다 클 때만 추가
     const xCompressionCells = range.hasXCompression ? 1 : 0;
     const yCompressionCells = range.hasYCompression ? 1 : 0;
 
-    // 전체 구간 수 = 압축(0또는1) + 데이터 구간 + 여유(1)
     const xTotalCells = xCompressionCells + xDataCells + 1;
     const yTotalCells = yCompressionCells + yDataCells + 1;
 
     const xCellWidth = chartW / xTotalCells;
     const yCellHeight = chartH / yTotalCells;
 
-    // X축 좌표 변환: 값 → 캔버스 x좌표
     const toX = (value) => {
       const dataOffset = (value - range.xMin) / range.xInterval;
       return padding + (xCompressionCells + dataOffset) * xCellWidth;
     };
 
-    // Y축 좌표 변환: 값 → 캔버스 y좌표 (위아래 반전)
     const toY = (value) => {
       const dataOffset = (value - range.yMin) / range.yInterval;
       return canvas.height - padding - (yCompressionCells + dataOffset) * yCellHeight;
     };
 
-    return { toX, toY, chartW, chartH, xCellWidth, yCellHeight, xTotalCells, yTotalCells, xCompressionCells, yCompressionCells };
+    return {
+      toX, toY, chartW, chartH,
+      xCellWidth, yCellHeight,
+      xTotalCells, yTotalCells,
+      xCompressionCells, yCompressionCells
+    };
   }
 
   /**
    * 그리드 렌더링
    */
-  static _drawGrid(ctx, canvas, padding, coords, range) {
-    const { toX, toY, xCellWidth, yCellHeight, xTotalCells, yTotalCells } = coords;
+  _drawGrid(ctx, canvas, padding, coords, range) {
+    const { xCellWidth, yCellHeight, xTotalCells, yTotalCells } = coords;
     ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
 
-    // 보조 격자선 (각 칸의 중간) - 가장 낮은 레이어
+    // 보조 격자선
     ctx.strokeStyle = '#555555';
 
-    // 가로 보조 격자선
     for (let i = 0; i < yTotalCells; i++) {
       const y = canvas.height - padding - (i + 0.5) * yCellHeight;
       ctx.beginPath();
@@ -178,7 +409,6 @@ class ScatterRenderer {
       ctx.stroke();
     }
 
-    // 세로 보조 격자선
     for (let i = 0; i < xTotalCells; i++) {
       const x = padding + (i + 0.5) * xCellWidth;
       ctx.beginPath();
@@ -187,7 +417,7 @@ class ScatterRenderer {
       ctx.stroke();
     }
 
-    // 가로 격자선 (Y축) - 모든 칸에 그리기
+    // 주 격자선 (가로)
     ctx.strokeStyle = CONFIG.getColor('--color-grid-horizontal');
     for (let i = 1; i < yTotalCells; i++) {
       const y = canvas.height - padding - i * yCellHeight;
@@ -197,7 +427,7 @@ class ScatterRenderer {
       ctx.stroke();
     }
 
-    // 세로 격자선 (X축) - 모든 칸에 그리기
+    // 주 격자선 (세로)
     ctx.strokeStyle = CONFIG.getColor('--color-grid-vertical');
     for (let i = 1; i < xTotalCells; i++) {
       const x = padding + i * xCellWidth;
@@ -207,63 +437,55 @@ class ScatterRenderer {
       ctx.stroke();
     }
 
-    // 축선 (사각형 테두리 - 하단, 좌측, 상단, 우측)
+    // 축선 (테두리)
     ctx.strokeStyle = CONFIG.getColor('--color-axis');
     ctx.lineWidth = CONFIG.getScaledLineWidth('medium');
 
-    // X축선 (하단)
     ctx.beginPath();
     ctx.moveTo(padding, canvas.height - padding);
     ctx.lineTo(canvas.width - padding, canvas.height - padding);
     ctx.stroke();
 
-    // Y축선 (좌측)
     ctx.beginPath();
     ctx.moveTo(padding, padding);
     ctx.lineTo(padding, canvas.height - padding);
     ctx.stroke();
 
-    // 상단 테두리
     ctx.beginPath();
     ctx.moveTo(padding, padding);
     ctx.lineTo(canvas.width - padding, padding);
     ctx.stroke();
 
-    // 우측 테두리
     ctx.beginPath();
     ctx.moveTo(canvas.width - padding, padding);
     ctx.lineTo(canvas.width - padding, canvas.height - padding);
     ctx.stroke();
 
-    // X축 압축 기호 (≈) - 압축 구간이 있을 때만 표시 (1/4 위치로 보조 격자선과 겹침 방지)
+    // 압축 기호
     if (coords.xCompressionCells > 0) {
       this._drawEllipsisSymbol(ctx, padding + xCellWidth / 4, canvas.height - padding, true);
     }
 
-    // Y축 압축 기호 (≈) - 압축 구간이 있을 때만 표시 (1/4 위치로 보조 격자선과 겹침 방지)
     if (coords.yCompressionCells > 0) {
       this._drawEllipsisSymbol(ctx, padding, canvas.height - padding - yCellHeight / 4, false);
     }
   }
 
   /**
-   * 압축 기호 (≈) 렌더링 - 축 위에 배치
+   * 압축 기호 렌더링
    */
-  static _drawEllipsisSymbol(ctx, x, y, isHorizontal) {
+  _drawEllipsisSymbol(ctx, x, y, isHorizontal) {
     ctx.save();
-    // 산점도에서 중략 기호 크기 키움
     ctx.font = `400 ${CONFIG.getScaledFontSize(28)}px 'SCDream', sans-serif`;
     ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
 
     if (isHorizontal) {
-      // X축용: 축 선 위에 90도 회전하여 수직으로 표시
       ctx.translate(x, y);
       ctx.rotate(Math.PI / 2);
       ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
     } else {
-      // Y축용: 축 선 위에 수평으로 표시
       ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, x, y);
     }
     ctx.restore();
@@ -272,41 +494,36 @@ class ScatterRenderer {
   /**
    * 축 및 라벨 렌더링
    */
-  static _drawAxes(ctx, canvas, padding, coords, range, axisLabels = {}) {
+  _drawAxes(ctx, canvas, padding, coords, range, axisLabels = {}) {
     const { toX, toY } = coords;
     const color = CONFIG.getColor('--color-text');
-    // 숫자 라벨 크기 키움
     const fontSize = CONFIG.getScaledFontSize(25);
 
-    // 원점 (0) 라벨 - 항상 코너에 표시
+    // 원점 라벨
     const originLabelX = padding - CONFIG.getScaledValue(12);
     const originLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
     KatexUtils.render(ctx, '0', originLabelX, originLabelY, {
       fontSize, color, align: 'right', baseline: 'top'
     });
 
-    // X축 라벨 - xMin부터 xMax + interval까지 (여유 칸 라벨 포함)
+    // X축 라벨
     const xLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
-    const xLabelMax = range.xMax + range.xInterval; // 여유 칸까지
+    const xLabelMax = range.xMax + range.xInterval;
     for (let value = range.xMin; value <= xLabelMax + 0.001; value += range.xInterval) {
-      // 0은 원점에서 표시하므로 건너뛰기
       if (Math.abs(value) < 0.0001) continue;
       const x = toX(value);
-      // 정수면 정수로, 소수면 소수로 표시
       const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
       KatexUtils.render(ctx, label, x, xLabelY, {
         fontSize, color, align: 'center', baseline: 'top'
       });
     }
 
-    // Y축 라벨 - yMin부터 yMax + interval까지 (여유 칸 라벨 포함)
+    // Y축 라벨
     const yLabelX = padding - CONFIG.getScaledValue(12);
-    const yLabelMax = range.yMax + range.yInterval; // 여유 칸까지
+    const yLabelMax = range.yMax + range.yInterval;
     for (let value = range.yMin; value <= yLabelMax + 0.001; value += range.yInterval) {
-      // 0은 원점에서 표시하므로 건너뛰기
       if (Math.abs(value) < 0.0001) continue;
       const y = toY(value);
-      // 정수면 정수로, 소수면 소수로 표시
       const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
       KatexUtils.render(ctx, label, yLabelX, y, {
         fontSize, color, align: 'right', baseline: 'middle'
@@ -317,7 +534,6 @@ class ScatterRenderer {
     const xTitle = axisLabels?.xAxis || '';
     const yTitle = axisLabels?.yAxis || '';
 
-    // X축 제목: 오른쪽 끝, 숫자 라벨 아래로 더 내림
     if (xTitle) {
       KatexUtils.renderMixedText(ctx, xTitle,
         canvas.width - padding,
@@ -326,7 +542,6 @@ class ScatterRenderer {
       );
     }
 
-    // Y축 제목: 상단
     if (yTitle) {
       KatexUtils.renderMixedText(ctx, yTitle,
         padding,
@@ -337,9 +552,9 @@ class ScatterRenderer {
   }
 
   /**
-   * 데이터 점 렌더링
+   * 데이터 점 렌더링 (정적 모드용)
    */
-  static _drawPoints(ctx, data, coords, options) {
+  _drawPoints(ctx, data, coords, options) {
     const { toX, toY } = coords;
     const pointSize = CONFIG.getScaledValue(options.pointSize || CONFIG.SCATTER_POINT_RADIUS);
     const pointColor = options.pointColor || CONFIG.SCATTER_POINT_COLOR;
@@ -357,20 +572,9 @@ class ScatterRenderer {
   }
 
   /**
-   * 색상을 어둡게
-   */
-  static _darkenColor(color, amount) {
-    const hex = color.replace('#', '');
-    const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - Math.round(255 * amount));
-    const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - Math.round(255 * amount));
-    const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - Math.round(255 * amount));
-    return `rgb(${r}, ${g}, ${b})`;
-  }
-
-  /**
    * 데이터 없음 메시지
    */
-  static _drawNoDataMessage(ctx, canvas) {
+  _drawNoDataMessage(ctx, canvas) {
     ctx.fillStyle = CONFIG.getColor('--color-text');
     ctx.font = CONFIG.CHART_FONT_BOLD;
     ctx.textAlign = 'center';
@@ -378,10 +582,21 @@ class ScatterRenderer {
     ctx.fillText('데이터가 없습니다.', canvas.width / 2, canvas.height / 2);
   }
 
+  // ============================================
+  // 정적 메서드 (하위 호환성)
+  // ============================================
+
+  /**
+   * 정적 렌더링 (하위 호환용)
+   */
+  static render(canvas, config) {
+    const renderer = new ScatterRenderer(canvas);
+    renderer.animationMode = false;
+    return renderer.render(config);
+  }
+
   /**
    * 데이터 유효성 검사
-   * @param {Array} data - 데이터 배열
-   * @returns {{ valid: boolean, error: string|null }}
    */
   static validate(data) {
     if (!data || !Array.isArray(data)) {
