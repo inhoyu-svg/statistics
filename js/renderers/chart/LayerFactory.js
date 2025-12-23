@@ -98,14 +98,16 @@ class LayerFactory {
     });
 
     // 점 레이어 생성 (도수 0인 계급도 포함)
+    let visibleIndex = -1;
     values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+      visibleIndex++;
 
       // 계급명 생성
       const className = Utils.getClassName(classes[index]);
 
-      // hidden 배열에 포함된 인덱스는 숨김
-      const isHidden = hiddenPolygonIndices.includes(index);
+      // hidden 배열에 포함된 인덱스는 숨김 (화면 순서 기준)
+      const isHidden = hiddenPolygonIndices.includes(visibleIndex);
 
       const pointLayer = new Layer({
         id: `polygon-point-${index}-${uid}`,
@@ -124,16 +126,19 @@ class LayerFactory {
 
     // 선 레이어 생성
     let prevIndex = null;
+    let prevVisibleIndex = null;
+    visibleIndex = -1;
     values.forEach((value, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+      visibleIndex++;
 
       if (prevIndex !== null) {
         // 시작 계급명과 끝 계급명
         const fromClassName = Utils.getClassName(classes[prevIndex]);
         const toClassName = Utils.getClassName(classes[index]);
 
-        // hidden 인덱스와 연결된 선은 숨김 (from 또는 to가 hidden이면)
-        const isLineHidden = hiddenPolygonIndices.includes(prevIndex) || hiddenPolygonIndices.includes(index);
+        // hidden 인덱스와 연결된 선은 숨김 (화면 순서 기준, from 또는 to가 hidden이면)
+        const isLineHidden = hiddenPolygonIndices.includes(prevVisibleIndex) || hiddenPolygonIndices.includes(visibleIndex);
 
         const lineLayer = new Layer({
           id: `polygon-line-${prevIndex}-${index}-${uid}`,
@@ -153,6 +158,7 @@ class LayerFactory {
       }
 
       prevIndex = index;
+      prevVisibleIndex = visibleIndex;
     });
 
     // 파선 레이어 생성 (점에서 Y축까지 수직 파선)

@@ -33,12 +33,15 @@ class PolygonRenderer {
 
     // 선 그리기 (먼저 그려서 점 아래에 위치)
     let prevIndex = null;
+    let prevVisibleIndex = null;
+    let visibleIndex = -1;
     relativeFreqs.forEach((relativeFreq, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+      visibleIndex++;
 
       if (prevIndex !== null) {
-        // hidden 인덱스와 연결된 선은 스킵
-        const isLineHidden = hiddenIndices.includes(prevIndex) || hiddenIndices.includes(index);
+        // hidden 인덱스와 연결된 선은 스킵 (화면 순서 기준)
+        const isLineHidden = hiddenIndices.includes(prevVisibleIndex) || hiddenIndices.includes(visibleIndex);
         if (!isLineHidden) {
           const x1 = CoordinateSystem.getBarCenterX(prevIndex, toX, xScale);
           const y1 = toY(relativeFreqs[prevIndex]);
@@ -62,14 +65,17 @@ class PolygonRenderer {
       }
 
       prevIndex = index;
+      prevVisibleIndex = visibleIndex;
     });
 
     // 점 그리기 (나중에 그려서 선 위에 위치)
+    visibleIndex = -1;
     relativeFreqs.forEach((relativeFreq, index) => {
       if (CoordinateSystem.shouldSkipEllipsis(index, ellipsisInfo)) return;
+      visibleIndex++;
 
-      // hidden 인덱스는 스킵
-      if (hiddenIndices.includes(index)) return;
+      // hidden 인덱스는 스킵 (화면 순서 기준)
+      if (hiddenIndices.includes(visibleIndex)) return;
 
       const centerX = CoordinateSystem.getBarCenterX(index, toX, xScale);
       const centerY = toY(relativeFreq);
