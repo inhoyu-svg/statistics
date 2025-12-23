@@ -1352,7 +1352,8 @@ Y축 간격을 사용자가 직접 지정합니다. 자동 계산 대신 고정�
 {
   "purpose": "chart",
   "data": [11, 11, 13, 13, 13, 13, 15, 15, 15, 15, 15, 15, 17, 17, 17, 17, 19, 19, 21],
-  "classRange": { "firstStart": 10, "secondStart": 12, "lastEnd": 22 },
+  "classCount": 6,
+  "classWidth": 2,
   "options": {
     "showHistogram": true,
     "showPolygon": true,
