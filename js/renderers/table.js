@@ -123,19 +123,19 @@ class TableRenderer {
     // 동적 너비 계산
     const dynamicConfig = this._calculateFrequencyTableDynamicWidth(visibleClasses, total, config, showSummaryRow);
 
-    // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
-    let ratio = 1;
-    if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
-      ratio = config.canvasWidth / dynamicConfig.canvasWidth;
-    } else if (config?.canvasHeight && autoHeight > 0) {
-      ratio = config.canvasHeight / autoHeight;
+    // 긴 쪽을 500px로 고정, 짧은 쪽은 비율 조정
+    const MAX_SIZE = 500;
+    const autoWidth = dynamicConfig.canvasWidth;
+    let ratio;
+    if (autoWidth >= autoHeight) {
+      ratio = MAX_SIZE / autoWidth;
+      this.canvas.width = MAX_SIZE;
+      this.canvas.height = Math.round(autoHeight * ratio);
+    } else {
+      ratio = MAX_SIZE / autoHeight;
+      this.canvas.width = Math.round(autoWidth * ratio);
+      this.canvas.height = MAX_SIZE;
     }
-
-    // 최종 canvas 크기 계산 (비율 적용)
-    const finalCanvasWidth = config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio);
-    const finalCanvasHeight = config?.canvasHeight || Math.round(autoHeight * ratio);
-    this.canvas.width = finalCanvasWidth;
-    this.canvas.height = finalCanvasHeight;
     this.scaleRatio = ratio; // renderFrame에서 사용
     this.clear();
 
@@ -291,19 +291,20 @@ class TableRenderer {
     const borderPadX = !showGrid ? CONFIG.TABLE_BORDER_PADDING_X : 0;
     const borderPadY = !showGrid ? CONFIG.TABLE_BORDER_PADDING_Y : 0;
 
-    // 비율 계산 (canvasWidth 또는 canvasHeight 중 하나만 설정해도 비율 유지)
-    let ratio = 1;
-    if (config?.canvasWidth && dynamicConfig.canvasWidth > 0) {
-      ratio = config.canvasWidth / dynamicConfig.canvasWidth;
-    } else if (config?.canvasHeight && autoHeight > 0) {
-      ratio = config.canvasHeight / autoHeight;
+    // 긴 쪽을 500px로 고정, 짧은 쪽은 비율 조정
+    const MAX_SIZE = 500;
+    const baseWidth = dynamicConfig.canvasWidth + borderPadX * 2;
+    const baseHeight = autoHeight + borderPadY * 2;
+    let ratio;
+    if (baseWidth >= baseHeight) {
+      ratio = MAX_SIZE / baseWidth;
+      this.canvas.width = MAX_SIZE;
+      this.canvas.height = Math.round(baseHeight * ratio);
+    } else {
+      ratio = MAX_SIZE / baseHeight;
+      this.canvas.width = Math.round(baseWidth * ratio);
+      this.canvas.height = MAX_SIZE;
     }
-
-    // 최종 canvas 크기 계산 (비율 적용 + 테두리 패딩)
-    const finalCanvasWidth = (config?.canvasWidth || Math.round(dynamicConfig.canvasWidth * ratio)) + borderPadX * 2;
-    const finalCanvasHeight = (config?.canvasHeight || Math.round(autoHeight * ratio)) + borderPadY * 2;
-    this.canvas.width = finalCanvasWidth;
-    this.canvas.height = finalCanvasHeight;
     this.scaleRatio = ratio; // renderFrame에서 사용
     this.clear();
 

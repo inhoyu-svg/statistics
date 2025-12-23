@@ -152,9 +152,6 @@ JSON 생성 시 반드시 알아야 할 핵심 규칙입니다.
 | **classCount** | `classCount` | 계급 개수 (기본: 5) | 차트 |
 | **classWidth** | `classWidth` | 계급 간격 (자동 계산) | 차트 |
 | **classRange** | `classRange` | 계급 범위 수동 설정 (`{ firstStart, secondStart, lastEnd }`) | 차트 |
-| **canvasSize** | `canvasSize` | 정사각형 캔버스 크기 (우선 적용) | 차트 |
-| **canvasWidth** | `canvasWidth` | 캔버스 너비 (기본: 700) | 차트 |
-| **canvasHeight** | `canvasHeight` | 캔버스 높이 (기본: 450) | 차트 |
 | **options** | `options` | 차트/테이블 세부 설정을 담는 객체 | 전체 |
 | **animation** | `animation` | 애니메이션 활성화 여부 | 차트/테이블 |
 | **cellAnimations** | `cellAnimations` | 셀 하이라이트 애니메이션 배열 | 모든 테이블 |
@@ -246,9 +243,6 @@ config (최상위)
 ├── classCount              계급 개수 (차트 전용, 기본: 5)
 ├── classWidth              계급 간격 (차트 전용, 자동 계산)
 ├── classRange              계급 범위 커스터마이징 (차트 전용) { firstStart, secondStart, lastEnd }
-├── canvasSize              정사각형 캔버스 크기 (차트 전용, 우선 적용)
-├── canvasWidth             캔버스 너비
-├── canvasHeight            캔버스 높이
 ├── animation               true | false
 │
 ├── options                 ─────────────────────────────────
@@ -582,7 +576,6 @@ config (최상위)
     }
   ],
   "classRange": { "firstStart": 1, "secondStart": 3, "lastEnd": 15 },
-  "canvasSize": 700,
   "options": {
     "showHistogram": false,
     "showPolygon": true,
@@ -636,9 +629,6 @@ config (최상위)
 | `classCount` | `number` | X | `5` | 계급 개수 |
 | `classWidth` | `number` | X | 자동 | 계급 간격 |
 | `classRange` | `object` | X | - | 계급 범위 수동 설정 (`{ firstStart, secondStart, lastEnd }`) |
-| `canvasWidth` | `number` | X | `700` | 캔버스 가로 크기 (px) |
-| `canvasHeight` | `number` | X | `450` | 캔버스 세로 크기 (px) |
-| `canvasSize` | `number` | X | - | 정사각형 캔버스 크기 (우선 적용) |
 | `options.showHistogram` | `boolean` | X | `true` | 히스토그램 표시 |
 | `options.showPolygon` | `boolean` | X | `true` | 도수다각형 표시 |
 | `options.dataType` | `string` | X | `"relativeFrequency"` | Y축 데이터 타입 |
@@ -676,66 +666,6 @@ config (최상위)
 **계산 공식**: 14~16 계급의 점을 숨기려면 → `계급 idx(1) + 1 = 2` → `"hidden": [2]`
 
 ## 차트 필드별 동작
-
-### 캔버스 크기 설정
-
-차트 캔버스 크기를 지정하는 방법은 두 가지입니다:
-
-#### 1. canvasWidth / canvasHeight (권장)
-
-가로/세로 크기를 개별적으로 지정합니다.
-
-| 필드 | 타입 | 필수 | 기본값 | 설명 |
-|:-----|:-----|:----:|:------:|:-----|
-| `canvasWidth` | `number` | X | `700` | 캔버스 가로 크기 (px) |
-| `canvasHeight` | `number` | X | `450` | 캔버스 세로 크기 (px) |
-
-```json
-{
-  "purpose": "chart",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "canvasWidth": 800,
-  "canvasHeight": 500
-}
-```
-
-**결과**: 800x500px 크기의 직사각형 차트 생성
-
-#### 2. canvasSize (정사각형 단축 옵션)
-
-정사각형 캔버스를 간편하게 생성합니다.
-
-| 필드 | 타입 | 필수 | 기본값 | 설명 |
-|:-----|:-----|:----:|:------:|:-----|
-| `canvasSize` | `number` | X | - | 정사각형 캔버스 크기 (width = height) |
-
-```json
-{
-  "purpose": "chart",
-  "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75],
-  "canvasSize": 500
-}
-```
-
-**결과**: 500x500px 크기의 정사각형 차트 생성
-
-#### 우선순위
-
-`canvasSize`가 지정되면 `canvasWidth`/`canvasHeight`보다 우선 적용됩니다.
-
-| 설정 | 결과 |
-|:-----|:-----|
-| 아무것도 설정 안 함 | 700x450 (기본값) |
-| `canvasWidth: 800` | 800x450 |
-| `canvasHeight: 600` | 700x600 |
-| `canvasWidth: 800, canvasHeight: 600` | 800x600 |
-| `canvasSize: 500` | 500x500 (정사각형) |
-| `canvasSize: 500, canvasWidth: 800` | 500x500 (canvasSize 우선) |
-
-**권장사항**
-- **차트**: `canvasSize`로 정사각형 캔버스 사용 권장
-- **테이블**: `canvasWidth` 또는 `canvasHeight` **둘 중 하나만** 사용 권장
-- `canvasWidth`와 `canvasHeight`를 동시에 지정하면 비율이 왜곡될 수 있음
 
 ### options.showHistogram
 
@@ -1659,8 +1589,6 @@ x=N+1: X축 라벨 영역
     "secondStart": 12,
     "lastEnd": 24
   },
-  "canvasWidth": 700,
-  "canvasHeight": 450,
   "options": {
     "showHistogram": true,
     "showPolygon": false,
@@ -1830,8 +1758,6 @@ x좌표 = 계급 idx + 1 (x=0은 Y축 영역, x=8은 X축 라벨 영역)
 |:--------|:-----|
 | `purpose` | `"chart"` (기본값) |
 | `classCount` | `5` (기본값) |
-| `canvasWidth` | `700` (기본값) |
-| `canvasHeight` | `450` (기본값) |
 | `dataType` | `"relativeFrequency"` (기본값) |
 
 ### 전체 설정
@@ -1841,7 +1767,6 @@ x좌표 = 계급 idx + 1 (x=0은 Y축 영역, x=8은 X축 라벨 영역)
   "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 68, 91, 83, 72, 78],
   "classCount": 5,
-  "canvasSize": 600,
   "animation": true,
   "options": {
     "showHistogram": true,
@@ -1896,8 +1821,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 |:-----|:-----|:----:|:------:|:-----|
 | `purpose` | `string` | **O** | - | `"scatter"` 필수 |
 | `data` | `array` | **O** | - | 2D 배열 `[[x1, y1], [x2, y2], ...]` |
-| `canvasWidth` | `number` | X | `650` | 캔버스 너비 (px) |
-| `canvasHeight` | `number` | X | `700` | 캔버스 높이 (px) |
 | `animation` | `boolean` | X | `true` | 애니메이션 활성화 (점 순차 등장) |
 | `options.axisLabels` | `object` | X | `null` | 축 제목 설정 |
 | `options.pointSize` | `number` | X | `6` | 점 반지름 (px) |
@@ -2053,8 +1976,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 {
   "purpose": "scatter",
   "data": [[62, 78], [75, 85], [80, 90], [85, 88], [90, 95], [95, 92]],
-  "canvasWidth": 700,
-  "canvasHeight": 600,
   "animation": true,
   "options": {
     "axisLabels": {
@@ -2123,8 +2044,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | 필드 | 타입 | 필수 | 기본값 | 설명 |
 |:-----|:-----|:----:|:------:|:-----|
 | `tableType` | `string` | X | `"basic-table"` | 테이블 타입 |
-| `canvasWidth` | `number` | X | `600` | 캔버스 너비 (px) |
-| `canvasHeight` | `number` | X | `400` | 캔버스 높이 (px) |
 | `options.showTotal` | `boolean` | X | `true` | 합계 행 표시 (basic-table 전용) |
 | `options.showMergedHeader` | `boolean` | X | `true` | 병합 헤더 표시 (basic-table 전용) |
 | `cellAnimations` | `array` | X | `null` | 셀 애니메이션 설정 |
@@ -2155,34 +2074,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `basic-table` | `string` | `"헤더: 라벨명, 열1, 열2\n행1: 값1, 값2"` |
 | `category-matrix` | `string` | `"헤더: A, B, C\n행1: 10, 20, 30"` |
 | `stem-leaf` | `string` | `"162 178 175"` 또는 `"남: 162 178\n여: 160 165"` |
-
-### canvasWidth / canvasHeight
-
-테이블 캔버스 크기를 지정합니다.
-
-| 항목 | 설명 |
-|:-----|:-----|
-| **타입** | `number` |
-| **필수 여부** | 선택 |
-| **기본값** | `canvasWidth: 600`, `canvasHeight: 400` |
-| **단위** | 픽셀 (px) |
-| **동작** | 지정된 크기의 직사각형 캔버스 생성 |
-
-```json
-{
-  "purpose": "table",
-  "data": "헤더: 항목, 값\nA: 10\nB: 20\nC: 30",
-  "canvasWidth": 700,
-  "canvasHeight": 500
-}
-```
-
-**결과**: 700x500px 크기의 테이블 생성
-
-**테이블 권장사항**: `canvasWidth` 또는 `canvasHeight` **둘 중 하나만** 사용하세요.
-- 테이블은 내용에 따라 자동으로 크기가 조절됩니다
-- 한 축만 지정하면 나머지는 비율에 맞게 자동 계산
-- 예: `"canvasWidth": 700` → 너비 700px, 높이는 자동
 
 ## 타입별 data 형식
 
@@ -2308,8 +2199,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 ### 3. stem-leaf (줄기-잎 그림)
 
 줄기-잎 그림은 숫자를 입력하면 자동으로 줄기/잎으로 분리되어 배치됩니다.
-
-**동적 너비**: 줄기-잎 그림은 데이터 양에 따라 테이블 너비가 자동으로 계산됩니다. `canvasWidth`를 지정하면 해당 크기에 맞게 비율 스케일링됩니다.
 
 #### 단일 모드 (숫자만)
 
@@ -2449,8 +2338,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | 적용 값 | 설명 |
 |:--------|:-----|
 | `tableType` | `"basic-table"` (기본값) |
-| `canvasWidth` | `600` (기본값) |
-| `canvasHeight` | `400` (기본값) |
 
 ## 타입별 전체 설정 예시
 
@@ -2461,8 +2348,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
   "purpose": "table",
   "tableType": "category-matrix",
   "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, null, 350, 400\nO형인 학생 수 (명): 50, ?, 70, 80, 90",
-  "canvasWidth": 800,
-  "canvasHeight": 300,
   "animation": true,
   "cellAnimations": [
     { "rowIndex": 1, "colIndex": 2, "duration": 1500, "repeat": 3 },
@@ -2483,8 +2368,6 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `purpose` | `string` | **O** | `"table"` |
 | `tableType` | `string` | **O** | `"category-matrix"` |
 | `data` | `string` | **O** | `"헤더: 열이름들\n라벨: 값들"` 형식 |
-| `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
-| `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
 | `cellAnimations` | `array` | X | 셀 하이라이트 (rowIndex, colIndex, duration, repeat) |
 | `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (rowIndex, colIndex, duration, repeat) |
@@ -2536,8 +2419,6 @@ data 형식과 최소 예시는 [2. basic-table (기본 테이블)](#2-basic-tab
 | `purpose` | `string` | **O** | `"table"` |
 | `tableType` | `string` | **O** | `"basic-table"` |
 | `data` | `string` | **O** | `"병합헤더\n헤더: 행라벨명, 열들\n행: 값들"` 형식 |
-| `canvasWidth` | `number` | X | 캔버스 너비 (기본: 600) |
-| `canvasHeight` | `number` | X | 캔버스 높이 (기본: 400) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
 | `options.showTotal` | `boolean` | X | 합계 행 표시 (기본: true) |
 | `options.showMergedHeader` | `boolean` | X | 병합 헤더 표시 (기본: true) |
@@ -2697,8 +2578,6 @@ O: 0.26, 0.24
 
 ### 3. stem-leaf (줄기-잎 그림)
 
-**동적 너비**: 줄기-잎 그림은 데이터 양에 따라 테이블 너비가 자동으로 계산됩니다. `canvasWidth`를 지정하면 해당 크기에 맞게 비율 스케일링됩니다.
-
 #### 단일 데이터
 
 ```json
@@ -2706,8 +2585,6 @@ O: 0.26, 0.24
   "purpose": "table",
   "tableType": "stem-leaf",
   "data": "162 178 175 174 189 186 183 183 181 197 194 191 190 209 205",
-  "canvasWidth": 400,
-  "canvasHeight": 350,
   "animation": true,
   "cellAnimations": [
     { "rowIndex": 2, "colIndex": 1, "duration": 1500, "repeat": 3 }
@@ -2723,8 +2600,6 @@ O: 0.26, 0.24
 | `purpose` | `string` | **O** | `"table"` |
 | `tableType` | `string` | **O** | `"stem-leaf"` |
 | `data` | `string` | **O** | 공백으로 구분된 숫자들 |
-| `canvasWidth` | `number` | X | 캔버스 너비 (기본: 400) |
-| `canvasHeight` | `number` | X | 캔버스 높이 (기본: 350) |
 | `animation` | `boolean` | X | 애니메이션 활성화 (기본: true) |
 | `cellAnimations` | `array` | X | 셀 하이라이트 (rowIndex, colIndex, duration, repeat) |
 | `cellAnimationOptions` | `object` | X | 애니메이션 옵션 (rowIndex, colIndex, duration, repeat) |
@@ -2770,8 +2645,6 @@ O: 0.26, 0.24
   "purpose": "table",
   "tableType": "stem-leaf",
   "data": "남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207",
-  "canvasWidth": 600,
-  "canvasHeight": 400,
   "animation": true,
   "cellAnimations": [
     { "rowIndex": 3, "colIndex": 0, "duration": 1500, "repeat": 3 },
@@ -3190,8 +3063,6 @@ data 문자열에서 연속된 슬래시(`/`)를 입력하면 **탈리마크로 
 | `purpose` | `"chart"` | 차트 렌더링 |
 | `classCount` | `5` | 5개 계급 |
 | `classWidth` | 자동 계산 | `Math.ceil(범위/classCount)` |
-| `canvasWidth` | `700` | 700px |
-| `canvasHeight` | `450` | 450px |
 | `animation` | `true` | 애니메이션 활성화 |
 | `options.showHistogram` | `true` | 히스토그램 표시 |
 | `options.showPolygon` | `true` | 도수다각형 표시 |
@@ -3213,8 +3084,6 @@ data 문자열에서 연속된 슬래시(`/`)를 입력하면 **탈리마크로 
 |:-----|:------:|:-----|
 | `purpose` | `"chart"` | **주의: 테이블은 명시 필요** |
 | `tableType` | `"basic-table"` | 기본 테이블 |
-| `canvasWidth` | `600` | 600px |
-| `canvasHeight` | `400` | 400px |
 | `animation` | `true` | 애니메이션 활성화 |
 
 **주의**: 테이블을 렌더링하려면 반드시 `"purpose": "table"`을 명시해야 합니다.

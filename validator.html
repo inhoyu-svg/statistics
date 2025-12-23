@@ -548,7 +548,7 @@
     /* 사이드 패널 버튼 그룹 */
     .guide-btn-group {
       position: fixed;
-      top: 24px;
+      top: 60px;
       right: 24px;
       display: flex;
       flex-direction: column;
@@ -781,23 +781,6 @@
         </div>
       </div>
 
-      <div class="guide-section">
-        <h4>캔버스 크기</h4>
-        <div class="guide-item">
-          <div class="guide-item-title">차트: canvasSize 사용</div>
-          <div class="guide-item-desc">
-            차트는 <code>canvasSize</code> 하나로 정사각형 기준 크기를 설정하거나,
-            <code>canvasWidth</code>와 <code>canvasHeight</code>를 함께 사용하세요.
-          </div>
-        </div>
-        <div class="guide-item">
-          <div class="guide-item-title">테이블: width 또는 height 중 하나만</div>
-          <div class="guide-item-desc">
-            테이블은 <code>canvasWidth</code> 또는 <code>canvasHeight</code> 둘 중 하나만 사용을 권장합니다.
-            동시 지정 시 비율이 왜곡될 수 있습니다.
-          </div>
-        </div>
-      </div>
 
       <div class="guide-section">
         <h4>옵션 설정</h4>
@@ -867,8 +850,6 @@
           <div class="guide-item-desc">
             <code>purpose</code>: "chart"<br>
             <code>classCount</code>: 5<br>
-            <code>canvasWidth</code>: 700<br>
-            <code>canvasHeight</code>: 450<br>
             <code>animation</code>: true<br>
             기본값과 동일한 값은 생략해도 됩니다.
           </div>
@@ -901,18 +882,6 @@
         <div class="guide-item clickable" data-key="classRange" data-value='{"firstStart":12,"secondStart":14,"lastEnd":22}' data-path="root">
           <div class="guide-item-title">classRange</div>
           <div class="guide-item-desc">계급 범위 수동 지정<br><code>"classRange": { "firstStart": 12, "secondStart": 14, "lastEnd": 22 }</code></div>
-        </div>
-      </div>
-
-      <div class="guide-section">
-        <h4>캔버스 크기</h4>
-        <div class="guide-item clickable" data-key="canvasSize" data-value="600" data-path="root">
-          <div class="guide-item-title">canvasSize</div>
-          <div class="guide-item-desc">정사각형 기준 크기 (우선 적용)<br><code>"canvasSize": 600</code></div>
-        </div>
-        <div class="guide-item clickable" data-key="canvasWidth" data-value="700" data-path="root">
-          <div class="guide-item-title">canvasWidth / canvasHeight</div>
-          <div class="guide-item-desc">너비/높이 개별 지정<br><code>"canvasWidth": 700, "canvasHeight": 450</code></div>
         </div>
       </div>
 
@@ -1018,14 +987,6 @@
       </div>
 
       <div class="guide-section">
-        <h4>캔버스 크기</h4>
-        <div class="guide-item clickable" data-key="canvasWidth" data-value="500" data-path="root">
-          <div class="guide-item-title">canvasWidth / canvasHeight</div>
-          <div class="guide-item-desc">둘 중 하나만 사용 권장<br><code>"canvasWidth": 500</code></div>
-        </div>
-      </div>
-
-      <div class="guide-section">
         <h4>셀 관련</h4>
         <div class="guide-item clickable" data-key="cellVariables" data-value='[{"rowIndex":1,"colIndex":2,"value":"?"}]' data-path="root">
           <div class="guide-item-title">cellVariables</div>
@@ -1090,14 +1051,6 @@
       </div>
 
       <div class="guide-section">
-        <h4>캔버스 크기</h4>
-        <div class="guide-item clickable" data-key="canvasWidth" data-value="600" data-path="">
-          <div class="guide-item-title">canvasWidth / canvasHeight</div>
-          <div class="guide-item-desc">기본: 650 x 700<br><code>"canvasWidth": 600, "canvasHeight": 500</code></div>
-        </div>
-      </div>
-
-      <div class="guide-section">
         <h4>options 하위</h4>
         <div class="guide-item clickable" data-key="axisLabels" data-value='{"xAxis":"(점)","yAxis":"(점)"}' data-path="options">
           <div class="guide-item-title">axisLabels</div>
@@ -1135,13 +1088,13 @@
     <div class="guide-panel-content">
       <div class="guide-section">
         <h4>차트 전체 옵션</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"chart","data":[62,87,97,73,59,85,80,79,65,75,68,91,83,72,78],"classCount":5,"classWidth":10,"animation":true,"options":{"showHistogram":true,"showPolygon":true,"dataType":"frequency","axisLabels":{"xAxis":"(점)","yAxis":"(명)"},"histogramColor":{"fill":"linear-gradient(180deg, rgba(174, 255, 126, 0.3) 0%, rgba(104, 153, 76, 0.3) 100%)","stroke":"linear-gradient(180deg, #AEFF7E 0%, #68994C 100%)","alpha":0.3},"polygonColor":{"line":"linear-gradient(180deg, #54A0F6 0%, #6DE0FC 100%)","point":"#61C1F9"},"callout":{"enabled":true,"template":"남학생","preset":"primary"},"showDashedLines":true,"grid":{"showHorizontal":true,"showVertical":false},"axis":{"showYLabels":false,"showXLabels":true,"yLabelFormat":"percent"},"congruentTriangles":{"enabled":true,"boundary":70},"triangleLabels":["S₁","S₂"],"customYInterval":1,"customBarLabels":["A",null,"B",null,"C"]}}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "chart",
   "data": [62, 87, 97, 73, 59, 85, 80, 79, 65, 75, 68, 91, 83, 72, 78],
   "classCount": 5,
   "classWidth": 10,
-  "canvasSize": 600,
   "animation": true,
   "options": {
     "showHistogram": true,
@@ -1189,12 +1142,12 @@
 
       <div class="guide-section">
         <h4>테이블 전체 옵션 (basic-table 도수분포표)</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"table","tableType":"basic-table","data":"헤더: 키(cm), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.2\n70~80: 5, 0.5\n80~90: 3, 0.3","animation":true,"options":{"showTotal":true,"showMergedHeader":false},"cellVariables":[{"rowIndex":2,"colIndex":1,"value":"?"}],"cellAnimations":[{"rowIndex":2,"colIndex":1,"duration":1500,"repeat":3}],"cellAnimationOptions":{"blinkEnabled":true}}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "table",
   "tableType": "basic-table",
   "data": "헤더: 키(cm), 도수(명), 상대도수\n60^{이상}~70^{미만}: 2, 0.2\n70~80: 5, 0.5\n80~90: 3, 0.3",
-  "canvasWidth": 500,
   "animation": true,
   "options": {
     "showTotal": true,
@@ -1215,12 +1168,12 @@
 
       <div class="guide-section">
         <h4>테이블 전체 옵션 (basic-table 이원분류표)</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"table","tableType":"basic-table","data":"비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.3\nB: 0.22, 0.2\nAB: 0.12, ?\nO: 0.26, 0.24","animation":true,"options":{"showTotal":true,"showMergedHeader":true},"cellVariables":[{"rowIndex":3,"colIndex":2,"value":"0.26"}],"cellAnimations":[{"rowIndex":3,"colIndex":2,"duration":1500,"repeat":3}],"cellAnimationOptions":{"blinkEnabled":true}}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "table",
   "tableType": "basic-table",
   "data": "비율\n헤더: 혈액형, 남학생, 여학생\nA: 0.4, 0.3\nB: 0.22, 0.2\nAB: 0.12, ?\nO: 0.26, 0.24",
-  "canvasWidth": 400,
   "animation": true,
   "options": {
     "showTotal": true,
@@ -1241,13 +1194,12 @@
 
       <div class="guide-section">
         <h4>테이블 전체 옵션 (category-matrix)</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"table","tableType":"category-matrix","data":"헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, null, 350, 400\nO형인 학생 수 (명): 50, ?, 70, 80, 90","animation":true,"cellAnimations":[{"rowIndex":1,"colIndex":2,"duration":1500,"repeat":3},{"rowIndex":2,"colIndex":2,"duration":1500,"repeat":3}],"cellAnimationOptions":{"blinkEnabled":true},"cellVariables":[{"rowIndex":1,"colIndex":3,"value":"300"},{"rowIndex":2,"colIndex":2,"value":"60"}]}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "table",
   "tableType": "category-matrix",
   "data": "헤더: A, B, C, D, E\n전체 학생 수 (명): 200, 250, null, 350, 400\nO형인 학생 수 (명): 50, ?, 70, 80, 90",
-  "canvasWidth": 800,
-  "canvasHeight": 300,
   "animation": true,
   "cellAnimations": [
     { "rowIndex": 1, "colIndex": 2, "duration": 1500, "repeat": 3 },
@@ -1266,12 +1218,12 @@
 
       <div class="guide-section">
         <h4>테이블 전체 옵션 (stem-leaf)</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"table","tableType":"stem-leaf","data":"남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207","animation":true,"cellVariables":[{"rowIndex":2,"colIndex":1,"value":["x",5,8]}]}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "table",
   "tableType": "stem-leaf",
   "data": "남학생: 162 178 175 174 189 186 183 183 181 197 194 191 190 209 205\n여학생: 160 165 170 177 180 182 184 188 192 193 196 201 207",
-  "canvasWidth": 500,
   "animation": true,
   "cellVariables": [
     { "rowIndex": 2, "colIndex": 1, "value": ["x", 5, 8] }
@@ -1282,12 +1234,12 @@
 
       <div class="guide-section">
         <h4>테이블 전체 옵션 (변량 테이블)</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"table","tableType":"basic-table","data":"헤더: null, null, null, null, null\n200: 190, 185, 195, 195\n195: 198, 190, 200, 208\n190: 184, 185, 210, 205","options":{"showGrid":false}}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "table",
   "tableType": "basic-table",
   "data": "헤더: null, null, null, null, null\n200: 190, 185, 195, 195\n195: 198, 190, 200, 208\n190: 184, 185, 210, 205",
-  "canvasWidth": 500,
   "options": {
     "showGrid": false
   }
@@ -1297,12 +1249,11 @@
 
       <div class="guide-section">
         <h4>산점도 전체 옵션</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"scatter","data":[[62,78],[75,85],[80,90],[85,88],[90,95],[95,92]],"options":{"axisLabels":{"xAxis":"(점)","yAxis":"(점)"},"pointSize":8,"pointColor":"#93DA6A"}}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "scatter",
   "data": [[62, 78], [75, 85], [80, 90], [85, 88], [90, 95], [95, 92]],
-  "canvasWidth": 600,
-  "canvasHeight": 500,
   "options": {
     "axisLabels": {
       "xAxis": "(점)",
@@ -1317,7 +1268,8 @@
 
       <div class="guide-section">
         <h4>산점도 + Corruption</h4>
-        <div class="guide-item">
+        <div class="guide-item clickable" data-full-json='{"purpose":"scatter","data":[[5,5],[5,15],[10,30],[15,15],[15,25],[20,5],[20,20],[20,35],[25,10],[25,15]],"options":{"axisLabels":{"xAxis":"x","yAxis":"y"},"corruption":{"enabled":true,"cells":"0-0:2-2"}}}'>
+          <div class="guide-item-title">클릭하여 입력</div>
           <pre style="font-size: 11px; line-height: 1.4; color: #8DCF66; overflow-x: auto;">{
   "purpose": "scatter",
   "data": [[5, 5], [5, 15], [10, 30], [15, 15], [15, 25], [20, 5], [20, 20], [20, 35], [25, 10], [25, 15]],
@@ -1433,33 +1385,6 @@
             suggestion: '"data" 줄을 삭제하세요'
           };
         }
-        return null;
-      },
-
-      // 캔버스 크기 권장사항
-      canvasSizeRecommendation: (config) => {
-        const purpose = config.purpose || 'chart';
-
-        // canvasWidth와 canvasHeight 동시 사용
-        if (config.canvasWidth && config.canvasHeight && !config.canvasSize) {
-          if (purpose === 'table') {
-            return {
-              message: '테이블은 canvasWidth 또는 canvasHeight 둘 중 하나만 사용을 권장합니다. 동시 지정 시 비율이 왜곡될 수 있습니다.',
-              fields: ['canvasWidth', 'canvasHeight'],
-              suggestion: 'canvasHeight 제거 → "canvasWidth": 500 만 사용'
-            };
-          }
-        }
-
-        // 테이블인데 canvasSize 사용
-        if (purpose === 'table' && config.canvasSize) {
-          return {
-            message: '테이블은 canvasWidth 또는 canvasHeight 사용을 권장합니다.',
-            fields: ['canvasSize'],
-            suggestion: 'canvasSize 제거 → "canvasWidth": 500 으로 변경'
-          };
-        }
-
         return null;
       },
 
@@ -1678,9 +1603,6 @@
       classCount: { required: false, label: 'classCount', desc: '계급 개수 (3~20)', default: 5, type: 'number', suggestion: '"classCount": 5  (3~20 사이 정수)' },
       classWidth: { required: false, label: 'classWidth', desc: '계급 간격', type: 'number', suggestion: '"classWidth": 10  (양의 정수)' },
       classRange: { required: false, label: 'classRange', desc: '계급 범위 수동 지정', type: 'object', suggestion: '"classRange": { "firstStart": 12, "secondStart": 14, "lastEnd": 22 }' },
-      canvasSize: { required: false, label: 'canvasSize', desc: '캔버스 크기', type: 'number', suggestion: '"canvasSize": 600  (양의 정수)' },
-      canvasWidth: { required: false, label: 'canvasWidth', desc: '캔버스 너비', default: 700, type: 'number', suggestion: '"canvasWidth": 700  (양의 정수)' },
-      canvasHeight: { required: false, label: 'canvasHeight', desc: '캔버스 높이', default: 450, type: 'number', suggestion: '"canvasHeight": 450  (양의 정수)' },
       cellVariables: { required: false, label: 'cellVariables', desc: '셀 변수 치환', type: 'array', suggestion: '"cellVariables": [{ "rowIndex": 0, "colIndex": 1, "value": "x" }]' },
       cellAnimations: { required: false, label: 'cellAnimations', desc: '셀 애니메이션', type: 'array', suggestion: '"cellAnimations": [{ "rowIndex": 0, "colIndex": 1 }]' },
       cellAnimationOptions: { required: false, label: 'cellAnimationOptions', desc: '셀 애니메이션 전역 옵션', type: 'object', suggestion: '"cellAnimationOptions": { "duration": 1500, "repeat": 3 }' },
@@ -1817,16 +1739,6 @@
                 return `<span class="highlight-warning">${match}</span>`;
               });
             }
-          });
-        }
-
-        // 캔버스 크기 관련 경고
-        if (w.key === 'canvasSizeRecommendation') {
-          w.fields.forEach(field => {
-            // "canvasWidth": 또는 "canvasHeight": 패턴 하이라이트
-            patterns.push({
-              regex: new RegExp(`"${field}"\\s*:\\s*\\d+`, 'g')
-            });
           });
         }
 
@@ -2390,14 +2302,10 @@
         };
 
         if (purpose === 'chart') {
-          previewConfig.canvasSize = 400;
           await VizAPI.renderChart(previewContainer, previewConfig);
         } else if (purpose === 'scatter') {
-          previewConfig.canvasWidth = 400;
-          previewConfig.canvasHeight = 400;
           await VizAPI.renderScatter(previewContainer, previewConfig);
         } else {
-          // 테이블은 canvasSize 제한 없이 자동 높이
           await VizAPI.renderTable(previewContainer, previewConfig);
         }
 
@@ -2500,43 +2408,58 @@
     document.querySelectorAll('.guide-item.clickable').forEach(item => {
       item.style.cursor = 'pointer';
       item.addEventListener('click', () => {
-        const key = item.dataset.key;
-        const valueStr = item.dataset.value;
-        const path = item.dataset.path; // "" = root, "options" = options 하위
-
-        // 값 파싱 (JSON 형식이면 파싱, 아니면 문자열 그대로)
-        let value;
-        try {
-          value = JSON.parse(valueStr);
-        } catch {
-          value = valueStr;
-        }
-
-        // 현재 JSON 파싱
-        let config = {};
-        const currentInput = jsonInput.value.trim();
-        if (currentInput) {
+        // 전체 JSON 삽입 (data-full-json 속성이 있는 경우)
+        const fullJson = item.dataset.fullJson;
+        if (fullJson) {
           try {
-            config = JSON.parse(currentInput);
+            const parsed = JSON.parse(fullJson);
+            jsonInput.value = JSON.stringify(parsed, null, 2);
+            updateBackdrop([]);
           } catch {
-            // 파싱 실패 시 빈 객체로 시작
-            config = {};
+            // 파싱 실패 시 그대로 삽입
+            jsonInput.value = fullJson;
+            updateBackdrop([]);
           }
-        }
-
-        // 값 삽입
-        if (path === 'options') {
-          if (!config.options) {
-            config.options = {};
-          }
-          config.options[key] = value;
         } else {
-          config[key] = value;
-        }
+          // 기존 로직: 개별 옵션 삽입
+          const key = item.dataset.key;
+          const valueStr = item.dataset.value;
+          const path = item.dataset.path; // "" = root, "options" = options 하위
 
-        // JSON 포맷팅 후 입력창에 반영
-        jsonInput.value = JSON.stringify(config, null, 2);
-        updateBackdrop([]);
+          // 값 파싱 (JSON 형식이면 파싱, 아니면 문자열 그대로)
+          let value;
+          try {
+            value = JSON.parse(valueStr);
+          } catch {
+            value = valueStr;
+          }
+
+          // 현재 JSON 파싱
+          let config = {};
+          const currentInput = jsonInput.value.trim();
+          if (currentInput) {
+            try {
+              config = JSON.parse(currentInput);
+            } catch {
+              // 파싱 실패 시 빈 객체로 시작
+              config = {};
+            }
+          }
+
+          // 값 삽입
+          if (path === 'options') {
+            if (!config.options) {
+              config.options = {};
+            }
+            config.options[key] = value;
+          } else {
+            config[key] = value;
+          }
+
+          // JSON 포맷팅 후 입력창에 반영
+          jsonInput.value = JSON.stringify(config, null, 2);
+          updateBackdrop([]);
+        }
 
         // 시각적 피드백
         item.style.backgroundColor = '#2a4a2a';

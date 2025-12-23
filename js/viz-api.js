@@ -412,17 +412,13 @@ export async function renderChart(element, config) {
       canvasId = `viz-chart-${++chartInstanceCounter}`;
       canvas = document.createElement('canvas');
       canvas.id = canvasId;
-      // canvasSize는 정사각형 단축 옵션, canvasWidth/canvasHeight는 개별 설정
-      if (config.canvasSize) {
-        canvas.width = config.canvasSize;
-        canvas.height = config.canvasSize;
-      } else {
-        canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
-        canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
-      }
+      // 차트 캔버스 크기 (500x500 고정)
+      const FIXED_CANVAS_SIZE = 500;
+      canvas.width = FIXED_CANVAS_SIZE;
+      canvas.height = FIXED_CANVAS_SIZE;
 
       // 차트 폰트 스케일링을 위한 캔버스 크기 설정
-      CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
+      CONFIG.setCanvasSize(FIXED_CANVAS_SIZE);
 
       canvas.setAttribute('role', 'img');
       canvas.setAttribute('aria-label', 'Frequency histogram and relative frequency polygon');
@@ -738,8 +734,9 @@ export async function renderTable(element, config) {
       canvasId = `viz-table-${++tableInstanceCounter}`;
       canvas = document.createElement('canvas');
       canvas.id = canvasId;
-      canvas.width = config.canvasWidth || CONFIG.TABLE_DEFAULT_WIDTH || 600;
-      canvas.height = config.canvasHeight || CONFIG.TABLE_DEFAULT_HEIGHT || 400;
+      // 임시값 (table.js에서 자동 계산하여 재설정됨)
+      canvas.width = 100;
+      canvas.height = 100;
       canvas.setAttribute('role', 'img');
       canvas.setAttribute('aria-label', 'Data table');
       element.appendChild(canvas);
@@ -750,8 +747,6 @@ export async function renderTable(element, config) {
 
     // 테이블 설정 구성
     const tableConfig = {
-      canvasWidth: config.canvasWidth,
-      canvasHeight: config.canvasHeight,
       showGrid: options.showGrid  // 그리드 표시 여부 (undefined면 기본값 true)
     };
     const animationConfig = config.animation !== undefined ? config.animation : options.animation;
@@ -852,8 +847,6 @@ export async function renderTable(element, config) {
  * @param {HTMLElement} element - Container element to append canvas
  * @param {Object} config - Configuration object
  * @param {Array<Array<number>>} config.data - Data points [[x1, y1], [x2, y2], ...]
- * @param {number} [config.canvasWidth=600] - Canvas width
- * @param {number} [config.canvasHeight=600] - Canvas height
  * @param {Object} [config.options] - Additional options
  * @param {Object} [config.options.axisLabels] - Axis labels { xAxis, yAxis }
  * @param {number} [config.options.pointSize=6] - Point radius
@@ -1341,15 +1334,12 @@ async function renderMultiplePolygons(element, config) {
     const canvas = document.createElement('canvas');
     canvas.id = canvasId;
 
-    if (config.canvasSize) {
-      canvas.width = config.canvasSize;
-      canvas.height = config.canvasSize;
-    } else {
-      canvas.width = config.canvasWidth || CONFIG.CANVAS_WIDTH;
-      canvas.height = config.canvasHeight || CONFIG.CANVAS_HEIGHT;
-    }
+    // 복수 도수다각형 캔버스 크기 (500x500 고정)
+    const FIXED_CANVAS_SIZE = 500;
+    canvas.width = FIXED_CANVAS_SIZE;
+    canvas.height = FIXED_CANVAS_SIZE;
 
-    CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
+    CONFIG.setCanvasSize(FIXED_CANVAS_SIZE);
 
     canvas.setAttribute('role', 'img');
     canvas.setAttribute('aria-label', 'Multiple frequency polygons');

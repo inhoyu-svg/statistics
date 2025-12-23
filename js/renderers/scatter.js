@@ -43,14 +43,13 @@ class ScatterRenderer {
     const ctx = this.ctx;
     const canvas = this.canvas;
 
-    // 캔버스 크기 설정
-    const width = config.canvasWidth || CONFIG.SCATTER_DEFAULT_WIDTH;
-    const height = config.canvasHeight || CONFIG.SCATTER_DEFAULT_HEIGHT;
-    canvas.width = width;
-    canvas.height = height;
+    // 캔버스 크기 설정 (500x500 고정)
+    const FIXED_SCATTER_SIZE = 500;
+    canvas.width = FIXED_SCATTER_SIZE;
+    canvas.height = FIXED_SCATTER_SIZE;
 
     // 캔버스 크기 설정 (폰트 스케일링용)
-    CONFIG.setCanvasSize(Math.max(width, height));
+    CONFIG.setCanvasSize(FIXED_SCATTER_SIZE);
 
     // 배경 투명 (클리어)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
