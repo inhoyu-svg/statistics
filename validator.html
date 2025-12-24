@@ -708,6 +708,7 @@
     <button class="guide-toggle-btn" id="tableOptionsBtn">테이블 옵션 모음</button>
     <button class="guide-toggle-btn" id="scatterOptionsBtn">산점도 옵션 모음</button>
     <button class="guide-toggle-btn" id="fullJsonBtn">전체 옵션 JSON</button>
+    <button class="guide-toggle-btn" id="intlOptionsBtn">해외강의용</button>
   </div>
 
   <!-- 배경 오버레이 -->
@@ -1281,6 +1282,65 @@
     }
   }
 }</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 해외강의용 옵션 패널 -->
+  <div class="guide-panel" id="intlOptionsPanel">
+    <div class="guide-panel-header">
+      <h3>해외강의용 옵션</h3>
+      <button class="guide-close-btn" data-close-panel>&times;</button>
+    </div>
+    <div class="guide-panel-content">
+      <div class="guide-section">
+        <h4>차트 옵션</h4>
+        <div class="guide-item clickable" data-key="showCurve" data-value="true" data-path="options">
+          <div class="guide-item-title">showCurve</div>
+          <div class="guide-item-desc">
+            <code>"showCurve": true</code><br>
+            히스토그램 위에 분포 곡선 표시
+          </div>
+        </div>
+        <div class="guide-item clickable" data-key="showAxisLabels" data-value="false" data-path="options.axis">
+          <div class="guide-item-title">axis.showAxisLabels</div>
+          <div class="guide-item-desc">
+            <code>"axis": { "showAxisLabels": false }</code><br>
+            축 제목(계급, 상대도수) 숨김
+          </div>
+        </div>
+        <div class="guide-item clickable" data-key="showOriginLabel" data-value="false" data-path="options.axis">
+          <div class="guide-item-title">axis.showOriginLabel</div>
+          <div class="guide-item-desc">
+            <code>"axis": { "showOriginLabel": false }</code><br>
+            원점(0) 라벨 숨김
+          </div>
+        </div>
+        <div class="guide-item clickable" data-key="xLabelFormat" data-value="\"range\"" data-path="options.axis">
+          <div class="guide-item-title">axis.xLabelFormat</div>
+          <div class="guide-item-desc">
+            <code>"axis": { "xLabelFormat": "range" }</code><br>
+            X축 라벨을 범위로 표시 (60-69, 70-79)
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <h4>테이블 옵션</h4>
+        <div class="guide-item clickable" data-key="englishFont" data-value="true" data-path="options">
+          <div class="guide-item-title">englishFont</div>
+          <div class="guide-item-desc">
+            <code>"englishFont": true</code><br>
+            영어를 Source Han Sans KR 폰트로 표시 (이탤릭 방지)
+          </div>
+        </div>
+        <div class="guide-item clickable" data-key="switchColor" data-value="\"#ffffff\"" data-path="options">
+          <div class="guide-item-title">switchColor</div>
+          <div class="guide-item-desc">
+            <code>"switchColor": "#ffffff"</code><br>
+            헤더/행라벨 녹색을 다른 색상으로 변경
+          </div>
         </div>
       </div>
     </div>
@@ -2353,14 +2413,16 @@
       chartOptions: document.getElementById('chartOptionsPanel'),
       tableOptions: document.getElementById('tableOptionsPanel'),
       scatterOptions: document.getElementById('scatterOptionsPanel'),
-      fullJson: document.getElementById('fullJsonPanel')
+      fullJson: document.getElementById('fullJsonPanel'),
+      intlOptions: document.getElementById('intlOptionsPanel')
     };
     const buttons = {
       guide: document.getElementById('guideToggleBtn'),
       chartOptions: document.getElementById('chartOptionsBtn'),
       tableOptions: document.getElementById('tableOptionsBtn'),
       scatterOptions: document.getElementById('scatterOptionsBtn'),
-      fullJson: document.getElementById('fullJsonBtn')
+      fullJson: document.getElementById('fullJsonBtn'),
+      intlOptions: document.getElementById('intlOptionsBtn')
     };
 
     let currentPanel = null;
@@ -2386,6 +2448,7 @@
     buttons.tableOptions.addEventListener('click', () => openPanel('tableOptions'));
     buttons.scatterOptions.addEventListener('click', () => openPanel('scatterOptions'));
     buttons.fullJson.addEventListener('click', () => openPanel('fullJson'));
+    buttons.intlOptions.addEventListener('click', () => openPanel('intlOptions'));
 
     // 닫기 버튼들 (data-close-panel 속성 사용)
     document.querySelectorAll('[data-close-panel]').forEach(btn => {
