@@ -3172,3 +3172,171 @@ data 문자열에서 연속된 슬래시(`/`)를 입력하면 **탈리마크로 
 | `cellAnimations`만 설정 | 깜빡임 없이 정적 하이라이트 | 깜빡임 원하면 `cellAnimationOptions: { blinkEnabled: true }` 추가 |
 | JSON 문법 오류 | 렌더링 안 됨 | trailing comma 제거, 객체 사이 comma 확인 |
 
+## 해외강의용 추가 기능들
+
+### 차트 옵션
+
+#### showCurve (분포 곡선)
+
+히스토그램 위에 분포 곡선을 표시합니다.
+
+| 속성 | 값 |
+|:-----|:---|
+| 위치 | `options.showCurve` |
+| 타입 | `boolean` |
+| 기본값 | `false` |
+
+**사용 시기**: 데이터의 분포 경향성을 시각적으로 강조하거나, 정규분포 형태를 함께 보여주고 싶을 때 사용합니다.
+
+**비교**:
+- `false` (기본): 막대 그래프만 표시
+- `true`: 막대 그래프 + 곡선 (각 막대 상단을 부드럽게 연결)
+
+```json
+{
+  "data": [62, 87, 97, 78, 85, 72, 93, 68, 75, 82],
+  "options": {
+    "showCurve": true
+  }
+}
+```
+
+#### axis.showAxisLabels (축 제목 표시)
+
+X,Y축 제목 라벨(계급, 상대도수 등) 표시 여부를 설정합니다.
+
+| 속성 | 값 |
+|:-----|:---|
+| 위치 | `options.axis.showAxisLabels` |
+| 타입 | `boolean` |
+| 기본값 | `true` |
+
+**사용 시기**: 축 제목 없이 숫자 라벨만 표시하고 싶을 때, 또는 차트를 더 간결하게 보여주고 싶을 때 사용합니다.
+
+**비교**:
+- `true` (기본): X축 끝에 "계급", Y축 끝에 "상대도수(%)" 등 제목 표시
+- `false`: 축 제목 숨김, 숫자 라벨만 표시
+
+```json
+{
+  "data": [62, 87, 97, 78, 85],
+  "options": {
+    "axis": {
+      "showAxisLabels": false
+    }
+  }
+}
+```
+
+#### axis.showOriginLabel (원점 라벨 표시)
+
+원점(0) 라벨 표시 여부를 설정합니다.
+
+| 속성 | 값 |
+|:-----|:---|
+| 위치 | `options.axis.showOriginLabel` |
+| 타입 | `boolean` |
+| 기본값 | `true` |
+
+**사용 시기**: 원점(0)을 숨겨서 축이 0에서 시작하지 않는 것처럼 보이게 하거나, 라벨이 겹치는 것을 방지하고 싶을 때 사용합니다.
+
+**비교**:
+- `true` (기본): X축과 Y축 교차점에 "0" 표시
+- `false`: 원점 라벨 숨김
+
+```json
+{
+  "data": [62, 87, 97, 78, 85],
+  "options": {
+    "axis": {
+      "showOriginLabel": false
+    }
+  }
+}
+```
+
+#### axis.xLabelFormat (X축 라벨 형식)
+
+X축 라벨 표시 형식을 설정합니다.
+
+| 속성 | 값 |
+|:-----|:---|
+| 위치 | `options.axis.xLabelFormat` |
+| 타입 | `string` |
+| 기본값 | `"boundary"` |
+| 옵션 | `"boundary"` (경계값), `"range"` (범위) |
+
+**사용 시기**: 계급을 경계값이 아닌 범위로 표시하고 싶을 때 사용합니다. 예를 들어 "60점 이상 70점 미만"을 "60-69"로 표현하고 싶을 때 적합합니다.
+
+**비교**:
+- `"boundary"` (기본): 막대 사이에 경계값 표시 → `60  70  80  90`
+- `"range"`: 막대 중앙에 범위 표시 → `60-69  70-79  80-89`
+
+```json
+{
+  "data": [62, 87, 97, 78, 85, 72, 93, 68],
+  "options": {
+    "axis": {
+      "xLabelFormat": "range"
+    }
+  }
+}
+```
+
+### 테이블 옵션
+
+#### englishFont (영어 폰트)
+
+테이블 내 영어 문자에 Source Han Sans KR 폰트를 사용합니다.
+
+| 속성 | 값 |
+|:-----|:---|
+| 위치 | `options.englishFont` |
+| 타입 | `boolean` |
+| 기본값 | `false` |
+
+**사용 시기**: 해외 강의용 영어 테이블을 만들 때 사용합니다. 기본적으로 영어는 KaTeX 수학 폰트(소문자 이탤릭)로 렌더링되는데, 이 옵션을 활성화하면 일반 폰트(Source Han Sans KR)로 통일되어 깔끔한 영어 테이블을 만들 수 있습니다.
+
+**비교**:
+- `false` (기본): 소문자는 이탤릭(*x*, *y*), 대문자는 일반체(A, B)
+- `true`: 모든 영어가 Source Han Sans KR 일반체로 표시
+
+```json
+{
+  "purpose": "table",
+  "tableType": "category-matrix",
+  "data": "헤더: A, B, C\nClass 1: 10, 15, 12\nClass 2: 8, 14, 11",
+  "options": {
+    "englishFont": true
+  }
+}
+```
+
+#### switchColor (녹색 대체 색상)
+
+테이블 헤더 및 행 라벨의 녹색 텍스트를 다른 색상으로 변경합니다.
+
+| 속성 | 값 |
+|:-----|:---|
+| 위치 | `options.switchColor` |
+| 타입 | `string` (CSS 색상값) |
+| 기본값 | `null` (기본 녹색 #8DCF66) |
+
+**사용 시기**: 기본 녹색(#8DCF66) 대신 다른 강조색을 사용하고 싶을 때, 또는 헤더/행라벨을 데이터 셀과 같은 흰색으로 통일하고 싶을 때 사용합니다.
+
+**비교**:
+- `null` (기본): 헤더와 행 라벨이 녹색(#8DCF66)으로 표시
+- `"#ffffff"`: 헤더와 행 라벨이 흰색으로 표시 (데이터 셀과 동일)
+- `"#4F9CD1"`: 헤더와 행 라벨이 푸른색으로 표시
+
+```json
+{
+  "purpose": "table",
+  "tableType": "category-matrix",
+  "data": "헤더: A, B\nRow 1: 5, 10\nRow 2: 8, 12",
+  "options": {
+    "switchColor": "#ffffff"
+  }
+}
+```
+
