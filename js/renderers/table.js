@@ -296,16 +296,25 @@ class TableRenderer {
     const baseWidth = dynamicConfig.canvasWidth + borderPadX * 2;
     const baseHeight = autoHeight + borderPadY * 2;
     let ratio;
+    let scaledTableWidth, scaledTableHeight;
     if (baseWidth >= baseHeight) {
       ratio = MAX_SIZE / baseWidth;
-      this.canvas.width = MAX_SIZE;
-      this.canvas.height = Math.round(baseHeight * ratio);
+      scaledTableWidth = MAX_SIZE;
+      scaledTableHeight = Math.round(baseHeight * ratio);
     } else {
       ratio = MAX_SIZE / baseHeight;
-      this.canvas.width = Math.round(baseWidth * ratio);
-      this.canvas.height = MAX_SIZE;
+      scaledTableWidth = Math.round(baseWidth * ratio);
+      scaledTableHeight = MAX_SIZE;
     }
     this.scaleRatio = ratio; // renderFrame에서 사용
+
+    // 캔버스는 항상 500x500
+    this.canvas.width = MAX_SIZE;
+    this.canvas.height = MAX_SIZE;
+
+    // 중앙 배치 오프셋 계산
+    this.centerOffsetX = (MAX_SIZE - scaledTableWidth) / 2;
+    this.centerOffsetY = (MAX_SIZE - scaledTableHeight) / 2;
     this.clear();
 
     // 레이어 생성 (원래 크기로 생성, renderFrame에서 scale 적용)
@@ -550,8 +559,12 @@ class TableRenderer {
   renderFrame() {
     this.clear();
 
-    // 스케일 적용
+    // 스케일 및 중앙 배치 적용
     this.ctx.save();
+    // 중앙 배치 오프셋 적용
+    if (this.centerOffsetX || this.centerOffsetY) {
+      this.ctx.translate(this.centerOffsetX || 0, this.centerOffsetY || 0);
+    }
     if (this.scaleRatio !== 1) {
       this.ctx.scale(this.scaleRatio, this.scaleRatio);
     }
