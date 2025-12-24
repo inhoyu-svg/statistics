@@ -185,7 +185,7 @@ class CategoryMatrixFactory {
 
       const cellLayer = new Layer({
         id: `category-matrix-${tableId}-table-row-${rowIndex}-col${colIndex}`,
-        name: String(cellText),
+        name: cellText === null ? '(빈 셀)' : String(cellText),
         type: 'cell',
         visible: true,
         order: colIndex,
@@ -194,7 +194,7 @@ class CategoryMatrixFactory {
           rowIndex,
           colIndex,
           colLabel: '',
-          cellText: String(cellText),
+          cellText: cellText === null ? null : String(cellText),
           x,
           y,
           width: columnWidths[colIndex],
