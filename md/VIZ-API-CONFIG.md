@@ -3201,6 +3201,34 @@ data 문자열에서 연속된 슬래시(`/`)를 입력하면 **탈리마크로 
 }
 ```
 
+#### axis.showXAxis / axis.showYAxis (축 선 표시)
+
+X축 또는 Y축 선 자체를 숨깁니다.
+
+| 속성 | 값 |
+|:-----|:---|
+| 위치 | `options.axis.showXAxis`, `options.axis.showYAxis` |
+| 타입 | `boolean` |
+| 기본값 | `true` |
+
+**사용 시기**: 축 선을 완전히 숨기고 싶을 때 사용합니다.
+
+**비교**:
+- `true` (기본): 축 선 표시
+- `false`: 축 선 숨김
+
+```json
+{
+  "data": [62, 87, 97, 78, 85],
+  "options": {
+    "axis": {
+      "showXAxis": false,
+      "showYAxis": false
+    }
+  }
+}
+```
+
 #### axis.showAxisLabels (축 제목 표시)
 
 X,Y축 제목 라벨(계급, 상대도수 등) 표시 여부를 설정합니다.
