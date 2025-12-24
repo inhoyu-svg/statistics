@@ -670,6 +670,7 @@ function diffTableData(prevData, currData) {
  * @param {boolean} [config.options.showTotal=true] - Show total row (basic-table only)
  * @param {boolean} [config.options.showMergedHeader=true] - Show merged header (basic-table only)
  * @param {boolean} [config.options.showGrid=true] - Show grid lines (false: rounded border instead)
+ * @param {boolean} [config.options.englishFont=false] - Use Source Han Sans KR font for English letters
  * @returns {Promise<Object>} { tableRenderer, canvas, parsedData? } or { error }
  */
 export async function renderTable(element, config) {
@@ -759,6 +760,12 @@ export async function renderTable(element, config) {
     const tableConfig = {
       showGrid: options.showGrid  // 그리드 표시 여부 (undefined면 기본값 true)
     };
+
+    // 영어 전용 폰트 옵션 적용
+    if (options.englishFont !== undefined) {
+      CONFIG.TABLE_ENGLISH_FONT = options.englishFont;
+    }
+
     const animationConfig = config.animation !== undefined ? config.animation : options.animation;
     const animation = typeof animationConfig === 'object'
       ? animationConfig.enabled !== false

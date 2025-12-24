@@ -714,7 +714,9 @@ class TableCellRenderer {
       return;
     }
 
-    const str = String(text).trim();
+    // LaTeX 기호 → 유니코드 변환
+    let str = String(text).trim();
+    str = str.replace(/\\times/g, '×');  // 곱셈 기호
     const fontSize = isHeader ? 22 : 24;
 
     // 빈 문자열은 렌더링 스킵
@@ -752,14 +754,20 @@ class TableCellRenderer {
       return;
     }
 
-    // 숫자 또는 알파벳만 포함된 경우 KaTeX 폰트 사용
+    // 숫자 또는 알파벳만 포함된 경우
     if (this._isNumericOrAlpha(str)) {
-      KatexUtils.render(this.ctx, str, x, y, {
-        fontSize: fontSize,
-        color: color,
-        align: alignment,
-        baseline: 'middle'
-      });
+      // englishFont 설정이 켜져 있고 영어가 포함된 경우 분리 렌더링
+      if (CONFIG.TABLE_ENGLISH_FONT && /[A-Za-z]/.test(str)) {
+        this._renderMixedText(str, x, y, alignment, color, bold, fontSize, isHeader);
+      } else {
+        // KaTeX 폰트 사용
+        KatexUtils.render(this.ctx, str, x, y, {
+          fontSize: fontSize,
+          color: color,
+          align: alignment,
+          baseline: 'middle'
+        });
+      }
     } else if (this._containsMixedKoreanAndNumeric(str)) {
       // 한글+숫자/알파벳 혼합인 경우 분리 렌더링 (예: "1반", "2반")
       this._renderMixedText(str, x, y, alignment, color, bold, fontSize, isHeader);
@@ -999,7 +1007,7 @@ class TableCellRenderer {
   /**
    * 텍스트를 문자 유형별로 분리
    * @param {string} text - 분리할 텍스트
-   * @returns {Array} [{text, type: 'korean'|'lowercase'|'bracket'|'other'}, ...]
+   * @returns {Array} [{text, type: 'korean'|'lowercase'|'uppercase'|'bracket'|'other'}, ...]
    */
   _splitByCharType(text) {
     const result = [];
@@ -1009,8 +1017,9 @@ class TableCellRenderer {
       let type;
       if (/[가-힣]/.test(char)) type = 'korean';
       else if (/[a-z]/.test(char)) type = 'lowercase';
+      else if (/[A-Z]/.test(char)) type = 'uppercase'; // 대문자 영어
       else if (/[\[\]]/.test(char)) type = 'bracket'; // 대괄호는 별도 타입
-      else type = 'other'; // 대문자, 숫자, 특수문자
+      else type = 'other'; // 숫자, 특수문자
 
       if (type === current.type) {
         current.text += char;
@@ -1025,7 +1034,7 @@ class TableCellRenderer {
 
   /**
    * 문자 유형에 따른 폰트 정보 반환
-   * @param {string} type - 문자 유형 ('korean', 'lowercase', 'bracket', 'other')
+   * @param {string} type - 문자 유형 ('korean', 'lowercase', 'uppercase', 'bracket', 'other')
    * @param {number} fontSize - 폰트 크기
    * @param {boolean} bold - 볼드 여부
    * @param {boolean} isHeader - 헤더 여부 (헤더는 Medium 사용)
@@ -1036,10 +1045,18 @@ class TableCellRenderer {
       // 한글: SCDream 폰트 사용 (헤더 또는 볼드면 Medium)
       const fontWeight = (bold || isHeader) ? '500 ' : '300 ';
       return `${fontWeight}${fontSize}px 'SCDream', sans-serif`;
-    } else if (type === 'lowercase') {
-      return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
+    } else if (type === 'lowercase' || type === 'uppercase') {
+      // 영어 전용 폰트 설정이 켜져 있으면 Source Han Sans KR 사용
+      if (CONFIG.TABLE_ENGLISH_FONT) {
+        return `${fontSize}px 'Source Han Sans KR', sans-serif`;
+      }
+      // 소문자는 이탤릭, 대문자는 일반
+      if (type === 'lowercase') {
+        return `italic ${fontSize}px KaTeX_Math, KaTeX_Main, Times New Roman, serif`;
+      }
+      return `${fontSize}px KaTeX_Main, Times New Roman, serif`;
     } else {
-      // 대문자/숫자/대괄호는 볼드 적용 안 함
+      // 숫자/대괄호/특수문자는 KaTeX
       return `${fontSize}px KaTeX_Main, Times New Roman, serif`;
     }
   }

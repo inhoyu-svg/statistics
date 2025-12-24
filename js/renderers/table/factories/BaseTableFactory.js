@@ -276,8 +276,12 @@ class BaseTableFactory {
 
     // 각 컬럼별 최대 너비 계산
     for (let col = 0; col < columnCount; col++) {
-      // 헤더 너비
-      const headerWidth = this.measureTextWidth(ctx, headers[col], headerFont) + cellPadding + headerExtraPadding;
+      // 헤더 너비 (긴 헤더는 패딩 절반으로 줄임)
+      const headerText = headers[col] || '';
+      const isLongHeader = headerText.length >= 15;
+      const actualCellPadding = isLongHeader ? cellPadding / 2 : cellPadding;
+      const extraPadding = isLongHeader ? 0 : headerExtraPadding;
+      const headerWidth = this.measureTextWidth(ctx, headerText, headerFont) + actualCellPadding + extraPadding;
 
       // 데이터 셀 중 최대 너비
       let maxDataWidth = 0;
