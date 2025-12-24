@@ -200,8 +200,8 @@ class TableCellRenderer {
     const cellX = this._getCellXPosition(x, width, alignment);
     const cellY = y + height / 2;
 
-    // 커스텀 색상이 있으면 사용, 없으면 헤더 색상 사용
-    const color = textColor || CONFIG.TABLE_HEADER_TEXT_COLOR;
+    // 커스텀 색상이 있으면 사용, 없으면 헤더 색상 사용 (switchColor 우선)
+    const color = textColor || CONFIG.TABLE_SWITCH_COLOR || CONFIG.TABLE_HEADER_TEXT_COLOR;
 
     // 행 라벨은 데이터 셀과 동일한 폰트 크기 사용 (isHeader = false)
     // 상첨자가 있어도 기본 폰트 크기가 작아지지 않도록 함
@@ -717,6 +717,7 @@ class TableCellRenderer {
     // LaTeX 기호 → 유니코드 변환
     let str = String(text).trim();
     str = str.replace(/\\times/g, '×');  // 곱셈 기호
+    str = str.replace(/\\sigma/g, 'σ');  // 소문자 시그마
     const fontSize = isHeader ? 22 : 24;
 
     // 빈 문자열은 렌더링 스킵
@@ -788,8 +789,8 @@ class TableCellRenderer {
    * @returns {boolean}
    */
   _isNumericOrAlpha(text) {
-    // 숫자, 소수점, 음수, 알파벳, 공백, ~만 포함
-    return /^[-\d.\sA-Za-z~%]+$/.test(text);
+    // 숫자, 소수점, 음수, 알파벳, 공백, ~, 괄호만 포함
+    return /^[-\d.\sA-Za-z~%()]+$/.test(text);
   }
 
   /**

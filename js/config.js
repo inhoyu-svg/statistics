@@ -148,7 +148,8 @@ const CONFIG = {
   // 테이블 격자선 및 셀 설정
   TABLE_GRID_COLOR_LIGHT: '#888888',      // 밝은 격자선 (헤더/합계 구분선)
   TABLE_GRID_COLOR_DARK: '#555555',       // 어두운 격자선 (데이터 행 구분선)
-  TABLE_HEADER_TEXT_COLOR: '#8DCF66',     // 헤더 텍스트 색상
+  TABLE_HEADER_TEXT_COLOR: '#8DCF66',     // 헤더 텍스트 색상 (기본값)
+  TABLE_SWITCH_COLOR: null,               // 녹색 대체 색상 (options.switchColor로 설정)
   TABLE_CELL_PADDING: 8,                  // 셀 내부 패딩
   TABLE_STEM_LEAF_PADDING: 20,            // 줄기-잎 데이터 셀 패딩 (세로선과의 간격)
   TABLE_GRID_DASH_PATTERN: [5, 3],        // 수직 점선 패턴 [선, 간격]

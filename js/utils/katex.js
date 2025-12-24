@@ -138,11 +138,27 @@ export function renderMathText(ctx, text, x, y, options = {}) {
 
     const segments = splitByCharType(str);
 
-    // 전체 너비 계산
+    // 이탤릭 문자와 괄호 사이 kerning 조정값
+    // lowercase와 ')' 사이 간격 조정
+    const getKerning = (prevType, prevText, nextType, nextText) => {
+      // lowercase 뒤에 ) 가 오면 kerning 적용 (양수: 넓히기)
+      if (prevType === 'lowercase' && nextText === ')') {
+        return fontSize * 0.08;  // 8% 넓히기
+      }
+      return 0;
+    };
+
+    // 전체 너비 계산 (kerning 포함)
     let totalWidth = 0;
-    segments.forEach(seg => {
+    segments.forEach((seg, i) => {
       ctx.font = getFontForCharType(seg.type, fontSize);
       totalWidth += ctx.measureText(seg.text).width;
+
+      // 다음 세그먼트와의 kerning
+      if (i < segments.length - 1) {
+        const nextSeg = segments[i + 1];
+        totalWidth += getKerning(seg.type, seg.text, nextSeg.type, nextSeg.text);
+      }
     });
 
     // 시작 위치 계산
@@ -153,10 +169,16 @@ export function renderMathText(ctx, text, x, y, options = {}) {
     // 세그먼트별 렌더링
     ctx.textAlign = 'left';
     let currentX = startX;
-    segments.forEach(seg => {
+    segments.forEach((seg, i) => {
       ctx.font = getFontForCharType(seg.type, fontSize);
       ctx.fillText(seg.text, currentX, y);
       currentX += ctx.measureText(seg.text).width;
+
+      // 다음 세그먼트와의 kerning
+      if (i < segments.length - 1) {
+        const nextSeg = segments[i + 1];
+        currentX += getKerning(seg.type, seg.text, nextSeg.type, nextSeg.text);
+      }
     });
 
     ctx.restore();
@@ -363,12 +385,14 @@ export function isFontsLoaded() {
 /**
  * 문자 유형 분류
  * @param {string} char - 단일 문자
- * @returns {'lowercase'|'uppercase'|'korean'|'other'}
+ * @returns {'lowercase'|'uppercase'|'korean'|'paren'|'space'|'other'}
  */
 function getCharType(char) {
   if (/[a-z]/.test(char)) return 'lowercase';
   if (/[A-Z]/.test(char)) return 'uppercase';
   if (/[가-힣]/.test(char)) return 'korean';
+  if (/[()]/.test(char)) return 'paren';  // 괄호는 이탤릭 아님
+  if (char === ' ') return 'space';  // 공백은 별도 처리
   return 'other';
 }
 

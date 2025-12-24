@@ -12,9 +12,16 @@ import BaseTableFactory from './BaseTableFactory.js';
 const BASIC_TABLE_CONFIG = {
   MERGED_HEADER_HEIGHT: 35,           // 병합 헤더 높이
   MERGED_HEADER_TEXT: '상대도수',      // 병합 헤더 텍스트
-  MERGED_HEADER_LINE_COLOR: '#8DCF66', // 병합 헤더 아래 구분선 색상
   MERGED_HEADER_LINE_WIDTH: 1          // 구분선 두께
 };
+
+/**
+ * 녹색 계열 색상 반환 (switchColor 적용)
+ * @returns {string} 색상 코드
+ */
+function getGreenColor() {
+  return CONFIG.TABLE_SWITCH_COLOR || CONFIG.TABLE_HEADER_TEXT_COLOR;
+}
 
 class BasicTableFactory {
   /**
@@ -320,7 +327,7 @@ class BasicTableFactory {
         hasSummaryRow,
         mergedHeaderHeight,
         columnHeaderHeight,
-        mergedHeaderLineColor: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_COLOR,
+        mergedHeaderLineColor: getGreenColor(),
         mergedHeaderLineWidth: BASIC_TABLE_CONFIG.MERGED_HEADER_LINE_WIDTH,
         showMergedHeader,
         rowHeights,
@@ -396,7 +403,7 @@ class BasicTableFactory {
         highlighted: false,
         highlightProgress: 0,
         isMergedCell: true,
-        headerTextColor: '#8DCF66'
+        headerTextColor: getGreenColor()
       }
     });
     mergedHeaderGroup.addChild(mergedCell);
@@ -441,7 +448,7 @@ class BasicTableFactory {
         alignment: 'center',
         highlighted: false,
         highlightProgress: 0,
-        headerTextColor: '#8DCF66'
+        headerTextColor: getGreenColor()
       }
     });
     headerGroup.addChild(rowLabelCell);
@@ -479,7 +486,7 @@ class BasicTableFactory {
           alignment: 'center',
           highlighted: false,
           highlightProgress: 0,
-          headerTextColor: '#8DCF66',
+          headerTextColor: getGreenColor(),
           colSpan: colSpan,
           isMergedCell: colSpan > 1
         }

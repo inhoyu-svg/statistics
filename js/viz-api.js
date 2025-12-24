@@ -766,6 +766,13 @@ export async function renderTable(element, config) {
       CONFIG.TABLE_ENGLISH_FONT = options.englishFont;
     }
 
+    // 녹색 대체 색상 옵션 적용
+    if (options.switchColor !== undefined) {
+      CONFIG.TABLE_SWITCH_COLOR = options.switchColor;
+    } else {
+      CONFIG.TABLE_SWITCH_COLOR = null;  // 기본값 리셋
+    }
+
     const animationConfig = config.animation !== undefined ? config.animation : options.animation;
     const animation = typeof animationConfig === 'object'
       ? animationConfig.enabled !== false
