@@ -13,6 +13,7 @@ import CoordinateSystem from './chart/CoordinateSystem.js';
 import LayerFactory from './chart/LayerFactory.js';
 import HistogramRenderer from './chart/HistogramRenderer.js';
 import PolygonRenderer from './chart/PolygonRenderer.js';
+import CurveRenderer from './chart/CurveRenderer.js';
 import AxisRenderer from './chart/AxisRenderer.js';
 import CalloutRenderer from './chart/CalloutRenderer.js';
 import DashedLineRenderer from './chart/DashedLineRenderer.js';
@@ -39,6 +40,7 @@ class ChartRenderer {
     // 렌더러 인스턴스 생성
     this.histogramRenderer = new HistogramRenderer(this.ctx);
     this.polygonRenderer = new PolygonRenderer(this.ctx);
+    this.curveRenderer = new CurveRenderer(this.ctx);
     this.axisRenderer = new AxisRenderer(this.ctx, this.canvas, this.padding);
     this.calloutRenderer = new CalloutRenderer(this.ctx);
     this.dashedLineRenderer = new DashedLineRenderer(this.ctx);
@@ -207,6 +209,10 @@ class ChartRenderer {
       }
       if (CONFIG.SHOW_POLYGON) {
         this.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenPolygonIndices);
+      }
+      // 분포 곡선 렌더링 (정적 모드)
+      if (CONFIG.SHOW_CURVE) {
+        this.curveRenderer.draw(values, coords, ellipsisInfo);
       }
       // 파선 렌더링 (정적 모드)
       if (CONFIG.SHOW_DASHED_LINES && CONFIG.SHOW_POLYGON) {

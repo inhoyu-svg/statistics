@@ -458,6 +458,9 @@ export async function renderChart(element, config) {
     // Dashed lines (vertical lines from polygon points to x-axis)
     CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
 
+    // Distribution curve (smooth curve above histogram)
+    CONFIG.SHOW_CURVE = options.showCurve || false;
+
     // Grid settings
     const gridOptions = options.grid || {};
     CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;
@@ -1353,6 +1356,7 @@ async function renderMultiplePolygons(element, config) {
     CONFIG.SHOW_HISTOGRAM = options.showHistogram === true;  // 기본 false
     CONFIG.SHOW_POLYGON = options.showPolygon !== false;     // 기본 true
     CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
+    CONFIG.SHOW_CURVE = options.showCurve || false;
 
     const gridOptions = options.grid || {};
     CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;

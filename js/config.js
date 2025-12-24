@@ -347,6 +347,14 @@ const CONFIG = {
     }
   },
 
+  // 분포 곡선 설정
+  SHOW_CURVE: false,                        // 분포 곡선 표시 여부
+  CURVE_COLOR: '#FFFFFF',                   // 곡선 색상
+  CURVE_LINE_WIDTH: 2,                      // 곡선 두께
+  CURVE_OFFSET_RATIO: 0.08,                 // 막대 높이 대비 오프셋 비율 (8%)
+  CURVE_MIN_OFFSET: 4,                      // 최소 오프셋 (px)
+  CURVE_TENSION: 1.0,                       // Catmull-Rom 텐션 (0~1, 높을수록 부드러움)
+
   // 격자선 설정
   GRID_SHOW_HORIZONTAL: true,               // 가로 격자선 표시 여부
   GRID_SHOW_VERTICAL: true,                 // 세로 격자선 표시 여부
