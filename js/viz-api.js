@@ -174,8 +174,8 @@ function applyCustomColors(options) {
   if (options.histogramColor) {
     const hc = options.histogramColor;
 
-    // Create custom preset
-    const customHistogram = { ...CONFIG.HISTOGRAM_COLOR_PRESETS.default };
+    // Create custom preset (커스텀 색상은 기본 alpha 1.0)
+    const customHistogram = { ...CONFIG.HISTOGRAM_COLOR_PRESETS.default, alpha: 1.0 };
 
     if (typeof hc === 'string') {
       // Single color or gradient string
