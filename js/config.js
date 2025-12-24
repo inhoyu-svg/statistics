@@ -353,11 +353,15 @@ const CONFIG = {
   CURVE_LINE_WIDTH: 2,                      // 곡선 두께
   CURVE_OFFSET_RATIO: 0.08,                 // 막대 높이 대비 오프셋 비율 (8%)
   CURVE_MIN_OFFSET: 4,                      // 최소 오프셋 (px)
-  CURVE_TENSION: 1.0,                       // Catmull-Rom 텐션 (0~1, 높을수록 부드러움)
+  CURVE_TENSION: 0.8,                       // Catmull-Rom 텐션 (높을수록 부드러움)
 
   // 격자선 설정
   GRID_SHOW_HORIZONTAL: true,               // 가로 격자선 표시 여부
   GRID_SHOW_VERTICAL: true,                 // 세로 격자선 표시 여부
+
+  // 축 표시 설정
+  AXIS_SHOW_X_AXIS: true,                   // X축 선 표시 여부
+  AXIS_SHOW_Y_AXIS: true,                   // Y축 선 표시 여부
 
   // 축 라벨 설정
   AXIS_SHOW_Y_LABELS: true,                 // Y축 값 라벨 표시 여부 (파선 끝점)
@@ -365,6 +369,7 @@ const CONFIG = {
   AXIS_SHOW_AXIS_LABELS: true,              // X,Y축 제목 라벨 표시 여부 (계급, 상대도수)
   AXIS_SHOW_ORIGIN_LABEL: true,             // 원점 라벨(0) 표시 여부
   AXIS_Y_LABEL_FORMAT: 'decimal',           // 'decimal' (0.03) 또는 'percent' (3%)
+  AXIS_X_LABEL_FORMAT: 'boundary',          // 'boundary' (경계값: 0, 5, 10) 또는 'range' (범위: 0-4, 5-9, 10-14)
 
   // 투명도 설정
   CHART_BAR_ALPHA: 0.5,                     // 막대 투명도
@@ -580,9 +585,10 @@ const CONFIG = {
    * 그리드 설정 계산 (스마트 격자)
    * @param {number} maxValue - 최대값
    * @param {string} dataType - 데이터 타입
+   * @param {boolean} hasMargin - 양 옆 여유 칸 여부 (true: 2칸 여유, false: 1칸 여유)
    * @returns {{maxY: number, divisions: number}} 조정된 최대값과 분할 수
    */
-  calculateGridDivisions(maxValue, dataType) {
+  calculateGridDivisions(maxValue, dataType, hasMargin = true) {
     // 상대도수 모드: 기존대로 10칸, maxY는 원래 값 사용
     if (dataType !== 'frequency') {
       return {
@@ -591,8 +597,9 @@ const CONFIG = {
       };
     }
 
-    // 도수 모드: 최대값 + 2칸 여유
-    const targetMax = Math.ceil(maxValue) + 2;
+    // 도수 모드: 양 옆 여유 칸 여부에 따라 Y축 여유 결정
+    const yMargin = hasMargin ? 2 : 1;
+    const targetMax = Math.ceil(maxValue) + yMargin;
 
     // "좋은 숫자" 간격 후보 (1, 2, 5, 10, 20, 50, 100, ...)
     const niceIntervals = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];

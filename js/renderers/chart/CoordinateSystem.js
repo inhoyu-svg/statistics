@@ -43,16 +43,22 @@ class CoordinateSystem {
     // 그리드 설정 계산
     let adjustedMaxY, gridDivisions;
 
+    // 양 옆 여유 칸 여부에 따라 Y축 여유 칸 결정
+    // 첫 번째 계급이 비어있으면 (firstDataIndex > 0) 양 옆에 여유 칸이 있음 → Y축 2칸 여유
+    // 첫 번째 계급부터 데이터가 있으면 양 옆 여유 칸 없음 → Y축 1칸 여유
+    const hasMargin = ellipsisInfo && ellipsisInfo.firstDataIndex > 0;
+    const yMarginMultiplier = hasMargin ? 2 : 1;
+
     if (customYInterval && customYInterval > 0) {
-      // 커스텀 간격 사용 (도수 모드일 때 간격 2칸 여백 적용)
+      // 커스텀 간격 사용
       const targetMax = (dataType === 'frequency')
-        ? Math.ceil(maxY) + (customYInterval * 2)
+        ? Math.ceil(maxY) + (customYInterval * yMarginMultiplier)
         : maxY;
       gridDivisions = Math.ceil(targetMax / customYInterval);
       adjustedMaxY = gridDivisions * customYInterval;
     } else {
       // 자동 계산 (스마트 격자)
-      const gridConfig = CONFIG.calculateGridDivisions(maxY, dataType);
+      const gridConfig = CONFIG.calculateGridDivisions(maxY, dataType, hasMargin);
       adjustedMaxY = gridConfig.maxY;
       gridDivisions = gridConfig.divisions;
     }

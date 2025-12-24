@@ -142,20 +142,53 @@ class AxisRenderer {
     const color = CONFIG.getColor('--color-text');
     const labelY = this.canvas.height - this.padding + CONFIG.getScaledValue(CONFIG.CHART_X_LABEL_Y_OFFSET);
 
-    if (ellipsisInfo && ellipsisInfo.show) {
-      const firstDataIdx = ellipsisInfo.firstDataIndex;
+    // X축 라벨 포맷: 'boundary' (경계값) 또는 'range' (범위)
+    const isRangeFormat = CONFIG.AXIS_X_LABEL_FORMAT === 'range';
 
-      // X축 0은 Y축 0과 중복되므로 렌더링하지 않음
+    if (isRangeFormat) {
+      // 범위 형식: 막대 중앙에 "min-max" 형태로 표시
+      this.drawXAxisRangeLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel, labelY, color);
+    } else {
+      // 경계값 형식: 기존 로직
+      this.drawXAxisBoundaryLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel, labelY, color);
+    }
+  }
 
-      // 중략 기호 (이중 물결, X축 위에 세로로) - 항상 표시
-      // 배치 순서: 0 - (중략) - (점) - 첫 데이터 라벨
+  /**
+   * X축 범위 라벨 그리기 (막대 중앙에 "min-max" 형태)
+   * @param {Array} classes - 계급 배열
+   * @param {Function} toX - X 좌표 변환 함수
+   * @param {number} xScale - X축 스케일
+   * @param {Function} toY - Y 좌표 변환 함수
+   * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} xLabel - X축 제목
+   * @param {number} labelY - 라벨 Y 좌표
+   * @param {string} color - 텍스트 색상
+   */
+  drawXAxisRangeLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel, labelY, color) {
+    if (!CONFIG.AXIS_SHOW_X_LABELS) {
+      // 라벨 숨김 시 축 제목만 표시
+      if (CONFIG.AXIS_SHOW_AXIS_LABELS && xLabel && classes.length > 0) {
+        const lastBarCenterX = toX(classes.length - 1) + xScale / 2;
+        KatexUtils.renderMixedText(this.ctx, xLabel,
+          lastBarCenterX + xScale, labelY,
+          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+        );
+      }
+      return;
+    }
+
+    // 중략 처리
+    const firstDataIdx = (ellipsisInfo && ellipsisInfo.show) ? ellipsisInfo.firstDataIndex : 0;
+
+    // 중략 기호 (showCurve가 false일 때만)
+    if (ellipsisInfo && ellipsisInfo.show && !CONFIG.SHOW_CURVE) {
       const ellipsisX = toX(0) + xScale * 0.08;
       const ellipsisY = toY(0);
 
       this.ctx.save();
       this.ctx.translate(ellipsisX, ellipsisY);
       this.ctx.rotate(Math.PI / 2);
-      // 캔버스 크기에 따라 스케일링되는 폰트 사용
       const scaledFontSize = CONFIG.getScaledFontSize(22);
       this.ctx.font = `300 ${scaledFontSize}px 'SCDream', sans-serif`;
       this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
@@ -163,6 +196,66 @@ class AxisRenderer {
       this.ctx.textAlign = 'center';
       this.ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
       this.ctx.restore();
+    }
+
+    // 각 막대 중앙에 범위 라벨 표시
+    for (let i = firstDataIdx; i < classes.length; i++) {
+      const c = classes[i];
+      // 범위 라벨: "min-max" (max - 1을 사용하여 겹치지 않게)
+      // 예: 0~5 계급이면 "0-4", 5~10이면 "5-9"
+      const rangeLabel = `${c.min}-${c.max - 1}`;
+      const barCenterX = toX(i) + xScale / 2;
+
+      KatexUtils.render(this.ctx, rangeLabel, barCenterX, labelY,
+        { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+      );
+    }
+
+    // 축 제목 (마지막 막대 오른쪽)
+    if (CONFIG.AXIS_SHOW_AXIS_LABELS && xLabel && classes.length > 0) {
+      const lastBarCenterX = toX(classes.length - 1) + xScale / 2;
+      KatexUtils.renderMixedText(this.ctx, xLabel,
+        lastBarCenterX + xScale, labelY,
+        { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+      );
+    }
+  }
+
+  /**
+   * X축 경계값 라벨 그리기 (기존 로직)
+   * @param {Array} classes - 계급 배열
+   * @param {Function} toX - X 좌표 변환 함수
+   * @param {number} xScale - X축 스케일
+   * @param {Function} toY - Y 좌표 변환 함수
+   * @param {Object} ellipsisInfo - 중략 정보
+   * @param {string} xLabel - X축 제목
+   * @param {number} labelY - 라벨 Y 좌표
+   * @param {string} color - 텍스트 색상
+   */
+  drawXAxisBoundaryLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel, labelY, color) {
+    if (ellipsisInfo && ellipsisInfo.show) {
+      const firstDataIdx = ellipsisInfo.firstDataIndex;
+
+      // X축 0은 Y축 0과 중복되므로 렌더링하지 않음
+
+      // 중략 기호 (이중 물결, X축 위에 세로로) - showCurve가 false일 때만 표시
+      // 배치 순서: 0 - (중략) - (점) - 첫 데이터 라벨
+      if (!CONFIG.SHOW_CURVE) {
+        const ellipsisX = toX(0) + xScale * 0.08;
+        const ellipsisY = toY(0);
+
+        this.ctx.save();
+        this.ctx.translate(ellipsisX, ellipsisY);
+        this.ctx.rotate(Math.PI / 2);
+        // 캔버스 크기에 따라 스케일링되는 폰트 사용
+        const scaledFontSize = CONFIG.getScaledFontSize(22);
+        this.ctx.font = `300 ${scaledFontSize}px 'SCDream', sans-serif`;
+        this.ctx.fillStyle = CONFIG.getColor('--color-ellipsis');
+        this.ctx.textBaseline = 'bottom';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(CONFIG.AXIS_ELLIPSIS_SYMBOL, 0, 0);
+        this.ctx.restore();
+      }
 
       // 데이터 구간 라벨 (AXIS_SHOW_X_LABELS에 따라)
       if (CONFIG.AXIS_SHOW_X_LABELS) {
@@ -173,12 +266,18 @@ class AxisRenderer {
         }
       }
 
-      // 마지막 라벨(축제목): showAxisLabels가 true일 때만 축 제목, 아니면 숫자만
-      const lastLabel = CONFIG.AXIS_SHOW_AXIS_LABELS ? (xLabel || String(classes[classes.length - 1].max)) : String(classes[classes.length - 1].max);
-      KatexUtils.renderMixedText(this.ctx, lastLabel,
-        toX(classes.length - 1) + xScale, labelY,
-        { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
-      );
+      // 마지막 라벨(축제목): showAxisLabels가 true면 축 제목, 아니면 showXLabels에 따라 숫자
+      if (CONFIG.AXIS_SHOW_AXIS_LABELS && xLabel) {
+        KatexUtils.renderMixedText(this.ctx, xLabel,
+          toX(classes.length - 1) + xScale, labelY,
+          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+        );
+      } else if (CONFIG.AXIS_SHOW_X_LABELS) {
+        KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
+          toX(classes.length - 1) + xScale, labelY,
+          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+        );
+      }
     } else {
       // 중략 없이 전체 표시 (KaTeX 폰트)
       if (CONFIG.AXIS_SHOW_X_LABELS) {
@@ -191,13 +290,19 @@ class AxisRenderer {
         });
       }
 
-      // 마지막 라벨(축제목): showAxisLabels가 true일 때만 축 제목, 아니면 숫자만
+      // 마지막 라벨(축제목): showAxisLabels가 true면 축 제목, 아니면 showXLabels에 따라 숫자
       if (classes.length > 0) {
-        const lastLabel = CONFIG.AXIS_SHOW_AXIS_LABELS ? (xLabel || String(classes[classes.length - 1].max)) : String(classes[classes.length - 1].max);
-        KatexUtils.renderMixedText(this.ctx, lastLabel,
-          toX(classes.length), labelY,
-          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
-        );
+        if (CONFIG.AXIS_SHOW_AXIS_LABELS && xLabel) {
+          KatexUtils.renderMixedText(this.ctx, xLabel,
+            toX(classes.length), labelY,
+            { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+          );
+        } else if (CONFIG.AXIS_SHOW_X_LABELS) {
+          KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
+            toX(classes.length), labelY,
+            { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+          );
+        }
       }
     }
   }
@@ -269,18 +374,22 @@ class AxisRenderer {
     this.ctx.strokeStyle = CONFIG.getColor('--color-axis');
 
     // X축 기준선 (Y=0)
-    const y0 = toY(0);
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.padding, y0);
-    this.ctx.lineTo(this.canvas.width - this.padding, y0);
-    this.ctx.stroke();
+    if (CONFIG.AXIS_SHOW_X_AXIS) {
+      const y0 = toY(0);
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.padding, y0);
+      this.ctx.lineTo(this.canvas.width - this.padding, y0);
+      this.ctx.stroke();
+    }
 
     // Y축 기준선 (X=0)
-    const x0 = toX(0);
-    this.ctx.beginPath();
-    this.ctx.moveTo(x0, this.padding);
-    this.ctx.lineTo(x0, this.canvas.height - this.padding);
-    this.ctx.stroke();
+    if (CONFIG.AXIS_SHOW_Y_AXIS) {
+      const x0 = toX(0);
+      this.ctx.beginPath();
+      this.ctx.moveTo(x0, this.padding);
+      this.ctx.lineTo(x0, this.canvas.height - this.padding);
+      this.ctx.stroke();
+    }
   }
 
   /**

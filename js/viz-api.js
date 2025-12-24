@@ -466,14 +466,19 @@ export async function renderChart(element, config) {
     CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;
     CONFIG.GRID_SHOW_VERTICAL = gridOptions.showVertical !== false;
 
-    // Axis label visibility settings
+    // Axis visibility settings
     const axisOptions = options.axis || {};
+    CONFIG.AXIS_SHOW_X_AXIS = axisOptions.showXAxis !== false;
+    CONFIG.AXIS_SHOW_Y_AXIS = axisOptions.showYAxis !== false;
     CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
     CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
     CONFIG.AXIS_SHOW_AXIS_LABELS = axisOptions.showAxisLabels !== false;
     CONFIG.AXIS_SHOW_ORIGIN_LABEL = axisOptions.showOriginLabel !== false;
     if (axisOptions.yLabelFormat) {
       CONFIG.AXIS_Y_LABEL_FORMAT = axisOptions.yLabelFormat;
+    }
+    if (axisOptions.xLabelFormat) {
+      CONFIG.AXIS_X_LABEL_FORMAT = axisOptions.xLabelFormat;
     }
 
     // Congruent triangles settings
@@ -1365,6 +1370,8 @@ async function renderMultiplePolygons(element, config) {
     CONFIG.GRID_SHOW_VERTICAL = gridOptions.showVertical !== false;
 
     const axisOptions = options.axis || {};
+    CONFIG.AXIS_SHOW_X_AXIS = axisOptions.showXAxis !== false;
+    CONFIG.AXIS_SHOW_Y_AXIS = axisOptions.showYAxis !== false;
     CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
     CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
     CONFIG.AXIS_SHOW_AXIS_LABELS = axisOptions.showAxisLabels !== false;

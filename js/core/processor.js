@@ -251,6 +251,14 @@ class DataProcessor {
       MessageManager.warning(message);
     }
 
+    // 첫 번째 계급에 데이터가 있으면 마지막 빈 구간 제거 (왼쪽 여유 없으면 오른쪽도 없애기)
+    if (classes.length >= 2 && classes[0].frequency > 0) {
+      const lastClass = classes[classes.length - 1];
+      if (lastClass.frequency === 0) {
+        classes.pop();
+      }
+    }
+
     return classes;
   }
 
@@ -306,7 +314,7 @@ class DataProcessor {
       }
     }
 
-    return { show: false, firstDataIndex: -1 };
+    return { show: false, firstDataIndex };
   }
 
   /**
