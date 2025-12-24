@@ -470,6 +470,8 @@ export async function renderChart(element, config) {
     const axisOptions = options.axis || {};
     CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
     CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
+    CONFIG.AXIS_SHOW_AXIS_LABELS = axisOptions.showAxisLabels !== false;
+    CONFIG.AXIS_SHOW_ORIGIN_LABEL = axisOptions.showOriginLabel !== false;
     if (axisOptions.yLabelFormat) {
       CONFIG.AXIS_Y_LABEL_FORMAT = axisOptions.yLabelFormat;
     }
@@ -1365,6 +1367,8 @@ async function renderMultiplePolygons(element, config) {
     const axisOptions = options.axis || {};
     CONFIG.AXIS_SHOW_Y_LABELS = axisOptions.showYLabels !== false;
     CONFIG.AXIS_SHOW_X_LABELS = axisOptions.showXLabels !== false;
+    CONFIG.AXIS_SHOW_AXIS_LABELS = axisOptions.showAxisLabels !== false;
+    CONFIG.AXIS_SHOW_ORIGIN_LABEL = axisOptions.showOriginLabel !== false;
 
     // 7. 각 데이터셋 순서대로 그리기
     const axisLabels = options.axisLabels || null;

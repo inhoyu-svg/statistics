@@ -362,6 +362,8 @@ const CONFIG = {
   // 축 라벨 설정
   AXIS_SHOW_Y_LABELS: true,                 // Y축 값 라벨 표시 여부 (파선 끝점)
   AXIS_SHOW_X_LABELS: true,                 // X축 값 라벨 표시 여부
+  AXIS_SHOW_AXIS_LABELS: true,              // X,Y축 제목 라벨 표시 여부 (계급, 상대도수)
+  AXIS_SHOW_ORIGIN_LABEL: true,             // 원점 라벨(0) 표시 여부
   AXIS_Y_LABEL_FORMAT: 'decimal',           // 'decimal' (0.03) 또는 'percent' (3%)
 
   // 투명도 설정

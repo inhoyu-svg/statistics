@@ -62,12 +62,15 @@ class AxisRenderer {
     for (let i = 0; i <= gridDivisions; i++) {
       const value = maxY * i / gridDivisions;
 
-      // 0과 최댓값(축제목)은 항상 표시, 나머지는 AXIS_SHOW_Y_LABELS에 따라
-      const isEndpoint = (i === 0 || i === gridDivisions);
-      if (!CONFIG.AXIS_SHOW_Y_LABELS && !isEndpoint) continue;
+      // 원점 표시 여부 체크
+      const isOrigin = (i === 0);
+      if (isOrigin && !CONFIG.AXIS_SHOW_ORIGIN_LABEL) continue;
 
-      // 마지막 라벨은 축 제목으로 대체
-      if (i === gridDivisions && yLabel) {
+      // 숫자 라벨 표시 여부 (원점 제외)
+      if (!CONFIG.AXIS_SHOW_Y_LABELS && !isOrigin) continue;
+
+      // 마지막 라벨은 축 제목으로 대체 (showAxisLabels가 true일 때만)
+      if (i === gridDivisions && yLabel && CONFIG.AXIS_SHOW_AXIS_LABELS) {
         const baseFontSize = 22;
         if (yLabel.length >= 4) {
           // 4글자 이상: Y축 상단 위에 가로로 표시
@@ -170,8 +173,9 @@ class AxisRenderer {
         }
       }
 
-      // 마지막 라벨(축제목): 항상 표시
-      KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
+      // 마지막 라벨(축제목): showAxisLabels가 true일 때만 축 제목, 아니면 숫자만
+      const lastLabel = CONFIG.AXIS_SHOW_AXIS_LABELS ? (xLabel || String(classes[classes.length - 1].max)) : String(classes[classes.length - 1].max);
+      KatexUtils.renderMixedText(this.ctx, lastLabel,
         toX(classes.length - 1) + xScale, labelY,
         { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
       );
@@ -187,9 +191,10 @@ class AxisRenderer {
         });
       }
 
-      // 마지막 라벨(축제목): 항상 표시
+      // 마지막 라벨(축제목): showAxisLabels가 true일 때만 축 제목, 아니면 숫자만
       if (classes.length > 0) {
-        KatexUtils.renderMixedText(this.ctx, xLabel || String(classes[classes.length - 1].max),
+        const lastLabel = CONFIG.AXIS_SHOW_AXIS_LABELS ? (xLabel || String(classes[classes.length - 1].max)) : String(classes[classes.length - 1].max);
+        KatexUtils.renderMixedText(this.ctx, lastLabel,
           toX(classes.length), labelY,
           { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
         );
