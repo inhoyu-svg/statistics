@@ -1138,6 +1138,154 @@ class TableRenderer {
   }
 
   /**
+   * 특정 셀의 하이라이트를 페이드아웃
+   * @param {number} rowIndex - 행 인덱스
+   * @param {number} colIndex - 열 인덱스
+   * @param {number} [duration=300] - 페이드아웃 지속 시간 (ms)
+   */
+  fadeOutCellHighlight(rowIndex, colIndex, duration = 300) {
+    const cellLayer = this._findCellLayer(rowIndex, colIndex);
+    if (!cellLayer) {
+      console.warn(`fadeOutCellHighlight: 셀을 찾을 수 없음 (${rowIndex}, ${colIndex})`);
+      return;
+    }
+
+    // 이미 애니메이션 중이 아니면 무시
+    if (!cellLayer.data.animating && !cellLayer.data.animationProgress) {
+      return;
+    }
+
+    const startProgress = cellLayer.data.animationProgress || 1;
+    const startTime = Date.now();
+
+    const fadeOut = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const currentAlpha = startProgress * (1 - progress);
+
+      cellLayer.data.animationProgress = currentAlpha;
+      cellLayer.data.animating = currentAlpha > 0;
+
+      // 리렌더링
+      this.render();
+
+      if (progress < 1) {
+        requestAnimationFrame(fadeOut);
+      } else {
+        // 완료 시 상태 초기화
+        cellLayer.data.animating = false;
+        cellLayer.data.animationProgress = 0;
+        delete cellLayer.data.animationColor;
+      }
+    };
+
+    requestAnimationFrame(fadeOut);
+  }
+
+  /**
+   * rowIndex, colIndex로 셀 레이어 찾기
+   * @param {number} rowIndex - 행 인덱스 (0=헤더)
+   * @param {number} colIndex - 열 인덱스
+   * @returns {Object|null} 셀 레이어 또는 null
+   */
+  _findCellLayer(rowIndex, colIndex) {
+    const rootLayer = this.layerManager.root;
+    if (!rootLayer || rootLayer.children.length === 0) return null;
+
+    const tableLayer = rootLayer.children[0];
+    if (!tableLayer) return null;
+
+    const prefix = this._getLayerIdPrefix();
+
+    for (const child of tableLayer.children) {
+      if (child.type !== 'group') continue;
+
+      const isTargetRow =
+        (rowIndex === 0 && child.id === `${prefix}-table-header`) ||
+        (rowIndex > 0 && child.id === `${prefix}-table-row-${rowIndex - 1}`) ||
+        child.id === `${prefix}-table-summary`;
+
+      if (isTargetRow) {
+        for (const cellLayer of child.children) {
+          if (cellLayer.type === 'cell' && cellLayer.data.colIndex === colIndex) {
+            return cellLayer;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 테이블 전체를 페이드아웃
+   * @param {number} [duration=300] - 페이드아웃 지속 시간 (ms)
+   * @returns {Promise} 페이드아웃 완료 시 resolve
+   */
+  fadeOutTable(duration = 300) {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+
+      const fadeOut = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const alpha = 1 - progress;
+
+        // 캔버스 전체 투명도 조절
+        this.ctx.save();
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.globalAlpha = alpha;
+        this.render();
+        this.ctx.restore();
+
+        if (progress < 1) {
+          requestAnimationFrame(fadeOut);
+        } else {
+          // 완료 시 캔버스 클리어
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(fadeOut);
+    });
+  }
+
+  /**
+   * 테이블 전체를 페이드인
+   * @param {number} [duration=300] - 페이드인 지속 시간 (ms)
+   * @returns {Promise} 페이드인 완료 시 resolve
+   */
+  fadeInTable(duration = 300) {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+
+      const fadeIn = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const alpha = progress;
+
+        // 캔버스 전체 투명도 조절
+        this.ctx.save();
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.globalAlpha = alpha;
+        this.render();
+        this.ctx.restore();
+
+        if (progress < 1) {
+          requestAnimationFrame(fadeIn);
+        } else {
+          // 완료 시 정상 렌더
+          this.render();
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(fadeIn);
+    });
+  }
+
+  /**
    * 저장된 모든 애니메이션 동시 재생
    * @param {Object} options - 재생 옵션
    * @param {boolean} [options.blinkEnabled=false] - 블링크 효과 활성화

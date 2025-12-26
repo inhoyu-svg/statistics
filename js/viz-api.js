@@ -821,24 +821,69 @@ export async function renderTable(element, config) {
       adaptedData
     };
 
-    // 추가 렌더링인 경우: 데이터 비교 및 fadeIn 애니메이션
+    // 추가 렌더링인 경우: 구조 비교 후 처리 결정
     if (isAdditionalRender && canvas.__previousTableData) {
       const prevData = canvas.__previousTableData;
-      const changes = diffTableData(prevData, finalParseResult.data);
+      const newData = finalParseResult.data;
 
-      if (changes.length > 0) {
-        console.log(`[viz-api] 테이블 변경 감지: ${changes.length}개 셀 fadeIn`);
-        tableRenderer.updateCellsWithAnimation(changes);
+      // 테이블 구조 비교 (행/열 수)
+      // basic-table: rows, columnHeaders / stem-leaf: stems / category-matrix: rows, headers
+      const prevRowCount = prevData.rows ? prevData.rows.length : (prevData.stems?.length || prevData.length || 0);
+      const newRowCount = newData.rows ? newData.rows.length : (newData.stems?.length || newData.length || 0);
+      const prevColCount = prevData.columnHeaders?.length || prevData.headers?.length || (prevData[0]?.length || 0);
+      const newColCount = newData.columnHeaders?.length || newData.headers?.length || (newData[0]?.length || 0);
+
+      const structureChanged = prevRowCount !== newRowCount || prevColCount !== newColCount;
+
+      if (structureChanged) {
+        // 구조가 다르면: CSS로 페이드아웃 → 새로 그리기 → 페이드인
+        console.log(`[viz-api] 테이블 구조 변경 감지: ${prevRowCount}x${prevColCount} → ${newRowCount}x${newColCount}, 전환 애니메이션`);
+
+        // CSS transition 설정
+        canvas.style.transition = 'opacity 250ms ease-out';
+        canvas.style.opacity = '0';
+
+        // 페이드아웃 완료 후
+        setTimeout(() => {
+          // 새 테이블 그리기
+          tableRenderer.drawCustomTable(tableType, newData, enhancedTableConfig);
+
+          // Apply cell animations if specified
+          applyCellAnimationsFromConfig(tableRenderer, config);
+          canvas.__previousCellAnimations = config.cellAnimations ? [...config.cellAnimations] : [];
+
+          // 페이드인
+          canvas.style.opacity = '1';
+
+          // Apply corruption effect (if enabled)
+          if (options.corruption?.enabled) {
+            const scale = tableRenderer.scaleRatio || 1;
+            const actualTableInfo = getActualTableInfo(tableRenderer, tableType, newData, canvas, scale);
+            if (actualTableInfo) {
+              applyTableCorruption(tableRenderer.ctx, options.corruption, actualTableInfo);
+            }
+          }
+        }, 250);
+      } else {
+        // 구조가 같으면 데이터 변경만 애니메이션
+        const changes = diffTableData(prevData, newData);
+
+        if (changes.length > 0) {
+          console.log(`[viz-api] 테이블 변경 감지: ${changes.length}개 셀 fadeIn`);
+          tableRenderer.updateCellsWithAnimation(changes);
+        }
+
+        // 이전/새 cellAnimations 비교하여 페이드아웃/페이드인 처리
+        applyCellAnimationsWithTransition(tableRenderer, canvas, config);
       }
-
-      // Apply cell animations if specified (추가 렌더링에서도 적용)
-      applyCellAnimationsFromConfig(tableRenderer, config);
     } else {
       // 새 렌더링: 테이블 전체 그리기
       tableRenderer.drawCustomTable(tableType, finalParseResult.data, enhancedTableConfig);
 
-      // Apply cell animations if specified
+      // Apply cell animations if specified (첫 렌더링)
       applyCellAnimationsFromConfig(tableRenderer, config);
+      // 현재 cellAnimations 저장 (다음 비교용)
+      canvas.__previousCellAnimations = config.cellAnimations ? [...config.cellAnimations] : [];
 
       // Apply corruption effect (if enabled)
       if (options.corruption?.enabled) {
@@ -987,6 +1032,80 @@ function applyCellAnimationsFromConfig(tableRenderer, config) {
     const playOptions = config.cellAnimationOptions || {};
     tableRenderer.playAllAnimations(playOptions);
   }
+}
+
+/**
+ * Compare cell animations and apply with transition (fade out removed, fade in new)
+ * @param {TableRenderer} tableRenderer - Table renderer instance
+ * @param {HTMLCanvasElement} canvas - Canvas element with __previousCellAnimations
+ * @param {Object} config - Configuration object with cellAnimations
+ */
+function applyCellAnimationsWithTransition(tableRenderer, canvas, config) {
+  const prevAnimations = canvas.__previousCellAnimations || [];
+  const newAnimations = config.cellAnimations || [];
+
+  // Helper to create unique key for animation (모든 속성 조합)
+  const getAnimKey = (anim) => {
+    return `${anim.rowIndex ?? 'x'}-${anim.colIndex ?? 'x'}-${anim.rowStart ?? 'x'}-${anim.rowEnd ?? 'x'}-${anim.colStart ?? 'x'}-${anim.colEnd ?? 'x'}`;
+  };
+
+  const prevKeys = new Set(prevAnimations.map(getAnimKey));
+  const newKeys = new Set(newAnimations.map(getAnimKey));
+
+  // Find removed animations (in prev but not in new)
+  const removedAnimations = prevAnimations.filter(anim => !newKeys.has(getAnimKey(anim)));
+
+  // Find added animations (in new but not in prev)
+  const addedAnimations = newAnimations.filter(anim => !prevKeys.has(getAnimKey(anim)));
+
+  // 1. Fade out removed animations - 범위 지정된 애니메이션도 처리
+  if (removedAnimations.length > 0) {
+    console.log(`[viz-api] cellAnimations 제거: ${removedAnimations.length}개 페이드아웃`);
+    removedAnimations.forEach(anim => {
+      // rowStart/rowEnd 방식인 경우 범위 내 모든 셀 페이드아웃
+      if (anim.rowStart !== undefined && anim.rowEnd !== undefined && anim.colIndex !== undefined) {
+        for (let r = anim.rowStart; r <= anim.rowEnd; r++) {
+          tableRenderer.fadeOutCellHighlight(r, anim.colIndex);
+        }
+      }
+      // colStart/colEnd 방식인 경우 범위 내 모든 셀 페이드아웃
+      else if (anim.colStart !== undefined && anim.colEnd !== undefined && anim.rowIndex !== undefined) {
+        for (let c = anim.colStart; c <= anim.colEnd; c++) {
+          tableRenderer.fadeOutCellHighlight(anim.rowIndex, c);
+        }
+      }
+      // 단일 셀 지정인 경우
+      else if (anim.rowIndex !== undefined && anim.colIndex !== undefined) {
+        tableRenderer.fadeOutCellHighlight(anim.rowIndex, anim.colIndex);
+      }
+    });
+  }
+
+  // 2. 기존 savedAnimations 클리어 (레이어 상태는 건드리지 않음)
+  tableRenderer.clearSavedAnimations();
+
+  // 3. 새 애니메이션만 추가 (유지되는 셀 + 새로 추가된 셀) - 모든 속성 전달
+  newAnimations.forEach(anim => {
+    tableRenderer.addAnimation({
+      rowIndex: anim.rowIndex,
+      colIndex: anim.colIndex,
+      rowStart: anim.rowStart,
+      rowEnd: anim.rowEnd,
+      colStart: anim.colStart,
+      colEnd: anim.colEnd,
+      duration: anim.duration,
+      repeat: anim.repeat
+    });
+  });
+
+  // 4. Play all animations (새 애니메이션이 있을 때만)
+  if (newAnimations.length > 0) {
+    const playOptions = config.cellAnimationOptions || {};
+    tableRenderer.playAllAnimations(playOptions);
+  }
+
+  // 5. Save current animations for next comparison
+  canvas.__previousCellAnimations = newAnimations.length > 0 ? [...newAnimations] : [];
 }
 
 /**
