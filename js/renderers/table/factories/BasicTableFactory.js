@@ -595,8 +595,9 @@ class BasicTableFactory {
     const summaryRowHeight = rowHeights[dataRowCount] || CONFIG.TABLE_ROW_HEIGHT;
     let x = padding + borderPadX;
 
-    // 첫 번째 열은 "합계"
-    const cells = ['합계', ...totals];
+    // 첫 번째 열은 "합계" (englishFont 옵션이면 "Total")
+    const totalLabel = CONFIG.TABLE_ENGLISH_FONT ? 'Total' : '합계';
+    const cells = [totalLabel, ...totals];
 
     cells.forEach((cellText, colIndex) => {
       let displayText = cellText;
