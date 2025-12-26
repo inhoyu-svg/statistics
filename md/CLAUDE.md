@@ -153,8 +153,7 @@ statistics/
 │   ├── CLAUDE.md           # Claude Code 가이드
 │   ├── SCHEMA.md           # 데이터 구조 스키마 문서
 │   ├── VIZ-API-CONFIG.md   # viz-api 설정 가이드
-│   ├── README.md           # 프로젝트 소개
-│   └── USAGE.md            # 사용법 가이드
+│   └── HANDOVER.md         # 인수인계 문서
 └── schema/                 # JSON Schema
     └── viz-api.schema.json # viz-api 설정 검증 스키마
 ```
@@ -420,8 +419,6 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
     - REFACTORING-PLAN.md 삭제 반영
     - 리팩토링 필요 파일 목록 업데이트 (9개)
   - ✅ **문서 업데이트** (2025-12-09)
-    - USAGE.md: corruption, cellVariables, cellAnimations, viz-api 연동 섹션 추가
-    - README.md: viz-api 연동, 문서 링크, 기술 스택 섹션 추가
     - CLAUDE.md: 폴더 구조 줄 수 업데이트, 리팩토링 가이드 현행화
   - ✅ **JSON Schema 개선** (2025-12-08)
     - 421줄 → 713줄 대폭 확장
@@ -541,8 +538,6 @@ Fix: 레이어 순서 변경 시 애니메이션 순서 업데이트
     - M1: CSS 변수로 색상 이동 (--chart-bar-border-color, --chart-polygon-color)
     - M2: 매직 넘버 명명 개선 (9개 명확한 상수 추가)
   - ✅ **문서 파일 전면 업데이트** (2025-11-21, 2025-11-24)
-    - README.md: 막대 위 값 표시 기능 추가, 중략 기호 수정
-    - USAGE.md: 고급 기능 섹션에 막대 위 값 표시 설명 추가, 중략 기호 수정
     - CLAUDE.md: 폴더 구조 재작성, 애니메이션 시스템 설명 추가, 모든 오류 수정
 - **현재 상태**: 정상 작동 ✅
 

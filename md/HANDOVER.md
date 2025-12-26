@@ -114,9 +114,7 @@ statistics/
 │       └── corruption.js        # 찢김 효과 (1251줄)
 │
 ├── md/                          # 문서
-│   ├── README.md                # 프로젝트 소개
 │   ├── CLAUDE.md                # AI 협업 가이드
-│   ├── USAGE.md                 # 사용 설명서
 │   ├── SCHEMA.md                # 데이터 구조 문서
 │   ├── VIZ-API-CONFIG.md        # API 설정 레퍼런스
 │   └── HANDOVER.md              # 인수인계 문서 (이 파일)
