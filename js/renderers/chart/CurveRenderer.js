@@ -98,6 +98,28 @@ class CurveRenderer {
   }
 
   /**
+   * 곡선 색상 결정 (프리셋 그라데이션 또는 단일 색상)
+   * @param {number} startX - 그라데이션 시작 X
+   * @param {number} endX - 그라데이션 끝 X
+   * @returns {string|CanvasGradient} 색상 또는 그라데이션
+   */
+  getCurveColor(startX, endX) {
+    // 단일 색상이 지정된 경우
+    if (CONFIG.CURVE_COLOR) {
+      return CONFIG.CURVE_COLOR;
+    }
+
+    // 프리셋 사용
+    const preset = CONFIG.POLYGON_COLOR_PRESETS[CONFIG.CURVE_COLOR_PRESET]
+      || CONFIG.POLYGON_COLOR_PRESETS.default;
+
+    const gradient = this.ctx.createLinearGradient(startX, 0, endX, 0);
+    gradient.addColorStop(0, preset.gradientStart);
+    gradient.addColorStop(1, preset.gradientEnd);
+    return gradient;
+  }
+
+  /**
    * 클리핑을 적용한 Catmull-Rom 스플라인 곡선 그리기
    * @param {Array} points - 점 배열 [{x, y}, ...] (첫/마지막은 가상 제어점)
    * @param {number} clipBottomY - 클리핑 하단 경계 (Y픽셀 좌표)
@@ -115,7 +137,10 @@ class CurveRenderer {
 
     // 곡선 그리기
     this.ctx.beginPath();
-    this.ctx.strokeStyle = CONFIG.CURVE_COLOR;
+    // 그라데이션 범위: 첫 실제 점 ~ 마지막 실제 점
+    const startX = points[1].x;
+    const endX = points[points.length - 2].x;
+    this.ctx.strokeStyle = this.getCurveColor(startX, endX);
     this.ctx.lineWidth = CONFIG.CURVE_LINE_WIDTH;
 
     // 실제 시작점 (인덱스 1)으로 이동

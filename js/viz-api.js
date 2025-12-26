@@ -459,7 +459,22 @@ export async function renderChart(element, config) {
     CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
 
     // Distribution curve (smooth curve above histogram)
-    CONFIG.SHOW_CURVE = options.showCurve || false;
+    // showCurve: true | false | { color: "default" | "#RRGGBB" }
+    if (typeof options.showCurve === 'object' && options.showCurve !== null) {
+      CONFIG.SHOW_CURVE = true;  // 객체면 활성화
+      const curveColor = options.showCurve.color;
+      if (curveColor) {
+        // 프리셋 이름이면 프리셋 사용, 아니면 직접 색상 코드
+        if (CONFIG.POLYGON_COLOR_PRESETS[curveColor]) {
+          CONFIG.CURVE_COLOR_PRESET = curveColor;
+          CONFIG.CURVE_COLOR = null;  // 프리셋 사용 표시
+        } else {
+          CONFIG.CURVE_COLOR = curveColor;  // 직접 색상 코드
+        }
+      }
+    } else {
+      CONFIG.SHOW_CURVE = options.showCurve || false;
+    }
 
     // Grid settings
     const gridOptions = options.grid || {};

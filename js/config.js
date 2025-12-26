@@ -351,7 +351,8 @@ const CONFIG = {
 
   // 분포 곡선 설정
   SHOW_CURVE: false,                        // 분포 곡선 표시 여부
-  CURVE_COLOR: '#FFFFFF',                   // 곡선 색상
+  CURVE_COLOR: '#FFFFFF',                   // 곡선 색상 (단일 색상 또는 null이면 프리셋 사용)
+  CURVE_COLOR_PRESET: 'default',            // 곡선 색상 프리셋 (POLYGON_COLOR_PRESETS 재사용)
   CURVE_LINE_WIDTH: 2,                      // 곡선 두께
   CURVE_OFFSET_RATIO: 0.08,                 // 막대 높이 대비 오프셋 비율 (8%)
   CURVE_MIN_OFFSET: 4,                      // 최소 오프셋 (px)
