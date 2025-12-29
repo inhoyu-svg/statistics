@@ -342,20 +342,6 @@
         <div class="status" id="status-s3"></div>
       </div>
 
-      <!-- S4: 무상관 (타원형 가로) -->
-      <div class="case-card" id="case-s4">
-        <div class="case-header">
-          <h3>S4 - 무상관 (가로 타원)</h3>
-          <p class="case-desc">x 변동 크고 y 변동 작음 (r ≈ 0)</p>
-        </div>
-        <div class="case-canvas" id="canvas-s4"></div>
-        <div class="case-controls">
-          <button class="btn-timeline" data-case="s4">▶ Timeline</button>
-          <button class="btn-config" data-case="s4">{ } Config</button>
-        </div>
-        <div class="status" id="status-s4"></div>
-      </div>
-
       <!-- S5: 약한 양의 상관 -->
       <div class="case-card" id="case-s5">
         <div class="case-header">
@@ -643,18 +629,6 @@
       return data;
     }
 
-    // 무상관 가로 타원 데이터 (x 변동 큼, y 변동 작음)
-    function generateHorizontalEllipse(n = 50) {
-      const data = [];
-      const centerX = 50, centerY = 50;
-      for (let i = 0; i < n; i++) {
-        const x = centerX + (Math.random() - 0.5) * 60;
-        const y = centerY + (Math.random() - 0.5) * 20;
-        data.push([Math.round(x), Math.round(y)]);
-      }
-      return data;
-    }
-
     // 약한 양의 상관 데이터 (r ≈ 0.4)
     function generateWeakPositive(n = 50) {
       const data = [];
@@ -734,26 +708,6 @@
                     options: {
             axisLabels: { xAxis: 'listen-test', yAxis: 'speak-test' },
             englishFont: true,
-            axis: {
-              showYLabels: false,
-              showXLabels: false,
-              showOriginLabel: false
-            },
-            grid: {
-              showHorizontal: false,
-              showVertical: false
-            }
-          }
-        }
-      },
-      s4: {
-        title: 'S4 - 무상관 (가로 타원)',
-        desc: 'x 변동 크고 y 변동 작음 (r ≈ 0)',
-        config: {
-          purpose: 'scatter',
-          data: generateHorizontalEllipse(50),
-                    options: {
-            axisLabels: { xAxis: 'x', yAxis: 'y' },
             axis: {
               showYLabels: false,
               showXLabels: false,
