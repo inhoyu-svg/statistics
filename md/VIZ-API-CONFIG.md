@@ -220,6 +220,7 @@ JSON 생성 시 반드시 알아야 할 핵심 규칙입니다.
 | **axisLabels** | `options.axisLabels` | 축 제목 (`{ xAxis, yAxis }`) |
 | **pointSize** | `options.pointSize` | 점 반지름 (기본: 6) |
 | **pointColor** | `options.pointColor` | 점 색상 (기본: "#93DA6A") |
+| **pointHighlights** | `options.pointHighlights` | 특정 점 강조 (`[{ x, y, color?, scale? }]`) |
 | **corruption** | `options.corruption` | 찢김 효과 설정 (`{ enabled, cells, style }`) |
 
 #### options 하위 객체 (테이블)
@@ -1929,6 +1930,39 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
   }
 }
 ```
+
+### options.pointHighlights
+
+특정 점을 강조하여 크기와 색상을 다르게 표시합니다.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:-------|:-----|
+| `x` | number | (필수) | 강조할 점의 X 좌표 (데이터 입력값 그대로) |
+| `y` | number | (필수) | 강조할 점의 Y 좌표 (데이터 입력값 그대로) |
+| `color` | string | `"#FF6B6B"` | 강조 색상 |
+| `scale` | number | `1.5` | 크기 배율 |
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[1, 10], [2, 20], [3, 15], [4, 25], [5, 30]],
+  "options": {
+    "pointHighlights": [
+      { "x": 3, "y": 15 },
+      { "x": 5, "y": 30, "color": "#54A0F6", "scale": 2 }
+    ]
+  }
+}
+```
+
+**동작**:
+- 모든 점의 등장 애니메이션이 완료된 후 강조 애니메이션 시작
+- 강조된 점은 크기가 커지면서 색상이 변경됨
+- 이징: easeOutBack (약간 튕기는 효과)
+
+**좌표 지정**:
+- 데이터 배열에 입력한 좌표값 그대로 사용
+- 예: `data: [[3, 15], ...]`일 때 `{ "x": 3, "y": 15 }`로 지정
 
 #### 산점도 셀 좌표 시스템
 

@@ -28,6 +28,7 @@ class ScatterRenderer {
     this.padding = null;
     this.data = null;
     this.options = null;
+    this.pointHighlights = [];  // 강조할 점 목록
   }
 
   /**
@@ -39,6 +40,7 @@ class ScatterRenderer {
     this.config = config;
     this.data = config.data;
     this.options = config.options || {};
+    this.pointHighlights = this.options.pointHighlights || [];
 
     const ctx = this.ctx;
     const canvas = this.canvas;
@@ -125,6 +127,9 @@ class ScatterRenderer {
       const cx = toX(x);
       const cy = toY(y);
 
+      // 강조 대상인지 확인
+      const highlight = this.pointHighlights.find(h => h.x === x && h.y === y);
+
       const pointLayer = new Layer({
         id: `point-${index}`,
         name: `점 (${x}, ${y})`,
@@ -133,12 +138,18 @@ class ScatterRenderer {
         order: index,
         p_id: 'points-group',
         data: {
+          index,  // 인덱스 저장
           x,
           y,
           cx,
           cy,
           radius: pointSize,
-          color: pointColor
+          color: pointColor,
+          highlight: highlight ? {
+            color: highlight.color || CONFIG.SCATTER_HIGHLIGHT_COLOR,
+            scale: highlight.scale || CONFIG.SCATTER_HIGHLIGHT_SCALE,
+            label: highlight.label || null
+          } : null
         }
       });
       this.layerManager.addLayer(pointLayer);
@@ -156,6 +167,7 @@ class ScatterRenderer {
 
     let currentTime = 0;
 
+    // 등장 애니메이션
     sortedLayers.forEach((layer) => {
       this.timeline.addAnimation(layer.id, {
         startTime: currentTime,
@@ -171,7 +183,28 @@ class ScatterRenderer {
       });
       currentTime += 60;  // 점 간 딜레이 60ms
     });
-    // rebuildTimeline은 addAnimation 내부에서 자동 호출됨
+
+    // 등장 애니메이션 완료 시점 (마지막 점 애니메이션 종료)
+    const lastAnimEndTime = currentTime - 60 + 150;
+
+    // 강조 애니메이션 (등장 완료 후)
+    const highlightStartTime = lastAnimEndTime + 100;  // 100ms 딜레이
+
+    pointLayers.forEach(layer => {
+      if (!layer.data.highlight) return;
+
+      this.timeline.addAnimation(`${layer.id}-highlight`, {
+        startTime: highlightStartTime,
+        duration: CONFIG.SCATTER_HIGHLIGHT_DURATION,
+        effect: 'custom',  // 커스텀 효과 (renderFrame에서 처리)
+        effectOptions: {
+          type: 'highlight',
+          scale: layer.data.highlight.scale,
+          color: layer.data.highlight.color
+        },
+        easing: 'easeOutBack'
+      });
+    });
   }
 
   /**
@@ -203,14 +236,15 @@ class ScatterRenderer {
     pointLayers.forEach(layer => {
       if (!layer.visible) return;
 
+      // 등장 애니메이션
       const animation = this.timeline.animations.get(layer.id);
       if (!animation) {
-        // 애니메이션 없으면 정적 렌더링
-        this._renderPoint(layer.data);
+        // 애니메이션 없으면 정적 렌더링 (강조 체크)
+        this._renderPointWithHighlight(layer.data);
         return;
       }
 
-      // 애니메이션 완료 상태면 progress = 1
+      // 등장 애니메이션 progress 계산
       const animEndTime = animation.startTime + animation.duration;
       let progress = 0;
 
@@ -223,16 +257,61 @@ class ScatterRenderer {
 
       if (progress <= 0) return;
 
-      // scale 효과: 중심에서 커지며 등장
-      LayerAnimationEffects.apply(ctx, progress, 'scale', {
-        from: 0,
-        to: 1,
-        centerX: layer.data.cx,
-        centerY: layer.data.cy
-      }, () => {
-        this._renderPoint(layer.data);
-      });
+      // 등장 애니메이션 완료 후 강조 처리
+      if (progress >= 1) {
+        this._renderPointWithHighlight(layer.data);
+      } else {
+        // 등장 중: scale 효과
+        LayerAnimationEffects.apply(ctx, progress, 'scale', {
+          from: 0,
+          to: 1,
+          centerX: layer.data.cx,
+          centerY: layer.data.cy
+        }, () => {
+          this._renderPoint(layer.data);
+        });
+      }
     });
+  }
+
+  /**
+   * 강조 상태를 포함한 점 렌더링
+   */
+  _renderPointWithHighlight(pointData) {
+    const { highlight } = pointData;
+
+    // 강조 대상이 아니면 일반 렌더링
+    if (!highlight) {
+      this._renderPoint(pointData);
+      return;
+    }
+
+    // 강조 애니메이션 확인 - pointData에 저장된 인덱스 사용
+    const highlightAnimKey = `point-${pointData.index}-highlight`;
+    const highlightAnim = this.timeline.animations.get(highlightAnimKey);
+
+    if (!highlightAnim) {
+      // 애니메이션 없으면 강조 상태로 렌더링
+      this._renderHighlightedPoint(pointData, 1);
+      return;
+    }
+
+    // 강조 애니메이션 progress 계산
+    const animEndTime = highlightAnim.startTime + highlightAnim.duration;
+    let highlightProgress = 0;
+
+    if (this.timeline.currentTime >= animEndTime) {
+      highlightProgress = 1;
+    } else if (this.timeline.currentTime > highlightAnim.startTime) {
+      const elapsed = this.timeline.currentTime - highlightAnim.startTime;
+      highlightProgress = Math.min(elapsed / highlightAnim.duration, 1);
+    }
+
+    if (highlightProgress > 0) {
+      this._renderHighlightedPoint(pointData, highlightProgress);
+    } else {
+      this._renderPoint(pointData);
+    }
   }
 
   /**
@@ -246,6 +325,156 @@ class ScatterRenderer {
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  /**
+   * 강조된 점 렌더링
+   * @param {Object} pointData - 점 데이터
+   * @param {number} progress - 강조 애니메이션 진행도 (0~1)
+   */
+  _renderHighlightedPoint(pointData, progress) {
+    const { cx, cy, radius, color, highlight } = pointData;
+    const ctx = this.ctx;
+
+    // easeOutBack 이징 적용
+    const easedProgress = this._easeOutBack(progress);
+
+    // 크기 보간: 1 → highlight.scale
+    const currentScale = 1 + (highlight.scale - 1) * easedProgress;
+    const currentRadius = radius * currentScale;
+
+    // 색상 보간: 원래 색상 → 강조 색상
+    const currentColor = progress >= 1 ? highlight.color : this._interpolateColor(color, highlight.color, easedProgress);
+
+    ctx.fillStyle = currentColor;
+    ctx.beginPath();
+    ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 라벨 렌더링 (애니메이션 완료 후)
+    if (highlight.label && progress >= 1) {
+      this._renderHighlightLabel(pointData, currentRadius);
+    }
+  }
+
+  /**
+   * 강조점 라벨 렌더링
+   * @param {Object} pointData - 점 데이터
+   * @param {number} pointRadius - 현재 점 반지름
+   */
+  _renderHighlightLabel(pointData, pointRadius) {
+    const { highlight } = pointData;
+    const label = highlight.label;
+
+    // 라벨 위치 결정 (다른 점들과 충돌 최소화)
+    const labelPos = this._findBestLabelPosition(pointData, pointRadius);
+
+    const fontSize = CONFIG.getScaledFontSize(32);
+
+    // KaTeX로 라벨 렌더링
+    KatexUtils.render(this.ctx, label, labelPos.x, labelPos.y, {
+      fontSize,
+      color: highlight.color,
+      align: 'center',
+      baseline: 'middle'
+    });
+  }
+
+  /**
+   * 최적의 라벨 위치 찾기 (충돌 최소화)
+   * @param {Object} pointData - 점 데이터
+   * @param {number} pointRadius - 현재 점 반지름
+   * @returns {{x: number, y: number}} 라벨 위치
+   */
+  _findBestLabelPosition(pointData, pointRadius) {
+    const { cx, cy, x, y } = pointData;
+    const offset = pointRadius + CONFIG.getScaledValue(15);
+
+    // 8방향 후보 (우상, 우, 우하, 하, 좌하, 좌, 좌상, 상)
+    const directions = [
+      { dx: 1, dy: -1 },   // 우상
+      { dx: 1, dy: 0 },    // 우
+      { dx: 1, dy: 1 },    // 우하
+      { dx: 0, dy: 1 },    // 하
+      { dx: -1, dy: 1 },   // 좌하
+      { dx: -1, dy: 0 },   // 좌
+      { dx: -1, dy: -1 },  // 좌상
+      { dx: 0, dy: -1 }    // 상
+    ];
+
+    // 각 방향에서 다른 점들과의 거리 계산
+    let bestDir = directions[0];
+    let bestScore = -Infinity;
+
+    const pointLayers = this.layerManager.getLayersByType('point');
+
+    for (const dir of directions) {
+      const candidateX = cx + dir.dx * offset;
+      const candidateY = cy + dir.dy * offset;
+
+      // 캔버스 경계 체크
+      if (candidateX < this.padding || candidateX > this.canvas.width - this.padding ||
+          candidateY < this.padding || candidateY > this.canvas.height - this.padding) {
+        continue;
+      }
+
+      // 다른 점들과의 최소 거리
+      let minDist = Infinity;
+      for (const layer of pointLayers) {
+        if (layer.data.x === x && layer.data.y === y) continue;
+        const dist = Math.hypot(candidateX - layer.data.cx, candidateY - layer.data.cy);
+        minDist = Math.min(minDist, dist);
+      }
+
+      if (minDist > bestScore) {
+        bestScore = minDist;
+        bestDir = dir;
+      }
+    }
+
+    return {
+      x: cx + bestDir.dx * offset,
+      y: cy + bestDir.dy * offset
+    };
+  }
+
+  /**
+   * easeOutBack 이징 함수
+   */
+  _easeOutBack(t) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  }
+
+  /**
+   * 색상 보간 (hex → hex)
+   */
+  _interpolateColor(color1, color2, progress) {
+    const hex2rgb = (hex) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    };
+
+    const rgb2hex = (r, g, b) => {
+      return '#' + [r, g, b].map(x => {
+        const hex = Math.round(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      }).join('');
+    };
+
+    const c1 = hex2rgb(color1);
+    const c2 = hex2rgb(color2);
+
+    const r = c1.r + (c2.r - c1.r) * progress;
+    const g = c1.g + (c2.g - c1.g) * progress;
+    const b = c1.b + (c2.b - c1.b) * progress;
+
+    return rgb2hex(r, g, b);
   }
 
   /**
@@ -557,17 +786,119 @@ class ScatterRenderer {
     const { toX, toY } = coords;
     const pointSize = CONFIG.getScaledValue(options.pointSize || CONFIG.SCATTER_POINT_RADIUS);
     const pointColor = options.pointColor || CONFIG.SCATTER_POINT_COLOR;
+    const highlights = options.pointHighlights || [];
 
-    ctx.fillStyle = pointColor;
+    // 강조점 정보 수집 (라벨 렌더링용)
+    const highlightedPoints = [];
 
     data.forEach(([x, y]) => {
       const cx = toX(x);
       const cy = toY(y);
 
-      ctx.beginPath();
-      ctx.arc(cx, cy, pointSize, 0, Math.PI * 2);
-      ctx.fill();
+      // 강조 대상인지 확인
+      const highlight = highlights.find(h => h.x === x && h.y === y);
+
+      if (highlight) {
+        // 강조 점 렌더링
+        const highlightColor = highlight.color || CONFIG.SCATTER_HIGHLIGHT_COLOR;
+        const highlightScale = highlight.scale || CONFIG.SCATTER_HIGHLIGHT_SCALE;
+        const highlightRadius = pointSize * highlightScale;
+
+        ctx.fillStyle = highlightColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, highlightRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 라벨이 있으면 수집
+        if (highlight.label) {
+          highlightedPoints.push({ x, y, cx, cy, highlightRadius, highlight });
+        }
+      } else {
+        // 일반 점 렌더링
+        ctx.fillStyle = pointColor;
+        ctx.beginPath();
+        ctx.arc(cx, cy, pointSize, 0, Math.PI * 2);
+        ctx.fill();
+      }
     });
+
+    // 라벨 렌더링 (정적 모드)
+    highlightedPoints.forEach(point => {
+      this._renderStaticHighlightLabel(ctx, point, data, coords);
+    });
+  }
+
+  /**
+   * 정적 모드에서 강조점 라벨 렌더링
+   */
+  _renderStaticHighlightLabel(ctx, point, data, coords) {
+    const { highlightRadius, highlight } = point;
+    const label = highlight.label;
+
+    // 라벨 위치 결정
+    const labelPos = this._findBestLabelPositionStatic(point, highlightRadius, data, coords);
+
+    const fontSize = CONFIG.getScaledFontSize(32);
+
+    // KaTeX로 라벨 렌더링
+    KatexUtils.render(ctx, label, labelPos.x, labelPos.y, {
+      fontSize,
+      color: highlight.color || CONFIG.SCATTER_HIGHLIGHT_COLOR,
+      align: 'center',
+      baseline: 'middle'
+    });
+  }
+
+  /**
+   * 정적 모드에서 최적의 라벨 위치 찾기
+   */
+  _findBestLabelPositionStatic(point, pointRadius, data, coords) {
+    const { cx, cy, x, y } = point;
+    const { toX, toY } = coords;
+    const offset = pointRadius + CONFIG.getScaledValue(15);
+
+    const directions = [
+      { dx: 1, dy: -1 },
+      { dx: 1, dy: 0 },
+      { dx: 1, dy: 1 },
+      { dx: 0, dy: 1 },
+      { dx: -1, dy: 1 },
+      { dx: -1, dy: 0 },
+      { dx: -1, dy: -1 },
+      { dx: 0, dy: -1 }
+    ];
+
+    let bestDir = directions[0];
+    let bestScore = -Infinity;
+
+    for (const dir of directions) {
+      const candidateX = cx + dir.dx * offset;
+      const candidateY = cy + dir.dy * offset;
+
+      // 캔버스 경계 체크
+      if (candidateX < this.padding || candidateX > this.canvas.width - this.padding ||
+          candidateY < this.padding || candidateY > this.canvas.height - this.padding) {
+        continue;
+      }
+
+      // 다른 점들과의 최소 거리
+      let minDist = Infinity;
+      for (const [px, py] of data) {
+        if (px === x && py === y) continue;
+        const dist = Math.hypot(candidateX - toX(px), candidateY - toY(py));
+        minDist = Math.min(minDist, dist);
+      }
+
+      if (minDist > bestScore) {
+        bestScore = minDist;
+        bestDir = dir;
+      }
+    }
+
+    return {
+      x: cx + bestDir.dx * offset,
+      y: cy + bestDir.dy * offset
+    };
   }
 
   /**

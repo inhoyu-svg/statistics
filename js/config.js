@@ -641,6 +641,11 @@ const CONFIG = {
   SCATTER_AXIS_COLOR: '#888888',          // 축선 색상
   SCATTER_LABEL_COLOR: '#e5e7eb',         // 라벨 색상
 
+  // 산점도 점 강조 설정
+  SCATTER_HIGHLIGHT_COLOR: '#FF6B6B',     // 강조 점 색상
+  SCATTER_HIGHLIGHT_SCALE: 1.5,           // 강조 점 크기 배율
+  SCATTER_HIGHLIGHT_DURATION: 300,        // 강조 애니메이션 시간 (ms)
+
   // 산점도 폰트 설정
   SCATTER_FONT_LABEL: "300 14px 'SCDream', sans-serif",
   SCATTER_FONT_TITLE: "500 16px 'SCDream', sans-serif",

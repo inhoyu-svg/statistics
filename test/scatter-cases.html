@@ -387,6 +387,56 @@
     </div>
   </section>
 
+  <!-- 점 강조 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 점 강조 (pointHighlights)</h2>
+    <div class="case-grid">
+
+      <!-- S10: 강조점 1개 -->
+      <div class="case-card" id="case-s10">
+        <div class="case-header">
+          <h3>S10 - 강조점 1개</h3>
+          <p class="case-desc">특정 점 하나를 강조 + 라벨</p>
+        </div>
+        <div class="case-canvas" id="canvas-s10"></div>
+        <div class="case-controls">
+          <button class="btn-timeline" data-case="s10">▶ Timeline</button>
+          <button class="btn-config" data-case="s10">{ } Config</button>
+        </div>
+        <div class="status" id="status-s10"></div>
+      </div>
+
+      <!-- S11: 강조점 2개 -->
+      <div class="case-card" id="case-s11">
+        <div class="case-header">
+          <h3>S11 - 강조점 2개</h3>
+          <p class="case-desc">두 점을 다른 색상으로 강조</p>
+        </div>
+        <div class="case-canvas" id="canvas-s11"></div>
+        <div class="case-controls">
+          <button class="btn-timeline" data-case="s11">▶ Timeline</button>
+          <button class="btn-config" data-case="s11">{ } Config</button>
+        </div>
+        <div class="status" id="status-s11"></div>
+      </div>
+
+      <!-- S12: 강조점 3개 -->
+      <div class="case-card" id="case-s12">
+        <div class="case-header">
+          <h3>S12 - 강조점 3개</h3>
+          <p class="case-desc">여러 점을 다양한 스타일로 강조</p>
+        </div>
+        <div class="case-canvas" id="canvas-s12"></div>
+        <div class="case-controls">
+          <button class="btn-timeline" data-case="s12">▶ Timeline</button>
+          <button class="btn-config" data-case="s12">{ } Config</button>
+        </div>
+        <div class="status" id="status-s12"></div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Corruption 효과 섹션 -->
   <section class="section">
     <h2 class="section-title"><span class="icon">▶</span> Corruption 효과</h2>
@@ -598,6 +648,57 @@
           data: generateQuadratic(50),
                     options: {
             axisLabels: { xAxis: 'x', yAxis: 'y' }
+          }
+        }
+      },
+      s10: {
+        title: 'S10 - 강조점 1개',
+        desc: '특정 점 하나를 강조 + 라벨',
+        config: {
+          purpose: 'scatter',
+          data: [[4, 5], [5, 2], [5, 5], [5, 6], [6, 5], [7, 6], [7, 7], [7, 8], [8, 6], [8, 7], [8, 9], [8, 10], [9, 7], [9, 8], [10, 7], [10, 10]],
+          options: {
+            axisLabels: { xAxis: '수행평가 점수', yAxis: '실기 점수' },
+            pointSize: 6,
+            pointColor: '#93DA6A',
+            pointHighlights: [
+              { x: 8, y: 10, color: '#54A0F6', scale: 2, label: 'A' }
+            ]
+          }
+        }
+      },
+      s11: {
+        title: 'S11 - 강조점 2개',
+        desc: '두 점을 다른 색상으로 강조',
+        config: {
+          purpose: 'scatter',
+          data: [[4, 5], [5, 2], [5, 5], [5, 6], [6, 5], [7, 6], [7, 7], [7, 8], [8, 6], [8, 7], [8, 9], [8, 10], [9, 7], [9, 8], [10, 7], [10, 10]],
+          options: {
+            axisLabels: { xAxis: '수행평가 점수', yAxis: '실기 점수' },
+            pointSize: 6,
+            pointColor: '#93DA6A',
+            pointHighlights: [
+              { x: 5, y: 2, color: '#FF6B6B', scale: 2, label: 'P' },
+              { x: 10, y: 10, color: '#54A0F6', scale: 2, label: 'Q' }
+            ]
+          }
+        }
+      },
+      s12: {
+        title: 'S12 - 강조점 3개',
+        desc: '여러 점을 다양한 스타일로 강조',
+        config: {
+          purpose: 'scatter',
+          data: [[4, 5], [5, 2], [5, 5], [5, 6], [6, 5], [7, 6], [7, 7], [7, 8], [8, 6], [8, 7], [8, 9], [8, 10], [9, 7], [9, 8], [10, 7], [10, 10]],
+          options: {
+            axisLabels: { xAxis: '수행평가 점수', yAxis: '실기 점수' },
+            pointSize: 6,
+            pointColor: '#93DA6A',
+            pointHighlights: [
+              { x: 4, y: 5, color: '#FF6B6B', scale: 1.8, label: 'A' },
+              { x: 7, y: 7, color: '#FFD93D', scale: 1.8, label: 'B' },
+              { x: 10, y: 10, color: '#54A0F6', scale: 1.8, label: 'C' }
+            ]
           }
         }
       },
