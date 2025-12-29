@@ -158,7 +158,7 @@ class BaseTableFactory {
 
     return new Layer({
       id: `${idPrefix}${tableId}-table-row-${rowIndex}-col${colIndex}`,
-      name: String(cellText),
+      name: cellText === null ? '' : String(cellText),
       type: 'cell',
       visible: true,
       order: colIndex,
@@ -167,7 +167,7 @@ class BaseTableFactory {
         rowIndex,
         colIndex,
         colLabel,
-        cellText: String(cellText),
+        cellText: cellText === null ? null : String(cellText),
         x,
         y,
         width,

@@ -359,7 +359,7 @@ class TableLayerFactory {
 
       const cellLayer = new Layer({
         id: `frequency-${tableId}-table-row-${rowIndex}-col${i}`,
-        name: isTallyColumn ? `탈리(${classData.frequency})` : String(cellText),
+        name: isTallyColumn ? `탈리(${classData.frequency})` : (cellText === null ? '' : String(cellText)),
         type: 'cell',
         visible: true,
         order: i,
@@ -368,7 +368,7 @@ class TableLayerFactory {
           rowIndex,
           colIndex: i,
           colLabel: label,
-          cellText: String(cellText),
+          cellText: cellText === null ? null : String(cellText),
           x,
           y,
           width: columnWidths[i],
@@ -452,7 +452,7 @@ class TableLayerFactory {
 
       const cellLayer = new Layer({
           id: `frequency-${tableId}-table-summary-col${cellIndex}`,
-          name: String(cellText),
+          name: cellText === null ? '' : String(cellText),
           type: 'cell',
           visible: true,
           order: cellIndex,
@@ -461,7 +461,7 @@ class TableLayerFactory {
             rowIndex: dataRowCount, // 합계는 마지막 인덱스
             colIndex: i,
             colLabel: label,
-            cellText: String(cellText),
+            cellText: cellText === null ? null : String(cellText),
             x,
             y,
             width: cellWidth,
