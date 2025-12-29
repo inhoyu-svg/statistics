@@ -1,6 +1,6 @@
 # Statistics 프로젝트 인수인계 문서
 
-> 작성일: 2025-12-26
+> 작성일: 2025-12-29 (최종 수정)
 > 이 문서는 새로운 개발자를 위한 종합 인수인계 가이드입니다.
 
 ---
@@ -187,6 +187,10 @@ statistics/
 |------|------|
 | **X-Y 좌표** | 2D 배열 `[[x, y], ...]` 형식 |
 | **점 스타일** | pointSize, pointColor 커스텀 |
+| **점 강조** | pointHighlights로 특정 점 강조 (색상, 스케일, 라벨) |
+| **셀 영역 색칠** | cellFill로 격자 영역 색칠 (예: `'0-0:2-6'`) |
+| **대각선** | line: true로 원점~최댓값 대각선 표시 |
+| **라벨 애니메이션** | 강조점 라벨이 점과 함께 스케일업 |
 
 ### 4.5 애니메이션 시스템
 ```
@@ -204,7 +208,7 @@ Layer → Timeline → Effects
 | **축 제목 표시** | `axis.showAxisLabels` | X/Y축 제목 표시 여부 |
 | **원점 라벨** | `axis.showOriginLabel` | 원점(0) 라벨 표시 여부 |
 | **X축 라벨 형식** | `axis.xLabelFormat` | boundary(경계값) / range(범위) |
-| **영어 폰트** | `englishFont` | 테이블 영어 폰트 (Source Han Sans KR) |
+| **영어 폰트** | `englishFont` | 테이블/차트/산점도 영어 폰트 (Source Han Sans KR) |
 | **녹색 대체** | `switchColor` | 테이블 녹색을 다른 색상으로 대체 |
 
 ### 4.7 데이터 관리 (app.html 전용)
@@ -377,6 +381,10 @@ DataProcessor.calculateFrequencies(...)   // 도수 계산
 ## 9. 알려진 이슈
 
 ### 9.1 최근 수정된 버그
+- 산점도 강조점 라벨 스케일업 애니메이션 (81d9ce6)
+- 차트/산점도 englishFont 옵션 지원 (e53e605)
+- 산점도 직선(line) 기능 추가 (9bd98e8)
+- 산점도 cellFill 애니메이션 수정 (38c5f5f)
 - data-viz-canvas 테이블 전환 시 페이드 애니메이션 (639c2f3)
 - 분포 곡선(showCurve) 색상 커스텀 지원 (ce1ef1b)
 - category-matrix에서 null 처리 버그 (de25008)
