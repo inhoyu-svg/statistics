@@ -437,6 +437,56 @@
     </div>
   </section>
 
+  <!-- 셀 영역 색칠 섹션 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">▶</span> 셀 영역 색칠 (cellFill)</h2>
+    <div class="case-grid">
+
+      <!-- S13: cellFill 좌측 영역 -->
+      <div class="case-card" id="case-s13">
+        <div class="case-header">
+          <h3>S13 - cellFill 좌측 영역</h3>
+          <p class="case-desc">가장 많이 나오는 유형</p>
+        </div>
+        <div class="case-canvas" id="canvas-s13"></div>
+        <div class="case-controls">
+          <button class="btn-timeline" data-case="s13">▶ Timeline</button>
+          <button class="btn-config" data-case="s13">{ } Config</button>
+        </div>
+        <div class="status" id="status-s13"></div>
+      </div>
+
+      <!-- S14: cellFill + 강조점 -->
+      <div class="case-card" id="case-s14">
+        <div class="case-header">
+          <h3>S14 - cellFill + 강조점</h3>
+          <p class="case-desc">셀 영역 색칠과 점 강조 조합</p>
+        </div>
+        <div class="case-canvas" id="canvas-s14"></div>
+        <div class="case-controls">
+          <button class="btn-timeline" data-case="s14">▶ Timeline</button>
+          <button class="btn-config" data-case="s14">{ } Config</button>
+        </div>
+        <div class="status" id="status-s14"></div>
+      </div>
+
+      <!-- S15: cellFill 우상단 영역 -->
+      <div class="case-card" id="case-s15">
+        <div class="case-header">
+          <h3>S15 - cellFill 우상단 영역</h3>
+          <p class="case-desc">넓은 범위 셀 영역 색칠</p>
+        </div>
+        <div class="case-canvas" id="canvas-s15"></div>
+        <div class="case-controls">
+          <button class="btn-timeline" data-case="s15">▶ Timeline</button>
+          <button class="btn-config" data-case="s15">{ } Config</button>
+        </div>
+        <div class="status" id="status-s15"></div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Corruption 효과 섹션 -->
   <section class="section">
     <h2 class="section-title"><span class="icon">▶</span> Corruption 효과</h2>
@@ -699,6 +749,53 @@
               { x: 7, y: 7, color: '#FFD93D', scale: 1.8, label: 'B' },
               { x: 10, y: 10, color: '#54A0F6', scale: 1.8, label: 'C' }
             ]
+          }
+        }
+      },
+      s13: {
+        title: 'S13 - cellFill 기본',
+        desc: '기본 셀 영역 색칠',
+        config: {
+          purpose: 'scatter',
+          data: [[50, 50], [60, 70], [70, 60], [80, 80], [90, 90], [100, 100]],
+          options: {
+            axisLabels: { xAxis: '필기 점수(점)', yAxis: '실기 점수(점)' },
+            cellFill: {
+              cells: '0-0:2-6'
+            }
+          }
+        }
+      },
+      s14: {
+        title: 'S14 - cellFill + 강조점',
+        desc: '셀 영역 색칠과 점 강조 조합',
+        config: {
+          purpose: 'scatter',
+          data: [[50, 50], [60, 70], [70, 60], [80, 80], [90, 90], [100, 100]],
+          options: {
+            axisLabels: { xAxis: '필기 점수(점)', yAxis: '실기 점수(점)' },
+            pointSize: 6,
+            pointColor: '#93DA6A',
+            cellFill: {
+              cells: '1-1:5-5'
+            },
+            pointHighlights: [
+              { x: 100, y: 100, color: '#FF6B6B', scale: 2, label: 'P' }, { x: 50, y: 50, color: '#54A0F6', scale: 2, label: 'Q' }
+            ]
+          }
+        }
+      },
+      s15: {
+        title: 'S15 - cellFill 우상단 영역',
+        desc: '넓은 범위 셀 영역 색칠',
+        config: {
+          purpose: 'scatter',
+          data: [[50, 50], [60, 70], [70, 60], [80, 80], [90, 90], [100, 100]],
+          options: {
+            axisLabels: { xAxis: '필기 점수(점)', yAxis: '실기 점수(점)' },
+            cellFill: {
+              cells: '4-4:6-6'
+            }
           }
         }
       },

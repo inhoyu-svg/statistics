@@ -190,6 +190,9 @@ class ScatterRenderer {
     // 강조 애니메이션 (등장 완료 후)
     const highlightStartTime = lastAnimEndTime + 100;  // 100ms 딜레이
 
+    // 강조 애니메이션 종료 시점 추적
+    let highlightEndTime = lastAnimEndTime;
+
     pointLayers.forEach(layer => {
       if (!layer.data.highlight) return;
 
@@ -204,7 +207,21 @@ class ScatterRenderer {
         },
         easing: 'easeOutBack'
       });
+
+      highlightEndTime = Math.max(highlightEndTime, highlightStartTime + CONFIG.SCATTER_HIGHLIGHT_DURATION);
     });
+
+    // cellFill 페이드인 애니메이션 (가장 마지막)
+    if (this.options.cellFill) {
+      const cellFillStartTime = highlightEndTime + 100;  // 100ms 딜레이
+      this.timeline.addAnimation('cellFill', {
+        startTime: cellFillStartTime,
+        duration: 400,
+        effect: 'fade',
+        effectOptions: { from: 0, to: 1 },
+        easing: 'easeOut'
+      });
+    }
   }
 
   /**
@@ -220,11 +237,31 @@ class ScatterRenderer {
     // 캔버스 클리어
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. 정적 요소 (격자, 축) - 항상 표시
-    this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, this.options);
+    // 1. cellFill 애니메이션 렌더링 (배경으로 먼저 - 그리드보다 뒤)
+    if (this.options.cellFill) {
+      const cellFillAnim = this.timeline.animations.get('cellFill');
+      if (cellFillAnim) {
+        const animEndTime = cellFillAnim.startTime + cellFillAnim.duration;
+        let progress = 0;
+
+        if (this.timeline.currentTime >= animEndTime) {
+          progress = 1;
+        } else if (this.timeline.currentTime > cellFillAnim.startTime) {
+          progress = (this.timeline.currentTime - cellFillAnim.startTime) / cellFillAnim.duration;
+        }
+
+        if (progress > 0) {
+          this._drawCellFillWithAlpha(ctx, canvas, this.padding, this.coords, this.options.cellFill, progress);
+        }
+      }
+    }
+
+    // 2. 정적 요소 (격자, 축) - cellFill 제외
+    const optionsWithoutCellFill = { ...this.options, cellFill: null };
+    this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, optionsWithoutCellFill);
     this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
 
-    // 2. 활성 애니메이션 가져오기
+    // 3. 활성 애니메이션 가져오기
     const activeAnimations = this.timeline.getActiveAnimations();
     const progressMap = new Map();
     activeAnimations.forEach(anim => {
@@ -957,6 +994,39 @@ class ScatterRenderer {
     // 하단: #2ca0e8 (밝은 파랑), 상단: #4141a3 (보라)
     gradient.addColorStop(0, 'rgba(44, 160, 232, 0.3)');   // 하단 (#2ca0e8)
     gradient.addColorStop(1, 'rgba(65, 65, 163, 0.3)');    // 상단 (#4141a3)
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, width, height);
+  }
+
+  /**
+   * 셀 영역 색칠 (애니메이션용 - alpha 적용)
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {HTMLCanvasElement} canvas
+   * @param {number} padding
+   * @param {Object} coords - 좌표 시스템
+   * @param {Object} cellFillOptions - cellFill 옵션
+   * @param {number} alpha - 투명도 (0~1)
+   */
+  _drawCellFillWithAlpha(ctx, canvas, padding, coords, cellFillOptions, alpha) {
+    const { cells } = cellFillOptions;
+    const range = this._parseCellRange(cells);
+
+    const { xCellWidth, yCellHeight } = coords;
+
+    const x = padding + range.x1 * xCellWidth;
+    const y = canvas.height - padding - (range.y2 + 1) * yCellHeight;
+    const width = (range.x2 - range.x1 + 1) * xCellWidth;
+    const height = (range.y2 - range.y1 + 1) * yCellHeight;
+
+    const gradient = ctx.createLinearGradient(x, y + height, x, y);
+
+    // alpha를 적용한 투명도 (기본 0.3 * alpha)
+    const baseAlpha = 0.3;
+    const finalAlpha = baseAlpha * alpha;
+
+    gradient.addColorStop(0, `rgba(44, 160, 232, ${finalAlpha})`);
+    gradient.addColorStop(1, `rgba(65, 65, 163, ${finalAlpha})`);
 
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, width, height);
