@@ -78,7 +78,7 @@ class ScatterRenderer {
       this.renderFrame();
     } else {
       // 정적 렌더링
-      this._drawGrid(ctx, canvas, this.padding, this.coords, this.range);
+      this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, this.options);
       this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
       this._drawPoints(ctx, this.data, this.coords, this.options);
     }
@@ -221,7 +221,7 @@ class ScatterRenderer {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // 1. 정적 요소 (격자, 축) - 항상 표시
-    this._drawGrid(ctx, canvas, this.padding, this.coords, this.range);
+    this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, this.options);
     this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
 
     // 2. 활성 애니메이션 가져오기
@@ -622,8 +622,14 @@ class ScatterRenderer {
   /**
    * 그리드 렌더링
    */
-  _drawGrid(ctx, canvas, padding, coords, range) {
+  _drawGrid(ctx, canvas, padding, coords, range, options = {}) {
     const { xCellWidth, yCellHeight, xTotalCells, yTotalCells } = coords;
+
+    // 셀 영역 색칠 (배경으로 먼저 렌더링)
+    if (options.cellFill) {
+      this._drawCellFill(ctx, canvas, padding, coords, options.cellFill);
+    }
+
     ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
 
     // 보조 격자선
@@ -910,6 +916,50 @@ class ScatterRenderer {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('데이터가 없습니다.', canvas.width / 2, canvas.height / 2);
+  }
+
+  /**
+   * 셀 범위 문자열 파싱
+   * @param {string} cellStr - "x1-y1:x2-y2" 형식
+   * @returns {{x1: number, y1: number, x2: number, y2: number}} 파싱된 범위
+   */
+  _parseCellRange(cellStr) {
+    const [start, end] = cellStr.split(':');
+    const [x1, y1] = start.split('-').map(Number);
+    const [x2, y2] = end.split('-').map(Number);
+    return { x1, y1, x2, y2 };
+  }
+
+  /**
+   * 셀 영역 색칠 (그라데이션)
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {HTMLCanvasElement} canvas
+   * @param {number} padding
+   * @param {Object} coords - 좌표 시스템
+   * @param {Object} cellFillOptions - cellFill 옵션
+   */
+  _drawCellFill(ctx, canvas, padding, coords, cellFillOptions) {
+    const { cells } = cellFillOptions;
+    const range = this._parseCellRange(cells);
+
+    const { xCellWidth, yCellHeight } = coords;
+
+    // 셀 좌표 → 픽셀 좌표 변환
+    // Y축은 반전 (셀 0이 하단)
+    const x = padding + range.x1 * xCellWidth;
+    const y = canvas.height - padding - (range.y2 + 1) * yCellHeight;
+    const width = (range.x2 - range.x1 + 1) * xCellWidth;
+    const height = (range.y2 - range.y1 + 1) * yCellHeight;
+
+    // 그라데이션 생성 (하단 → 상단, 수직)
+    const gradient = ctx.createLinearGradient(x, y + height, x, y);
+
+    // 하단: #2ca0e8 (밝은 파랑), 상단: #4141a3 (보라)
+    gradient.addColorStop(0, 'rgba(44, 160, 232, 0.3)');   // 하단 (#2ca0e8)
+    gradient.addColorStop(1, 'rgba(65, 65, 163, 0.3)');    // 상단 (#4141a3)
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, width, height);
   }
 
   // ============================================

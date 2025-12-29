@@ -221,6 +221,7 @@ JSON 생성 시 반드시 알아야 할 핵심 규칙입니다.
 | **pointSize** | `options.pointSize` | 점 반지름 (기본: 6) |
 | **pointColor** | `options.pointColor` | 점 색상 (기본: "#93DA6A") |
 | **pointHighlights** | `options.pointHighlights` | 특정 점 강조 (`[{ x, y, color?, scale? }]`) |
+| **cellFill** | `options.cellFill` | 셀 영역 색칠 (`{ cells }`) |
 | **corruption** | `options.corruption` | 찢김 효과 설정 (`{ enabled, cells, style }`) |
 
 #### options 하위 객체 (테이블)
@@ -1995,6 +1996,37 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 - 압축 구간: xMin/yMin > 0일 때만 추가 (이중물결표 ≈ 표시)
 - 여유 공간: 항상 1칸 추가 (최댓값 + interval 라벨 표시)
 - 차트 영역은 사각형 테두리로 감싸짐
+
+### options.cellFill
+
+특정 셀 영역을 그라데이션으로 색칠합니다.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:-------|:-----|
+| `cells` | string | (필수) | 색칠할 셀 범위 (`"x1-y1:x2-y2"` 형식) |
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[50, 50], [60, 70], [70, 60], [80, 80], [90, 90], [100, 100]],
+  "options": {
+    "axisLabels": { "xAxis": "필기 점수(점)", "yAxis": "실기 점수(점)" },
+    "cellFill": {
+      "cells": "0-0:2-6"
+    }
+  }
+}
+```
+
+**셀 좌표 시스템**:
+- X축: 0부터 시작 (왼쪽 → 오른쪽)
+- Y축: 0부터 시작 (아래 → 위)
+- 예: `"0-0:2-6"` = X(0~2), Y(0~6) 범위의 직사각형 영역
+
+**동작**:
+- 그리드선 뒤에 배경으로 렌더링
+- 대각선 그라데이션 적용 (좌하단 진함 → 우상단 연함)
+- 히스토그램 막대와 동일한 파란색 계열 사용
 
 ## 산점도 전체 옵션 예시
 
