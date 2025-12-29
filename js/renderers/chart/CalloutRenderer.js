@@ -134,6 +134,9 @@ class CalloutRenderer {
     const preset = polygonPreset || 'default';
     const textColor = CONFIG.CALLOUT_TEXT_COLORS[preset] || CONFIG.CALLOUT_TEXT_COLORS.default;
 
+    // 영어 폰트 옵션
+    const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
+
     // 줄바꿈 분할
     const lines = text.split('\n');
 
@@ -149,7 +152,8 @@ class CalloutRenderer {
         fontSize: CONFIG.getScaledFontSize(20),
         color: textColor,
         align: 'center',
-        baseline: 'top'
+        baseline: 'top',
+        useEnglishFont
       });
     });
   }

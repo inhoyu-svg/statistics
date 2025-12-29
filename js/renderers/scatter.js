@@ -79,7 +79,7 @@ class ScatterRenderer {
     } else {
       // 정적 렌더링
       this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, this.options);
-      this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
+      this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels, this.options.axis);
       // 직선 (점보다 먼저)
       if (this.options.line) {
         this._drawStaticLine(ctx);
@@ -276,7 +276,7 @@ class ScatterRenderer {
     // 2. 정적 요소 (격자, 축) - cellFill 제외
     const optionsWithoutCellFill = { ...this.options, cellFill: null };
     this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, optionsWithoutCellFill);
-    this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
+    this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels, this.options.axis);
 
     // 3. 직선 렌더링 (점보다 먼저 - 점 뒤에 위치)
     if (this.options.line) {
@@ -753,6 +753,11 @@ class ScatterRenderer {
   _drawGrid(ctx, canvas, padding, coords, range, options = {}) {
     const { xCellWidth, yCellHeight, xTotalCells, yTotalCells } = coords;
 
+    // 그리드 표시 옵션 (기본값: true)
+    const gridOptions = options.grid || {};
+    const showHorizontal = gridOptions.showHorizontal !== false;
+    const showVertical = gridOptions.showVertical !== false;
+
     // 셀 영역 색칠 (배경으로 먼저 렌더링)
     if (options.cellFill) {
       this._drawCellFill(ctx, canvas, padding, coords, options.cellFill);
@@ -760,43 +765,52 @@ class ScatterRenderer {
 
     ctx.lineWidth = CONFIG.getScaledLineWidth('thin');
 
-    // 보조 격자선
-    ctx.strokeStyle = '#555555';
-
-    for (let i = 0; i < yTotalCells; i++) {
-      const y = canvas.height - padding - (i + 0.5) * yCellHeight;
-      ctx.beginPath();
-      ctx.moveTo(padding, y);
-      ctx.lineTo(canvas.width - padding, y);
-      ctx.stroke();
+    // 보조 격자선 (가로)
+    if (showHorizontal) {
+      ctx.strokeStyle = '#555555';
+      for (let i = 0; i < yTotalCells; i++) {
+        const y = canvas.height - padding - (i + 0.5) * yCellHeight;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(canvas.width - padding, y);
+        ctx.stroke();
+      }
     }
 
-    for (let i = 0; i < xTotalCells; i++) {
-      const x = padding + (i + 0.5) * xCellWidth;
-      ctx.beginPath();
-      ctx.moveTo(x, padding);
-      ctx.lineTo(x, canvas.height - padding);
-      ctx.stroke();
+    // 보조 격자선 (세로)
+    if (showVertical) {
+      ctx.strokeStyle = '#555555';
+      for (let i = 0; i < xTotalCells; i++) {
+        const x = padding + (i + 0.5) * xCellWidth;
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, canvas.height - padding);
+        ctx.stroke();
+      }
     }
 
     // 주 격자선 (가로)
-    ctx.strokeStyle = CONFIG.getColor('--color-grid-horizontal');
-    for (let i = 1; i < yTotalCells; i++) {
-      const y = canvas.height - padding - i * yCellHeight;
-      ctx.beginPath();
-      ctx.moveTo(padding, y);
-      ctx.lineTo(canvas.width - padding, y);
-      ctx.stroke();
+    if (showHorizontal) {
+      ctx.strokeStyle = CONFIG.getColor('--color-grid-horizontal');
+      for (let i = 1; i < yTotalCells; i++) {
+        const y = canvas.height - padding - i * yCellHeight;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(canvas.width - padding, y);
+        ctx.stroke();
+      }
     }
 
     // 주 격자선 (세로)
-    ctx.strokeStyle = CONFIG.getColor('--color-grid-vertical');
-    for (let i = 1; i < xTotalCells; i++) {
-      const x = padding + i * xCellWidth;
-      ctx.beginPath();
-      ctx.moveTo(x, padding);
-      ctx.lineTo(x, canvas.height - padding);
-      ctx.stroke();
+    if (showVertical) {
+      ctx.strokeStyle = CONFIG.getColor('--color-grid-vertical');
+      for (let i = 1; i < xTotalCells; i++) {
+        const x = padding + i * xCellWidth;
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, canvas.height - padding);
+        ctx.stroke();
+      }
     }
 
     // 축선 (테두리)
@@ -823,12 +837,16 @@ class ScatterRenderer {
     ctx.lineTo(canvas.width - padding, canvas.height - padding);
     ctx.stroke();
 
-    // 압축 기호
-    if (coords.xCompressionCells > 0) {
+    // 압축 기호 (라벨이 숨겨지면 압축 기호도 숨김)
+    const axisOptions = options.axis || {};
+    const showXLabels = axisOptions.showXLabels !== false;
+    const showYLabels = axisOptions.showYLabels !== false;
+
+    if (coords.xCompressionCells > 0 && showXLabels) {
       this._drawEllipsisSymbol(ctx, padding + xCellWidth / 4, canvas.height - padding, true);
     }
 
-    if (coords.yCompressionCells > 0) {
+    if (coords.yCompressionCells > 0 && showYLabels) {
       this._drawEllipsisSymbol(ctx, padding, canvas.height - padding - yCellHeight / 4, false);
     }
   }
@@ -855,61 +873,126 @@ class ScatterRenderer {
 
   /**
    * 축 및 라벨 렌더링
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {HTMLCanvasElement} canvas
+   * @param {number} padding
+   * @param {Object} coords
+   * @param {Object} range
+   * @param {Object} axisLabels - 축 제목 {xAxis, yAxis}
+   * @param {Object} axisOptions - 축 표시 옵션 {showYLabels, showXLabels, showAxisLabels, showOriginLabel}
    */
-  _drawAxes(ctx, canvas, padding, coords, range, axisLabels = {}) {
+  _drawAxes(ctx, canvas, padding, coords, range, axisLabels = {}, axisOptions = {}) {
     const { toX, toY } = coords;
     const color = CONFIG.getColor('--color-text');
     const fontSize = CONFIG.getScaledFontSize(25);
 
+    // 옵션 기본값 (모두 true)
+    const showYLabels = axisOptions.showYLabels !== false;
+    const showXLabels = axisOptions.showXLabels !== false;
+    const showAxisLabels = axisOptions.showAxisLabels !== false;
+    const showOriginLabel = axisOptions.showOriginLabel !== false;
+
     // 원점 라벨
-    const originLabelX = padding - CONFIG.getScaledValue(12);
-    const originLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
-    KatexUtils.render(ctx, '0', originLabelX, originLabelY, {
-      fontSize, color, align: 'right', baseline: 'top'
-    });
+    if (showOriginLabel) {
+      const originLabelX = padding - CONFIG.getScaledValue(12);
+      const originLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
+      KatexUtils.render(ctx, '0', originLabelX, originLabelY, {
+        fontSize, color, align: 'right', baseline: 'top'
+      });
+    }
 
     // X축 라벨
-    const xLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
-    const xLabelMax = range.xMax + range.xInterval;
-    for (let value = range.xMin; value <= xLabelMax + 0.001; value += range.xInterval) {
-      if (Math.abs(value) < 0.0001) continue;
-      const x = toX(value);
-      const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
-      KatexUtils.render(ctx, label, x, xLabelY, {
-        fontSize, color, align: 'center', baseline: 'top'
-      });
+    if (showXLabels) {
+      const xLabelY = canvas.height - padding + CONFIG.getScaledValue(25);
+      const xLabelMax = range.xMax + range.xInterval;
+      for (let value = range.xMin; value <= xLabelMax + 0.001; value += range.xInterval) {
+        if (Math.abs(value) < 0.0001) continue;
+        const x = toX(value);
+        const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
+        KatexUtils.render(ctx, label, x, xLabelY, {
+          fontSize, color, align: 'center', baseline: 'top'
+        });
+      }
     }
 
     // Y축 라벨
-    const yLabelX = padding - CONFIG.getScaledValue(12);
-    const yLabelMax = range.yMax + range.yInterval;
-    for (let value = range.yMin; value <= yLabelMax + 0.001; value += range.yInterval) {
-      if (Math.abs(value) < 0.0001) continue;
-      const y = toY(value);
-      const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
-      KatexUtils.render(ctx, label, yLabelX, y, {
-        fontSize, color, align: 'right', baseline: 'middle'
-      });
+    if (showYLabels) {
+      const yLabelX = padding - CONFIG.getScaledValue(12);
+      const yLabelMax = range.yMax + range.yInterval;
+      for (let value = range.yMin; value <= yLabelMax + 0.001; value += range.yInterval) {
+        if (Math.abs(value) < 0.0001) continue;
+        const y = toY(value);
+        const label = Number.isInteger(value) ? String(value) : value.toFixed(1);
+        KatexUtils.render(ctx, label, yLabelX, y, {
+          fontSize, color, align: 'right', baseline: 'middle'
+        });
+      }
     }
 
     // 축 제목
-    const xTitle = axisLabels?.xAxis || '';
-    const yTitle = axisLabels?.yAxis || '';
+    if (showAxisLabels) {
+      const xTitle = axisLabels?.xAxis || '';
+      const yTitle = axisLabels?.yAxis || '';
+      const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
 
-    if (xTitle) {
-      KatexUtils.renderMixedText(ctx, xTitle,
-        canvas.width - padding,
-        canvas.height - padding + CONFIG.getScaledValue(55),
-        { fontSize: CONFIG.getScaledFontSize(18), color, align: 'right', baseline: 'top' }
-      );
-    }
+      // 영어만 포함된 짧은 제목인지 확인 (한글 없음)
+      const isEnglishOnly = (text) => !/[가-힣]/.test(text);
 
-    if (yTitle) {
-      KatexUtils.renderMixedText(ctx, yTitle,
-        padding,
-        padding - CONFIG.getScaledValue(15),
-        { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom' }
-      );
+      if (xTitle) {
+        if (useEnglishFont) {
+          // englishFont: true → 오른쪽 정렬, 한 칸 아래
+          const xTitleYOffset = showXLabels ? 55 : 25;
+          KatexUtils.renderMixedText(ctx, xTitle,
+            canvas.width - padding,
+            canvas.height - padding + CONFIG.getScaledValue(xTitleYOffset),
+            { fontSize: CONFIG.getScaledFontSize(22), color, align: 'right', baseline: 'top', useEnglishFont }
+          );
+        } else {
+          // 기존 동작
+          // 숫자 라벨 숨김 + 영어 제목일 때만 폰트 조정
+          const xLabelsHiddenAndEnglish = !showXLabels && isEnglishOnly(xTitle);
+          // 라벨 숨김 시 오프셋 조정 (영어: 25, 한글: 20), 표시 시: 55
+          const xTitleYOffset = !showXLabels ? (isEnglishOnly(xTitle) ? 25 : 20) : 55;
+          const xTitleFontSize = xLabelsHiddenAndEnglish ? 26 : 18;
+          KatexUtils.renderMixedText(ctx, xTitle,
+            canvas.width - padding,
+            canvas.height - padding + CONFIG.getScaledValue(xTitleYOffset),
+            { fontSize: CONFIG.getScaledFontSize(xTitleFontSize), color, align: 'right', baseline: 'top', useEnglishFont }
+          );
+        }
+      }
+
+      if (yTitle) {
+        // Y축: 긴 영어 제목(영어만 + 4글자 이상)은 상단으로 올림 (최우선)
+        const isLongEnglishTitle = isEnglishOnly(yTitle) && yTitle.length >= 4;
+
+        if (isLongEnglishTitle) {
+          // 긴 영어 제목: Y축 상단 위에 가로로 표시
+          KatexUtils.renderMixedText(ctx, yTitle,
+            padding,
+            padding - CONFIG.getScaledValue(15),
+            { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom', useEnglishFont }
+          );
+        } else {
+          // 기존 로직: 숫자 라벨 숨김 + 영어 제목일 때 Y축 왼쪽 상단 + 큰 폰트
+          const yLabelsHiddenAndEnglish = !showYLabels && isEnglishOnly(yTitle);
+          if (yLabelsHiddenAndEnglish) {
+            // 숨김 + 영어: Y축 왼쪽 상단에 표시 (큰 폰트)
+            KatexUtils.renderMixedText(ctx, yTitle,
+              padding - CONFIG.getScaledValue(15),
+              padding,
+              { fontSize: CONFIG.getScaledFontSize(26), color, align: 'right', baseline: 'top', useEnglishFont }
+            );
+          } else {
+            // 기존: 상단에 표시
+            KatexUtils.renderMixedText(ctx, yTitle,
+              padding,
+              padding - CONFIG.getScaledValue(15),
+              { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom', useEnglishFont }
+            );
+          }
+        }
+      }
     }
   }
 

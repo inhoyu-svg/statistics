@@ -649,6 +649,7 @@ class ChartRenderer {
       CONFIG.CONGRUENT_TRIANGLE_INDEX = this.configSnapshot.CONGRUENT_TRIANGLE_INDEX;
       CONFIG.GRID_SHOW_HORIZONTAL = this.configSnapshot.GRID_SHOW_HORIZONTAL;
       CONFIG.GRID_SHOW_VERTICAL = this.configSnapshot.GRID_SHOW_VERTICAL;
+      CONFIG.CHART_ENGLISH_FONT = this.configSnapshot.CHART_ENGLISH_FONT;
     }
 
     this.clear();

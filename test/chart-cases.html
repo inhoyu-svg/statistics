@@ -642,6 +642,10 @@
           classCount: 5,
           animation: { enabled: true },
           options: {
+            englishFont: true,
+            axisLabels: {
+              xAxis: '(class)', yAxis: 'relative frequency'
+            },
             showPolygon: false,
             showHistogram: true
           }
@@ -754,7 +758,14 @@
             { data: sampleData2, polygonColorPreset: 'secondary' }
           ],
           options: {
-            showHistogram: false
+            englishFont: true,
+            axisLabels: {
+              xAxis: 'Score (points)', yAxis: 'Relative Frequency'
+            },
+            showHistogram: false,
+            callout: {
+              template: 'Class A'
+            }
           }
         }
       },
@@ -769,7 +780,14 @@
             { data: sampleData2, polygonColorPreset: 'secondary' }
           ],
           options: {
+            englishFont: true,
+            axisLabels: {
+              xAxis: 'Score (points)', yAxis: 'Relative Frequency'
+            },
             showHistogram: false,
+            callout: {
+              template: 'Peak'
+            },
             corruption: {
               enabled: true,
               cells: '2-0:2-4',

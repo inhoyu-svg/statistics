@@ -550,6 +550,13 @@ export async function renderChart(element, config) {
     // Y축 간격 커스텀 설정
     const customYInterval = options.customYInterval || null;
 
+    // 영어 전용 폰트 옵션 적용 (차트/산점도용)
+    if (options.englishFont !== undefined) {
+      CONFIG.CHART_ENGLISH_FONT = options.englishFont;
+    } else {
+      CONFIG.CHART_ENGLISH_FONT = false;  // 기본값 리셋
+    }
+
     // 다각형 숨김 옵션 (점/선)
     const polygonOptions = options.polygon || {};
     const hiddenPolygonIndices = polygonOptions.hidden || [];
@@ -617,7 +624,8 @@ export async function renderChart(element, config) {
       BAR_CUSTOM_LABELS: { ...CONFIG.BAR_CUSTOM_LABELS },
       CONGRUENT_TRIANGLE_INDEX: CONFIG.CONGRUENT_TRIANGLE_INDEX,
       GRID_SHOW_HORIZONTAL: CONFIG.GRID_SHOW_HORIZONTAL,
-      GRID_SHOW_VERTICAL: CONFIG.GRID_SHOW_VERTICAL
+      GRID_SHOW_VERTICAL: CONFIG.GRID_SHOW_VERTICAL,
+      CHART_ENGLISH_FONT: CONFIG.CHART_ENGLISH_FONT
     };
 
     // 12. Play animation
@@ -978,6 +986,13 @@ export async function renderScatter(element, config) {
     const hasCorruption = options.corruption?.enabled;
     if (!animation || hasCorruption) {
       scatterRenderer.disableAnimation();
+    }
+
+    // 영어 전용 폰트 옵션 적용 (차트/산점도용)
+    if (options.englishFont !== undefined) {
+      CONFIG.CHART_ENGLISH_FONT = options.englishFont;
+    } else {
+      CONFIG.CHART_ENGLISH_FONT = false;  // 기본값 리셋
     }
 
     // 6. Render scatter plot
@@ -1513,6 +1528,13 @@ async function renderMultiplePolygons(element, config) {
     CONFIG.SHOW_DASHED_LINES = options.showDashedLines || false;
     CONFIG.SHOW_CURVE = options.showCurve || false;
 
+    // 영어 전용 폰트 옵션 적용 (차트/산점도용)
+    if (options.englishFont !== undefined) {
+      CONFIG.CHART_ENGLISH_FONT = options.englishFont;
+    } else {
+      CONFIG.CHART_ENGLISH_FONT = false;  // 기본값 리셋
+    }
+
     const gridOptions = options.grid || {};
     CONFIG.GRID_SHOW_HORIZONTAL = gridOptions.showHorizontal !== false;
     CONFIG.GRID_SHOW_VERTICAL = gridOptions.showVertical !== false;
@@ -1559,12 +1581,16 @@ async function renderMultiplePolygons(element, config) {
     // callout 인덱스 (세로 배치용)
     let calloutIndex = 0;
 
-    // 첫 번째 callout
-    if (firstAnalyzed.dataset.callout?.template) {
-      const calloutPreset = firstAnalyzed.dataset.callout.preset || CONFIG.POLYGON_COLOR_PRESET;
+    // 공통 callout 옵션 (dataset별 callout이 없을 때 fallback)
+    const defaultCallout = options.callout || null;
+
+    // 첫 번째 callout (dataset.callout 우선, 없으면 options.callout 사용)
+    const firstCallout = firstAnalyzed.dataset.callout || defaultCallout;
+    if (firstCallout?.template) {
+      const calloutPreset = firstCallout.preset || CONFIG.POLYGON_COLOR_PRESET;
       const values = dataType === 'frequency' ? firstAnalyzed.freq : firstAnalyzed.relativeFreqs;
-      console.log(`[viz-api] Drawing callout for dataset 0: template=${firstAnalyzed.dataset.callout.template}, index=${calloutIndex}`);
-      renderStaticCallout(chartRenderer, firstAnalyzed.classes, values, coords, firstAnalyzed.dataset.callout.template, calloutPreset, dataType, calloutIndex);
+      console.log(`[viz-api] Drawing callout for dataset 0: template=${firstCallout.template}, index=${calloutIndex}`);
+      renderStaticCallout(chartRenderer, firstAnalyzed.classes, values, coords, firstCallout.template, calloutPreset, dataType, calloutIndex);
       calloutIndex++;
     }
 
@@ -1589,11 +1615,12 @@ async function renderMultiplePolygons(element, config) {
         chartRenderer.polygonRenderer.draw(values, coords, ellipsisInfo, hiddenIndices);
       }
 
-      // callout 그리기
-      if (analyzed.dataset.callout?.template) {
-        const calloutPreset = analyzed.dataset.callout.preset || colorPreset;
-        console.log(`[viz-api] Drawing callout for dataset ${i}: template=${analyzed.dataset.callout.template}, index=${calloutIndex}`);
-        renderStaticCallout(chartRenderer, analyzed.classes, values, coords, analyzed.dataset.callout.template, calloutPreset, dataType, calloutIndex);
+      // callout 그리기 (dataset.callout 우선, 없으면 options.callout 사용)
+      const datasetCallout = analyzed.dataset.callout || defaultCallout;
+      if (datasetCallout?.template) {
+        const calloutPreset = datasetCallout.preset || colorPreset;
+        console.log(`[viz-api] Drawing callout for dataset ${i}: template=${datasetCallout.template}, index=${calloutIndex}`);
+        renderStaticCallout(chartRenderer, analyzed.classes, values, coords, datasetCallout.template, calloutPreset, dataType, calloutIndex);
         calloutIndex++;
       }
     }

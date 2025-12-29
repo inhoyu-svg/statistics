@@ -422,18 +422,34 @@ export function splitByCharType(text) {
  * 문자 유형별 폰트 반환
  * @param {string} type - 문자 유형 ('lowercase', 'uppercase', 'korean', 'other')
  * @param {number} fontSize - 폰트 크기
+ * @param {boolean} useEnglishFont - 영어 전용 폰트 사용 여부 (true: Source Han Sans KR)
+ * @param {string} segmentText - 세그먼트 텍스트 (짧은 변수명 판별용)
  * @returns {string} CSS 폰트 문자열
  */
-export function getFontForCharType(type, fontSize) {
+export function getFontForCharType(type, fontSize, useEnglishFont = false, segmentText = '') {
   if (type === 'lowercase') {
-    // 영어 소문자: KaTeX_Math 이탤릭
+    // englishFont 모드에서도 짧은 변수명(1-2글자)은 KaTeX 이탤릭 유지
+    if (useEnglishFont && segmentText.length > 2) {
+      // 긴 영어 단어: Source Han Sans KR 직립체
+      return `${fontSize}px 'Source Han Sans KR', sans-serif`;
+    }
+    // 기본 또는 짧은 변수명: KaTeX_Math 이탤릭
     return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
+  }
+  if (type === 'uppercase') {
+    // englishFont 모드에서도 짧은 변수명(1-2글자)은 KaTeX 유지
+    if (useEnglishFont && segmentText.length > 2) {
+      // 긴 영어 단어: Source Han Sans KR
+      return `${fontSize}px 'Source Han Sans KR', sans-serif`;
+    }
+    // 기본 또는 짧은 변수명: KaTeX_Main
+    return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;
   }
   if (type === 'korean') {
     // 한글: SCDream 폰트 사용
     return `500 ${fontSize}px 'SCDream', sans-serif`;
   }
-  // 대문자, 숫자, 기호 등: KaTeX_Main
+  // 숫자, 기호 등: KaTeX_Main
   return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;
 }
 
@@ -445,10 +461,11 @@ export function getFontForCharType(type, fontSize) {
  * @param {number} x - X 좌표
  * @param {number} y - Y 좌표
  * @param {Object} options - 옵션
+ * @param {boolean} options.useEnglishFont - 영어 전용 폰트 사용 여부 (true: Source Han Sans KR)
  * @returns {{width: number, height: number}}
  */
 export function renderMixedText(ctx, text, x, y, options = {}) {
-  const { fontSize = 14, color = '#e5e7eb', align = 'right', baseline = 'middle' } = options;
+  const { fontSize = 14, color = '#e5e7eb', align = 'right', baseline = 'middle', useEnglishFont = false } = options;
 
   ctx.save();
   ctx.fillStyle = color;
@@ -458,7 +475,7 @@ export function renderMixedText(ctx, text, x, y, options = {}) {
   const segments = splitByCharType(text);
   let totalWidth = 0;
   segments.forEach(seg => {
-    ctx.font = getFontForCharType(seg.type, fontSize);
+    ctx.font = getFontForCharType(seg.type, fontSize, useEnglishFont, seg.text);
     totalWidth += ctx.measureText(seg.text).width;
   });
 
@@ -471,7 +488,7 @@ export function renderMixedText(ctx, text, x, y, options = {}) {
   ctx.textAlign = 'left';
   let currentX = startX;
   segments.forEach(seg => {
-    ctx.font = getFontForCharType(seg.type, fontSize);
+    ctx.font = getFontForCharType(seg.type, fontSize, useEnglishFont, seg.text);
     // 한글 폰트(SCDream)가 KaTeX 폰트보다 위에 있으므로 아래로 보정
     const yOffset = seg.type === 'korean' ? fontSize * 0.12 : 0;
     ctx.fillText(seg.text, currentX, y + yOffset);

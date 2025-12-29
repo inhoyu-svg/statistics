@@ -141,6 +141,7 @@ const CONFIG = {
   TABLE_FONT_DATA: "300 18px 'SCDream', sans-serif",     // Light (흰색 텍스트)
   TABLE_FONT_SUMMARY: "300 18px 'SCDream', sans-serif",  // Light (흰색 텍스트)
   TABLE_ENGLISH_FONT: false,                             // 영어 전용 폰트 사용 여부 (true: Source Han Sans KR)
+  CHART_ENGLISH_FONT: false,                             // 차트/산점도 영어 전용 폰트 사용 여부
   TABLE_SHOW_SUPERSCRIPT: true, // 첫 계급에 상첨자(이상/미만) 표시 여부
   TABLE_SHOW_SUMMARY_ROW: true, // 합계 행 표시 여부 (도수분포표, 이원분류표)
   TABLE_SUPERSCRIPT_Y_OFFSET: 4, // 상첨자 위치 오프셋 (위로 이동)

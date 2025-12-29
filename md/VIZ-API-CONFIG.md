@@ -1838,6 +1838,14 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `options.line.color` | `string` | X | 그라데이션 | 직선 색상 |
 | `options.cellFill` | `object` | X | - | 셀 영역 색칠 설정 |
 | `options.cellFill.cells` | `string` | X | - | 색칠할 셀 범위 (`"x1-y1:x2-y2"` 형식) |
+| `options.axis` | `object` | X | - | 축 라벨 표시 설정 |
+| `options.axis.showYLabels` | `boolean` | X | `true` | Y축 숫자 라벨 표시 여부 |
+| `options.axis.showXLabels` | `boolean` | X | `true` | X축 숫자 라벨 표시 여부 |
+| `options.axis.showAxisLabels` | `boolean` | X | `true` | 축 제목 표시 여부 |
+| `options.axis.showOriginLabel` | `boolean` | X | `true` | 원점(0) 라벨 표시 여부 |
+| `options.grid` | `object` | X | - | 그리드선 표시 설정 |
+| `options.grid.showHorizontal` | `boolean` | X | `true` | 가로 그리드선 표시 여부 |
+| `options.grid.showVertical` | `boolean` | X | `true` | 세로 그리드선 표시 여부 |
 
 **주의**: `corruption.enabled: true`인 경우 애니메이션이 자동 비활성화됩니다.
 
@@ -2058,6 +2066,82 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 **라벨 충돌 회피**:
 - pointHighlights 라벨은 직선과의 거리도 고려하여 배치됨
 - 직선과 겹치지 않는 방향으로 자동 조정
+
+### options.axis
+
+축 라벨 표시 여부를 설정합니다.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:-------|:-----|
+| `showYLabels` | boolean | `true` | Y축 숫자 라벨 표시 여부 |
+| `showXLabels` | boolean | `true` | X축 숫자 라벨 표시 여부 |
+| `showAxisLabels` | boolean | `true` | 축 제목 표시 여부 |
+| `showOriginLabel` | boolean | `true` | 원점(0) 라벨 표시 여부 |
+
+**원점만 숨기기**:
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[50, 50], [60, 70], [70, 60], [80, 80]],
+  "options": {
+    "axisLabels": { "xAxis": "X", "yAxis": "Y" },
+    "axis": {
+      "showOriginLabel": false
+    }
+  }
+}
+```
+
+**모든 라벨 숨기기**:
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[50, 50], [60, 70], [70, 60], [80, 80]],
+  "options": {
+    "axis": {
+      "showYLabels": false,
+      "showXLabels": false,
+      "showOriginLabel": false
+    }
+  }
+}
+```
+
+**동작**:
+- 기본값은 모두 `true` (모든 라벨 표시)
+- `showAxisLabels: false`로 설정하면 `axisLabels`에 지정한 축 제목만 숨김
+- 그리드선과 테두리는 `options.grid`로 별도 제어
+
+### options.grid
+
+그리드선 표시 여부를 설정합니다.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:-------|:-----|
+| `showHorizontal` | boolean | `true` | 가로 그리드선 표시 여부 |
+| `showVertical` | boolean | `true` | 세로 그리드선 표시 여부 |
+
+**그리드선 숨기기**:
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[50, 50], [60, 70], [70, 60], [80, 80]],
+  "options": {
+    "grid": {
+      "showHorizontal": false,
+      "showVertical": false
+    }
+  }
+}
+```
+
+**동작**:
+- 기본값은 모두 `true` (모든 그리드선 표시)
+- 테두리(외곽선)는 항상 표시됨 (그리드선만 영향)
+- 보조 격자선과 주 격자선 모두 동시에 숨겨짐
 
 ### options.cellFill
 

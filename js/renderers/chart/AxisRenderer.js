@@ -58,6 +58,7 @@ class AxisRenderer {
    */
   drawYAxisLabels(toY, maxY, dataType = 'relativeFrequency', gridDivisions = CONFIG.CHART_GRID_DIVISIONS, yLabel = '') {
     const color = CONFIG.getColor('--color-text');
+    const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
 
     for (let i = 0; i <= gridDivisions; i++) {
       const value = maxY * i / gridDivisions;
@@ -72,12 +73,22 @@ class AxisRenderer {
       // 마지막 라벨은 축 제목으로 대체 (showAxisLabels가 true일 때만)
       if (i === gridDivisions && yLabel && CONFIG.AXIS_SHOW_AXIS_LABELS) {
         const baseFontSize = 22;
-        if (yLabel.length >= 4) {
+        const yLabelsHidden = !CONFIG.AXIS_SHOW_Y_LABELS;
+
+        if (yLabelsHidden) {
+          // 숨김 시: Y축 왼쪽 중앙에 표시
+          const centerY = (this.padding + (this.ctx.canvas.height - this.padding)) / 2;
+          KatexUtils.renderMixedText(this.ctx, yLabel,
+            this.padding - CONFIG.getScaledValue(10),
+            centerY,
+            { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle', useEnglishFont }
+          );
+        } else if (yLabel.length >= 4) {
           // 4글자 이상: Y축 상단 위에 가로로 표시
           KatexUtils.renderMixedText(this.ctx, yLabel,
             this.padding,
             toY(value) - CONFIG.getScaledValue(10),
-            { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom' }
+            { fontSize: CONFIG.getScaledFontSize(18), color, align: 'left', baseline: 'bottom', useEnglishFont }
           );
           // 최댓값 숫자도 표시
           let formattedMax;
@@ -100,7 +111,7 @@ class AxisRenderer {
           KatexUtils.renderMixedText(this.ctx, yLabel,
             this.padding - CONFIG.getScaledValue(CONFIG.CHART_Y_LABEL_OFFSET),
             toY(value) + CONFIG.getScaledValue(CONFIG.CHART_LABEL_OFFSET),
-            { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle' }
+            { fontSize: CONFIG.getScaledFontSize(baseFontSize), color, align: 'right', baseline: 'middle', useEnglishFont }
           );
         }
         continue;
@@ -166,13 +177,16 @@ class AxisRenderer {
    * @param {string} color - 텍스트 색상
    */
   drawXAxisRangeLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel, labelY, color) {
+    const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
+
     if (!CONFIG.AXIS_SHOW_X_LABELS) {
-      // 라벨 숨김 시 축 제목만 표시
+      // 라벨 숨김 시 축 제목만 표시 (위치 조정: 축선에 가깝게)
       if (CONFIG.AXIS_SHOW_AXIS_LABELS && xLabel && classes.length > 0) {
         const lastBarCenterX = toX(classes.length - 1) + xScale / 2;
+        const titleLabelY = this.canvas.height - this.padding + CONFIG.getScaledValue(10);
         KatexUtils.renderMixedText(this.ctx, xLabel,
-          lastBarCenterX + xScale, labelY,
-          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+          lastBarCenterX + xScale, titleLabelY,
+          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle', useEnglishFont }
         );
       }
       return;
@@ -216,7 +230,7 @@ class AxisRenderer {
       const lastBarCenterX = toX(classes.length - 1) + xScale / 2;
       KatexUtils.renderMixedText(this.ctx, xLabel,
         lastBarCenterX + xScale, labelY,
-        { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+        { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle', useEnglishFont }
       );
     }
   }
@@ -233,6 +247,8 @@ class AxisRenderer {
    * @param {string} color - 텍스트 색상
    */
   drawXAxisBoundaryLabels(classes, toX, xScale, toY, ellipsisInfo, xLabel, labelY, color) {
+    const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
+
     if (ellipsisInfo && ellipsisInfo.show) {
       const firstDataIdx = ellipsisInfo.firstDataIndex;
 
@@ -266,12 +282,34 @@ class AxisRenderer {
         }
       }
 
-      // 마지막 라벨(축제목): showAxisLabels가 true면 축 제목, 아니면 showXLabels에 따라 숫자
+      // 마지막 라벨(축제목): englishFont 여부에 따라 동작 변경
       if (CONFIG.AXIS_SHOW_AXIS_LABELS && xLabel) {
-        KatexUtils.renderMixedText(this.ctx, xLabel,
-          toX(classes.length - 1) + xScale, labelY,
-          { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
-        );
+        const xLabelsHidden = !CONFIG.AXIS_SHOW_X_LABELS;
+
+        if (useEnglishFont) {
+          // englishFont: true → 최댓값 라벨 표시 + 축 제목은 한 칸 아래 오른쪽 정렬
+          if (CONFIG.AXIS_SHOW_X_LABELS) {
+            KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
+              toX(classes.length - 1) + xScale, labelY,
+              { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+            );
+          }
+          // 축 제목: 한 칸 아래 + 오른쪽 정렬
+          const titleLabelY = labelY + CONFIG.getScaledValue(20);
+          KatexUtils.renderMixedText(this.ctx, xLabel,
+            this.canvas.width - this.padding, titleLabelY,
+            { fontSize: CONFIG.getScaledFontSize(22), color, align: 'right', baseline: 'middle', useEnglishFont }
+          );
+        } else {
+          // englishFont: false → 기존 동작 (최댓값을 축 제목으로 대체)
+          const titleLabelY = xLabelsHidden
+            ? this.canvas.height - this.padding + CONFIG.getScaledValue(10)
+            : labelY;
+          KatexUtils.renderMixedText(this.ctx, xLabel,
+            toX(classes.length - 1) + xScale, titleLabelY,
+            { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle', useEnglishFont }
+          );
+        }
       } else if (CONFIG.AXIS_SHOW_X_LABELS) {
         KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
           toX(classes.length - 1) + xScale, labelY,
@@ -290,13 +328,35 @@ class AxisRenderer {
         });
       }
 
-      // 마지막 라벨(축제목): showAxisLabels가 true면 축 제목, 아니면 showXLabels에 따라 숫자
+      // 마지막 라벨(축제목): englishFont 여부에 따라 동작 변경
       if (classes.length > 0) {
         if (CONFIG.AXIS_SHOW_AXIS_LABELS && xLabel) {
-          KatexUtils.renderMixedText(this.ctx, xLabel,
-            toX(classes.length), labelY,
-            { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
-          );
+          const xLabelsHidden = !CONFIG.AXIS_SHOW_X_LABELS;
+
+          if (useEnglishFont) {
+            // englishFont: true → 최댓값 라벨 표시 + 축 제목은 한 칸 아래 오른쪽 정렬
+            if (CONFIG.AXIS_SHOW_X_LABELS) {
+              KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
+                toX(classes.length), labelY,
+                { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle' }
+              );
+            }
+            // 축 제목: 한 칸 아래 + 오른쪽 정렬
+            const titleLabelY = labelY + CONFIG.getScaledValue(20);
+            KatexUtils.renderMixedText(this.ctx, xLabel,
+              this.canvas.width - this.padding, titleLabelY,
+              { fontSize: CONFIG.getScaledFontSize(22), color, align: 'right', baseline: 'middle', useEnglishFont }
+            );
+          } else {
+            // englishFont: false → 기존 동작 (최댓값을 축 제목으로 대체)
+            const titleLabelY = xLabelsHidden
+              ? this.canvas.height - this.padding + CONFIG.getScaledValue(10)
+              : labelY;
+            KatexUtils.renderMixedText(this.ctx, xLabel,
+              toX(classes.length), titleLabelY,
+              { fontSize: CONFIG.getScaledFontSize(22), color, align: 'center', baseline: 'middle', useEnglishFont }
+            );
+          }
         } else if (CONFIG.AXIS_SHOW_X_LABELS) {
           KatexUtils.render(this.ctx, String(classes[classes.length - 1].max),
             toX(classes.length), labelY,
