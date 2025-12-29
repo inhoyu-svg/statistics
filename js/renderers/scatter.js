@@ -80,6 +80,10 @@ class ScatterRenderer {
       // 정적 렌더링
       this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, this.options);
       this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
+      // 직선 (점보다 먼저)
+      if (this.options.line) {
+        this._drawStaticLine(ctx);
+      }
       this._drawPoints(ctx, this.data, this.coords, this.options);
     }
 
@@ -187,11 +191,24 @@ class ScatterRenderer {
     // 등장 애니메이션 완료 시점 (마지막 점 애니메이션 종료)
     const lastAnimEndTime = currentTime - 60 + 150;
 
-    // 강조 애니메이션 (등장 완료 후)
-    const highlightStartTime = lastAnimEndTime + 100;  // 100ms 딜레이
+    // 직선 draw 애니메이션 (점 등장 완료 후)
+    let lineEndTime = lastAnimEndTime;
+    if (this.options.line) {
+      const lineStartTime = lastAnimEndTime + 100;  // 100ms 딜레이
+      this.timeline.addAnimation('line', {
+        startTime: lineStartTime,
+        duration: 500,
+        effect: 'draw',
+        easing: 'easeOut'
+      });
+      lineEndTime = lineStartTime + 500;
+    }
+
+    // 강조 애니메이션 (직선 완료 후)
+    const highlightStartTime = lineEndTime + 100;  // 100ms 딜레이
 
     // 강조 애니메이션 종료 시점 추적
-    let highlightEndTime = lastAnimEndTime;
+    let highlightEndTime = lineEndTime;
 
     pointLayers.forEach(layer => {
       if (!layer.data.highlight) return;
@@ -261,7 +278,26 @@ class ScatterRenderer {
     this._drawGrid(ctx, canvas, this.padding, this.coords, this.range, optionsWithoutCellFill);
     this._drawAxes(ctx, canvas, this.padding, this.coords, this.range, this.options.axisLabels);
 
-    // 3. 활성 애니메이션 가져오기
+    // 3. 직선 렌더링 (점보다 먼저 - 점 뒤에 위치)
+    if (this.options.line) {
+      const lineAnim = this.timeline.animations.get('line');
+      if (lineAnim) {
+        const animEndTime = lineAnim.startTime + lineAnim.duration;
+        let progress = 0;
+
+        if (this.timeline.currentTime >= animEndTime) {
+          progress = 1;
+        } else if (this.timeline.currentTime > lineAnim.startTime) {
+          progress = (this.timeline.currentTime - lineAnim.startTime) / lineAnim.duration;
+        }
+
+        if (progress > 0) {
+          this._drawLineWithProgress(ctx, progress);
+        }
+      }
+    }
+
+    // 4. 활성 애니메이션 가져오기
     const activeAnimations = this.timeline.getActiveAnimations();
     const progressMap = new Map();
     activeAnimations.forEach(anim => {
@@ -445,6 +481,15 @@ class ScatterRenderer {
 
     const pointLayers = this.layerManager.getLayersByType('point');
 
+    // 직선 좌표 계산 (line 옵션이 있을 때)
+    let lineX1, lineY1, lineX2, lineY2;
+    if (this.options.line) {
+      lineX1 = this.padding;
+      lineY1 = this.canvas.height - this.padding;
+      lineX2 = this.canvas.width - this.padding;
+      lineY2 = this.padding;
+    }
+
     for (const dir of directions) {
       const candidateX = cx + dir.dx * offset;
       const candidateY = cy + dir.dy * offset;
@@ -463,6 +508,12 @@ class ScatterRenderer {
         minDist = Math.min(minDist, dist);
       }
 
+      // 직선과의 거리도 고려
+      if (this.options.line) {
+        const lineDist = this._distanceToLine(candidateX, candidateY, lineX1, lineY1, lineX2, lineY2);
+        minDist = Math.min(minDist, lineDist);
+      }
+
       if (minDist > bestScore) {
         bestScore = minDist;
         bestDir = dir;
@@ -473,6 +524,46 @@ class ScatterRenderer {
       x: cx + bestDir.dx * offset,
       y: cy + bestDir.dy * offset
     };
+  }
+
+  /**
+   * 점에서 직선까지의 거리 계산
+   * @param {number} px - 점 X
+   * @param {number} py - 점 Y
+   * @param {number} x1 - 직선 시작점 X
+   * @param {number} y1 - 직선 시작점 Y
+   * @param {number} x2 - 직선 끝점 X
+   * @param {number} y2 - 직선 끝점 Y
+   * @returns {number} 거리
+   */
+  _distanceToLine(px, py, x1, y1, x2, y2) {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
+
+    if (lenSq !== 0) {
+      param = dot / lenSq;
+    }
+
+    let xx, yy;
+
+    if (param < 0) {
+      xx = x1;
+      yy = y1;
+    } else if (param > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + param * C;
+      yy = y1 + param * D;
+    }
+
+    return Math.hypot(px - xx, py - yy);
   }
 
   /**
@@ -914,6 +1005,15 @@ class ScatterRenderer {
     let bestDir = directions[0];
     let bestScore = -Infinity;
 
+    // 직선 좌표 계산 (line 옵션이 있을 때)
+    let lineX1, lineY1, lineX2, lineY2;
+    if (this.options.line) {
+      lineX1 = this.padding;
+      lineY1 = this.canvas.height - this.padding;
+      lineX2 = this.canvas.width - this.padding;
+      lineY2 = this.padding;
+    }
+
     for (const dir of directions) {
       const candidateX = cx + dir.dx * offset;
       const candidateY = cy + dir.dy * offset;
@@ -930,6 +1030,12 @@ class ScatterRenderer {
         if (px === x && py === y) continue;
         const dist = Math.hypot(candidateX - toX(px), candidateY - toY(py));
         minDist = Math.min(minDist, dist);
+      }
+
+      // 직선과의 거리도 고려
+      if (this.options.line) {
+        const lineDist = this._distanceToLine(candidateX, candidateY, lineX1, lineY1, lineX2, lineY2);
+        minDist = Math.min(minDist, lineDist);
       }
 
       if (minDist > bestScore) {
@@ -1030,6 +1136,82 @@ class ScatterRenderer {
 
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, width, height);
+  }
+
+  /**
+   * 직선 렌더링 (애니메이션용 - progress 적용)
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {number} progress - 애니메이션 진행도 (0~1)
+   */
+  _drawLineWithProgress(ctx, progress) {
+    const lineOpts = this.options.line === true ? {} : this.options.line;
+    const { toX, toY } = this.coords;
+
+    let x1, y1, x2, y2;
+
+    if (lineOpts.start || lineOpts.end) {
+      // 커스텀 좌표가 지정된 경우 데이터 좌표 사용
+      const startX = lineOpts.start?.[0] ?? this.range.xMin;
+      const startY = lineOpts.start?.[1] ?? this.range.yMin;
+      const endX = lineOpts.end?.[0] ?? this.range.xMax;
+      const endY = lineOpts.end?.[1] ?? this.range.yMax;
+      x1 = toX(startX);
+      y1 = toY(startY);
+      x2 = toX(endX);
+      y2 = toY(endY);
+    } else {
+      // 기본값: 그래프 영역의 (0,0) → 우상단 모서리 (픽셀 좌표)
+      // 좌하단: padding (진짜 원점 0,0)
+      // 우상단: canvas 끝 - padding
+      x1 = this.padding;
+      y1 = this.canvas.height - this.padding;
+      x2 = this.canvas.width - this.padding;
+      y2 = this.padding;
+    }
+
+    // 유효성 검사
+    if (!isFinite(x1) || !isFinite(y1) || !isFinite(x2) || !isFinite(y2)) {
+      return;
+    }
+
+    // draw 애니메이션: progress에 따라 끝점 이동
+    const currentX2 = x1 + (x2 - x1) * progress;
+    const currentY2 = y1 + (y2 - y1) * progress;
+
+    // 그라데이션 색상 (수직: 상단 #54a0f6 → 하단 #6de0fc)
+    const minY = Math.min(y1, y2);
+    const maxY = Math.max(y1, y2);
+
+    // minY와 maxY가 같으면 단일 색상 사용
+    let strokeStyle;
+    if (lineOpts.color) {
+      strokeStyle = lineOpts.color;
+    } else if (maxY - minY < 1) {
+      // Y 범위가 너무 작으면 단일 색상
+      strokeStyle = '#54a0f6';
+    } else {
+      const gradient = ctx.createLinearGradient(0, minY, 0, maxY);
+      gradient.addColorStop(0, '#54a0f6');  // 상단 (y가 작은 쪽)
+      gradient.addColorStop(1, '#6de0fc');  // 하단 (y가 큰 쪽)
+      strokeStyle = gradient;
+    }
+
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(currentX2, currentY2);
+    ctx.stroke();
+  }
+
+  /**
+   * 직선 렌더링 (정적 모드용)
+   * @param {CanvasRenderingContext2D} ctx
+   */
+  _drawStaticLine(ctx) {
+    this._drawLineWithProgress(ctx, 1);
   }
 
   // ============================================

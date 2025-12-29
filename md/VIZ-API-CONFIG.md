@@ -1832,6 +1832,12 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `options.corruption.enabled` | `boolean` | X | `false` | 찢김 효과 활성화 |
 | `options.corruption.cells` | `string\|array` | X | `[]` | 마스킹할 셀 범위 |
 | `options.corruption.style` | `object` | X | - | 스타일 옵션 (edgeComplexity, seed 등) |
+| `options.line` | `boolean\|object` | X | `false` | 직선 표시 |
+| `options.line.start` | `[number, number]` | X | `[0, 0]` | 직선 시작점 좌표 |
+| `options.line.end` | `[number, number]` | X | 우상단 끝점 | 직선 끝점 좌표 |
+| `options.line.color` | `string` | X | 그라데이션 | 직선 색상 |
+| `options.cellFill` | `object` | X | - | 셀 영역 색칠 설정 |
+| `options.cellFill.cells` | `string` | X | - | 색칠할 셀 범위 (`"x1-y1:x2-y2"` 형식) |
 
 **주의**: `corruption.enabled: true`인 경우 애니메이션이 자동 비활성화됩니다.
 
@@ -1996,6 +2002,62 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 - 압축 구간: xMin/yMin > 0일 때만 추가 (이중물결표 ≈ 표시)
 - 여유 공간: 항상 1칸 추가 (최댓값 + interval 라벨 표시)
 - 차트 영역은 사각형 테두리로 감싸짐
+
+### options.line
+
+그래프에 직선을 표시합니다.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:-------|:-----|
+| `line` | boolean \| object | `false` | 직선 표시 (true면 기본값 사용) |
+| `line.start` | [number, number] | `[0, 0]` | 시작점 좌표 (데이터 좌표) |
+| `line.end` | [number, number] | 우상단 끝점 | 끝점 좌표 (데이터 좌표) |
+| `line.color` | string | 그라데이션 | 단일 색상 지정 시 |
+
+**기본 직선** (원점에서 우상단까지):
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[50, 50], [60, 60], [70, 70], [80, 80], [90, 90], [100, 100]],
+  "options": {
+    "axisLabels": { "xAxis": "필기 점수(점)", "yAxis": "실기 점수(점)" },
+    "line": true
+  }
+}
+```
+
+**커스텀 직선** (시작점/끝점 지정):
+
+```json
+{
+  "purpose": "scatter",
+  "data": [[50, 50], [60, 70], [70, 60], [80, 80]],
+  "options": {
+    "line": {
+      "start": [50, 50],
+      "end": [100, 100]
+    }
+  }
+}
+```
+
+**동작**:
+- `line: true` → 그래프 원점(0,0)에서 우상단 모서리까지 대각선
+- `line: { start: [...], end: [...] }` → 지정된 데이터 좌표 사용
+- 직선은 점들 뒤에 렌더링됨 (점이 직선 위에 표시)
+- 기본 색상: 수직 그라데이션 (상단 #54a0f6 → 하단 #6de0fc)
+- 선 두께: 4px
+
+**애니메이션**:
+- 효과: draw (선이 그려지는 효과)
+- 타이밍: 점 등장 완료 후 → 직선 → 점 강조 순서
+- 지속 시간: 500ms
+- 이징: easeOut
+
+**라벨 충돌 회피**:
+- pointHighlights 라벨은 직선과의 거리도 고려하여 배치됨
+- 직선과 겹치지 않는 방향으로 자동 조정
 
 ### options.cellFill
 
