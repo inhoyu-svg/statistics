@@ -417,16 +417,20 @@ class ScatterRenderer {
     const currentRadius = radius * currentScale;
 
     // 색상 보간: 원래 색상 → 강조 색상
-    const currentColor = progress >= 1 ? highlight.color : this._interpolateColor(color, highlight.color, easedProgress);
+    // 색상은 easeOutBack 대신 선형 또는 easeOutCubic 사용 (오버슈트 방지)
+    const colorProgress = this._easeOutCubic(progress);
+    const currentColor = progress >= 1 ? highlight.color : this._interpolateColor(color, highlight.color, colorProgress);
 
     ctx.fillStyle = currentColor;
     ctx.beginPath();
     ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // 라벨 렌더링 (애니메이션 완료 후)
-    if (highlight.label && progress >= 1) {
-      this._renderHighlightLabel(pointData, currentRadius);
+    // 라벨 렌더링 (점과 함께 스케일업 애니메이션)
+    // 위치는 최종 크기 기준으로 고정 (애니메이션 중 위치 점프 방지)
+    if (highlight.label) {
+      const finalRadius = radius * highlight.scale;
+      this._renderHighlightLabel(pointData, finalRadius, easedProgress);
     }
   }
 
@@ -434,15 +438,21 @@ class ScatterRenderer {
    * 강조점 라벨 렌더링
    * @param {Object} pointData - 점 데이터
    * @param {number} pointRadius - 현재 점 반지름
+   * @param {number} progress - 애니메이션 진행도 (0~1, eased)
    */
-  _renderHighlightLabel(pointData, pointRadius) {
+  _renderHighlightLabel(pointData, pointRadius, progress = 1) {
     const { highlight } = pointData;
     const label = highlight.label;
 
     // 라벨 위치 결정 (다른 점들과 충돌 최소화)
     const labelPos = this._findBestLabelPosition(pointData, pointRadius);
 
-    const fontSize = CONFIG.getScaledFontSize(32);
+    // 스케일업 애니메이션: 0% → 100%
+    const baseFontSize = CONFIG.getScaledFontSize(32);
+    const fontSize = baseFontSize * progress;
+
+    // 폰트 크기가 너무 작으면 렌더링 스킵
+    if (fontSize < 1) return;
 
     // KaTeX로 라벨 렌더링
     KatexUtils.render(this.ctx, label, labelPos.x, labelPos.y, {
@@ -573,6 +583,13 @@ class ScatterRenderer {
     const c1 = 1.70158;
     const c3 = c1 + 1;
     return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  }
+
+  /**
+   * easeOutCubic 이징 함수 (색상 보간용, 오버슈트 없음)
+   */
+  _easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
   }
 
   /**
