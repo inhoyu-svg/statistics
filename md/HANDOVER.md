@@ -199,7 +199,7 @@ Layer → Timeline → Effects
 ### 4.6 해외강의용 추가 기능
 | 기능 | 옵션 | 설명 |
 |------|------|------|
-| **분포 곡선** | `showCurve` | 히스토그램 위 분포 곡선 표시 |
+| **분포 곡선** | `showCurve` | 히스토그램 위 분포 곡선 표시 (색상 커스텀 지원) |
 | **축 선 표시** | `axis.showXAxis`, `axis.showYAxis` | X/Y축 선 표시 여부 |
 | **축 제목 표시** | `axis.showAxisLabels` | X/Y축 제목 표시 여부 |
 | **원점 라벨** | `axis.showOriginLabel` | 원점(0) 라벨 표시 여부 |
@@ -377,6 +377,8 @@ DataProcessor.calculateFrequencies(...)   // 도수 계산
 ## 9. 알려진 이슈
 
 ### 9.1 최근 수정된 버그
+- data-viz-canvas 테이블 전환 시 페이드 애니메이션 (639c2f3)
+- 분포 곡선(showCurve) 색상 커스텀 지원 (ce1ef1b)
 - category-matrix에서 null 처리 버그 (de25008)
 - polygon.hidden 인덱스 기준 동작 수정 (a17f1ee)
 - histogramColor 커스텀 시 alpha 값 (5dbe4bc)
@@ -392,11 +394,10 @@ DataProcessor.calculateFrequencies(...)   // 도수 계산
 
 | 문서 | 위치 | 내용 |
 |------|------|------|
-| **프로젝트 소개** | `md/README.md` | 기능 개요, 사용법 |
 | **AI 협업 가이드** | `md/CLAUDE.md` | 폴더 구조, 커밋 규칙 |
-| **사용 설명서** | `md/USAGE.md` | 테이블 타입별 입력 형식 |
 | **데이터 구조** | `md/SCHEMA.md` | viz-api 스키마 |
 | **API 레퍼런스** | `md/VIZ-API-CONFIG.md` | 설정 옵션 상세 |
+| **인수인계 문서** | `md/HANDOVER.md` | 이 문서 |
 
 ---
 
