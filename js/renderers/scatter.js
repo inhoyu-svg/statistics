@@ -42,6 +42,11 @@ class ScatterRenderer {
     this.options = config.options || {};
     this.pointHighlights = this.options.pointHighlights || [];
 
+    // CONFIG 상태 스냅샷 저장 (애니메이션 재생 시 복원용)
+    this.configSnapshot = {
+      CHART_ENGLISH_FONT: CONFIG.CHART_ENGLISH_FONT
+    };
+
     const ctx = this.ctx;
     const canvas = this.canvas;
 
@@ -250,6 +255,11 @@ class ScatterRenderer {
 
     // 캔버스 크기 설정 복원 (다른 렌더러가 변경했을 수 있음)
     CONFIG.setCanvasSize(Math.max(canvas.width, canvas.height));
+
+    // CONFIG 상태 복원 (다른 차트가 변경했을 수 있음)
+    if (this.configSnapshot) {
+      CONFIG.CHART_ENGLISH_FONT = this.configSnapshot.CHART_ENGLISH_FONT;
+    }
 
     // 캔버스 클리어
     ctx.clearRect(0, 0, canvas.width, canvas.height);

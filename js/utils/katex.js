@@ -385,11 +385,10 @@ export function isFontsLoaded() {
 /**
  * 문자 유형 분류
  * @param {string} char - 단일 문자
- * @returns {'lowercase'|'uppercase'|'korean'|'paren'|'space'|'other'}
+ * @returns {'english'|'korean'|'paren'|'space'|'other'}
  */
 function getCharType(char) {
-  if (/[a-z]/.test(char)) return 'lowercase';
-  if (/[A-Z]/.test(char)) return 'uppercase';
+  if (/[a-zA-Z]/.test(char)) return 'english';  // 대소문자 통합
   if (/[가-힣]/.test(char)) return 'korean';
   if (/[()]/.test(char)) return 'paren';  // 괄호는 이탤릭 아님
   if (char === ' ') return 'space';  // 공백은 별도 처리
@@ -420,29 +419,37 @@ export function splitByCharType(text) {
 
 /**
  * 문자 유형별 폰트 반환
- * @param {string} type - 문자 유형 ('lowercase', 'uppercase', 'korean', 'other')
+ * @param {string} type - 문자 유형 ('english', 'korean', 'paren', 'space', 'other')
  * @param {number} fontSize - 폰트 크기
  * @param {boolean} useEnglishFont - 영어 전용 폰트 사용 여부 (true: Source Han Sans KR)
  * @param {string} segmentText - 세그먼트 텍스트 (짧은 변수명 판별용)
  * @returns {string} CSS 폰트 문자열
  */
 export function getFontForCharType(type, fontSize, useEnglishFont = false, segmentText = '') {
-  if (type === 'lowercase') {
-    // englishFont 모드에서도 짧은 변수명(1-2글자)은 KaTeX 이탤릭 유지
+  if (type === 'english') {
+    // englishFont 모드에서도 짧은 변수명(1-2글자)은 KaTeX 유지
     if (useEnglishFont && segmentText.length > 2) {
       // 긴 영어 단어: Source Han Sans KR 직립체
       return `${fontSize}px 'Source Han Sans KR', sans-serif`;
     }
-    // 기본 또는 짧은 변수명: KaTeX_Math 이탤릭
+    // 기본 또는 짧은 변수명: 소문자면 이탤릭, 대문자면 직립체
+    const isAllLowercase = /^[a-z]+$/.test(segmentText);
+    if (isAllLowercase) {
+      return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
+    }
+    return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;
+  }
+  // 하위 호환: 기존 lowercase/uppercase 타입도 처리
+  if (type === 'lowercase') {
+    if (useEnglishFont && segmentText.length > 2) {
+      return `${fontSize}px 'Source Han Sans KR', sans-serif`;
+    }
     return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
   }
   if (type === 'uppercase') {
-    // englishFont 모드에서도 짧은 변수명(1-2글자)은 KaTeX 유지
     if (useEnglishFont && segmentText.length > 2) {
-      // 긴 영어 단어: Source Han Sans KR
       return `${fontSize}px 'Source Han Sans KR', sans-serif`;
     }
-    // 기본 또는 짧은 변수명: KaTeX_Main
     return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;
   }
   if (type === 'korean') {
