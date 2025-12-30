@@ -222,6 +222,46 @@ interface ScatterResult {
 }
 ```
 
+**강조점 (pointHighlights):**
+```typescript
+interface PointHighlight {
+  x: number;              // 데이터 X 좌표
+  y: number;              // 데이터 Y 좌표
+  color?: string;         // 강조 색상 (기본: #FF0000)
+  scale?: number;         // 스케일 배율 (기본: 2.0)
+  label?: string;         // KaTeX 라벨 (선택)
+}
+
+// 예시
+pointHighlights: [
+  { x: 20, y: 40, color: "#FF0000", scale: 2.0, label: "A" },
+  { x: 30, y: 50, color: "#0000FF", label: "B" }
+]
+```
+
+**직선 (line):**
+```typescript
+type LineConfig = boolean | {
+  color?: string;         // 직선 색상 (기본: #54a0f6)
+  start?: [number, number];  // 시작점 [x, y]
+  end?: [number, number];    // 끝점 [x, y]
+};
+
+// 예시
+line: true                // 단순 활성화
+line: { color: "#FF0000", start: [0, 0], end: [100, 100] }
+```
+
+**셀 영역 채우기 (cellFill):**
+```typescript
+interface CellFill {
+  cells: string;          // 범위 형식: "x1-y1:x2-y2"
+}
+
+// 예시
+cellFill: { cells: "1-2:3-4" }  // (1,2)부터 (3,4)까지 영역 채우기
+```
+
 ---
 
 ## 3. 데이터 흐름
@@ -333,6 +373,7 @@ interface Dataset {
   data: number[] | string;   // 데이터 배열 또는 문자열
   callout?: CalloutConfig;   // 말풍선 설정
   polygonColorPreset?: 'default' | 'primary' | 'secondary' | 'tertiary';
+  polygon?: PolygonConfig;   // 다각형 숨김 설정
 }
 
 // 다중 데이터셋 렌더링 결과
@@ -342,5 +383,48 @@ interface MultiplePolygonResult {
   allClasses: ClassData[][];  // 각 데이터셋별 계급 배열
   unifiedMaxY: number;        // 통합 Y축 최댓값
   unifiedClassCount: number;  // 통합 계급 개수
+}
+
+// 다각형 설정
+interface PolygonConfig {
+  hidden?: number[];         // 숨길 점/선 인덱스 배열 (0-based)
+}
+
+// 산점도 강조점
+interface PointHighlight {
+  x: number;                 // 데이터 X 좌표
+  y: number;                 // 데이터 Y 좌표
+  color?: string;            // 강조 색상 (기본: #FF0000)
+  scale?: number;            // 스케일 배율 (기본: 2.0)
+  label?: string;            // KaTeX 라벨
+}
+
+// 산점도 직선
+type LineConfig = boolean | {
+  color?: string;            // 직선 색상 (기본: #54a0f6)
+  start?: [number, number];  // 시작점 [x, y]
+  end?: [number, number];    // 끝점 [x, y]
+};
+
+// 산점도 셀 채우기
+interface CellFillConfig {
+  cells: string;             // 범위: "x1-y1:x2-y2"
+}
+
+// 분포 곡선
+type ShowCurveConfig = boolean | {
+  color?: string;            // 곡선 색상 ('default' 또는 hex)
+};
+
+// 축 설정 (확장)
+interface AxisConfig {
+  showXAxis?: boolean;       // X축 표시 (기본: true)
+  showYAxis?: boolean;       // Y축 표시 (기본: true)
+  showXLabels?: boolean;     // X축 라벨 표시 (기본: true)
+  showYLabels?: boolean;     // Y축 라벨 표시 (기본: true)
+  showAxisLabels?: boolean;  // 축 제목 표시 (기본: true)
+  showOriginLabel?: boolean; // 원점 라벨 표시 (기본: true)
+  xLabelFormat?: 'decimal' | 'integer';  // X축 라벨 형식
+  yLabelFormat?: 'decimal' | 'percent';  // Y축 라벨 형식
 }
 ```

@@ -166,6 +166,9 @@
           "polygonColorPreset": {
             "type": "string",
             "enum": ["default", "primary", "secondary", "tertiary"]
+          },
+          "polygon": {
+            "$ref": "#/definitions/polygon"
           }
         }
       },
@@ -495,6 +498,33 @@
         },
         "polygon": {
           "$ref": "#/definitions/polygon"
+        },
+        "showCurve": {
+          "$ref": "#/definitions/showCurve"
+        },
+        "englishFont": {
+          "type": "boolean",
+          "description": "영문 폰트 사용 여부",
+          "default": false
+        },
+        "switchColor": {
+          "type": "string",
+          "description": "테이블 기본 초록색 대체 색상 (테이블 전용)",
+          "examples": ["#FF0000", "#0000FF"]
+        },
+        "line": {
+          "$ref": "#/definitions/line"
+        },
+        "pointHighlights": {
+          "type": "array",
+          "description": "산점도 강조점 배열 (scatter 전용)",
+          "items": { "$ref": "#/definitions/pointHighlight" },
+          "examples": [
+            [{ "x": 20, "y": 40, "color": "#FF0000", "scale": 2.0, "label": "A" }]
+          ]
+        },
+        "cellFill": {
+          "$ref": "#/definitions/cellFill"
         }
       }
     },
@@ -537,18 +567,44 @@
     },
     "axis": {
       "type": "object",
-      "description": "축 라벨 표시 설정",
+      "description": "축 표시 설정",
       "additionalProperties": false,
       "properties": {
-        "showYLabels": {
+        "showXAxis": {
           "type": "boolean",
-          "description": "Y축 라벨(숫자) 표시",
+          "description": "X축 표시 여부",
+          "default": true
+        },
+        "showYAxis": {
+          "type": "boolean",
+          "description": "Y축 표시 여부",
           "default": true
         },
         "showXLabels": {
           "type": "boolean",
           "description": "X축 라벨(계급값) 표시",
           "default": true
+        },
+        "showYLabels": {
+          "type": "boolean",
+          "description": "Y축 라벨(숫자) 표시",
+          "default": true
+        },
+        "showAxisLabels": {
+          "type": "boolean",
+          "description": "축 제목(axisLabels) 표시 여부",
+          "default": true
+        },
+        "showOriginLabel": {
+          "type": "boolean",
+          "description": "원점(0) 라벨 표시 여부",
+          "default": true
+        },
+        "xLabelFormat": {
+          "type": "string",
+          "description": "X축 라벨 형식",
+          "enum": ["decimal", "integer"],
+          "default": "integer"
         },
         "yLabelFormat": {
           "type": "string",
@@ -652,6 +708,120 @@
           "examples": [[0, 1], [2, 5]]
         }
       }
+    },
+    "line": {
+      "description": "산점도 직선 설정. boolean 또는 상세 객체",
+      "oneOf": [
+        {
+          "type": "boolean",
+          "description": "직선 표시 여부"
+        },
+        {
+          "type": "object",
+          "description": "직선 상세 설정",
+          "additionalProperties": false,
+          "properties": {
+            "color": {
+              "type": "string",
+              "description": "직선 색상",
+              "default": "#54a0f6",
+              "examples": ["#54a0f6", "#FF0000"]
+            },
+            "start": {
+              "type": "array",
+              "description": "시작점 [x, y]",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2,
+              "examples": [[0, 0], [10, 20]]
+            },
+            "end": {
+              "type": "array",
+              "description": "끝점 [x, y]",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 2,
+              "examples": [[100, 100], [50, 80]]
+            }
+          }
+        }
+      ],
+      "examples": [true, { "color": "#54a0f6", "start": [0, 0], "end": [100, 100] }]
+    },
+    "pointHighlight": {
+      "type": "object",
+      "description": "산점도 강조점 설정",
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "강조점 X 좌표 (데이터 값)"
+        },
+        "y": {
+          "type": "number",
+          "description": "강조점 Y 좌표 (데이터 값)"
+        },
+        "color": {
+          "type": "string",
+          "description": "강조점 색상",
+          "default": "#FF0000",
+          "examples": ["#FF0000", "#0000FF"]
+        },
+        "scale": {
+          "type": "number",
+          "description": "강조점 스케일 배율",
+          "default": 2.0,
+          "minimum": 1,
+          "examples": [1.5, 2.0, 2.5]
+        },
+        "label": {
+          "type": "string",
+          "description": "강조점 라벨 (KaTeX 지원)",
+          "examples": ["A", "P(a, b)"]
+        }
+      },
+      "examples": [
+        { "x": 20, "y": 40, "color": "#FF0000", "scale": 2.0, "label": "A" }
+      ]
+    },
+    "cellFill": {
+      "type": "object",
+      "description": "산점도 셀 영역 채우기 설정",
+      "additionalProperties": false,
+      "properties": {
+        "cells": {
+          "type": "string",
+          "description": "채울 셀 범위. 형식: 'x1-y1:x2-y2'",
+          "pattern": "^\\d+-\\d+:\\d+-\\d+$",
+          "examples": ["0-0:2-2", "1-2:3-4"]
+        }
+      },
+      "examples": [{ "cells": "1-2:3-4" }]
+    },
+    "showCurve": {
+      "description": "분포 곡선 표시 설정. boolean 또는 상세 객체",
+      "oneOf": [
+        {
+          "type": "boolean",
+          "description": "분포 곡선 표시 여부"
+        },
+        {
+          "type": "object",
+          "description": "분포 곡선 상세 설정",
+          "additionalProperties": false,
+          "properties": {
+            "color": {
+              "type": "string",
+              "description": "곡선 색상. 'default' 또는 hex 색상",
+              "default": "default",
+              "examples": ["default", "#FF0000"]
+            }
+          }
+        }
+      ],
+      "default": false,
+      "examples": [true, false, { "color": "default" }]
     },
     "corruption": {
       "type": "object",

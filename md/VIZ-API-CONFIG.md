@@ -642,12 +642,20 @@ config (최상위)
 | `options.callout` | `object` | X | - | 말풍선(콜아웃) 설정 |
 | `options.showDashedLines` | `boolean` | X | `false` | 수직 파선 표시 |
 | `options.grid` | `object` | X | `{ showHorizontal: true, showVertical: true }` | 격자선 설정 |
-| `options.axis` | `object` | X | `{ showYLabels: true, showXLabels: true }` | 축 라벨 표시 설정 |
+| `options.axis` | `object` | X | - | 축 표시 설정 |
+| `options.axis.showXAxis` | `boolean` | X | `true` | X축 표시 여부 |
+| `options.axis.showYAxis` | `boolean` | X | `true` | Y축 표시 여부 |
+| `options.axis.showXLabels` | `boolean` | X | `true` | X축 라벨 표시 |
+| `options.axis.showYLabels` | `boolean` | X | `true` | Y축 라벨 표시 |
+| `options.axis.showAxisLabels` | `boolean` | X | `true` | 축 제목 표시 |
+| `options.axis.showOriginLabel` | `boolean` | X | `true` | 원점(0) 라벨 표시 |
 | `options.congruentTriangles` | `object` | X | - | 합동 삼각형 설정 |
 | `options.customYInterval` | `number` | X | `null` | Y축 간격 커스텀 |
 | `options.customBarLabels` | `array` | X | - | 막대 내부 라벨 배열 (null은 스킵) |
 | `options.polygon` | `object` | X | - | 다각형 옵션 |
 | `options.polygon.hidden` | `array` | X | `[]` | 숨길 점의 인덱스 배열 (아래 규칙 참조) |
+| `options.showCurve` | `boolean` \| `object` | X | `false` | 분포 곡선 표시 |
+| `options.englishFont` | `boolean` | X | `false` | 영문 폰트 사용 |
 
 **polygon.hidden 인덱스 규칙 (매우 중요)**:
 
@@ -1838,14 +1846,23 @@ X-Y 좌표 데이터를 점으로 시각화합니다.
 | `options.line.color` | `string` | X | 그라데이션 | 직선 색상 |
 | `options.cellFill` | `object` | X | - | 셀 영역 색칠 설정 |
 | `options.cellFill.cells` | `string` | X | - | 색칠할 셀 범위 (`"x1-y1:x2-y2"` 형식) |
-| `options.axis` | `object` | X | - | 축 라벨 표시 설정 |
-| `options.axis.showYLabels` | `boolean` | X | `true` | Y축 숫자 라벨 표시 여부 |
+| `options.axis` | `object` | X | - | 축 표시 설정 |
+| `options.axis.showXAxis` | `boolean` | X | `true` | X축 표시 여부 |
+| `options.axis.showYAxis` | `boolean` | X | `true` | Y축 표시 여부 |
 | `options.axis.showXLabels` | `boolean` | X | `true` | X축 숫자 라벨 표시 여부 |
+| `options.axis.showYLabels` | `boolean` | X | `true` | Y축 숫자 라벨 표시 여부 |
 | `options.axis.showAxisLabels` | `boolean` | X | `true` | 축 제목 표시 여부 |
 | `options.axis.showOriginLabel` | `boolean` | X | `true` | 원점(0) 라벨 표시 여부 |
 | `options.grid` | `object` | X | - | 그리드선 표시 설정 |
 | `options.grid.showHorizontal` | `boolean` | X | `true` | 가로 그리드선 표시 여부 |
 | `options.grid.showVertical` | `boolean` | X | `true` | 세로 그리드선 표시 여부 |
+| `options.pointHighlights` | `array` | X | `[]` | 강조점 설정 배열 |
+| `options.pointHighlights[].x` | `number` | **O** | - | 강조할 점의 X 좌표 |
+| `options.pointHighlights[].y` | `number` | **O** | - | 강조할 점의 Y 좌표 |
+| `options.pointHighlights[].color` | `string` | X | `"#FF6B6B"` | 강조 색상 |
+| `options.pointHighlights[].scale` | `number` | X | `1.5` | 크기 배율 |
+| `options.pointHighlights[].label` | `string` | X | `null` | 점 옆 라벨 (KaTeX 지원) |
+| `options.englishFont` | `boolean` | X | `false` | 영문 폰트 사용 |
 
 **주의**: `corruption.enabled: true`인 경우 애니메이션이 자동 비활성화됩니다.
 
