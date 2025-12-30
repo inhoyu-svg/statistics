@@ -499,7 +499,7 @@ style: 코드 스타일 변경
 
 **새 차트 옵션 추가**
 ```
-viz-api.js (옵션 추출)
+viz-api.js (옵션 처리)
     ↓
 config.js (기본값 설정, 필요시)
     ↓
@@ -510,11 +510,13 @@ VIZ-API-CONFIG.md (문서화)
 
 예시: `showDashedLines` 옵션 추가
 ```javascript
-// 1. viz-api.js - 옵션 추출
-const showDashedLines = options.showDashedLines ?? false;
+// 1. viz-api.js - config.options에서 읽어 CONFIG에 반영
+if (options.showDashedLines !== undefined) {
+  CONFIG.SHOW_DASHED_LINES = options.showDashedLines;
+}
 
-// 2. chart.js - 렌더링 반영
-if (showDashedLines) {
+// 2. chart.js - CONFIG 값 사용하여 렌더링
+if (CONFIG.SHOW_DASHED_LINES) {
   this.dashedLineRenderer.render(ctx, classes, coords);
 }
 
