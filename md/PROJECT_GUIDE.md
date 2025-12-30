@@ -426,10 +426,10 @@ style: 코드 스타일 변경
 
 1. 서버 실행: `npx serve`
 2. 브라우저에서 `http://localhost:3000` 접속
-3. 코드 수정 후 브라우저 새로고침
-4. 빌드: `npm run build`
-5. 테스트: `validator.html`에서 검증
-6. 커밋 & 푸시 → GitHub Pages 자동 배포
+3. 코드 수정
+4. 테스트: `validator.html`에서 검증
+5. 커밋 & 푸시 → GitHub Pages 자동 배포
+6. `npm run build`
 
 ### 10.2 신규 요청 처리 흐름
 
