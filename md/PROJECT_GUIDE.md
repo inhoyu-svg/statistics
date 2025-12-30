@@ -380,22 +380,19 @@ HTML 속성으로 설정:
 
 ### 9.3 새 기능 추가 시
 
-**차트/테이블 렌더링 수정**
-1. 렌더러 수정: `js/renderers/chart.js`, `scatter.js`, `table.js`
-2. 하위 렌더러 추가/수정: `js/renderers/chart/`, `js/renderers/table/`
-
 **새 옵션 추가**
 1. `js/viz-api.js`: `config.options`에서 옵션 추출 및 처리
 2. `js/config.js`: 전역 기본값/상수 설정 (필요시)
 3. `js/utils/validator.js`: 검증 로직 추가 (필요시)
-4. `schema/viz-api.schema.json`: 참조용 스키마 문서화 (선택)
+4. `md/VIZ-API-CONFIG.md`: 옵션 문서화
+
+**렌더링 수정**
+1. 메인 렌더러: `js/renderers/chart.js`, `scatter.js`, `table.js`
+2. 하위 렌더러: `js/renderers/chart/`, `js/renderers/table/`
 
 **애니메이션 추가**
 1. 효과 정의: `js/animation/effects/`
 2. 타임라인 등록: 렌더러의 `_setupAnimations()` 메서드
-
-**문서 업데이트**
-1. `md/VIZ-API-CONFIG.md`: 설정 옵션 레퍼런스 (주요)
 
 ---
 
