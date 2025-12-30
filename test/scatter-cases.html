@@ -800,13 +800,14 @@
           purpose: 'scatter',
           data: [[4, 5], [5, 2], [5, 5], [5, 6], [6, 5], [7, 6], [7, 7], [7, 8], [8, 6], [8, 7], [8, 9], [8, 10], [9, 7], [9, 8], [10, 7], [10, 10]],
           options: {
-            axisLabels: { xAxis: '수행평가 점수', yAxis: '실기 점수' },
+            englishFont: true,
+            axisLabels: { xAxis: 'Performance (score)', yAxis: 'Practical (score)' },
             pointSize: 6,
             pointColor: '#93DA6A',
             pointHighlights: [
               { x: 4, y: 5, color: '#008AFF', scale: 1, label: 'A' },
-              { x: 7, y: 7, color: '#E749AF', scale: 1, label: 'B' },
-              { x: 10, y: 10, color: '#FF764F', scale: 1, label: 'C' }
+              { x: 7, y: 7, color: '#E749AF', scale: 1, label: 'avg score' },
+              { x: 10, y: 10, color: '#FF764F', scale: 1, label: 'B' }
             ]
           }
         }
