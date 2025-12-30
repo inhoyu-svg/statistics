@@ -422,16 +422,7 @@ style: 코드 스타일 변경
 
 ## 10. 실무 워크플로우
 
-### 10.1 로컬 개발
-
-1. 서버 실행: `npx serve`
-2. 브라우저에서 `http://localhost:3000` 접속
-3. 코드 수정
-4. 테스트: `validator.html`에서 검증
-5. 커밋 & 푸시 → GitHub Pages 자동 배포
-6. `npm run build`
-
-### 10.2 신규 요청 처리 흐름
+### 10.1 신규 요청 처리 흐름
 
 ```
 요청 접수 → 요구사항 분석 → 구현 → 테스트 → 배포
@@ -441,36 +432,39 @@ style: 코드 스타일 변경
 2. **요구사항 분석**:
    - 기존 옵션으로 해결 가능한지 확인
    - 새 옵션 필요 시 `VIZ-API-CONFIG.md` 참고하여 설계
-3. **구현**: 섹션 10.3 참고
+3. **구현**: 섹션 10.2 참고
 4. **테스트**: `validator.html`에서 검증
 5. **배포**: 커밋 → 푸시 → GitHub Pages 자동 배포
 
-### 10.3 일반적인 작업 패턴
+### 10.2 일반적인 작업 패턴
 
 **새 차트 옵션 추가**
 ```
-viz-api.js (옵션 처리)
+renderers/*.js (기능 구현, CONFIG 값 사용)
     ↓
-config.js (기본값 설정, 필요시)
+config.js (기본값 정의)
     ↓
-renderers/*.js (렌더링 반영)
+viz-api.js (외부 옵션 → CONFIG 반영)
     ↓
 VIZ-API-CONFIG.md (문서화)
 ```
 
 예시: `showDashedLines` 옵션 추가
 ```javascript
-// 1. viz-api.js - config.options에서 읽어 CONFIG에 반영
-if (options.showDashedLines !== undefined) {
-  CONFIG.SHOW_DASHED_LINES = options.showDashedLines;
-}
-
-// 2. chart.js - CONFIG 값 사용하여 렌더링
+// 1. chart.js - CONFIG 값 사용하여 렌더링 기능 구현
 if (CONFIG.SHOW_DASHED_LINES) {
   this.dashedLineRenderer.render(ctx, classes, coords);
 }
 
-// 3. VIZ-API-CONFIG.md - 문서화
+// 2. config.js - 기본값 정의
+SHOW_DASHED_LINES: false,
+
+// 3. viz-api.js - 외부 옵션을 CONFIG에 반영
+if (options.showDashedLines !== undefined) {
+  CONFIG.SHOW_DASHED_LINES = options.showDashedLines;
+}
+
+// 4. VIZ-API-CONFIG.md - 문서화
 // | showDashedLines | Boolean | 계급 경계 수직 파선 표시 |
 ```
 
@@ -506,7 +500,7 @@ animation/effects/*.js (효과 정의)
 renderFrame() (적용)
 ```
 
-### 10.4 자주 참조하는 파일
+### 10.3 자주 참조하는 파일
 
 | 작업 | 주요 파일 |
 |------|-----------|
@@ -517,10 +511,9 @@ renderFrame() (적용)
 | 데이터 파싱 | `js/core/parsers/*.js` |
 | 설정 상수 | `js/config.js` |
 
-### 10.5 주의사항
+### 10.4 주의사항
 
 - **빌드 잊지 않기**: `npm run build` 후 커밋
-- **dist/ 포함 커밋**: 빌드 결과물 누락 시 배포 실패
 - **테스트 먼저**: 수정 전 `validator.html`에서 현재 동작 확인
 - **문서 동기화**: 옵션 추가 시 `VIZ-API-CONFIG.md` 업데이트
 
