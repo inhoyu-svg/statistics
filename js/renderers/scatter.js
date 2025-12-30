@@ -444,45 +444,87 @@ class ScatterRenderer {
     const { highlight } = pointData;
     const label = highlight.label;
 
+    // 라벨 타입 판별: 한 글자(영문/숫자)는 KaTeX, 그 외는 일반 텍스트
+    const labelType = this._getLabelType(label);
+    const baseFontSize = CONFIG.getScaledFontSize(labelType === 'katex' ? 32 : 20);
+
     // 라벨 위치 결정 (다른 점들과 충돌 최소화)
-    const labelPos = this._findBestLabelPosition(pointData, pointRadius);
+    const labelPos = this._findBestLabelPosition(pointData, pointRadius, labelType);
 
     // 스케일업 애니메이션: 0% → 100%
-    const baseFontSize = CONFIG.getScaledFontSize(32);
     const fontSize = baseFontSize * progress;
 
     // 폰트 크기가 너무 작으면 렌더링 스킵
     if (fontSize < 1) return;
 
-    // KaTeX로 라벨 렌더링
-    KatexUtils.render(this.ctx, label, labelPos.x, labelPos.y, {
-      fontSize,
-      color: highlight.color,
-      align: 'center',
-      baseline: 'middle'
-    });
+    // 라벨 타입에 따라 렌더링 방식 결정
+    if (labelType === 'katex') {
+      // 한 글자 (A, B, x, y 등): KaTeX 렌더링
+      KatexUtils.render(this.ctx, label, labelPos.x, labelPos.y, {
+        fontSize,
+        color: highlight.color,
+        align: 'center',
+        baseline: 'middle'
+      });
+    } else {
+      // 여러 글자: renderMixedText (englishFont 옵션 적용)
+      const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
+      KatexUtils.renderMixedText(this.ctx, label, labelPos.x, labelPos.y, {
+        fontSize,
+        color: highlight.color,
+        align: 'center',
+        baseline: 'middle',
+        useEnglishFont
+      });
+    }
+  }
+
+  /**
+   * 라벨 타입 판별
+   * @param {string} label - 라벨 텍스트
+   * @returns {'katex'|'korean'|'text'} 라벨 타입
+   */
+  _getLabelType(label) {
+    // 한 글자 영문/숫자는 KaTeX
+    if (/^[A-Za-z0-9]$/.test(label)) {
+      return 'katex';
+    }
+    // 한글 포함
+    if (/[가-힣]/.test(label)) {
+      return 'korean';
+    }
+    // 그 외 (여러 글자 영문 등)
+    return 'text';
   }
 
   /**
    * 최적의 라벨 위치 찾기 (충돌 최소화)
    * @param {Object} pointData - 점 데이터
    * @param {number} pointRadius - 현재 점 반지름
+   * @param {string} labelType - 라벨 타입 ('katex'|'korean'|'text')
    * @returns {{x: number, y: number}} 라벨 위치
    */
-  _findBestLabelPosition(pointData, pointRadius) {
-    const { cx, cy, x, y } = pointData;
-    const offset = pointRadius + CONFIG.getScaledValue(15);
+  _findBestLabelPosition(pointData, pointRadius, labelType = 'katex') {
+    const { cx, cy, x, y, highlight } = pointData;
+    const label = highlight.label;
+
+    // 라벨 텍스트 크기 측정
+    const fontSize = CONFIG.getScaledFontSize(labelType === 'katex' ? 32 : 20);
+    const labelMetrics = this._measureLabelSize(label, fontSize, labelType);
+
+    // 점 반지름 + 여백 + 라벨 크기의 절반을 오프셋으로 사용
+    const margin = CONFIG.getScaledValue(8);
 
     // 8방향 후보 (우상, 우, 우하, 하, 좌하, 좌, 좌상, 상)
     const directions = [
-      { dx: 1, dy: -1 },   // 우상
-      { dx: 1, dy: 0 },    // 우
-      { dx: 1, dy: 1 },    // 우하
-      { dx: 0, dy: 1 },    // 하
-      { dx: -1, dy: 1 },   // 좌하
-      { dx: -1, dy: 0 },   // 좌
-      { dx: -1, dy: -1 },  // 좌상
-      { dx: 0, dy: -1 }    // 상
+      { dx: 1, dy: -1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },   // 우상
+      { dx: 1, dy: 0, offsetX: labelMetrics.width / 2 + margin, offsetY: 0 },    // 우
+      { dx: 1, dy: 1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },    // 우하
+      { dx: 0, dy: 1, offsetX: 0, offsetY: labelMetrics.height / 2 + margin },    // 하
+      { dx: -1, dy: 1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },   // 좌하
+      { dx: -1, dy: 0, offsetX: labelMetrics.width / 2 + margin, offsetY: 0 },   // 좌
+      { dx: -1, dy: -1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },  // 좌상
+      { dx: 0, dy: -1, offsetX: 0, offsetY: labelMetrics.height / 2 + margin }    // 상
     ];
 
     // 각 방향에서 다른 점들과의 거리 계산
@@ -501,8 +543,11 @@ class ScatterRenderer {
     }
 
     for (const dir of directions) {
-      const candidateX = cx + dir.dx * offset;
-      const candidateY = cy + dir.dy * offset;
+      // 방향별로 다른 오프셋 적용 (라벨 크기 기반)
+      const offsetX = pointRadius + dir.offsetX;
+      const offsetY = pointRadius + dir.offsetY;
+      const candidateX = cx + dir.dx * offsetX;
+      const candidateY = cy + dir.dy * offsetY;
 
       // 캔버스 경계 체크
       if (candidateX < this.padding || candidateX > this.canvas.width - this.padding ||
@@ -530,9 +575,47 @@ class ScatterRenderer {
       }
     }
 
+    // 선택된 방향의 오프셋으로 최종 위치 계산
+    const finalOffsetX = pointRadius + bestDir.offsetX;
+    const finalOffsetY = pointRadius + bestDir.offsetY;
     return {
-      x: cx + bestDir.dx * offset,
-      y: cy + bestDir.dy * offset
+      x: cx + bestDir.dx * finalOffsetX,
+      y: cy + bestDir.dy * finalOffsetY
+    };
+  }
+
+  /**
+   * 라벨 텍스트 크기 측정
+   * @param {string} label - 라벨 텍스트
+   * @param {number} fontSize - 폰트 크기
+   * @param {string} labelType - 라벨 타입 ('katex'|'korean'|'text')
+   * @returns {{width: number, height: number}} 텍스트 크기
+   */
+  _measureLabelSize(label, fontSize, labelType) {
+    const ctx = this.ctx;
+    ctx.save();
+
+    // 라벨 타입에 따라 폰트 설정
+    if (labelType === 'katex') {
+      ctx.font = `${fontSize}px 'KaTeX_Main', 'Times New Roman', serif`;
+    } else if (labelType === 'korean') {
+      ctx.font = `${fontSize}px 'SCDream', sans-serif`;
+    } else {
+      // text: englishFont 옵션에 따라
+      const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
+      ctx.font = useEnglishFont
+        ? `${fontSize}px 'Source Han Sans KR', sans-serif`
+        : `${fontSize}px 'SCDream', sans-serif`;
+    }
+
+    const metrics = ctx.measureText(label);
+    ctx.restore();
+
+    // 높이는 폰트 크기 기반으로 추정 (한글은 약간 더 높음)
+    const height = fontSize * (labelType === 'korean' ? 1.2 : 1.0);
+    return {
+      width: metrics.width,
+      height: height
     };
   }
 
@@ -1069,37 +1152,62 @@ class ScatterRenderer {
     const { highlightRadius, highlight } = point;
     const label = highlight.label;
 
+    // 라벨 타입 판별
+    const labelType = this._getLabelType(label);
+
     // 라벨 위치 결정
-    const labelPos = this._findBestLabelPositionStatic(point, highlightRadius, data, coords);
+    const labelPos = this._findBestLabelPositionStatic(point, highlightRadius, data, coords, labelType);
 
-    const fontSize = CONFIG.getScaledFontSize(32);
+    const fontSize = CONFIG.getScaledFontSize(labelType === 'katex' ? 32 : 20);
+    const color = highlight.color || CONFIG.SCATTER_HIGHLIGHT_COLOR;
 
-    // KaTeX로 라벨 렌더링
-    KatexUtils.render(ctx, label, labelPos.x, labelPos.y, {
-      fontSize,
-      color: highlight.color || CONFIG.SCATTER_HIGHLIGHT_COLOR,
-      align: 'center',
-      baseline: 'middle'
-    });
+    // 라벨 타입에 따라 렌더링 방식 결정
+    if (labelType === 'katex') {
+      // 한 글자 (A, B, x, y 등): KaTeX 렌더링
+      KatexUtils.render(ctx, label, labelPos.x, labelPos.y, {
+        fontSize,
+        color,
+        align: 'center',
+        baseline: 'middle'
+      });
+    } else {
+      // 여러 글자: renderMixedText (englishFont 옵션 적용)
+      const useEnglishFont = CONFIG.CHART_ENGLISH_FONT;
+      KatexUtils.renderMixedText(ctx, label, labelPos.x, labelPos.y, {
+        fontSize,
+        color,
+        align: 'center',
+        baseline: 'middle',
+        useEnglishFont
+      });
+    }
   }
 
   /**
    * 정적 모드에서 최적의 라벨 위치 찾기
+   * @param {string} labelType - 라벨 타입 ('katex'|'korean'|'text')
    */
-  _findBestLabelPositionStatic(point, pointRadius, data, coords) {
-    const { cx, cy, x, y } = point;
+  _findBestLabelPositionStatic(point, pointRadius, data, coords, labelType = 'katex') {
+    const { cx, cy, x, y, highlight } = point;
     const { toX, toY } = coords;
-    const offset = pointRadius + CONFIG.getScaledValue(15);
+    const label = highlight.label;
+
+    // 라벨 텍스트 크기 측정
+    const fontSize = CONFIG.getScaledFontSize(labelType === 'katex' ? 32 : 20);
+    const labelMetrics = this._measureLabelSize(label, fontSize, labelType);
+
+    // 점 반지름 + 여백 + 라벨 크기의 절반을 오프셋으로 사용
+    const margin = CONFIG.getScaledValue(8);
 
     const directions = [
-      { dx: 1, dy: -1 },
-      { dx: 1, dy: 0 },
-      { dx: 1, dy: 1 },
-      { dx: 0, dy: 1 },
-      { dx: -1, dy: 1 },
-      { dx: -1, dy: 0 },
-      { dx: -1, dy: -1 },
-      { dx: 0, dy: -1 }
+      { dx: 1, dy: -1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },
+      { dx: 1, dy: 0, offsetX: labelMetrics.width / 2 + margin, offsetY: 0 },
+      { dx: 1, dy: 1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },
+      { dx: 0, dy: 1, offsetX: 0, offsetY: labelMetrics.height / 2 + margin },
+      { dx: -1, dy: 1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },
+      { dx: -1, dy: 0, offsetX: labelMetrics.width / 2 + margin, offsetY: 0 },
+      { dx: -1, dy: -1, offsetX: labelMetrics.width / 2 + margin, offsetY: labelMetrics.height / 2 + margin },
+      { dx: 0, dy: -1, offsetX: 0, offsetY: labelMetrics.height / 2 + margin }
     ];
 
     let bestDir = directions[0];
@@ -1115,8 +1223,11 @@ class ScatterRenderer {
     }
 
     for (const dir of directions) {
-      const candidateX = cx + dir.dx * offset;
-      const candidateY = cy + dir.dy * offset;
+      // 방향별로 다른 오프셋 적용 (라벨 크기 기반)
+      const offsetX = pointRadius + dir.offsetX;
+      const offsetY = pointRadius + dir.offsetY;
+      const candidateX = cx + dir.dx * offsetX;
+      const candidateY = cy + dir.dy * offsetY;
 
       // 캔버스 경계 체크
       if (candidateX < this.padding || candidateX > this.canvas.width - this.padding ||
@@ -1144,9 +1255,12 @@ class ScatterRenderer {
       }
     }
 
+    // 선택된 방향의 오프셋으로 최종 위치 계산
+    const finalOffsetX = pointRadius + bestDir.offsetX;
+    const finalOffsetY = pointRadius + bestDir.offsetY;
     return {
-      x: cx + bestDir.dx * offset,
-      y: cy + bestDir.dy * offset
+      x: cx + bestDir.dx * finalOffsetX,
+      y: cy + bestDir.dy * finalOffsetY
     };
   }
 
