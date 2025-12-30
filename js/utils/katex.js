@@ -427,12 +427,11 @@ export function splitByCharType(text) {
  */
 export function getFontForCharType(type, fontSize, useEnglishFont = false, segmentText = '') {
   if (type === 'english') {
-    // englishFont 모드에서도 짧은 변수명(1-2글자)은 KaTeX 유지
-    if (useEnglishFont && segmentText.length > 2) {
-      // 긴 영어 단어: Source Han Sans KR 직립체
+    // englishFont 모드: 모든 영문에 Source Han Sans KR 적용
+    if (useEnglishFont) {
       return `${fontSize}px 'Source Han Sans KR', sans-serif`;
     }
-    // 기본 또는 짧은 변수명: 소문자면 이탤릭, 대문자면 직립체
+    // 기본: 소문자면 이탤릭, 대문자면 직립체
     const isAllLowercase = /^[a-z]+$/.test(segmentText);
     if (isAllLowercase) {
       return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
@@ -441,13 +440,13 @@ export function getFontForCharType(type, fontSize, useEnglishFont = false, segme
   }
   // 하위 호환: 기존 lowercase/uppercase 타입도 처리
   if (type === 'lowercase') {
-    if (useEnglishFont && segmentText.length > 2) {
+    if (useEnglishFont) {
       return `${fontSize}px 'Source Han Sans KR', sans-serif`;
     }
     return `italic ${fontSize}px ${KATEX_FONTS.math}, ${KATEX_FONTS.main}, Times New Roman, serif`;
   }
   if (type === 'uppercase') {
-    if (useEnglishFont && segmentText.length > 2) {
+    if (useEnglishFont) {
       return `${fontSize}px 'Source Han Sans KR', sans-serif`;
     }
     return `${fontSize}px ${KATEX_FONTS.main}, Times New Roman, serif`;
