@@ -15,61 +15,134 @@
 
 ```
 statistics/
-├── js/                          # 소스 코드
-│   ├── viz-api.js               # 외부 API 진입점
-│   ├── config.js                # 전역 설정 (색상, 폰트, 크기 등)
-│   ├── app.js                   # 앱 초기화 (app.html용)
+├── js/                              # 소스 코드
+│   ├── viz-api.js                   # 외부 API 진입점
+│   ├── config.js                    # 전역 설정 (색상, 폰트, 크기 등)
+│   ├── app.js                       # 앱 초기화 (app.html용)
 │   │
-│   ├── core/                    # 핵심 로직
-│   │   ├── processor.js         # 데이터 처리 (통계 계산, 계급 생성)
-│   │   ├── parsers/             # 입력 파서 (문자열 → 데이터)
-│   │   ├── serializer/          # 직렬화
-│   │   ├── chartStore.js        # 차트 상태 관리
-│   │   ├── tableStore.js        # 표 상태 관리
-│   │   └── datasetStore.js      # 데이터셋 관리
+│   ├── core/                        # 핵심 로직
+│   │   ├── processor.js             # 데이터 처리 (통계 계산, 계급 생성)
+│   │   ├── chartStore.js            # 차트 상태 관리
+│   │   ├── tableStore.js            # 표 상태 관리
+│   │   ├── datasetStore.js          # 데이터셋 관리
+│   │   ├── dataStore.js             # 공통 데이터 스토어
+│   │   ├── parsers/                 # 입력 파서
+│   │   │   ├── index.js             # 파서 모듈 진입점
+│   │   │   ├── ParserAdapter.js     # 파서 어댑터
+│   │   │   ├── BasicTableParser.js  # 기본 테이블 파서
+│   │   │   ├── StemLeafParser.js    # 줄기-잎 그림 파서
+│   │   │   ├── CategoryMatrixParser.js # 범주형 매트릭스 파서
+│   │   │   └── FrequencyParser.js   # 도수분포 파서
+│   │   └── serializer/              # 직렬화
+│   │       ├── index.js             # 직렬화 모듈 진입점
+│   │       ├── DataExporter.js      # 데이터 내보내기
+│   │       └── DataImporter.js      # 데이터 가져오기
 │   │
-│   ├── renderers/               # 렌더러 (Canvas 그리기)
-│   │   ├── chart.js             # 히스토그램/막대그래프 렌더러
-│   │   ├── table.js             # 도수분포표 렌더러
-│   │   ├── scatter.js           # 산점도 렌더러
-│   │   ├── chart/               # 차트 하위 렌더러 (축, 막대, 콜아웃 등)
-│   │   └── table/               # 표 하위 렌더러
+│   ├── renderers/                   # 렌더러 (Canvas 그리기)
+│   │   ├── chart.js                 # 히스토그램 렌더러
+│   │   ├── table.js                 # 도수분포표 렌더러
+│   │   ├── scatter.js               # 산점도 렌더러
+│   │   ├── ui.js                    # UI 컴포넌트 렌더러
+│   │   ├── chart/                   # 차트 하위 렌더러
+│   │   │   ├── AxisRenderer.js      # 축 렌더러
+│   │   │   ├── HistogramRenderer.js # 막대 렌더러
+│   │   │   ├── PolygonRenderer.js   # 도수다각형 렌더러
+│   │   │   ├── CalloutRenderer.js   # 콜아웃(말풍선) 렌더러
+│   │   │   ├── CurveRenderer.js     # 분포곡선 렌더러
+│   │   │   ├── TriangleRenderer.js  # 합동삼각형 렌더러
+│   │   │   ├── DashedLineRenderer.js # 파선 렌더러
+│   │   │   ├── CoordinateSystem.js  # 좌표계
+│   │   │   └── LayerFactory.js      # 레이어 팩토리
+│   │   └── table/                   # 표 하위 렌더러
+│   │       ├── TableCellRenderer.js # 셀 렌더러
+│   │       ├── TableLayerFactory.js # 레이어 팩토리
+│   │       ├── TableEditModal.js    # 편집 모달
+│   │       └── factories/           # 테이블 팩토리
+│   │           ├── index.js         # 팩토리 모듈 진입점
+│   │           ├── BaseTableFactory.js     # 기본 팩토리 클래스
+│   │           ├── BasicTableFactory.js    # 기본 테이블 팩토리
+│   │           ├── StemLeafFactory.js      # 줄기-잎 팩토리
+│   │           └── CategoryMatrixFactory.js # 범주형 매트릭스 팩토리
 │   │
-│   ├── utils/                   # 유틸리티
-│   │   ├── katex.js             # KaTeX 폰트 렌더링 (수학 기호)
-│   │   ├── corruption.js        # 손글씨 효과 (선 떨림)
-│   │   ├── validator.js         # 설정 검증
-│   │   └── utils.js             # 공통 유틸
+│   ├── utils/                       # 유틸리티
+│   │   ├── utils.js                 # 공통 유틸리티 함수
+│   │   ├── katex.js                 # KaTeX 폰트 렌더링
+│   │   ├── corruption.js            # 손글씨/찢김 효과
+│   │   ├── validator.js             # 설정 검증
+│   │   └── message.js               # 메시지 유틸
 │   │
-│   ├── animation/               # 애니메이션 시스템
-│   └── controllers/             # UI 컨트롤러 (app.html용)
+│   ├── animation/                   # 애니메이션 시스템
+│   │   ├── index.js                 # 애니메이션 모듈 진입점
+│   │   ├── timeline/                # 타임라인 관리
+│   │   │   ├── index.js
+│   │   │   ├── timeline.controller.js  # 타임라인 컨트롤러
+│   │   │   ├── timeline.service.js     # 타임라인 서비스
+│   │   │   ├── timeline.dto.js         # 타임라인 DTO
+│   │   │   └── timeline.utils.js       # 타임라인 유틸
+│   │   ├── layer/                   # 레이어 시스템
+│   │   │   ├── index.js
+│   │   │   ├── layer.controller.js     # 레이어 컨트롤러
+│   │   │   ├── layer.service.js        # 레이어 서비스
+│   │   │   ├── layer.dto.js            # 레이어 DTO
+│   │   │   └── layer.utils.js          # 레이어 유틸
+│   │   └── effects/                 # 애니메이션 효과
+│   │       ├── index.js
+│   │       ├── animation-index.js      # 애니메이션 인덱스
+│   │       ├── animation.controller.js # 애니메이션 컨트롤러
+│   │       ├── animation.service.js    # 애니메이션 서비스
+│   │       ├── fade.js                 # 페이드 효과
+│   │       ├── slide.js                # 슬라이드 효과
+│   │       ├── scale.js                # 스케일 효과
+│   │       ├── draw.js                 # 드로우 효과
+│   │       └── blink.js                # 깜빡임 효과
+│   │
+│   └── controllers/                 # UI 컨트롤러 (app.html용)
+│       ├── index.js                 # 컨트롤러 모듈 진입점
+│       ├── GenerationController.js  # 생성 컨트롤러
+│       ├── DatasetController.js     # 데이터셋 컨트롤러
+│       ├── ChartSettingsController.js # 차트 설정 컨트롤러
+│       ├── TableConfigController.js # 테이블 설정 컨트롤러
+│       ├── LayerPanelController.js  # 레이어 패널 컨트롤러
+│       └── AnimationController.js   # 애니메이션 컨트롤러
 │
-├── dist/                        # 빌드 출력물
-│   ├── viz-api.js               # UMD 번들 (브라우저용)
-│   ├── viz-api.esm.js           # ES Module 번들
-│   └── *.map                    # 소스맵
+├── dist/                            # 빌드 출력물
+│   ├── viz-api.js                   # UMD 번들
+│   ├── viz-api.esm.js               # ES Module 번들
+│   └── *.map                        # 소스맵
 │
-├── schema/                      # JSON 스키마
-│   └── viz-api.schema.json      # 설정 검증용 스키마
+├── schema/
+│   └── viz-api.schema.json          # 설정 스키마
 │
-├── build-helper/                # 빌드 도구
-│   ├── rollup.config.js         # 기본 Rollup 설정
-│   ├── rollup.config.api.js     # API 번들 설정
-│   └── zip-bundle.js            # ZIP 패키징 스크립트
+├── build-helper/                    # 빌드 도구
+│   ├── rollup.config.js
+│   ├── rollup.config.api.js
+│   ├── zip-bundle.js
+│   └── bundles/                     # 버전별 빌드 아카이브
 │
-├── test/                        # 테스트 페이지
-├── md/                          # 문서
+├── test/                            # 테스트 페이지
+├── md/                              # 문서
 │
-├── index.html                   # 랜딩 페이지
-├── app.html                     # 차트 생성기 앱
-├── validator.html               # 설정 검증 도구
-├── styles.css                   # 전역 스타일
-│
-├── package.json                 # npm 설정
-├── vercel.json                  # Vercel 배포 설정
-└── .github/workflows/           # GitHub Actions
-    └── deploy.yml               # GitHub Pages 배포
+├── index.html                       # 랜딩 페이지
+├── app.html                         # 차트 생성기 앱
+├── validator.html                   # 설정 검증 도구
+├── styles.css                       # 전역 스타일
+├── package.json
+└── .github/workflows/
+    └── deploy.yml                   # GitHub Pages 배포
 ```
+
+### 디렉토리 요약
+
+| 디렉토리 | 역할 |
+|----------|------|
+| `js/core/` | 데이터 처리, 상태 관리, 파싱, 직렬화 등 핵심 비즈니스 로직 |
+| `js/renderers/` | Canvas 기반 시각화 렌더링 (차트, 테이블, 산점도) |
+| `js/animation/` | 타임라인, 레이어, 효과 기반 애니메이션 시스템 |
+| `js/utils/` | KaTeX 폰트, 검증, 공통 유틸리티 함수 |
+| `js/controllers/` | app.html UI 컨트롤러 (생성기 전용) |
+| `dist/` | Rollup 빌드 결과물 (UMD + ESM) |
+| `schema/` | 설정 JSON 스키마 (검증용) |
+| `build-helper/` | 빌드 스크립트 및 설정 |
 
 ---
 
